@@ -1,6 +1,18 @@
 import { supabase } from './supabase';
 
-const API_BASE = import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+      return 'http://localhost:3001';
+    }
+  }
+  return (typeof window !== 'undefined' && (window as any).__PUBLIC_API_URL__)
+    || import.meta.env.PUBLIC_API_URL
+    || 'https://api.otpwala.me';
+}
+
+const API_BASE = getApiBaseUrl();
 const SESSION_STORAGE_KEY = 'otpwala_session_id';
 
 /**

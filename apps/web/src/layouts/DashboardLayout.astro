@@ -619,10 +619,8 @@ const formattedTitle = formatPageTitle(title);
           return;
         }
 
-        try {
-          const cfgRes = await fetch(
-            (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/auth/config'
-          );
+          const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+          const cfgRes = await fetch(apiUrl + '/api/auth/config');
           const cfgData = await cfgRes.json();
           if (cfgData?.data?.allowRegistration === false) {
             clearLocalSessionId();
@@ -655,8 +653,9 @@ const formattedTitle = formatPageTitle(title);
       try {
         const pendingRef = localStorage.getItem('otpwala_ref_code');
         if (pendingRef) {
+          const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
           await fetch(
-            (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/referrals/attribute',
+            apiUrl + '/api/referrals/attribute',
             {
               method: 'POST',
               headers: {
@@ -712,8 +711,9 @@ const formattedTitle = formatPageTitle(title);
 
       // Fetch wallet balance
       try {
+        const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
         const res = await fetch(
-          (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/wallet',
+          apiUrl + '/api/wallet',
           {
             headers: {
               'Authorization': `Bearer ${session.access_token}`,

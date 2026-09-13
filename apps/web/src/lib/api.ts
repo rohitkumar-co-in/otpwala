@@ -1,7 +1,19 @@
 import { supabase } from './supabase';
 import { getLocalSessionId, handleSessionTermination } from './sessionManager';
 
-const API_URL = import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+      return 'http://localhost:3001';
+    }
+  }
+  return (typeof window !== 'undefined' && (window as any).__PUBLIC_API_URL__)
+    || import.meta.env.PUBLIC_API_URL
+    || 'https://api.otpwala.me';
+}
+
+const API_URL = getApiBaseUrl();
 
 async function getAuthToken(): Promise<string | null> {
   try {
@@ -27,7 +39,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers['x-session-id'] = sessionId;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,
   });

@@ -121,6 +121,12 @@ const webAppSchema = {
         document.head.appendChild(meta);
       }
     }
+    (function() {
+      var host = window.location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+        window.__PUBLIC_API_URL__ = 'http://localhost:3001';
+      }
+    })();
   </script>
 
   <!-- Canonical URL -->
@@ -639,7 +645,8 @@ const webAppSchema = {
         if (cached) applyBrand(JSON.parse(cached));
       } catch(e) {}
 
-      fetch('https://api.otpwala.me/api/branding')
+      const apiUrl = (window as any).__PUBLIC_API_URL__ || 'https://api.otpwala.me';
+      fetch(apiUrl + '/api/branding')
         .then(function(res) { return res.json(); })
         .then(function(json) {
           if (json && json.success && json.data) {
