@@ -619,6 +619,7 @@ const formattedTitle = formatPageTitle(title);
           return;
         }
 
+        try {
           const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
           const cfgRes = await fetch(apiUrl + '/api/auth/config');
           const cfgData = await cfgRes.json();
