@@ -1,0 +1,260 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/legal.css';
+
+const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
+---
+
+<BaseLayout 
+  title="Privacy Policy — OTPWala"
+  description="Official Privacy Policy for OTPWala. Learn how we collect, use, and protect your information and Google account data."
+  canonical={canonical}
+>
+  <div class="legal-page">
+    {/* Header Banner */}
+    <section class="legal-hero">
+      <div class="container">
+        <div class="legal-hero-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          LEGAL & TRANSPARENCY
+        </div>
+        <h1>Privacy Policy</h1>
+        <p class="legal-hero-sub">
+          Your privacy is fundamental to our service. This policy outlines how OTPWala handles personal data, Google authentication, and security.
+        </p>
+        <div class="legal-meta">
+          <span><strong>Effective Date:</strong> January 1, 2026</span>
+          <span class="meta-dot">·</span>
+          <span><strong>Last Updated:</strong> January 15, 2026</span>
+          <span class="meta-dot">·</span>
+          <span><strong>Version:</strong> 2.4</span>
+        </div>
+      </div>
+    </section>
+
+    {/* Main Content Container */}
+    <div class="container legal-body">
+      <div class="legal-layout">
+        {/* Sticky Navigation */}
+        <aside class="legal-sidebar hide-mobile">
+          <div class="legal-toc">
+            <h4>Contents</h4>
+            <nav>
+              <a href="#overview">1. Overview & Scope</a>
+              <a href="#google-data">2. Google User Data Policy</a>
+              <a href="#info-collect">3. Information We Collect</a>
+              <a href="#how-we-use">4. How We Use Information</a>
+              <a href="#sms-retention">5. SMS & Data Retention</a>
+              <a href="#data-sharing">6. Information Sharing</a>
+              <a href="#data-security">7. Security Safeguards</a>
+              <a href="#user-rights">8. Your Rights & Choices</a>
+              <a href="#contact">9. Contact & Support</a>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Document Content */}
+        <article class="legal-content">
+          {/* 1. Overview */}
+          <section id="overview" class="legal-section">
+            <h2>1. Overview & Scope</h2>
+            <p>
+              Welcome to <strong>OTPWala</strong> ("we," "our," or "us"). We provide an automated platform allowing verified users to provision temporary virtual phone numbers for receiving SMS verification codes (One-Time Passwords / OTPs) from third-party applications and web platforms.
+            </p>
+            <p>
+              This Privacy Policy explains how we collect, store, use, and disclose information when you visit our website (<strong>https://otpwala.me</strong>), access our dashboard, top up your account wallet, or authenticate using third-party identity providers such as Google OAuth.
+            </p>
+            <p>
+              By accessing or using OTPWala, you consent to the practices described in this Privacy Policy. If you do not agree with any portion of this policy, you must discontinue using our services.
+            </p>
+          </section>
+
+          {/* 2. Google User Data Policy */}
+          <section id="google-data" class="legal-section highlight-box">
+            <div class="box-tag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              GOOGLE API SERVICES COMPLIANCE
+            </div>
+            <h2>2. Google User Data & OAuth Policy</h2>
+            <p>
+              OTPWala offers single-sign-on (SSO) authentication using Google OAuth 2.0. Our use and transfer of information received from Google APIs to any other app will adhere to the 
+              <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer">
+                Google API Services User Data Policy
+              </a>, including the Limited Use requirements.
+            </p>
+            <div class="policy-points">
+              <div class="point-item">
+                <span class="point-icon">✓</span>
+                <div>
+                  <strong>What We Access:</strong> When you sign in with Google, we only request standard basic profile information: your <code>email address</code>, <code>display name</code>, and optional <code>profile avatar URL</code>. We never request access to your Google Drive, Gmail messages, contacts, or calendar data.
+                </div>
+              </div>
+              <div class="point-item">
+                <span class="point-icon">✓</span>
+                <div>
+                  <strong>Strict Purpose of Use:</strong> Your Google account information is used exclusively to create your authenticated OTPWala account, maintain your secure login session, associate your wallet balance, and send essential transactional receipts.
+                </div>
+              </div>
+              <div class="point-item">
+                <span class="point-icon">✓</span>
+                <div>
+                  <strong>No Sale or Third-Party Marketing:</strong> We strictly <strong>DO NOT</strong> sell, rent, monetize, or transfer your Google user data to advertisers, data brokers, or external analytics firms.
+                </div>
+              </div>
+              <div class="point-item">
+                <span class="point-icon">✓</span>
+                <div>
+                  <strong>Revocation:</strong> You can revoke OTPWala's access to your Google account at any time by visiting your 
+                  <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Google Account Permissions</a> settings.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 3. Information We Collect */}
+          <section id="info-collect" class="legal-section">
+            <h2>3. Information We Collect</h2>
+            <p>We only collect information necessary to deliver and secure our virtual number services:</p>
+            
+            <div class="info-grid">
+              <div class="info-card">
+                <h3>A. Account Information</h3>
+                <p>When you register directly or via Google SSO:</p>
+                <ul>
+                  <li>Your verified email address</li>
+                  <li>Account creation timestamp & user identifier (UUID)</li>
+                  <li>Optional profile name</li>
+                </ul>
+              </div>
+
+              <div class="info-card">
+                <h3>B. Wallet & Payment Data</h3>
+                <p>When you add funds to your wallet:</p>
+                <ul>
+                  <li>Transaction amount and currency (INR)</li>
+                  <li>Payment method used (e.g., UPI)</li>
+                  <li>Bank/UPI transaction reference numbers (UTR) for reconciliation</li>
+                  <li><em>Note: We do NOT collect or store your UPI PIN, banking passwords, or card CVVs.</em></li>
+                </ul>
+              </div>
+
+              <div class="info-card">
+                <h3>C. Service Usage Data</h3>
+                <p>When you request a virtual number:</p>
+                <ul>
+                  <li>The service requested (e.g., WhatsApp, Telegram, Google)</li>
+                  <li>Country selected</li>
+                  <li>The temporary virtual phone number provisioned</li>
+                  <li>Order status (Waiting, Code Received, Completed, Cancelled)</li>
+                  <li>Cost and timestamps</li>
+                </ul>
+              </div>
+
+              <div class="info-card">
+                <h3>D. Technical & Security Logs</h3>
+                <p>To detect abuse and prevent fraudulent attacks:</p>
+                <ul>
+                  <li>IP address and approximate geolocation</li>
+                  <li>Browser type, device operating system, and user agent</li>
+                  <li>Access timestamps and failed request logs</li>
+                </ul>
+              </div>
+
+              <div class="info-card">
+                <h3>E. Referral & Attribution Data</h3>
+                <p>When participating in the Refer & Earn program:</p>
+                <ul>
+                  <li>Unique referral codes and referral tracking identifiers</li>
+                  <li>Attribution linkage between the referring account and referred user</li>
+                  <li><strong>Referral Privacy Guarantee:</strong> In the referrer's dashboard, only the referral's <strong>display name and joining date</strong> are shown. Private contact details (full email addresses, phone numbers, or specific purchases) are never disclosed to referrers.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. How We Use Information */}
+          <section id="how-we-use" class="legal-section">
+            <h2>4. How We Use Information</h2>
+            <p>The information we collect is processed for the following lawful business purposes:</p>
+            <ul class="styled-list">
+              <li><strong>Core Service Provision:</strong> Allocating temporary virtual numbers from upstream carriers and delivering the incoming verification SMS code to your private dashboard.</li>
+              <li><strong>Account Security:</strong> Verifying user identity, preventing automated brute-force attempts, and preventing unauthorized account takeover.</li>
+              <li><strong>Billing & Wallet Management:</strong> Crediting deposited funds, deducting purchases according to live pricing, and issuing automatic refunds when an SMS code is not received within the timeout window.</li>
+              <li><strong>Customer Support:</strong> Investigating failed orders, resolving payment inquiries, and assisting users via our official support channels.</li>
+              <li><strong>Legal Compliance & Abuse Prevention:</strong> Detecting and mitigating malicious activities such as spam, fraud, automated bot exploitation, or violations of our Terms of Service.</li>
+            </ul>
+          </section>
+
+          {/* 5. SMS & Data Retention */}
+          <section id="sms-retention" class="legal-section">
+            <h2>5. SMS & Data Retention Policy</h2>
+            <p>
+              We believe in data minimization. The temporary numbers provisioned through our service are disposable:
+            </p>
+            <ul>
+              <li><strong>SMS Content:</strong> Verification SMS codes received on virtual numbers are displayed on your dashboard in real-time. We only retain the extracted verification code and transient notification text during the active activation window (typically 10 to 20 minutes).</li>
+              <li><strong>Number Recycling:</strong> Virtual phone numbers do not belong to users permanently. Once an activation session ends or expires, the number is released and cannot be reused or retrieved.</li>
+              <li><strong>Account Deletion:</strong> You can request full account deletion and erasure of your profile records by contacting our support team at <code>support@otpwala.me</code>.</li>
+            </ul>
+          </section>
+
+          {/* 6. Information Sharing */}
+          <section id="data-sharing" class="legal-section">
+            <h2>6. Information Sharing & Third Parties</h2>
+            <p>We do not sell, license, or trade your personal information. Information is only shared under strict circumstances:</p>
+            <ul>
+              <li><strong>Upstream Telecommunication Providers:</strong> We communicate with verified upstream carrier gateways (such as Tiger SMS) to query availability and request telephone numbers. We only transmit the required service code and country ID; we <strong>never</strong> transmit your personal identity, email, or Google account information to upstream carriers.</li>
+              <li><strong>Payment Gateways & Banking Partners:</strong> When processing deposits, transaction details are handled securely by authorized banking and UPI infrastructure providers.</li>
+              <li><strong>Legal & Regulatory Authorities:</strong> We may disclose data if required by a court order, applicable law, subpoena, or governmental regulatory authority to comply with legal obligations or prevent unlawful conduct.</li>
+            </ul>
+          </section>
+
+          {/* 7. Security Safeguards */}
+          <section id="data-security" class="legal-section">
+            <h2>7. Security Safeguards</h2>
+            <p>
+              We implement comprehensive physical, technical, and organizational security measures to protect your information:
+            </p>
+            <ul>
+              <li><strong>End-to-End Encryption:</strong> All traffic between your browser and our servers is encrypted using modern Transport Layer Security (TLS 1.3 / HTTPS).</li>
+              <li><strong>Token-Based Authentication:</strong> User sessions are managed using encrypted, short-lived JSON Web Tokens (JWT) stored securely and authenticated through Supabase Auth.</li>
+              <li><strong>Role-Based Access Control:</strong> Strict database-level Row Level Security (RLS) policies ensure that users can only access their own orders, wallets, and profile records.</li>
+            </ul>
+          </section>
+
+          {/* 8. User Rights */}
+          <section id="user-rights" class="legal-section">
+            <h2>8. Your Rights & Choices</h2>
+            <p>Under applicable data privacy regulations (including Indian IT Act rules and GDPR principles), you have the right to:</p>
+            <ul>
+              <li><strong>Access:</strong> Request a summary of the personal data we hold associated with your account.</li>
+              <li><strong>Correction:</strong> Request correction of inaccurate or incomplete information.</li>
+              <li><strong>Revoke Consent:</strong> Disconnect your Google OAuth authorization at any time through Google Account security settings.</li>
+              <li><strong>Account Closure:</strong> Request closure of your account and purging of personal identity data.</li>
+            </ul>
+          </section>
+
+          {/* 9. Contact */}
+          <section id="contact" class="legal-section">
+            <h2>9. Contact & Inquiries</h2>
+            <p>
+              If you have any questions, concerns, or requests regarding this Privacy Policy or how your data is handled, please reach out to our team:
+            </p>
+            <div class="contact-card">
+              <div>
+                <strong>OTPWala Support Team</strong><br/>
+                <span>Email:</span> <a href="mailto:support@otpwala.me">support@otpwala.me</a><br/>
+                <span>Telegram Support:</span> <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener">@OTPWalaSupport</a><br/>
+                <span>Website:</span> <a href="https://otpwala.me">https://otpwala.me</a>
+              </div>
+            </div>
+          </section>
+        </article>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

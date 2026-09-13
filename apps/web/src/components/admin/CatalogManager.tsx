@@ -1,0 +1,651 @@
+import { useState, useEffect } from 'react';
+import {
+  getAdminCatalog,
+  toggleAdminService,
+  toggleAdminCountry,
+  batchUpdateAdminCatalog,
+} from '../../lib/api';
+import {
+  SmartphoneIcon,
+  GlobeIcon,
+  RefreshCwIcon,
+  SearchIcon,
+  StarIcon,
+  CheckIcon,
+  XIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+} from '../ui/Icons';
+
+export default function CatalogManager() {
+  const [activeTab, setActiveTab] = useState<'services' | 'countries'>('services');
+  const [services, setServices] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filterState, setFilterState] = useState<'all' | 'enabled' | 'disabled'>('all');
+  const [sortBy, setSortBy] = useState<'popular' | 'name_asc' | 'name_desc'>('popular');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const loadCatalog = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAdminCatalog();
+      setServices(data.services || []);
+      setCountries(data.countries || []);
+      setStats(data.stats || null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load catalog settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCatalog();
+  }, []);
+
+  const handleToggleService = async (code: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus;
+    // Optimistic UI update
+    setServices((prev) =>
+      prev.map((s) => (s.code === code ? { ...s, enabled: nextStatus } : s))
+    );
+    setActionLoading(`svc-${code}`);
+    setError(null);
+    try {
+      await toggleAdminService(code, nextStatus);
+      setStats((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              enabledServices: nextStatus
+                ? prev.enabledServices + 1
+                : prev.enabledServices - 1,
+            }
+          : prev
+      );
+    } catch (err: any) {
+      // Revert optimistic update
+      setServices((prev) =>
+        prev.map((s) => (s.code === code ? { ...s, enabled: currentStatus } : s))
+      );
+      setError(err.message || 'Failed to update service status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleCountry = async (id: number, currentStatus: boolean) => {
+    const nextStatus = !currentStatus;
+    // Optimistic UI update
+    setCountries((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, enabled: nextStatus } : c))
+    );
+    setActionLoading(`cnt-${id}`);
+    setError(null);
+    try {
+      await toggleAdminCountry(id, nextStatus);
+      setStats((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              enabledCountries: nextStatus
+                ? prev.enabledCountries + 1
+                : prev.enabledCountries - 1,
+            }
+          : prev
+      );
+    } catch (err: any) {
+      // Revert optimistic update
+      setCountries((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, enabled: currentStatus } : c))
+      );
+      setError(err.message || 'Failed to update country status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBatchAction = async (action: string, description: string) => {
+    if (!confirm(`Are you sure you want to: ${description}?`)) return;
+    setActionLoading(action);
+    setError(null);
+    setSuccess(null);
+    try {
+      await batchUpdateAdminCatalog(action);
+      setSuccess(`Executed: ${description}`);
+      await loadCatalog();
+    } catch (err: any) {
+      setError(err.message || 'Failed to perform batch update');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+const POPULAR_SERVICE_CODES = [
+  'wa', 'tg', 'go', 'opt80', 'ig', 'fb', 'tw', 'lf', 'ds', 'ub', 
+  'vk', 'vi', 'nf', 'am', 'mb', 'wb', 'ya', 'qq', 'wx', 'ts', 'ap', 'ms'
+];
+const POPULAR_COUNTRY_IDS = [
+  187, 22, 16, 43, 48, 6, 10, 4, 73, 52, 12, 175, 78
+];
+
+  // Filter & sort list
+  const filteredServices = services
+    .filter((s) => {
+      const matchesSearch =
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.code.toLowerCase().includes(search.toLowerCase());
+      if (!matchesSearch) return false;
+      if (filterState === 'enabled') return s.enabled;
+      if (filterState === 'disabled') return !s.enabled;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+      // popular
+      const aPopIndex = POPULAR_SERVICE_CODES.indexOf(a.code.toLowerCase());
+      const bPopIndex = POPULAR_SERVICE_CODES.indexOf(b.code.toLowerCase());
+      const aIsPop = aPopIndex !== -1;
+      const bIsPop = bPopIndex !== -1;
+      if (aIsPop && bIsPop) return aPopIndex - bPopIndex;
+      if (aIsPop) return -1;
+      if (bIsPop) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const filteredCountries = countries
+    .filter((c) => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        String(c.id).includes(search);
+      if (!matchesSearch) return false;
+      if (filterState === 'enabled') return c.enabled;
+      if (filterState === 'disabled') return !c.enabled;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+      // popular
+      const aPopIndex = POPULAR_COUNTRY_IDS.indexOf(Number(a.id));
+      const bPopIndex = POPULAR_COUNTRY_IDS.indexOf(Number(b.id));
+      const aIsPop = aPopIndex !== -1;
+      const bIsPop = bPopIndex !== -1;
+      if (aIsPop && bIsPop) return aPopIndex - bPopIndex;
+      if (aIsPop) return -1;
+      if (bIsPop) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const activeServicesCount = stats?.enabledServices ?? services.filter((s) => s.enabled).length;
+  const activeCountriesCount = stats?.enabledCountries ?? countries.filter((c) => c.enabled).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>
+            Catalog & <span className="text-gradient">Visibility Controls</span>
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            Choose which services and countries are visible and purchasable for customers on OTPWala
+          </p>
+        </div>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={loadCatalog}
+          disabled={loading}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
+          <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+        </button>
+      </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertCircleIcon size={18} />
+            <span>{error}</span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setError(null)}>
+            <XIcon size={14} />
+          </button>
+        </div>
+      )}
+
+      {success && (
+        <div className="alert alert-success" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircleIcon size={18} />
+            <span>{success}</span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setSuccess(null)}>
+            <XIcon size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Metrics & Overview */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+        <div
+          className="card glass-card"
+          onClick={() => { setActiveTab('services'); setSearch(''); }}
+          style={{
+            padding: '1.25rem',
+            cursor: 'pointer',
+            border: activeTab === 'services' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+            background: activeTab === 'services' ? 'var(--accent-glow)' : 'var(--bg-card)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              SMS Services Catalog
+            </span>
+            <SmartphoneIcon size={20} color="var(--accent-primary)" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-primary)' }}>
+              {activeServicesCount}
+            </span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+              / {services.length} Enabled
+            </span>
+          </div>
+          <div style={{ marginTop: '0.5rem', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '100%',
+                background: 'var(--accent-gradient)',
+                width: `${services.length ? (activeServicesCount / services.length) * 100 : 0}%`,
+              }}
+            ></div>
+          </div>
+        </div>
+
+        <div
+          className="card glass-card"
+          onClick={() => { setActiveTab('countries'); setSearch(''); }}
+          style={{
+            padding: '1.25rem',
+            cursor: 'pointer',
+            border: activeTab === 'countries' ? '2px solid #10b981' : '1px solid var(--border-subtle)',
+            background: activeTab === 'countries' ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-card)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              Countries & Regions
+            </span>
+            <GlobeIcon size={20} color="#34d399" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: '#34d399' }}>
+              {activeCountriesCount}
+            </span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+              / {countries.length} Enabled
+            </span>
+          </div>
+          <div style={{ marginTop: '0.5rem', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '100%',
+                background: '#10b981',
+                width: `${countries.length ? (activeCountriesCount / countries.length) * 100 : 0}%`,
+              }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs & Controls */}
+      <div className="card" style={{ padding: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+          {/* Tab Selector */}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              className={`btn btn-sm ${activeTab === 'services' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => { setActiveTab('services'); setSearch(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <SmartphoneIcon size={14} />
+              <span>Services ({services.length})</span>
+            </button>
+            <button
+              className={`btn btn-sm ${activeTab === 'countries' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => { setActiveTab('countries'); setSearch(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <GlobeIcon size={14} />
+              <span>Countries ({countries.length})</span>
+            </button>
+          </div>
+
+          {/* Quick Batch Presets */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {activeTab === 'services' ? (
+              <>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('enable_popular_services', 'Enable Top 10 Popular Services')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <StarIcon size={13} color="#f59e0b" />
+                  <span>Top Popular Only</span>
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('enable_all_services', 'Enable All Services')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <CheckIcon size={13} />
+                  <span>Enable All</span>
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--error)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('disable_all_services', 'Disable All Services')}
+                >
+                  <XIcon size={13} />
+                  <span>Disable All</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('enable_popular_countries', 'Enable Top Popular Countries')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <StarIcon size={13} color="#f59e0b" />
+                  <span>Popular Countries Only</span>
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('enable_all_countries', 'Enable All Countries')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  <CheckIcon size={13} />
+                  <span>Enable All</span>
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--error)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  disabled={actionLoading !== null}
+                  onClick={() => handleBatchAction('disable_all_countries', 'Disable All Countries')}
+                >
+                  <XIcon size={13} />
+                  <span>Disable All</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === 'services' ? 'services (e.g. WhatsApp, tg)...' : 'countries (e.g. India, 22)...'}`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input"
+              style={{ width: '100%', paddingLeft: '2.5rem' }}
+            />
+            <span style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, display: 'flex', alignItems: 'center' }}>
+              <SearchIcon size={15} />
+            </span>
+          </div>
+
+          <select
+            value={filterState}
+            onChange={(e) => setFilterState(e.target.value as any)}
+            className="input"
+            style={{ width: 'auto', minWidth: '150px' }}
+          >
+            <option value="all">All ({activeTab === 'services' ? services.length : countries.length})</option>
+            <option value="enabled">Enabled Only ({activeTab === 'services' ? activeServicesCount : activeCountriesCount})</option>
+            <option value="disabled">Disabled Only</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="input"
+            style={{ width: 'auto', minWidth: '160px' }}
+            aria-label="Sort catalog items"
+          >
+            <option value="popular">Popular First</option>
+            <option value="name_asc">Name: A to Z</option>
+            <option value="name_desc">Name: Z to A</option>
+          </select>
+        </div>
+
+        {/* Content Listing */}
+        {loading ? (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Loading catalog from provider...
+          </div>
+        ) : activeTab === 'services' ? (
+          /* Services Table */
+          filteredServices.length === 0 ? (
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No services match your search or filter.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+              {filteredServices.map((s) => (
+                <div
+                  key={s.code}
+                  className="card"
+                  style={{
+                    padding: '0.85rem 1rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: s.enabled ? 'var(--bg-card)' : 'rgba(239, 68, 68, 0.03)',
+                    border: s.enabled ? '1px solid var(--border-subtle)' : '1px solid rgba(239, 68, 68, 0.2)',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: s.enabled ? 'var(--accent-glow)' : 'var(--bg-tertiary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        padding: '6px',
+                      }}
+                    >
+                      <img
+                        src={s.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg'}
+                        alt={s.name}
+                        width="24"
+                        height="24"
+                        style={{ objectFit: 'contain', display: 'block' }}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://tiger-sms.com/img/service/unknown.svg';
+                        }}
+                      />
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          color: s.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
+                        }}
+                        title={s.name}
+                      >
+                        {s.name}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        code: {s.code}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Toggle Switch Button */}
+                  <button
+                    onClick={() => handleToggleService(s.code, s.enabled)}
+                    disabled={actionLoading === `svc-${s.code}`}
+                    style={{
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: 'var(--radius-full)',
+                      padding: '0.3rem 0.65rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      background: s.enabled ? 'var(--success-bg)' : 'var(--error-bg)',
+                      color: s.enabled ? 'var(--success)' : 'var(--error)',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: s.enabled ? 'var(--success-border)' : 'var(--error-border)',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                    title="Click to toggle live visibility"
+                  >
+                    {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                    <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )
+        ) : (
+          /* Countries Grid */
+          filteredCountries.length === 0 ? (
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No countries match your search or filter.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
+              {filteredCountries.map((c) => (
+                <div
+                  key={c.id}
+                  className="card"
+                  style={{
+                    padding: '0.85rem 1rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: c.enabled ? 'var(--bg-card)' : 'rgba(239, 68, 68, 0.03)',
+                    border: c.enabled ? '1px solid var(--border-subtle)' : '1px solid rgba(239, 68, 68, 0.2)',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: c.enabled ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-tertiary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img
+                        src={c.flagUrl || (c.iso ? `https://tiger-sms.com/img/country/${c.iso.toUpperCase()}.svg` : 'https://flagcdn.com/un.svg')}
+                        alt={c.name}
+                        width="26"
+                        height="18"
+                        style={{
+                          borderRadius: '3px',
+                          objectFit: 'cover',
+                          boxShadow: '0 0 0 1px rgba(255,255,255,0.15)',
+                        }}
+                        loading="lazy"
+                        onError={(e) => {
+                          const fallback = c.iso ? `https://flagcdn.com/${c.iso.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
+                          if (e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
+                          }
+                        }}
+                      />
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          color: c.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
+                        }}
+                        title={c.name}
+                      >
+                        {c.name}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        Country ID: {c.id}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Toggle Switch Button */}
+                  <button
+                    onClick={() => handleToggleCountry(c.id, c.enabled)}
+                    disabled={actionLoading === `cnt-${c.id}`}
+                    style={{
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: 'var(--radius-full)',
+                      padding: '0.3rem 0.65rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      background: c.enabled ? 'var(--success-bg)' : 'var(--error-bg)',
+                      color: c.enabled ? 'var(--success)' : 'var(--error)',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      borderColor: c.enabled ? 'var(--success-border)' : 'var(--error-border)',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                    title="Click to toggle country visibility"
+                  >
+                    {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                    <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}

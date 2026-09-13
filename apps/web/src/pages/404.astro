@@ -1,0 +1,258 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="404 — Page Not Found"
+  description="The page you are looking for does not exist or has been moved. Return to the OTPWala homepage or explore virtual numbers."
+  noindex={true}
+>
+  <main class="error-page-container">
+    <div class="error-card glass-card">
+      <!-- Glowing 404 Pill -->
+      <div class="error-badge">
+        <span class="status-dot error-dot"></span>
+        <span>ERROR 404</span>
+      </div>
+
+      <!-- Hero 404 Graphic -->
+      <div class="error-hero">
+        <div class="error-code-glow">404</div>
+        <div class="error-icon-box">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+      </div>
+
+      <h1 class="error-title">
+        Page <span class="text-gradient">Not Found</span>
+      </h1>
+
+      <p class="error-description">
+        The link you followed may be broken, expired, or the page may have been relocated.
+        Don't worry &mdash; your wallet balance and numbers on <span data-brand-name>OTPWala</span> remain safe.
+      </p>
+
+      <!-- Quick Action Buttons -->
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary btn-lg action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Return to Homepage</span>
+        </a>
+
+        <a href="/dashboard" class="btn btn-secondary btn-lg action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Go to Dashboard</span>
+        </a>
+      </div>
+
+      <!-- Helpful Shortcuts -->
+      <div class="error-links">
+        <span class="links-label">Popular Destinations:</span>
+        <div class="links-pills">
+          <a href="/services" class="pill-link">Browse Services</a>
+          <a href="/pricing" class="pill-link">Price Rates</a>
+          <a href="/how-it-works" class="pill-link">How It Works</a>
+          <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" class="pill-link highlight">
+            💬 Telegram Support
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .error-page-container {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .error-card {
+    max-width: 620px;
+    width: 100%;
+    padding: 3.5rem 2.5rem;
+    text-align: center;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.75) 0%, rgba(10, 14, 26, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl, 24px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
+  }
+
+  .error-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #f87171;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .error-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+  }
+
+  .error-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .error-code-glow {
+    font-size: clamp(6rem, 18vw, 9rem);
+    font-weight: 900;
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.03) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    user-select: none;
+  }
+
+  .error-icon-box {
+    position: absolute;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a855f7;
+    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.3);
+  }
+
+  .error-title {
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    font-weight: 800;
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    margin: 0 0 0.85rem 0;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+
+  .error-description {
+    font-size: 0.95rem;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.6;
+    margin: 0 auto 2rem auto;
+    max-width: 480px;
+  }
+
+  .error-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.25rem;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    padding: 0.85rem 1.65rem;
+    border-radius: var(--radius-lg, 14px);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .action-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .error-links {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 1.75rem;
+  }
+
+  .links-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 0.75rem;
+  }
+
+  .links-pills {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .pill-link {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--text-secondary, #cbd5e1);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .pill-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .pill-link.highlight {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.3);
+    background: rgba(96, 165, 250, 0.08);
+  }
+
+  .pill-link.highlight:hover {
+    background: rgba(96, 165, 250, 0.18);
+  }
+
+  @media (max-width: 640px) {
+    .error-card {
+      padding: 2.5rem 1.5rem;
+    }
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

@@ -1,0 +1,1750 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is OTPWala and how does it work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OTPWala is a high-speed platform providing temporary virtual phone numbers to receive SMS verification codes (OTPs) for services like WhatsApp, Telegram, Google, and Instagram without revealing your personal phone number."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How fast do I receive SMS verification codes on OTPWala?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most verification codes arrive in under 30 seconds through our high-speed direct carrier connections with live real-time status updates."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if I do not receive an SMS code? Do I get a refund?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, 100% automatically. If an SMS code does not arrive within the activation countdown window, or if you cancel the order before receiving an SMS, your wallet is instantly refunded in full with zero fees."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use OTPWala numbers for WhatsApp, Telegram, and Google?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. OTPWala supports over 980+ digital services and apps including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI (ChatGPT), and 190+ countries worldwide."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I top up my wallet on OTPWala?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can add balance instantly using Indian UPI (PhonePe, Google Pay, Paytm, BHIM) starting from just ₹50. Individual OTP numbers start from just ₹3."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are virtual phone numbers safe and private?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Each number is provisioned for your exclusive verification session, protecting your personal SIM card and identity from spam, data brokers, and trackers."
+      }
+    }
+  ]
+};
+---
+
+<BaseLayout 
+  title="OTPWala — Instant Virtual Numbers for SMS Verification" 
+  description="Get instant virtual phone numbers for WhatsApp, Telegram, Google, Instagram and 980+ services. Cheapest rates in India, fastest OTP delivery with 100% auto refund guarantee."
+  keywords="virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala"
+>
+
+  <!-- FAQ Structured Data for Google Rich Snippets -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <!-- ───────── HERO ───────── -->
+  <section class="hero" id="hero">
+    <!-- Animated background -->
+    <div class="hero-bg">
+      <div class="hero-mesh"></div>
+      <div class="hero-blob hero-blob-1"></div>
+      <div class="hero-blob hero-blob-2"></div>
+      <div class="floating-dot fd-1"></div>
+      <div class="floating-dot fd-2"></div>
+      <div class="floating-dot fd-3"></div>
+      <div class="floating-dot fd-4"></div>
+      <div class="floating-dot fd-5"></div>
+    </div>
+
+    <div class="container hero-inner">
+      <!-- Left: Text -->
+      <div class="hero-text">
+        <div class="hero-pill" id="hero-pill">
+          <span class="pill-dot"></span>
+          <span>Live delivery in &lt;30 seconds</span>
+        </div>
+
+        <h1 class="hero-title">
+          Instant Virtual Numbers for<br/>
+          <span class="hero-highlight">SMS &amp; OTP Verification</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Receive OTP verification codes for WhatsApp, Telegram, Google,
+          Instagram and <strong>980+ services</strong> in India &amp; globally.<br/>
+          Starting from just <strong>₹3</strong>. 100% automated refund guarantee.
+        </p>
+
+        <div class="hero-btns">
+          <a href="/auth/register" class="btn btn-primary btn-lg hero-cta-btn" id="hero-cta">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Get Started Free
+          </a>
+          <a href="/how-it-works" class="btn btn-outline-hero btn-lg" id="hero-learn">
+            See How It Works
+          </a>
+        </div>
+
+        <!-- Trust badges -->
+        <div class="trust-row">
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            No subscription
+          </div>
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Auto refund
+          </div>
+          <div class="trust-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            190+ countries
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Animated OTP Phone Mockup -->
+      <div class="hero-visual">
+        <div class="phone-mockup">
+          <div class="phone-screen">
+            <div class="phone-statusbar">
+              <span class="phone-time">9:41</span>
+              <div class="phone-icons">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M1 6l11 6 11-6M1 18h22V6H1z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+              </div>
+            </div>
+            <!-- Notification preview -->
+            <div class="sms-notification">
+              <div class="sms-app-row">
+                <div class="sms-app-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                </div>
+                <div>
+                  <div class="sms-sender">Messages</div>
+                  <div class="sms-time">now</div>
+                </div>
+              </div>
+              <div class="sms-body">Your verification code is:</div>
+              <div class="sms-otp" id="animated-otp">582941</div>
+              <div class="sms-from">OTPWala · just now</div>
+            </div>
+
+            <!-- Service rows -->
+            <div class="phone-services">
+              <div class="ps-row active" id="ps-wa">
+                <div class="ps-icon" style="background:#25d36620; color:#25d366">
+                  <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                </div>
+                <span class="ps-name">WhatsApp</span>
+                <span class="ps-status ps-received">OTP Received</span>
+              </div>
+              <div class="ps-row" id="ps-tg">
+                <div class="ps-icon" style="background:#0088cc20; color:#0088cc">
+                  <img src="https://api.iconify.design/logos:telegram.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                </div>
+                <span class="ps-name">Telegram</span>
+                <span class="ps-status ps-waiting">Waiting...</span>
+              </div>
+              <div class="ps-row" id="ps-gg">
+                <div class="ps-icon" style="background:#4285f420; color:#4285f4">
+                  <img src="https://api.iconify.design/logos:google-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                </div>
+                <span class="ps-name">Google</span>
+                <span class="ps-status ps-idle">Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating badges around phone -->
+          <div class="float-badge fb-top">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            OTP Delivered!
+          </div>
+          <div class="float-badge fb-bottom">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            &lt;30 seconds
+          </div>
+        </div>
+
+        <!-- Stats floating cards -->
+        <div class="stat-float stat-float-1">
+          <div class="sf-value">980+</div>
+          <div class="sf-label">Services</div>
+        </div>
+        <div class="stat-float stat-float-2">
+          <div class="sf-value">₹3</div>
+          <div class="sf-label">Starting price</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrolling logo ticker bar -->
+    <div class="logo-ticker">
+      <div class="ticker-track">
+        <!-- Set 1 -->
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">WhatsApp</span>
+          <span class="tp-price">from ₹8</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Telegram</span>
+          <span class="tp-price">from ₹5</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Google</span>
+          <span class="tp-price">from ₹12</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Instagram</span>
+          <span class="tp-price">from ₹6</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Facebook</span>
+          <span class="tp-price">from ₹7</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">ChatGPT</span>
+          <span class="tp-price">from ₹9</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
+          <span class="tp-name">X / Twitter</span>
+          <span class="tp-price">from ₹10</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">TikTok</span>
+          <span class="tp-price">from ₹5</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Netflix</span>
+          <span class="tp-price">from ₹15</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Discord</span>
+          <span class="tp-price">from ₹6</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Amazon</span>
+          <span class="tp-price">from ₹14</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Spotify</span>
+          <span class="tp-price">from ₹8</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Steam</span>
+          <span class="tp-price">from ₹10</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Microsoft</span>
+          <span class="tp-price">from ₹11</span>
+        </div>
+
+        <!-- Set 2 (duplicate for seamless loop) -->
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">WhatsApp</span>
+          <span class="tp-price">from ₹8</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Telegram</span>
+          <span class="tp-price">from ₹5</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Google</span>
+          <span class="tp-price">from ₹12</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Instagram</span>
+          <span class="tp-price">from ₹6</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Facebook</span>
+          <span class="tp-price">from ₹7</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">ChatGPT</span>
+          <span class="tp-price">from ₹9</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
+          <span class="tp-name">X / Twitter</span>
+          <span class="tp-price">from ₹10</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">TikTok</span>
+          <span class="tp-price">from ₹5</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Netflix</span>
+          <span class="tp-price">from ₹15</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Discord</span>
+          <span class="tp-price">from ₹6</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Amazon</span>
+          <span class="tp-price">from ₹14</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Spotify</span>
+          <span class="tp-price">from ₹8</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Steam</span>
+          <span class="tp-price">from ₹10</span>
+        </div>
+        <div class="ticker-pill">
+          <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <span class="tp-name">Microsoft</span>
+          <span class="tp-price">from ₹11</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── SERVICES ───────── -->
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Popular Services</span>
+        <h2>Get Numbers for <span class="text-gradient">Any Platform</span></h2>
+        <p class="text-secondary">Receive OTP codes from all major services instantly</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card reveal-card" id="service-whatsapp" style="--i:0">
+          <div class="service-icon-wrap" style="--ic:#25d366; --ib:rgba(37,211,102,0.12)">
+            <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=26&height=26" width="26" height="26" alt="WhatsApp" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>WhatsApp</h3>
+            <p class="text-secondary">from ₹8</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-telegram" style="--i:1">
+          <div class="service-icon-wrap" style="--ic:#0088cc; --ib:rgba(0,136,204,0.12)">
+            <img src="https://api.iconify.design/logos:telegram.svg?width=26&height=26" width="26" height="26" alt="Telegram" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>Telegram</h3>
+            <p class="text-secondary">from ₹5</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-google" style="--i:2">
+          <div class="service-icon-wrap" style="--ic:#4285f4; --ib:rgba(66,133,244,0.12)">
+            <img src="https://api.iconify.design/logos:google-icon.svg?width=26&height=26" width="26" height="26" alt="Google" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>Google</h3>
+            <p class="text-secondary">from ₹12</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-instagram" style="--i:3">
+          <div class="service-icon-wrap" style="--ic:#e4405f; --ib:rgba(228,64,95,0.12)">
+            <img src="https://api.iconify.design/logos:instagram-icon.svg?width=26&height=26" width="26" height="26" alt="Instagram" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>Instagram</h3>
+            <p class="text-secondary">from ₹6</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-facebook" style="--i:4">
+          <div class="service-icon-wrap" style="--ic:#1877f2; --ib:rgba(24,119,242,0.12)">
+            <img src="https://api.iconify.design/logos:facebook.svg?width=26&height=26" width="26" height="26" alt="Facebook" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>Facebook</h3>
+            <p class="text-secondary">from ₹7</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-twitter" style="--i:5">
+          <div class="service-icon-wrap" style="--ic:#0f172a; --ib:rgba(15,23,42,0.08)">
+            <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=22&height=22" width="22" height="22" alt="X / Twitter" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>X / Twitter</h3>
+            <p class="text-secondary">from ₹10</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-tiktok" style="--i:6">
+          <div class="service-icon-wrap" style="--ic:#fe2c55; --ib:rgba(254,44,85,0.12)">
+            <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=26&height=26" width="26" height="26" alt="TikTok" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>TikTok</h3>
+            <p class="text-secondary">from ₹5</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+
+        <div class="service-card reveal-card" id="service-openai" style="--i:7">
+          <div class="service-icon-wrap" style="--ic:#10b981; --ib:rgba(16,185,129,0.12)">
+            <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=26&height=26" width="26" height="26" alt="ChatGPT" loading="lazy" />
+          </div>
+          <div class="sc-info">
+            <h3>ChatGPT</h3>
+            <p class="text-secondary">from ₹9</p>
+          </div>
+          <div class="sc-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="section-cta reveal">
+        <a href="/services" class="btn btn-outline-dark btn-lg" id="view-all-services">
+          View All 980+ Services →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── HOW IT WORKS ───────── -->
+  <section class="section steps-section" id="how-it-works">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Simple & Fast</span>
+        <h2>How <span class="text-gradient">OTPWala</span> Works</h2>
+        <p class="text-secondary">Three steps to your virtual number</p>
+      </div>
+
+      <div class="steps-row">
+        <div class="step-card-new reveal" id="step-1">
+          <div class="step-num-badge">01</div>
+          <div class="step-icon-new blue">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <h3>Add Balance</h3>
+          <p class="text-secondary">Top up your wallet via UPI. Starting from just ₹50.</p>
+          <div class="step-line"></div>
+        </div>
+
+        <div class="step-card-new reveal" id="step-2">
+          <div class="step-num-badge">02</div>
+          <div class="step-icon-new purple">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3>Choose Service & Country</h3>
+          <p class="text-secondary">Pick any service — WhatsApp, Google, Telegram — and select a country.</p>
+          <div class="step-line"></div>
+        </div>
+
+        <div class="step-card-new reveal" id="step-3">
+          <div class="step-num-badge">03</div>
+          <div class="step-icon-new green">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3>Receive OTP</h3>
+          <p class="text-secondary">Get the verification code within seconds. Copy and verify anywhere.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── FEATURES ───────── -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Why OTPWala?</span>
+        <h2>Built for <span class="text-gradient">Speed & Reliability</span></h2>
+      </div>
+
+      <div class="features-bento">
+        <!-- Large feature: speed -->
+        <div class="feat-card feat-large reveal" id="feature-speed">
+          <div class="feat-icon-lg" style="--fi:#2563eb">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>Lightning Fast Delivery</h3>
+          <p class="text-secondary">Most OTPs arrive in under 30 seconds. Real-time status updates so you're never left guessing.</p>
+          <div class="feat-stat">
+            <span class="feat-big-num">&lt;30s</span>
+            <span class="text-muted">avg. delivery</span>
+          </div>
+        </div>
+
+        <!-- Small features -->
+        <div class="feat-card feat-small reveal" id="feature-cheap">
+          <div class="feat-icon-sm" style="--fi:#16a34a">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h4>Cheapest Rates</h4>
+          <p class="text-secondary">Starting from ₹3. No hidden fees.</p>
+        </div>
+
+        <div class="feat-card feat-small reveal" id="feature-global">
+          <div class="feat-icon-sm" style="--fi:#0ea5e9">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h4>190+ Countries</h4>
+          <p class="text-secondary">Numbers from US, UK, India, and 190+ more.</p>
+        </div>
+
+        <div class="feat-card feat-small reveal" id="feature-refund">
+          <div class="feat-icon-sm" style="--fi:#d97706">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </div>
+          <h4>Auto Refund</h4>
+          <p class="text-secondary">No SMS? Instant wallet refund, zero risk.</p>
+        </div>
+
+        <div class="feat-card feat-small reveal" id="feature-services">
+          <div class="feat-icon-sm" style="--fi:#8b5cf6">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h4>980+ Services</h4>
+          <p class="text-secondary">All major apps covered.</p>
+        </div>
+
+        <div class="feat-card feat-small feat-wide reveal" id="feature-support">
+          <div class="feat-icon-sm" style="--fi:#ec4899">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div style="flex:1">
+            <h4>24/7 Available</h4>
+            <p class="text-secondary">Our platform runs around the clock — get virtual numbers any time you need, with instant top-up and real-time OTP delivery.</p>
+          </div>
+          <div class="feat-uptime">
+            <div class="feat-uptime-dot"></div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:#16a34a;line-height:1">99.9%</div>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;font-weight:500">Uptime</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── FAQ (SEO & Rich Results) ───────── -->
+  <section class="section faq-section" id="faq">
+    <div class="container" style="max-width: 860px;">
+      <div class="section-header reveal">
+        <span class="section-tag">Got Questions?</span>
+        <h2>Frequently Asked <span class="text-gradient">Questions</span></h2>
+        <p class="text-secondary">Everything you need to know about our virtual numbers and SMS verification service</p>
+      </div>
+
+      <div class="faq-list">
+        <details class="faq-card reveal" open>
+          <summary class="faq-question">
+            <span>What is OTPWala and how does it work?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>OTPWala is a lightning-fast marketplace providing temporary virtual phone numbers to receive SMS verification codes (OTPs). Simply choose your target platform (such as WhatsApp, Telegram, Google, or 980+ others), select a country, and copy the provided number into your application. Within seconds, your verification code appears live on your screen.</p>
+          </div>
+        </details>
+
+        <details class="faq-card reveal">
+          <summary class="faq-question">
+            <span>How fast will I receive my SMS verification code?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>Most SMS verification codes arrive in under 30 seconds. Our direct telecommunication carrier routes monitor incoming codes continuously, updating your order status live in real time without requiring manual refreshes.</p>
+          </div>
+        </details>
+
+        <details class="faq-card reveal">
+          <summary class="faq-question">
+            <span>What happens if an SMS code doesn't arrive? Do I get a refund?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>Yes, 100% automatically! We operate on a strict <strong>"No SMS, No Charge"</strong> guarantee. If a verification code is not received within the activation window, or if you cancel the order before receiving a code, your wallet is instantly and automatically refunded in full.</p>
+          </div>
+        </details>
+
+        <details class="faq-card reveal">
+          <summary class="faq-question">
+            <span>Can I use OTPWala numbers for WhatsApp, Telegram, and Google?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>Yes. OTPWala provides high-reputation numbers specifically optimized for major platforms including WhatsApp, Telegram, Google / Gmail, Instagram, Facebook, X (Twitter), OpenAI ChatGPT, Netflix, Discord, Amazon, and over 980+ online services across 190+ countries.</p>
+          </div>
+        </details>
+
+        <details class="faq-card reveal">
+          <summary class="faq-question">
+            <span>How much do virtual numbers cost and how do I add funds?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>Prices start from as low as ₹3 per verification code depending on the service and country selected. You can top up your wallet instantly using any Indian UPI payment app (PhonePe, Google Pay, Paytm, BHIM, or QR code) with wallet recharges starting at just ₹50.</p>
+          </div>
+        </details>
+
+        <details class="faq-card reveal">
+          <summary class="faq-question">
+            <span>Are these virtual numbers private and secure?</span>
+            <span class="faq-toggle-icon"></span>
+          </summary>
+          <div class="faq-answer">
+            <p>Yes. Each virtual number is allocated exclusively to you for the duration of that activation session. Your personal SIM card and real identity remain 100% private, keeping you completely shielded from telemarketing spam, tracking, and data breaches.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── CTA ───────── -->
+  <section class="cta-section-new">
+    <div class="container">
+      <div class="cta-card-new reveal">
+        <div class="cta-deco-1"></div>
+        <div class="cta-deco-2"></div>
+        <div class="cta-inner">
+          <div class="cta-badge">Free to start</div>
+          <h2>Ready to get your first virtual number?</h2>
+          <p class="text-secondary">Create your free account and receive an OTP in under a minute.</p>
+          <a href="/auth/register" class="btn btn-primary btn-lg cta-main-btn" id="final-cta">
+            Create Free Account →
+          </a>
+          <div class="cta-trust">
+            <span>No credit card required</span>
+            <span>·</span>
+            <span>Instant access</span>
+            <span>·</span>
+            <span>Auto refunds</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+/* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+.hero {
+  position: relative;
+  padding-top: calc(var(--header-height) + 4rem);
+  padding-bottom: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-mesh {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.hero-blob-1 {
+  width: 700px; height: 700px;
+  background: rgba(37,99,235,0.07);
+  top: -200px; left: -180px;
+  animation: blobDrift 14s ease-in-out infinite alternate;
+}
+.hero-blob-2 {
+  width: 500px; height: 500px;
+  background: rgba(59,130,246,0.05);
+  bottom: -100px; right: -100px;
+  animation: blobDrift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes blobDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.06); }
+}
+
+/* Floating dots */
+.floating-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: dotFloat 6s ease-in-out infinite;
+}
+.fd-1 { width:8px; height:8px; opacity:0.15; top:18%; left:12%; animation-delay:0s; }
+.fd-2 { width:5px; height:5px; opacity:0.2;  top:60%; left:8%;  animation-delay:1.5s; }
+.fd-3 { width:6px; height:6px; opacity:0.12; top:25%; right:15%; animation-delay:0.8s; }
+.fd-4 { width:4px; height:4px; opacity:0.18; top:75%; right:20%; animation-delay:2.2s; }
+.fd-5 { width:7px; height:7px; opacity:0.1;  top:45%; left:50%; animation-delay:1s; }
+
+@keyframes dotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* ─── Hero Inner Layout ─── */
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  min-height: 82vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Hero Text ─── */
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: rgba(37,99,235,0.07);
+  border: 1px solid rgba(37,99,235,0.18);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 1.5rem;
+  animation: fadeSlideIn 0.6s ease forwards;
+}
+.pill-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pillPulse 1.8s ease-in-out infinite;
+}
+@keyframes pillPulse {
+  0%, 100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(1.3); }
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  margin-bottom: 1.25rem;
+  animation: fadeSlideIn 0.7s ease 0.1s both;
+}
+.hero-highlight {
+  color: #2563eb;
+  position: relative;
+  display: inline-block;
+}
+.hero-highlight::after {
+  content: '';
+  position: absolute;
+  bottom: 2px; left: 0; right: 0;
+  height: 4px;
+  background: rgba(37,99,235,0.2);
+  border-radius: 2px;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+  line-height: 1.75;
+  max-width: 480px;
+  margin-bottom: 2rem;
+  animation: fadeSlideIn 0.7s ease 0.2s both;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+  animation: fadeSlideIn 0.7s ease 0.3s both;
+}
+
+.hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.25);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.hero-cta-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(37,99,235,0.35);
+  color: #fff;
+}
+
+.btn-outline-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #0f172a;
+  border: 1.5px solid #d1d5db;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+.btn-outline-hero:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.trust-row {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  animation: fadeSlideIn 0.7s ease 0.4s both;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+}
+.trust-item svg {
+  color: #16a34a;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity:0; transform: translateY(18px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ─── Phone Mockup ─── */
+.hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeSlideIn 0.8s ease 0.2s both;
+}
+
+.phone-mockup {
+  width: 290px;
+  background: #0f172a;
+  border-radius: 36px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 32px 80px rgba(15,23,42,0.25),
+    0 8px 20px rgba(37,99,235,0.1);
+  position: relative;
+  animation: phoneFloat 5s ease-in-out infinite;
+}
+
+@keyframes phoneFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.phone-screen {
+  background: #f8fafc;
+  border-radius: 24px;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.phone-statusbar {
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px 8px;
+  color: #fff;
+}
+.phone-time { font-size: 0.75rem; font-weight: 700; }
+.phone-icons { display: flex; gap: 0.4rem; align-items: center; opacity: 0.85; }
+
+.sms-notification {
+  margin: 12px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1px solid #e5e7eb;
+}
+.sms-app-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.sms-app-icon {
+  width: 30px; height: 30px;
+  background: #2563eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sms-sender { font-size: 0.75rem; font-weight: 700; color: #0f172a; }
+.sms-time { font-size: 0.65rem; color: #94a3b8; }
+.sms-body { font-size: 0.72rem; color: #64748b; margin-bottom: 0.5rem; }
+
+.sms-otp {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-align: center;
+  white-space: nowrap;
+  padding: 0.45rem 0;
+  animation: otpChange 4s ease-in-out infinite;
+}
+@keyframes otpChange {
+  0%, 80%  { opacity: 1; }
+  85%, 95% { opacity: 0; }
+  100%     { opacity: 1; }
+}
+.sms-from { font-size: 0.62rem; color: #94a3b8; text-align: right; margin-top: 0.35rem; }
+
+/* Phone service rows */
+.phone-services {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 12px;
+}
+.ps-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 10px 10px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.ps-row.active { background: rgba(37,99,235,0.05); }
+.ps-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--ib);
+  color: var(--ic);
+}
+.ps-icon img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
+.ps-name { font-size: 0.75rem; font-weight: 600; color: #0f172a; flex: 1; }
+.ps-status { font-size: 0.65rem; font-weight: 600; border-radius: 20px; padding: 2px 7px; }
+.ps-received { background: rgba(22,163,74,0.1); color: #16a34a; }
+.ps-waiting { background: rgba(217,119,6,0.1); color: #d97706; animation: pulse 1.5s ease-in-out infinite; }
+.ps-idle { background: rgba(100,116,139,0.1); color: #64748b; }
+
+/* Floating badges around phone */
+.float-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-full);
+  padding: 0.45rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  white-space: nowrap;
+  animation: badgeFloat 4s ease-in-out infinite;
+}
+.fb-top    { top: -20px;   right: -50px;  animation-delay: 0.5s; }
+.fb-bottom { bottom: -20px; left: -50px;   animation-delay: 1.5s; }
+
+@keyframes badgeFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Stat floats */
+.stat-float {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  text-align: center;
+  animation: badgeFloat 5s ease-in-out infinite;
+}
+.stat-float-1 { top: 5%;  left: -80px; animation-delay: 0.8s; }
+.stat-float-2 { bottom: 8%; right: -80px; animation-delay: 1.8s; }
+.sf-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #2563eb; }
+.sf-label { font-size: 0.7rem; color: #94a3b8; font-weight: 500; margin-top: 2px; }
+
+/* ─── Logo Ticker ─── */
+.logo-ticker {
+  margin-top: 3.5rem;
+  padding: 1.1rem 0;
+  background: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.logo-ticker::before,
+.logo-ticker::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+.logo-ticker::before { left: 0; background: linear-gradient(to right, #f8fafc, transparent); }
+.logo-ticker::after  { right: 0; background: linear-gradient(to left, #f8fafc, transparent); }
+
+.ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  animation: tickerScroll 28s linear infinite;
+  width: max-content;
+}
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.42rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: default;
+}
+.ticker-pill img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+.tp-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+.tp-price {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(37,99,235,0.08);
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+.ticker-pill:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.12);
+}
+
+/* ══════════════════════════════════════════
+   SERVICES SECTION
+══════════════════════════════════════════ */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+}
+
+.service-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  opacity: 0;
+  transform: translateY(20px);
+}
+.service-card.visible {
+  animation: cardReveal 0.5s ease calc(var(--i) * 60ms) forwards;
+}
+.service-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.1);
+  transform: translateY(-2px);
+}
+@keyframes cardReveal {
+  to { opacity:1; transform:translateY(0); }
+}
+
+.service-icon-wrap {
+  width: 46px; height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--ib);
+  color: var(--ic);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.service-icon-wrap img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
+}
+.service-card:hover .service-icon-wrap { transform: scale(1.1); }
+.sc-info { flex: 1; }
+.sc-info h3 { font-size: 0.92rem; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; }
+.sc-info p  { font-size: 0.78rem; }
+.sc-arrow { color: #d1d5db; font-size: 1rem; transition: all 0.2s; }
+.service-card:hover .sc-arrow { color: #2563eb; transform: translateX(3px); }
+
+.btn-outline-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #0f172a;
+  border: 1.5px solid #d1d5db;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-outline-dark:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: rgba(37,99,235,0.04);
+}
+
+/* ══════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════ */
+.steps-section {
+  background: #f8f9fb;
+}
+.steps-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  position: relative;
+}
+
+.step-card-new {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+}
+.step-card-new:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+}
+.step-card-new .step-line {
+  position: absolute;
+  top: 50%;
+  right: -2.5rem;
+  width: 2rem;
+  height: 2px;
+  background: #e5e7eb;
+  display: none;
+}
+
+.step-num-badge {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  color: #f0f2f5;
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.step-icon-new {
+  width: 56px; height: 56px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.step-icon-new.blue   { background: rgba(37,99,235,0.1); color: #2563eb; }
+.step-icon-new.purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.step-icon-new.green  { background: rgba(22,163,74,0.1); color: #16a34a; }
+
+.step-card-new h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; color: #0f172a; }
+.step-card-new p  { font-size: 0.9rem; line-height: 1.65; }
+
+/* ══════════════════════════════════════════
+   FEATURES BENTO
+══════════════════════════════════════════ */
+.features-bento {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1rem;
+}
+
+.feat-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.25s;
+}
+.feat-card:hover {
+  border-color: var(--border-medium);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  transform: translateY(-2px);
+}
+
+.feat-large {
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+}
+.feat-large h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.6rem; color: #0f172a; }
+.feat-large p  { font-size: 0.9rem; line-height: 1.65; margin-bottom: auto; }
+
+.feat-icon-lg {
+  width: 60px; height: 60px;
+  border-radius: var(--radius-lg);
+  background: rgba(37,99,235,0.08);
+  color: var(--fi, #2563eb);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.feat-stat {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1.5px solid #f0f2f5;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.feat-big-num {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.feat-small h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; color: #0f172a; }
+.feat-small p  { font-size: 0.85rem; line-height: 1.6; }
+
+.feat-wide {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+}
+.feat-wide h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; color: #0f172a; }
+.feat-wide p  { font-size: 0.85rem; line-height: 1.6; }
+.feat-wide .feat-icon-sm { flex-shrink: 0; margin-bottom: 0; }
+
+.feat-uptime {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  padding-left: 2rem;
+  border-left: 1.5px solid #f0f2f5;
+}
+.feat-uptime-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22,163,74,0.15);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.feat-icon-sm {
+  width: 42px; height: 42px;
+  border-radius: var(--radius-md);
+  background: rgba(37,99,235,0.06);
+  color: var(--fi, #2563eb);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* ══════════════════════════════════════════
+   CTA SECTION
+══════════════════════════════════════════ */
+.cta-section-new {
+  padding: var(--space-3xl) 0 var(--space-4xl);
+}
+.cta-card-new {
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+  border-radius: 28px;
+  padding: 4rem 3rem;
+  text-align: center;
+}
+.cta-card-new h2 { color: #fff; font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 1rem; }
+.cta-card-new .text-secondary { color: rgba(255,255,255,0.6); font-size: 1.05rem; margin-bottom: 2rem; }
+
+.cta-deco-1 {
+  position: absolute;
+  width: 500px; height: 500px;
+  background: rgba(37,99,235,0.15);
+  border-radius: 50%;
+  filter: blur(80px);
+  top: -200px; left: -100px;
+  pointer-events: none;
+}
+.cta-deco-2 {
+  position: absolute;
+  width: 400px; height: 400px;
+  background: rgba(59,130,246,0.1);
+  border-radius: 50%;
+  filter: blur(80px);
+  bottom: -150px; right: -80px;
+  pointer-events: none;
+}
+.cta-inner { position: relative; z-index: 1; }
+
+.cta-badge {
+  display: inline-flex;
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-full);
+  background: rgba(37,99,235,0.3);
+  border: 1px solid rgba(37,99,235,0.5);
+  color: #93c5fd;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.cta-main-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.95rem 2.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 24px rgba(37,99,235,0.4);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.cta-main-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(37,99,235,0.5);
+  color: #fff;
+}
+
+.cta-trust {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.45);
+}
+
+/* ══════════════════════════════════════════
+   SECTION COMMON
+══════════════════════════════════════════ */
+.section { padding: var(--space-4xl) 0; }
+
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-3xl);
+}
+.section-header h2 { margin-top: 0.5rem; }
+.section-header p  { margin-top: 0.6rem; font-size: 1.05rem; }
+
+.section-tag {
+  display: inline-block;
+  padding: 0.28rem 0.85rem;
+  background: rgba(37,99,235,0.07);
+  color: #2563eb;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(37,99,235,0.15);
+  text-transform: uppercase;
+}
+
+.section-cta { text-align: center; margin-top: 2.5rem; }
+
+/* ══════════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ══════════════════════════════════════════
+   FAQ SECTION
+══════════════════════════════════════════ */
+.faq-section {
+  padding: 5rem 0 3rem;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 2rem;
+}
+
+.faq-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.faq-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.05);
+}
+
+.faq-card[open] {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: #0f172a;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: color 0.15s ease;
+}
+
+.faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-question:hover {
+  color: #2563eb;
+}
+
+.faq-toggle-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
+}
+
+.faq-toggle-icon::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #2563eb;
+  border-bottom: 2px solid #2563eb;
+  transform: rotate(45deg);
+  margin-top: -2px;
+  transition: border-color 0.2s ease;
+}
+
+.faq-card[open] .faq-toggle-icon {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: rotate(180deg);
+}
+
+.faq-card[open] .faq-toggle-icon::before {
+  border-color: #ffffff;
+}
+
+.faq-answer {
+  padding: 0 1.5rem 1.35rem 1.5rem;
+  color: #475569;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  border-top: 1px solid rgba(229, 231, 235, 0.5);
+  margin-top: 0.25rem;
+  padding-top: 0.85rem;
+}
+
+.faq-answer p {
+  margin: 0;
+}
+
+.faq-answer strong {
+  color: #0f172a;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-bento { grid-template-columns: 1fr 1fr; }
+  .feat-large { grid-row: span 1; }
+  .feat-wide { grid-column: span 2; }
+  .feat-large { grid-row: span 1; }
+  .stat-float { display: none; }
+}
+
+@media (max-width: 768px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    min-height: unset;
+    text-align: center;
+    padding-bottom: 2rem;
+  }
+  .hero-visual { display: none; }
+  .trust-row { justify-content: center; }
+  .hero-btns { justify-content: center; }
+  .steps-row { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .features-bento { grid-template-columns: 1fr; }
+  .feat-wide { grid-column: span 1; flex-direction: row; }
+  .feat-large { grid-row: span 1; }
+  .cta-card-new { padding: 2.5rem 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .services-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal, .reveal-card').forEach(el => observer.observe(el));
+
+  // Animated OTP cycling
+  const otpEl = document.getElementById('animated-otp');
+  const otps = ['582941', '371064', '925837', '147296'];
+  let idx = 0;
+  setInterval(() => {
+    idx = (idx + 1) % otps.length;
+    if (otpEl) otpEl.textContent = otps[idx];
+  }, 4000);
+
+  // Phone service cycling animation
+  const rows = document.querySelectorAll('.ps-row');
+  const statuses = [
+    ['ps-received', 'OTP Received'],
+    ['ps-waiting',  'Waiting...'],
+    ['ps-idle',     'Ready'],
+  ];
+  let serviceIdx = 0;
+  setInterval(() => {
+    rows.forEach((r, i) => {
+      const span = r.querySelector('.ps-status');
+      if (!span) return;
+      span.className = 'ps-status ' + statuses[i][0];
+      span.textContent = statuses[i][1];
+    });
+    serviceIdx++;
+  }, 3500);
+
+  // Live markup price hydration from API
+  (function hydratePrices() {
+    const API_URL = import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+    fetch(API_URL + '/api/services')
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.success || !Array.isArray(res.data)) return;
+        const prices: Record<string, number> = {};
+        let minOverall = 9999;
+        res.data.forEach((s: any) => {
+          if (s.minPriceInr && s.minPriceInr > 0) {
+            prices[s.code.toLowerCase()] = s.minPriceInr;
+            if (s.minPriceInr < minOverall) minOverall = s.minPriceInr;
+          }
+        });
+
+        // Update hero starting price stat
+        const sfVal = document.querySelector('.stat-float-2 .sf-value');
+        if (sfVal && minOverall < 9999) {
+          sfVal.textContent = '₹' + Math.ceil(minOverall);
+        }
+
+        // Map service code to card IDs
+        const cardMap: Record<string, string> = {
+          'service-whatsapp': 'wa',
+          'service-telegram': 'tg',
+          'service-google': 'go',
+          'service-instagram': 'ig',
+          'service-facebook': 'fb',
+          'service-twitter': 'tw',
+          'service-tiktok': 'lf',
+          'service-openai': 'dr',
+        };
+
+        Object.entries(cardMap).forEach(([id, code]) => {
+          const card = document.getElementById(id);
+          const p = prices[code];
+          if (card && p) {
+            const pEl = card.querySelector('.sc-info p');
+            if (pEl) pEl.textContent = 'from ₹' + p.toFixed(2);
+          }
+        });
+
+        // Update ticker pills
+        const nameMap: Record<string, string> = {
+          'whatsapp': 'wa',
+          'telegram': 'tg',
+          'google': 'go',
+          'instagram': 'ig',
+          'facebook': 'fb',
+          'chatgpt': 'dr',
+          'x / twitter': 'tw',
+          'tiktok': 'lf',
+          'netflix': 'nf',
+          'discord': 'ds',
+          'amazon': 'am',
+          'microsoft': 'mm',
+        };
+
+        document.querySelectorAll('.ticker-pill').forEach((pill) => {
+          const nameEl = pill.querySelector('.tp-name');
+          const priceEl = pill.querySelector('.tp-price');
+          if (!nameEl || !priceEl) return;
+          const name = nameEl.textContent?.trim().toLowerCase() || '';
+          const code = nameMap[name];
+          if (code && prices[code]) {
+            priceEl.textContent = 'from ₹' + prices[code].toFixed(2);
+          }
+        });
+      })
+      .catch(() => {});
+  })();
+</script>

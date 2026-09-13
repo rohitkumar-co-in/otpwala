@@ -1,0 +1,852 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// SEO Structured Data
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://otpwala.me"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "How It Works",
+      "item": "https://otpwala.me/how-it-works"
+    }
+  ]
+};
+
+const howToSchema = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Receive SMS OTP Verification on OTPWala",
+  "description": "A 3-step guide to generating disposable virtual phone numbers and receiving instant SMS verification codes.",
+  "totalTime": "PT1M",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Top Up Wallet via UPI",
+      "text": "Deposit funds into your wallet starting from just ₹50 using any Indian UPI app like Google Pay, PhonePe, Paytm, or BHIM with instant credit.",
+      "url": "https://otpwala.me/how-it-works#step-1"
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Select Service and Country",
+      "text": "Choose your required platform (WhatsApp, Telegram, Google, etc.) and select from 190+ available international countries.",
+      "url": "https://otpwala.me/how-it-works#step-2"
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Receive SMS Code Instantly",
+      "text": "Enter the assigned virtual phone number on your app. Your verification code arrives in under 30 seconds. If no SMS arrives, you get a 100% auto refund.",
+      "url": "https://otpwala.me/how-it-works#step-3"
+    }
+  ]
+};
+
+const howItWorksFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do I need to install an app or SIM card?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Everything runs seamlessly in your web browser. You do not need physical SIM cards, dongles, or mobile applications."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if the SMS verification code does not arrive?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OTPWala operates on a strict 100% auto-refund guarantee. If the SMS does not arrive before the timer expires, or if you cancel the number, the full amount is instantly refunded back to your wallet."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long is a virtual number active for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Each number remains active for a 15 to 20 minute activation window, which is more than enough time to request and receive your OTP code."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can someone else see my SMS code?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Never. Unlike free public number websites where messages are broadcast publicly, OTPWala numbers are private and private to your account session only."
+      }
+    }
+  ]
+};
+---
+
+<BaseLayout 
+  title="How OTPWala Works — 3-Step Guide to Virtual SMS Verification"
+  description="Learn how to get disposable virtual phone numbers and receive SMS OTPs in under 30 seconds. 3 simple steps with 100% automated refund guarantee."
+  canonical="https://otpwala.me/how-it-works"
+  keywords="how to get virtual number, receive otp online, temporary phone number guide, sms verification tutorial, virtual number india upi, auto refund otp"
+>
+  <!-- SEO Schemas -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(howToSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(howItWorksFaqSchema)} />
+
+  <section class="how-page">
+    <div class="container">
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li><a href="/">Home</a></li>
+          <li aria-current="page">How It Works</li>
+        </ol>
+      </nav>
+
+      <!-- Hero Section -->
+      <div class="how-hero">
+        <span class="badge-pill">Simple 3-Step Process</span>
+        <h1>How <span class="text-gradient">OTPWala</span> Works</h1>
+        <p class="hero-desc">
+          Get private virtual phone numbers for instant SMS verification in under 30 seconds. 
+          No SIM card or hardware required. Pay as you go with 100% automated refunds.
+        </p>
+      </div>
+
+      <!-- 3 Steps Timeline Cards -->
+      <div class="steps-timeline">
+        <!-- Step 1 -->
+        <div class="step-box" id="step-1">
+          <div class="step-badge">STEP 01</div>
+          <div class="step-icon-wrap blue">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </div>
+          <h2>Top Up Your Wallet</h2>
+          <p class="step-summary">
+            Add balance to your OTPWala account instantly via UPI (Google Pay, PhonePe, Paytm, BHIM) or net banking.
+          </p>
+          <ul class="step-highlights">
+            <li>✓ Minimum deposit starting from just <strong>₹50</strong></li>
+            <li>✓ 0% transaction fees on UPI deposits</li>
+            <li>✓ Balance never expires — use anytime</li>
+          </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-box" id="step-2">
+          <div class="step-badge">STEP 02</div>
+          <div class="step-icon-wrap purple">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h2>Select Service & Country</h2>
+          <p class="step-summary">
+            Choose from 980+ digital services (WhatsApp, Telegram, Google, etc.) and pick from over 190+ countries.
+          </p>
+          <ul class="step-highlights">
+            <li>✓ Real-time stock and prices displayed upfront</li>
+            <li>✓ Transparent pricing starting from ₹1.50 per SMS</li>
+            <li>✓ Immediate number generation in 1 click</li>
+          </ul>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-box" id="step-3">
+          <div class="step-badge">STEP 03</div>
+          <div class="step-icon-wrap green">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h2>Receive OTP & Verify</h2>
+          <p class="step-summary">
+            Enter the allocated number on your app. Your verification code arrives live on screen within 30 seconds.
+          </p>
+          <ul class="step-highlights">
+            <li>✓ 1-Click copy code button</li>
+            <li>✓ Active countdown timer with live status</li>
+            <li>✓ <strong>100% Auto-Refund</strong> if no SMS arrives</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Live Interactive Simulator -->
+      <div class="simulator-wrapper">
+        <div class="sim-header">
+          <span class="badge-pill">Interactive Demonstration</span>
+          <h2>See How Fast OTPs Arrive</h2>
+          <p>Experience how instant number provisioning and live code delivery work in practice:</p>
+        </div>
+
+        <div class="sim-card card-glass">
+          <div class="sim-phone-header">
+            <div class="sim-carrier">
+              <span class="dot-online"></span>
+              <strong>Live Carrier Connection (USA +1)</strong>
+            </div>
+            <span class="sim-timer" id="sim-timer">19:48</span>
+          </div>
+
+          <div class="sim-content">
+            <div class="sim-row">
+              <span class="sim-label">Allocated Number:</span>
+              <div class="sim-number-box">
+                <span class="number-val">+1 (786) 408-9214</span>
+                <button class="btn-copy-sm" id="demo-copy-btn">Copy Number</button>
+              </div>
+            </div>
+
+            <div class="sim-row">
+              <span class="sim-label">Target Service:</span>
+              <span class="sim-badge-srv">WhatsApp Messenger</span>
+            </div>
+
+            <!-- Simulated SMS Message Box -->
+            <div class="sim-sms-box" id="sim-sms-box">
+              <div class="sms-icon">💬</div>
+              <div class="sms-body">
+                <div class="sms-meta">Incoming SMS from WhatsApp &bull; Just now</div>
+                <div class="sms-text">Your WhatsApp verification code is: <strong class="otp-highlight">591-820</strong></div>
+              </div>
+              <button class="btn-copy-otp" id="demo-copy-otp">Copy 591820</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-Refund Guarantee Details -->
+      <div class="refund-section">
+        <div class="refund-grid">
+          <div class="refund-info">
+            <span class="badge-pill" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0">Risk-Free Guarantee</span>
+            <h2>How Our 100% Auto-Refund Works</h2>
+            <p>
+              We believe you should only pay for results. If an SMS code is delayed by the carrier or fails to reach our server, our automated system protects your wallet with zero hassle:
+            </p>
+            <div class="refund-steps">
+              <div class="rf-step">
+                <div class="rf-num">1</div>
+                <div>
+                  <h4>15-Minute Countdown</h4>
+                  <p>When you order a number, a 15–20 minute countdown starts for code delivery.</p>
+                </div>
+              </div>
+              <div class="rf-step">
+                <div class="rf-num">2</div>
+                <div>
+                  <h4>Instant Cancellation</h4>
+                  <p>Don't want to wait? Cancel anytime after 2 minutes with a single click.</p>
+                </div>
+              </div>
+              <div class="rf-step">
+                <div class="rf-num">3</div>
+                <div>
+                  <h4>Automatic Wallet Return</h4>
+                  <p>If no SMS was received, 100% of the funds are refunded instantly to your balance.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="refund-card-visual card-glass">
+            <div class="shield-badge">🛡️</div>
+            <h3>Zero Risk SMS Verification</h3>
+            <p>Unlike other platforms that charge upfront fees regardless of delivery, OTPWala guarantees:</p>
+            <ul class="guarantee-list">
+              <li>✓ Zero deductions for undelivered SMS</li>
+              <li>✓ No cancellation penalties or hidden processing fees</li>
+              <li>✓ Instant automated credit restoration</li>
+              <li>✓ 24/7 dedicated Telegram support assistance</li>
+            </ul>
+            <a href="/auth/register" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Try Without Risk →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy Comparison -->
+      <div class="privacy-compare-section">
+        <div class="section-heading">
+          <span class="badge-pill">Security & Privacy</span>
+          <h2>Why Avoid Free Public Number Sites?</h2>
+          <p>Public SMS websites expose your confidential OTP codes and data to the entire world.</p>
+        </div>
+
+        <div class="compare-table-wrapper">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th class="danger-header">Free Public SMS Sites</th>
+                <th class="success-header">OTPWala Private Numbers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Privacy & Exclusivity</strong></td>
+                <td class="text-danger">❌ Public inbox — anyone can read your messages</td>
+                <td class="text-success">✅ 100% Private — visible only in your account</td>
+              </tr>
+              <tr>
+                <td><strong>Delivery Speed</strong></td>
+                <td class="text-danger">❌ Slow or congested (minutes to hours)</td>
+                <td class="text-success">✅ Direct carrier routes (&lt;30 seconds)</td>
+              </tr>
+              <tr>
+                <td><strong>Account Safety</strong></td>
+                <td class="text-danger">❌ High risk of account hijacking or ban</td>
+                <td class="text-success">✅ Clean, unused disposable numbers</td>
+              </tr>
+              <tr>
+                <td><strong>Country Coverage</strong></td>
+                <td class="text-danger">❌ Few recycled European/US numbers</td>
+                <td class="text-success">✅ 190+ countries with fresh SIM pools</td>
+              </tr>
+              <tr>
+                <td><strong>Refund Policy</strong></td>
+                <td class="text-danger">❌ No support or guarantees</td>
+                <td class="text-success">✅ 100% automatic wallet refund</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="faq-container">
+        <div class="section-heading">
+          <span class="badge-pill">Got Questions?</span>
+          <h2>Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-accordion">
+          <details class="faq-item" open>
+            <summary class="faq-question">Do I need to install an app or SIM card?</summary>
+            <div class="faq-answer">
+              <p>No. Everything runs seamlessly in your web browser. You do not need physical SIM cards, dongles, or mobile applications.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What happens if the SMS verification code does not arrive?</summary>
+            <div class="faq-answer">
+              <p>OTPWala operates on a strict 100% auto-refund guarantee. If the SMS does not arrive before the timer expires, or if you cancel the number, the full amount is instantly refunded back to your wallet.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">How long is a virtual number active for?</summary>
+            <div class="faq-answer">
+              <p>Each number remains active for a 15 to 20 minute activation window, which is more than enough time to request and receive your OTP code.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can someone else see my SMS code?</summary>
+            <div class="faq-answer">
+              <p>Never. Unlike free public number websites where messages are broadcast publicly, OTPWala numbers are private to your account session only.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Bottom Conversion -->
+      <div class="bottom-cta card-glass">
+        <h2>Start Receiving OTPs in Minutes</h2>
+        <p>Join thousands of users verifying accounts securely without sharing personal numbers.</p>
+        <div class="cta-actions">
+          <a href="/auth/register" class="btn btn-primary btn-lg">Create Free Account</a>
+          <a href="/services" class="btn btn-secondary btn-lg">Browse Supported Services</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .how-page {
+    padding: 2rem 0 5rem;
+  }
+
+  .breadcrumb-nav { margin-bottom: 1.5rem; }
+  .breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+  }
+  .breadcrumb-list a {
+    color: var(--text-secondary, #475569);
+    text-decoration: none;
+  }
+  .breadcrumb-list a:hover { color: var(--accent-primary, #2563eb); }
+  .breadcrumb-list li:not(:last-child)::after {
+    content: '/';
+    margin-left: 0.5rem;
+    color: #cbd5e1;
+  }
+
+  .how-hero {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3.5rem;
+  }
+  .badge-pill {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    border: 1px solid #bfdbfe;
+  }
+  .how-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.025em;
+  }
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary, #475569);
+    line-height: 1.6;
+  }
+
+  /* Steps Timeline */
+  .steps-timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+  .step-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2.25rem 1.75rem;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .step-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.08);
+  }
+  .step-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #2563eb;
+    background: #eff6ff;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+  }
+  .step-icon-wrap {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .step-icon-wrap.blue { background: #eff6ff; color: #2563eb; }
+  .step-icon-wrap.purple { background: #faf5ff; color: #9333ea; }
+  .step-icon-wrap.green { background: #f0fdf4; color: #16a34a; }
+  .step-box h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.6rem;
+  }
+  .step-summary {
+    font-size: 0.92rem;
+    color: #475569;
+    line-height: 1.55;
+    margin-bottom: 1.25rem;
+  }
+  .step-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .step-highlights li {
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+
+  /* Live Simulator */
+  .simulator-wrapper {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 3.5rem 2rem;
+    margin-bottom: 5rem;
+    text-align: center;
+  }
+  .sim-header {
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+  }
+  .sim-header h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0.5rem 0;
+  }
+  .sim-header p {
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+  .sim-card {
+    max-width: 580px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 2rem;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .sim-phone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 1.5rem;
+  }
+  .sim-carrier {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #0f172a;
+  }
+  .dot-online {
+    width: 8px;
+    height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+  }
+  .sim-timer {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #2563eb;
+    background: #eff6ff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+  }
+  .sim-row {
+    margin-bottom: 1.25rem;
+  }
+  .sim-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+  }
+  .sim-number-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+  }
+  .number-val {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.03em;
+  }
+  .btn-copy-sm {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .sim-badge-srv {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .sim-sms-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+    animation: pulseGlow 2.5s infinite;
+  }
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.2); }
+    50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  }
+  .sms-icon { font-size: 1.75rem; }
+  .sms-body { flex: 1; }
+  .sms-meta { font-size: 0.72rem; color: #64748b; margin-bottom: 0.2rem; }
+  .sms-text { font-size: 0.92rem; color: #0f172a; }
+  .otp-highlight {
+    background: #ffffff;
+    color: #2563eb;
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+  .btn-copy-otp {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Refund Section */
+  .refund-section {
+    margin-bottom: 5rem;
+  }
+  .refund-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .refund-info h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0.5rem 0 1rem;
+  }
+  .refund-info p {
+    font-size: 1.05rem;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .refund-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .rf-step {
+    display: flex;
+    gap: 1.25rem;
+  }
+  .rf-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .rf-step h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.25rem;
+  }
+  .rf-step p {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin: 0;
+  }
+  .refund-card-visual {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  }
+  .shield-badge {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  .refund-card-visual h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem;
+  }
+  .refund-card-visual p {
+    font-size: 0.92rem;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+  }
+  .guarantee-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+    color: #334155;
+    font-weight: 600;
+  }
+
+  /* Comparison */
+  .privacy-compare-section {
+    margin-bottom: 5rem;
+  }
+  .section-heading {
+    text-align: center;
+    max-width: 650px;
+    margin: 0 auto 2.5rem;
+  }
+  .section-heading h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0.5rem 0;
+  }
+  .section-heading p {
+    color: #64748b;
+    font-size: 1rem;
+  }
+  .compare-table-wrapper {
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.92rem;
+  }
+  .compare-table th, .compare-table td {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .compare-table th {
+    font-size: 0.95rem;
+    font-weight: 800;
+    background: #f8fafc;
+  }
+  .danger-header { color: #dc2626; }
+  .success-header { color: #16a34a; }
+  .text-danger { color: #dc2626; }
+  .text-success { color: #16a34a; font-weight: 600; }
+
+  /* FAQ */
+  .faq-container { max-width: 760px; margin: 0 auto 4rem; }
+  .faq-accordion { display: flex; flex-direction: column; gap: 1rem; }
+  .faq-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .faq-item[open] { border-color: #bfdbfe; }
+  .faq-question {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0f172a;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+  }
+  .faq-question::-webkit-details-marker { display: none; }
+  .faq-question::after { content: '+'; font-size: 1.3rem; color: #94a3b8; }
+  .faq-item[open] .faq-question::after { content: '−'; color: #2563eb; }
+  .faq-answer { margin-top: 0.85rem; font-size: 0.92rem; color: #475569; line-height: 1.6; }
+
+  /* Bottom CTA */
+  .bottom-cta {
+    text-align: center;
+    padding: 3.5rem 2rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #ffffff;
+  }
+  .bottom-cta h2 { font-size: 2.2rem; font-weight: 800; margin: 0 0 0.75rem; color: #ffffff; }
+  .bottom-cta p { font-size: 1.1rem; color: #bfdbfe; max-width: 580px; margin: 0 auto 2rem; }
+  .cta-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+  .bottom-cta .btn-primary { background: #ffffff; color: #2563eb; }
+  .bottom-cta .btn-secondary { background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.3); }
+
+  @media (max-width: 768px) {
+    .how-hero h1 { font-size: 2rem; }
+    .steps-timeline { grid-template-columns: 1fr; }
+    .refund-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  // Simple interactive copy buttons in demonstration box
+  const copyBtn = document.getElementById('demo-copy-btn');
+  const copyOtp = document.getElementById('demo-copy-otp');
+
+  copyBtn?.addEventListener('click', () => {
+    navigator.clipboard?.writeText('+17864089214');
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => { copyBtn.textContent = 'Copy Number'; }, 2000);
+  });
+
+  copyOtp?.addEventListener('click', () => {
+    navigator.clipboard?.writeText('591820');
+    copyOtp.textContent = 'Copied!';
+    setTimeout(() => { copyOtp.textContent = 'Copy 591820'; }, 2000);
+  });
+</script>

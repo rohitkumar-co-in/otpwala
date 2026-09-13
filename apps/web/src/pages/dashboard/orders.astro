@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import OrderHistory from '../../components/dashboard/OrderHistory';
+---
+
+<DashboardLayout title="My Orders — OTPWala" activeNav="orders">
+  <OrderHistory client:load />
+</DashboardLayout>

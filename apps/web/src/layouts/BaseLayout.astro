@@ -1,0 +1,691 @@
+---
+import '../styles/global.css';
+import { formatPageTitle, DEFAULT_BRANDING } from '../lib/branding';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  keywords?: string;
+  ogType?: string;
+  ogImage?: string;
+  noindex?: boolean;
+}
+
+const { 
+  title,
+  description = 'Get instant virtual phone numbers for WhatsApp, Telegram, Google, Instagram and 980+ services. Cheapest rates in India, fastest OTP delivery with 100% auto refund.',
+  canonical,
+  keywords = 'virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala',
+  ogType = 'website',
+  ogImage = 'https://otpwala.me/og-image.png',
+  noindex = false
+} = Astro.props;
+
+const formattedTitle = formatPageTitle(title);
+
+// Resolve canonical URL
+const siteOrigin = 'https://otpwala.me';
+const canonicalURL = canonical || new URL(Astro.url.pathname, siteOrigin).href;
+const currentPath = Astro.url.pathname;
+
+// JSON-LD Structured Data
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "OTPWala",
+  "url": siteOrigin,
+  "logo": `${siteOrigin}/favicon.svg`,
+  "sameAs": [
+    "https://t.me/OTPWalaSupport"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Customer Support",
+    "email": "support@otpwala.me",
+    "availableLanguage": ["English", "Hindi"]
+  }
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "OTPWala",
+  "url": siteOrigin,
+  "description": "Instant Virtual Numbers for SMS & OTP Verification",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": `${siteOrigin}/#services?q={search_term_string}`,
+    "query-input": "required name=search_term_string"
+  }
+};
+
+const webAppSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "OTPWala",
+  "url": siteOrigin,
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "INR",
+    "lowPrice": "3.00",
+    "highPrice": "25.00",
+    "offerCount": "980"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "ratingCount": "12480",
+    "bestRating": "5",
+    "worstRating": "1"
+  }
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <!-- Primary Meta Tags -->
+  <title>{formattedTitle}</title>
+  <meta name="title" content={formattedTitle} />
+  <meta name="description" content={description} />
+  <meta name="keywords" content={keywords} />
+  <meta name="author" content="OTPWala" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="application-name" content="OTPWala" />
+  <meta name="apple-mobile-web-app-title" content="OTPWala" />
+
+  <!-- Robots / Crawling Directive -->
+  {noindex ? (
+    <meta name="robots" content="noindex, nofollow" />
+  ) : (
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  )}
+
+  <script is:inline>
+    if (window.location.hostname.endsWith('pages.dev')) {
+      let meta = document.querySelector('meta[name="robots"]');
+      if (meta) {
+        meta.setAttribute('content', 'noindex, nofollow, noarchive');
+      } else {
+        meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex, nofollow, noarchive';
+        document.head.appendChild(meta);
+      }
+    }
+  </script>
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href={canonicalURL} />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:site_name" content="OTPWala" />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:title" content={formattedTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="OTPWala — Instant Virtual Numbers for SMS Verification" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content={canonicalURL} />
+  <meta name="twitter:title" content={formattedTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+  <meta name="twitter:image:alt" content="OTPWala Virtual Number Service" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="dns-prefetch" href="https://api.iconify.design" />
+  <link rel="dns-prefetch" href="https://flagcdn.com" />
+
+  <!-- Favicons & Touch Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
+  <link rel="shortcut icon" href="/favicon.ico?v=3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+  <link rel="manifest" href="/site.webmanifest?v=3" />
+  
+  <!-- Structured Data: JSON-LD Schemas -->
+  <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(webAppSchema)} />
+
+  <!-- Instant Site Branding Pre-Hydration (Zero FOUC) -->
+  <script is:inline>
+    (function() {
+      try {
+        var rawB = localStorage.getItem('otpwala_branding');
+        if (rawB) {
+          var b = JSON.parse(rawB);
+          var bName = b.brandName || 'OTPWala';
+          var bSep = b.separator || '—';
+          var bSlogan = b.slogan || 'Instant Virtual Numbers for SMS Verification';
+          
+          if (window.location.pathname === '/' || window.location.pathname === '') {
+            document.title = bName + ' ' + bSep + ' ' + bSlogan;
+          } else {
+            var parts = document.title.split(/ [—|•-] /);
+            var prefix = parts[0] ? parts[0].trim() : '';
+            if (prefix && prefix !== bName) {
+              document.title = prefix + ' ' + bSep + ' ' + bName;
+            }
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Instant Auth Config State Pre-Hydration (Zero FOUC) -->
+  <script is:inline>
+    (function() {
+      try {
+        var raw = localStorage.getItem('otpwala_auth_config');
+        if (raw) {
+          var cfg = JSON.parse(raw);
+          var cl = document.documentElement.classList;
+          if (cfg.allowRegistration === false) cl.add('auth-config-no-reg');
+          if (cfg.allowEmailSignup === false) cl.add('auth-config-no-email');
+          if (cfg.allowGoogleLogin === false) cl.add('auth-config-no-google');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container flex items-center justify-between">
+      <a href="/" class="logo" id="logo" aria-label="OTPWala Homepage">
+        <span class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 512 512" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="headLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0f172a" />
+                <stop offset="35%" stop-color="#1e1b4b" />
+                <stop offset="70%" stop-color="#1d4ed8" />
+                <stop offset="100%" stop-color="#0284c7" />
+              </linearGradient>
+              <radialGradient id="headLogoCenterGlow" cx="50%" cy="48%" r="50%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+                <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="headLogoORingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="50%" stop-color="#f0f9ff" />
+                <stop offset="100%" stop-color="#bae6fd" />
+              </linearGradient>
+              <linearGradient id="headLogoWLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#2563eb" />
+              </linearGradient>
+              <linearGradient id="headLogoWRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" />
+                <stop offset="100%" stop-color="#1d4ed8" />
+              </linearGradient>
+              <linearGradient id="headLogoVaultCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#06b6d4" />
+              </linearGradient>
+              <filter id="headLogoMainShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#020617" flood-opacity="0.5" />
+              </filter>
+            </defs>
+            <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#headLogoBg)" />
+            <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#headLogoCenterGlow)" />
+            <rect x="18" y="18" width="476" height="476" rx="116" fill="none" stroke="rgba(255, 255, 255, 0.22)" stroke-width="3" />
+            <path d="M 16 134 C 16 50 50 16 134 16 L 378 16 C 462 16 496 50 496 134 L 496 220 C 330 255 182 255 16 220 Z" fill="#ffffff" opacity="0.08" />
+            <g filter="url(#headLogoMainShadow)">
+              <path d="M 256,76 C 358,76 436,154 436,256 C 436,334 372,398 256,436 C 140,398 76,334 76,256 C 76,154 154,76 256,76 Z M 256,134 C 188,134 134,188 134,256 C 134,312 180,360 256,388 C 332,360 378,312 378,256 C 378,188 324,134 256,134 Z" fill="url(#headLogoORingGrad)" fill-rule="evenodd" />
+              <path d="M 172,216 L 208,216 L 236,326 L 204,326 Z" fill="url(#headLogoWLeftGrad)" />
+              <path d="M 204,326 L 236,326 L 256,254 L 238,254 Z" fill="#60a5fa" />
+              <path d="M 256,254 L 274,254 L 308,326 L 276,326 Z" fill="#3b82f6" />
+              <path d="M 304,216 L 340,216 L 308,326 L 276,326 Z" fill="url(#headLogoWRightGrad)" />
+              <rect x="172" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+              <rect x="304" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+              <circle cx="256" cy="186" r="16" fill="url(#headLogoVaultCoreGrad)" />
+              <path d="M 248,194 L 264,194 L 267,222 L 245,222 Z" fill="url(#headLogoVaultCoreGrad)" />
+              <polyline points="250,186 254,190 262,182" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M 364,136 C 382,152 392,174 394,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" />
+              <path d="M 396,108 C 422,132 436,162 438,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+              <circle cx="406" cy="98" r="9" fill="#10b981" />
+              <circle cx="406" cy="98" r="4.5" fill="#ffffff" />
+            </g>
+          </svg>
+        </span>
+        <span class="logo-text"><span data-brand-name>OTPWala</span></span>
+      </a>
+      
+      <nav class="nav-links hide-mobile" id="main-nav">
+        <a href="/services" class={currentPath.startsWith('/services') ? 'active' : ''}>Services</a>
+        <a href="/how-it-works" class={currentPath.startsWith('/how-it-works') ? 'active' : ''}>How it Works</a>
+        <a href="/pricing" class={currentPath.startsWith('/pricing') ? 'active' : ''}>Pricing</a>
+      </nav>
+      
+      <div class="header-actions flex items-center gap-md">
+        <a href="/auth/login" style="font-size:0.875rem; font-weight:600; color:#64748b; text-decoration:none; transition:color 0.15s;" id="login-btn" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">Log In</a>
+        <a href="/auth/register" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.5rem 1.1rem; background:#2563eb; color:#fff; border-radius:8px; font-size:0.875rem; font-weight:700; text-decoration:none; transition:all 0.2s; box-shadow:0 2px 10px rgba(37,99,235,0.2);" id="register-btn" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <slot />
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="logo" aria-label="Homepage">
+            <span class="logo-icon">
+              <svg width="32" height="32" viewBox="0 0 512 512" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="footLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0f172a" />
+                    <stop offset="35%" stop-color="#1e1b4b" />
+                    <stop offset="70%" stop-color="#1d4ed8" />
+                    <stop offset="100%" stop-color="#0284c7" />
+                  </linearGradient>
+                  <radialGradient id="footLogoCenterGlow" cx="50%" cy="48%" r="50%">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+                  </radialGradient>
+                  <linearGradient id="footLogoORingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" />
+                    <stop offset="50%" stop-color="#f0f9ff" />
+                    <stop offset="100%" stop-color="#bae6fd" />
+                  </linearGradient>
+                  <linearGradient id="footLogoWLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#2563eb" />
+                  </linearGradient>
+                  <linearGradient id="footLogoWRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#60a5fa" />
+                    <stop offset="100%" stop-color="#1d4ed8" />
+                  </linearGradient>
+                  <linearGradient id="footLogoVaultCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10b981" />
+                    <stop offset="100%" stop-color="#06b6d4" />
+                  </linearGradient>
+                  <filter id="footLogoMainShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#020617" flood-opacity="0.5" />
+                  </filter>
+                </defs>
+                <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#footLogoBg)" />
+                <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#footLogoCenterGlow)" />
+                <rect x="18" y="18" width="476" height="476" rx="116" fill="none" stroke="rgba(255, 255, 255, 0.22)" stroke-width="3" />
+                <path d="M 16 134 C 16 50 50 16 134 16 L 378 16 C 462 16 496 50 496 134 L 496 220 C 330 255 182 255 16 220 Z" fill="#ffffff" opacity="0.08" />
+                <g filter="url(#footLogoMainShadow)">
+                  <path d="M 256,76 C 358,76 436,154 436,256 C 436,334 372,398 256,436 C 140,398 76,334 76,256 C 76,154 154,76 256,76 Z M 256,134 C 188,134 134,188 134,256 C 134,312 180,360 256,388 C 332,360 378,312 378,256 C 378,188 324,134 256,134 Z" fill="url(#footLogoORingGrad)" fill-rule="evenodd" />
+                  <path d="M 172,216 L 208,216 L 236,326 L 204,326 Z" fill="url(#footLogoWLeftGrad)" />
+                  <path d="M 204,326 L 236,326 L 256,254 L 238,254 Z" fill="#60a5fa" />
+                  <path d="M 256,254 L 274,254 L 308,326 L 276,326 Z" fill="#3b82f6" />
+                  <path d="M 304,216 L 340,216 L 308,326 L 276,326 Z" fill="url(#footLogoWRightGrad)" />
+                  <rect x="172" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+                  <rect x="304" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+                  <circle cx="256" cy="186" r="16" fill="url(#footLogoVaultCoreGrad)" />
+                  <path d="M 248,194 L 264,194 L 267,222 L 245,222 Z" fill="url(#footLogoVaultCoreGrad)" />
+                  <polyline points="250,186 254,190 262,182" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M 364,136 C 382,152 392,174 394,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" />
+                  <path d="M 396,108 C 422,132 436,162 438,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+                  <circle cx="406" cy="98" r="9" fill="#10b981" />
+                  <circle cx="406" cy="98" r="4.5" fill="#ffffff" />
+                </g>
+              </svg>
+            </span>
+            <span class="logo-text"><span data-brand-name>OTPWala</span></span>
+          </a>
+          <p class="text-secondary">Instant virtual numbers for SMS verification. Fast, reliable, affordable.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <a href="/auth/register">Create Account</a>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/dashboard/wallet">Add Balance</a>
+        </div>
+        <div class="footer-links">
+          <h4>Services & Rates</h4>
+          <a href="/services">All Services</a>
+          <a href="/pricing">Pricing & Rates</a>
+          <a href="/how-it-works">How it Works</a>
+        </div>
+        <div class="footer-links">
+          <h4>Legal & Support</h4>
+          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener">Contact Support</a>
+        </div>
+      </div>
+      <div class="footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <p class="text-muted">&copy; 2026 <span data-brand-name>OTPWala</span> — All rights reserved.</p>
+        <div class="system-status-pill" title="Platform servers & SMS dispatch engines are operational and working fine">
+          <span class="status-dot active pulse-dot"></span>
+          <span>Servers Up &amp; Operational</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <style>
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid #e5e7eb;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      font-family: var(--font-display, 'Outfit', -apple-system, sans-serif);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      user-select: none;
+    }
+    .logo-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform var(--transition-fast);
+    }
+    .logo:hover .logo-icon {
+      transform: scale(1.05);
+    }
+    .logo-text {
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1;
+    }
+    .logo-text .text-gradient {
+      color: #2563eb;
+      font-weight: 800;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    .nav-links a {
+      color: #64748b;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: #0f172a; }
+    .nav-links a.active {
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    main {
+      padding-top: var(--header-height);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Footer ─── */
+    .site-footer {
+      background: #0f172a;
+      padding: 3.5rem 0 1.5rem;
+      margin-top: 0;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .footer-brand p {
+      margin-top: 0.85rem;
+      font-size: 0.88rem;
+      color: #64748b;
+      max-width: 280px;
+      line-height: 1.65;
+    }
+    .footer-brand .logo-text { color: #f1f5f9; }
+    .footer-brand .logo-dot  { color: #475569; }
+    .footer-brand .logo svg  { stroke: #2563eb; }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .footer-links h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .footer-links a {
+      color: #64748b;
+      font-size: 0.85rem;
+      transition: color 0.15s;
+    }
+    .footer-links a:hover { color: #f1f5f9; }
+
+    .footer-bottom {
+      padding-top: 1.5rem;
+      border-top: 1px solid #1e293b;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <script>
+    import { supabase } from '../lib/supabase';
+
+    async function syncNavAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        let targetUrl = '/dashboard';
+        let label = 'Dashboard';
+
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          if (profile?.role === 'admin') {
+            targetUrl = '/admin';
+            label = 'Admin Panel';
+          }
+        } catch {}
+
+        // Update header buttons
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const heroCta = document.getElementById('hero-cta');
+
+        if (loginBtn) {
+          loginBtn.textContent = label;
+          loginBtn.setAttribute('href', targetUrl);
+          loginBtn.className = 'btn btn-secondary btn-sm';
+        }
+
+        if (registerBtn) {
+          registerBtn.textContent = 'Log Out';
+          registerBtn.setAttribute('href', '#');
+          registerBtn.className = 'btn btn-ghost btn-sm';
+          registerBtn.onclick = async (e) => {
+            e.preventDefault();
+            await supabase.auth.signOut();
+            window.location.href = '/auth/login';
+          };
+        }
+
+        if (heroCta) {
+          heroCta.textContent = `Go to ${label} →`;
+          heroCta.setAttribute('href', targetUrl);
+        }
+      } catch {}
+    }
+
+    // Run on mount and listen to auth changes
+    syncNavAuth();
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        syncNavAuth();
+      }
+    });
+
+    // Dynamic Branding Sync
+    (function syncBranding() {
+      function applyBrand(b) {
+        if (!b) return;
+        var bName = b.brandName || 'OTPWala';
+        var bSep = b.separator || '—';
+        var bSlogan = b.slogan || 'Instant Virtual Numbers for SMS Verification';
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+          document.title = bName + ' ' + bSep + ' ' + bSlogan;
+        } else if (document.title) {
+          var parts = document.title.split(/ [—|•-] /);
+          var prefix = parts[0] ? parts[0].trim() : '';
+          if (prefix && prefix !== bName) {
+            document.title = prefix + ' ' + bSep + ' ' + bName;
+          }
+        }
+        document.querySelectorAll('[data-brand-name]').forEach(function(el) {
+          el.textContent = bName;
+        });
+        document.querySelectorAll('[data-brand-slogan]').forEach(function(el) {
+          el.textContent = bSlogan;
+        });
+        document.querySelectorAll('[data-brand-separator]').forEach(function(el) {
+          el.textContent = bSep;
+        });
+
+        if (typeof b.maintenanceMode !== 'undefined') {
+          checkMaintenance(b.maintenanceMode);
+        }
+      }
+
+      function checkMaintenance(isMaint) {
+        var overlay = document.getElementById('fullsite-maintenance-overlay');
+        if (!overlay) return;
+        var path = window.location.pathname;
+        if (path.startsWith('/admin') || path === '/auth/login') {
+          overlay.style.display = 'none';
+          return;
+        }
+        if (isMaint) {
+          try {
+            var rawUser = localStorage.getItem('otpwala_user_profile');
+            if (rawUser) {
+              var profile = JSON.parse(rawUser);
+              if (profile && profile.role === 'admin') {
+                overlay.style.display = 'none';
+                return;
+              }
+            }
+          } catch(e) {}
+          overlay.style.display = 'flex';
+        } else {
+          overlay.style.display = 'none';
+        }
+      }
+
+      try {
+        var cachedMaint = localStorage.getItem('otpwala_maintenance_mode');
+        if (cachedMaint === 'true') checkMaintenance(true);
+      } catch(e) {}
+
+      try {
+        var cached = localStorage.getItem('otpwala_branding');
+        if (cached) applyBrand(JSON.parse(cached));
+      } catch(e) {}
+
+      fetch('https://api.otpwala.me/api/branding')
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+          if (json && json.success && json.data) {
+            localStorage.setItem('otpwala_branding', JSON.stringify(json.data));
+            if (typeof json.data.maintenanceMode !== 'undefined') {
+              localStorage.setItem('otpwala_maintenance_mode', String(json.data.maintenanceMode));
+            }
+            applyBrand(json.data);
+          }
+        })
+        .catch(function() {});
+    })();
+  </script>
+
+  <!-- Full-Site Maintenance Overlay -->
+  <div id="fullsite-maintenance-overlay" style="display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(8, 10, 18, 0.96); backdrop-filter: blur(24px); align-items: center; justify-content: center; padding: 1.5rem; text-align: center;">
+    <div style="max-width: 560px; width: 100%; background: linear-gradient(180deg, rgba(26, 32, 53, 0.85) 0%, rgba(13, 17, 28, 0.98) 100%); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 24px; padding: 3rem 2rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 50px rgba(239, 68, 68, 0.15);">
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.75rem;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+        <span>SYSTEM MAINTENANCE ACTIVE</span>
+      </div>
+      <div style="width: 72px; height: 72px; border-radius: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; margin: 0 0 0.85rem 0; font-family: var(--font-display, 'Outfit', sans-serif);">
+        Platform Under <span style="color: #f87171;">Maintenance</span>
+      </h1>
+      <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin: 0 0 2rem 0;">
+        <strong style="color: #ffffff;"><span data-brand-name>OTPWala</span></strong> is currently undergoing scheduled platform upgrades. All user balances and active numbers are safe. Services will resume shortly.
+      </p>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <button onclick="window.location.reload()" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Refresh Page</span>
+        </button>
+        <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 600;">
+          Telegram Support
+        </a>
+      </div>
+      <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem; font-size: 0.8rem; color: #64748b;">
+        Administrator? <a href="/auth/login" style="color: #60a5fa; text-decoration: underline; font-weight: 600;">Access Admin Panel &rarr;</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

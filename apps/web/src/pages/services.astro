@@ -1,0 +1,800 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// SEO Structured Data
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://otpwala.me"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Services",
+      "item": "https://otpwala.me/services"
+    }
+  ]
+};
+
+const serviceListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Supported SMS OTP Verification Services",
+  "description": "Comprehensive catalog of 980+ digital services supported by OTPWala virtual numbers.",
+  "itemListElement": [
+    { "@type": "Service", "position": 1, "name": "WhatsApp Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 2, "name": "Telegram Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 3, "name": "Google / Gmail Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 4, "name": "Instagram / Threads Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 5, "name": "OpenAI / ChatGPT Virtual Number", "offers": { "@type": "Offer", "price": "2.00", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 6, "name": "Facebook Virtual Number", "offers": { "@type": "Offer", "price": "1.00", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 7, "name": "X / Twitter Virtual Number", "offers": { "@type": "Offer", "price": "1.00", "priceCurrency": "INR" } },
+    { "@type": "Service", "position": 8, "name": "Amazon Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } }
+  ]
+};
+
+const servicesFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which platforms can I verify with OTPWala?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OTPWala supports over 980+ international and Indian platforms including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI ChatGPT, Apple, Discord, Uber, Amazon, and Netflix."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How quickly does the SMS OTP arrive for these services?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Over 95% of SMS verification codes are delivered in under 30 seconds directly to your OTPWala dashboard."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are these phone numbers shared or reused?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. When you order a virtual number on OTPWala, that number is provisioned solely for your session for that specific service. No one else can view your SMS code."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What if a service is not listed in the catalog?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can use the 'Any Other Service' option, which accepts verification SMS from any platform not explicitly named in the catalog."
+      }
+    }
+  ]
+};
+
+const popularServices = [
+  { code: 'wa', name: 'WhatsApp', category: 'social', minPrice: '1.50', rate: '98.8%', icon: 'https://api.iconify.design/logos:whatsapp-icon.svg?width=32&height=32', desc: 'Instant activation for personal & business WhatsApp accounts.' },
+  { code: 'tg', name: 'Telegram', category: 'social', minPrice: '1.50', rate: '98.5%', icon: 'https://api.iconify.design/logos:telegram.svg?width=32&height=32', desc: 'Fast login & registration OTP codes for Telegram messaging.' },
+  { code: 'go', name: 'Google / Gmail', category: 'tech', minPrice: '1.50', rate: '97.9%', icon: 'https://api.iconify.design/logos:google-icon.svg?width=32&height=32', desc: 'Secure phone verification for Gmail, YouTube & Google Cloud.' },
+  { code: 'ig', name: 'Instagram', category: 'social', minPrice: '1.50', rate: '97.4%', icon: 'https://api.iconify.design/logos:instagram-icon.svg?width=32&height=32', desc: 'Create and verify new Instagram & Threads profiles smoothly.' },
+  { code: 'dr', name: 'OpenAI / ChatGPT', category: 'ai', minPrice: '2.00', rate: '98.2%', icon: 'https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=32&height=32', desc: 'Verify ChatGPT Plus, OpenAI API, and Sora accounts.' },
+  { code: 'fb', name: 'Facebook', category: 'social', minPrice: '1.00', rate: '96.8%', icon: 'https://api.iconify.design/logos:facebook.svg?width=32&height=32', desc: 'Receive SMS verification codes for Facebook & Meta accounts.' },
+  { code: 'tw', name: 'X / Twitter', category: 'social', minPrice: '1.00', rate: '96.5%', icon: 'https://api.iconify.design/simple-icons:x.svg?color=black&width=28&height=28', desc: 'Verify Twitter accounts and 2FA authentication instantly.' },
+  { code: 'am', name: 'Amazon', category: 'shopping', minPrice: '1.50', rate: '96.6%', icon: 'https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=30&height=30', desc: 'Verify Amazon shopping and AWS developer accounts.' },
+  { code: 'mm', name: 'Microsoft', category: 'tech', minPrice: '1.50', rate: '97.2%', icon: 'https://api.iconify.design/logos:microsoft-icon.svg?width=30&height=30', desc: 'Unlock Outlook, Office 365, Azure, and Xbox verification.' },
+  { code: 'lf', name: 'TikTok', category: 'social', minPrice: '1.00', rate: '96.4%', icon: 'https://api.iconify.design/logos:tiktok-icon.svg?width=30&height=30', desc: 'Register global TikTok accounts and bypass geo-blocks.' },
+  { code: 'nf', name: 'Netflix', category: 'entertainment', minPrice: '1.50', rate: '96.0%', icon: 'https://api.iconify.design/logos:netflix-icon.svg?width=30&height=30', desc: 'SMS authorization for household streaming subscriptions.' },
+  { code: 'wx', name: 'Apple ID', category: 'tech', minPrice: '2.00', rate: '98.1%', icon: 'https://api.iconify.design/simple-icons:apple.svg?color=black&width=30&height=30', desc: 'Two-factor authentication codes for iCloud and Apple IDs.' },
+  { code: 'ds', name: 'Discord', category: 'social', minPrice: '1.50', rate: '97.0%', icon: 'https://api.iconify.design/logos:discord-icon.svg?width=30&height=30', desc: 'Pass Discord server phone verification requirements.' },
+  { code: 'ub', name: 'Uber', category: 'shopping', minPrice: '1.50', rate: '97.7%', icon: 'https://api.iconify.design/simple-icons:uber.svg?color=black&width=30&height=30', desc: 'Verify Uber rider and driver accounts across all countries.' },
+  { code: 'spot', name: 'Spotify', category: 'entertainment', minPrice: '1.00', rate: '97.5%', icon: 'https://api.iconify.design/logos:spotify-icon.svg?width=30&height=30', desc: 'SMS codes for music streaming subscriptions and artists.' },
+  { code: 'steam', name: 'Steam', category: 'entertainment', minPrice: '1.50', rate: '98.0%', icon: 'https://api.iconify.design/logos:steam.svg?width=30&height=30', desc: 'Steam Guard phone link for game trade safety.' }
+];
+---
+
+<BaseLayout 
+  title="Virtual Phone Numbers for 980+ Online Services — OTPWala"
+  description="Browse 980+ supported online services for instant SMS OTP verification. WhatsApp, Telegram, Google, Instagram, ChatGPT, and more. Starting from ₹1.50."
+  canonical="https://otpwala.me/services"
+  keywords="virtual number services, whatsapp otp number, telegram virtual number, google gmail sms verification, chatgpt phone number, cheap otp number india, disposable phone number"
+>
+  <!-- Schema Injections -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(serviceListSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(servicesFaqSchema)} />
+
+  <section class="services-page">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li><a href="/">Home</a></li>
+          <li aria-current="page">Services</li>
+        </ol>
+      </nav>
+
+      <!-- Hero Header -->
+      <div class="services-hero">
+        <span class="badge-pill">980+ Supported Platforms</span>
+        <h1>Virtual Numbers for <span class="text-gradient">Any Service</span></h1>
+        <p class="hero-desc">
+          Get dedicated virtual phone numbers to receive SMS verification codes instantly. 
+          Keep your real SIM identity safe from spam and data breaches.
+        </p>
+
+        <!-- Search & Filters -->
+        <div class="catalog-controls">
+          <div class="search-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input 
+              type="text" 
+              id="service-search" 
+              class="search-input" 
+              placeholder="Search 980+ services (e.g. WhatsApp, Google, ChatGPT)..." 
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="category-tabs" id="category-tabs">
+            <button class="tab-btn active" data-cat="all">All Services</button>
+            <button class="tab-btn" data-cat="social">Social & Chat</button>
+            <button class="tab-btn" data-cat="tech">Tech & Email</button>
+            <button class="tab-btn" data-cat="ai">AI & Tools</button>
+            <button class="tab-btn" data-cat="shopping">Shopping & Rides</button>
+            <button class="tab-btn" data-cat="entertainment">Entertainment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <strong class="stat-val">980+</strong>
+          <span class="stat-lbl">Services Available</span>
+        </div>
+        <div class="stat-item">
+          <strong class="stat-val">&lt;30s</strong>
+          <span class="stat-lbl">Average OTP Speed</span>
+        </div>
+        <div class="stat-item">
+          <strong class="stat-val">190+</strong>
+          <span class="stat-lbl">Countries Covered</span>
+        </div>
+        <div class="stat-item">
+          <strong class="stat-val">100%</strong>
+          <span class="stat-lbl">Auto-Refund Guarantee</span>
+        </div>
+      </div>
+
+      <!-- Services Grid -->
+      <div class="services-container">
+        <div class="services-grid" id="services-grid">
+          {popularServices.map((srv) => (
+            <div class="service-card" data-code={srv.code} data-name={srv.name.toLowerCase()} data-category={srv.category}>
+              <div class="card-top">
+                <div class="service-icon-box">
+                  <img src={srv.icon} alt={srv.name} width="32" height="32" loading="lazy" />
+                </div>
+                <span class="delivery-rate-badge">✓ {srv.rate} Success</span>
+              </div>
+              <div class="card-body">
+                <h2 class="service-title">{srv.name}</h2>
+                <p class="service-desc">{srv.desc}</p>
+              </div>
+              <div class="card-footer">
+                <div class="price-box">
+                  <span class="price-lbl">Starting from</span>
+                  <span class="price-num">₹{srv.minPrice}</span>
+                </div>
+                <a href={`/dashboard/buy?service=${srv.code}`} class="btn-action">
+                  Get Number →
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div id="no-services-found" style="display: none;" class="empty-state">
+          <p>No services matched your search query.</p>
+          <a href="/dashboard/buy" class="btn btn-primary" style="margin-top: 1rem;">View All Services in Dashboard</a>
+        </div>
+      </div>
+
+      <!-- Explore More Services CTA -->
+      <div class="explore-more-bar" id="explore-more-services-section">
+        <div class="explore-more-info">
+          <span class="badge-pill" style="margin-bottom: 0.5rem; background: #ffffff; border-color: #e2e8f0; color: #2563eb;">Full Catalog Access</span>
+          <h3>Looking for More Services or Private Numbers?</h3>
+          <p>We support over 980+ digital services globally with instant OTP delivery starting from ₹1.00.</p>
+        </div>
+        <a href="/auth/register" class="btn btn-primary btn-lg explore-more-btn" id="explore-more-services-btn">
+          Explore More Services (Sign Up) →
+        </a>
+      </div>
+
+      <!-- Platform Features -->
+      <div class="features-box">
+        <div class="section-heading">
+          <span class="badge-pill">Enterprise Reliability</span>
+          <h2>Why Choose OTPWala for SMS Verification?</h2>
+        </div>
+        <div class="features-grid">
+          <div class="feat-item">
+            <div class="feat-icon blue">⚡</div>
+            <h3>Direct Carrier Connections</h3>
+            <p>We work directly with telecom operators across 190+ countries for instant, unthrottled SMS routing.</p>
+          </div>
+          <div class="feat-item">
+            <div class="feat-icon green">🛡️</div>
+            <h3>100% Automated Refund</h3>
+            <p>If an SMS fails to arrive within the countdown window, your wallet is refunded immediately with zero fees.</p>
+          </div>
+          <div class="feat-item">
+            <div class="feat-icon purple">🔒</div>
+            <h3>Absolute SIM Privacy</h3>
+            <p>Protect your private phone number from telemarketers, data brokers, trackers, and account security risks.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section for SEO -->
+      <div class="faq-container">
+        <div class="section-heading">
+          <span class="badge-pill">Help & Information</span>
+          <h2>Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-accordion">
+          <details class="faq-item" open>
+            <summary class="faq-question">Which platforms can I verify with OTPWala?</summary>
+            <div class="faq-answer">
+              <p>OTPWala supports over 980+ digital platforms globally, including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI ChatGPT, Apple, Discord, Uber, Amazon, and Netflix.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">How fast do SMS verification codes arrive?</summary>
+            <div class="faq-answer">
+              <p>Over 95% of verification codes arrive in under 30 seconds. Status indicators update in real-time on your dashboard so you never miss an SMS.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Are these numbers shared with other users?</summary>
+            <div class="faq-answer">
+              <p>No. When you order a virtual number, it is exclusively reserved for your session for that chosen service. No other user has access to your SMS code.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What if a service is not listed?</summary>
+            <div class="faq-answer">
+              <p>You can use the 'Any Other Service' option in your dashboard, which receives OTP codes from any app or service not listed by name.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Bottom Conversion Callout -->
+      <div class="bottom-cta card-glass">
+        <h2>Ready to Get Instant Virtual Numbers?</h2>
+        <p>Deposit balance starting from ₹50 via UPI and start verifying accounts in seconds.</p>
+        <div class="cta-actions">
+          <a href="/auth/register" class="btn btn-primary btn-lg">Create Free Account</a>
+          <a href="/pricing" class="btn btn-secondary btn-lg">View Full Pricing</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .services-page {
+    padding: 2rem 0 5rem;
+    min-height: 80vh;
+  }
+
+  .breadcrumb-nav {
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+  }
+  .breadcrumb-list a {
+    color: var(--text-secondary, #475569);
+    text-decoration: none;
+  }
+  .breadcrumb-list a:hover {
+    color: var(--accent-primary, #2563eb);
+  }
+  .breadcrumb-list li:not(:last-child)::after {
+    content: '/';
+    margin-left: 0.5rem;
+    color: #cbd5e1;
+  }
+
+  .services-hero {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+  }
+  .badge-pill {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    border: 1px solid #bfdbfe;
+  }
+  .services-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.025em;
+  }
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary, #475569);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  /* Catalog Controls */
+  .catalog-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .search-box {
+    position: relative;
+    width: 100%;
+    max-width: 550px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    padding: 0.9rem 1.2rem 0.9rem 3rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    font-size: 0.95rem;
+    color: #0f172a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  .category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover {
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+  .tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-val {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2563eb;
+    font-family: var(--font-display, sans-serif);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+  }
+  .stat-lbl {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* Services Grid */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.5rem;
+  }
+  .service-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  }
+  .service-card:hover {
+    transform: translateY(-3px);
+    border-color: #bfdbfe;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08);
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .service-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .delivery-rate-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #16a34a;
+    background: #f0fdf4;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid #bbf7d0;
+  }
+  .service-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.4rem;
+  }
+  .service-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.45;
+    margin: 0 0 1.25rem;
+  }
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+  }
+  .price-box {
+    display: flex;
+    flex-direction: column;
+  }
+  .price-lbl {
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+  .price-num {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-action:hover {
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #64748b;
+  }
+
+  /* Explore More Services Bar */
+  .explore-more-bar {
+    margin-top: 2.5rem;
+    padding: 2rem 2.5rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #bae6fd;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05);
+  }
+  .explore-more-info h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0369a1;
+    margin: 0 0 0.35rem;
+  }
+  .explore-more-info p {
+    font-size: 0.95rem;
+    color: #0c4a6e;
+    margin: 0;
+    line-height: 1.4;
+  }
+  .explore-more-btn {
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+    padding: 0.85rem 1.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  @media (max-width: 768px) {
+    .explore-more-bar {
+      flex-direction: column;
+      text-align: center;
+      padding: 1.75rem 1.25rem;
+    }
+    .explore-more-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* Features Box */
+  .features-box {
+    margin: 5rem 0 4rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 3.5rem 2rem;
+  }
+  .section-heading {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+  }
+  .section-heading h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0.5rem 0 0;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .feat-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 2rem;
+  }
+  .feat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .feat-icon.blue { background: #eff6ff; }
+  .feat-icon.green { background: #f0fdf4; }
+  .feat-icon.purple { background: #faf5ff; }
+  .feat-item h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+  .feat-item p {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* FAQ */
+  .faq-container {
+    max-width: 760px;
+    margin: 0 auto 4rem;
+  }
+  .faq-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .faq-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+  .faq-item[open] {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.04);
+  }
+  .faq-question {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0f172a;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-question::-webkit-details-marker { display: none; }
+  .faq-question::after {
+    content: '+';
+    font-size: 1.3rem;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+  .faq-item[open] .faq-question::after {
+    content: '−';
+    color: #2563eb;
+  }
+  .faq-answer {
+    margin-top: 0.85rem;
+    font-size: 0.92rem;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  /* Bottom CTA */
+  .bottom-cta {
+    text-align: center;
+    padding: 3.5rem 2rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #ffffff;
+  }
+  .bottom-cta h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.75rem;
+  }
+  .bottom-cta p {
+    font-size: 1.1rem;
+    color: #bfdbfe;
+    max-width: 580px;
+    margin: 0 auto 2rem;
+  }
+  .cta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .bottom-cta .btn-primary {
+    background: #ffffff;
+    color: #2563eb;
+  }
+  .bottom-cta .btn-primary:hover {
+    background: #f8fafc;
+  }
+  .bottom-cta .btn-secondary {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .bottom-cta .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  @media (max-width: 768px) {
+    .services-hero h1 { font-size: 2rem; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  // Dynamic Catalog Search & Category Filter
+  const searchInput = document.getElementById('service-search') as HTMLInputElement;
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const cards = document.querySelectorAll('.service-card') as NodeListOf<HTMLElement>;
+  const emptyState = document.getElementById('no-services-found') as HTMLElement;
+
+  let activeCategory = 'all';
+  let searchQuery = '';
+
+  function filterCards() {
+    let visibleCount = 0;
+    cards.forEach((card) => {
+      const name = card.dataset.name || '';
+      const cat = card.dataset.category || '';
+      const matchesSearch = !searchQuery || name.includes(searchQuery);
+      const matchesCat = activeCategory === 'all' || cat === activeCategory;
+
+      if (matchesSearch && matchesCat) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (emptyState) {
+      emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  }
+
+  searchInput?.addEventListener('input', (e) => {
+    searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
+    filterCards();
+  });
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = btn.getAttribute('data-cat') || 'all';
+      filterCards();
+    });
+  });
+</script>

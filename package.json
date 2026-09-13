@@ -1,0 +1,19 @@
+{
+  "name": "otpwala",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:web": "pnpm --filter @otpwala/web dev",
+    "dev:api": "pnpm --filter @otpwala/api dev",
+    "build": "pnpm -r run build",
+    "build:web": "pnpm --filter @otpwala/web build",
+    "build:api": "pnpm --filter @otpwala/api build",
+    "deploy:web": "pnpm build:web && npx wrangler pages deploy apps/web/dist --project-name=otpwala"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
+  }
+}

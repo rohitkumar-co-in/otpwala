@@ -1,0 +1,23 @@
+# Robots.txt for OTPWala (https://otpwala.me)
+User-agent: *
+
+# Allow public crawlable landing and information pages
+Allow: /
+Allow: /services
+Allow: /pricing
+Allow: /how-it-works
+Allow: /terms
+Allow: /terms-of-service
+Allow: /privacy
+Allow: /privacy-policy
+Allow: /auth/login
+Allow: /auth/register
+Allow: /auth/forgot-password
+
+# Disallow authenticated, user-specific, and administrative areas
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://otpwala.me/sitemap.xml

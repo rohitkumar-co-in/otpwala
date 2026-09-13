@@ -1,0 +1,8 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OrderManager from '../../components/admin/OrderManager';
+---
+
+<AdminLayout title="Orders Log — OTPWala" activeNav="admin-orders">
+  <OrderManager client:load />
+</AdminLayout>

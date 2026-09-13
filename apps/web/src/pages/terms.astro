@@ -1,0 +1,239 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/legal.css';
+
+const { canonical = 'https://otpwala.me/terms' } = Astro.props;
+---
+
+<BaseLayout 
+  title="Terms of Service — OTPWala"
+  description="Official Terms of Service for OTPWala. Review user obligations, wallet rules, refund guarantee, and terms governing virtual number services."
+  canonical={canonical}
+>
+  <div class="legal-page">
+    {/* Header Banner */}
+    <section class="legal-hero">
+      <div class="container">
+        <div class="legal-hero-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          USER AGREEMENT
+        </div>
+        <h1>Terms of Service</h1>
+        <p class="legal-hero-sub">
+          Please read these terms carefully before accessing or using OTPWala. By using our platform, you agree to be bound by these conditions.
+        </p>
+        <div class="legal-meta">
+          <span><strong>Effective Date:</strong> January 1, 2026</span>
+          <span class="meta-dot">·</span>
+          <span><strong>Last Updated:</strong> January 15, 2026</span>
+          <span class="meta-dot">·</span>
+          <span><strong>Version:</strong> 2.4</span>
+        </div>
+      </div>
+    </section>
+
+    {/* Main Content Container */}
+    <div class="container legal-body">
+      <div class="legal-layout">
+        {/* Sticky Navigation */}
+        <aside class="legal-sidebar hide-mobile">
+          <div class="legal-toc">
+            <h4>Contents</h4>
+            <nav>
+              <a href="#acceptance">1. Acceptance of Terms</a>
+              <a href="#description">2. Description of Service</a>
+              <a href="#accounts">3. Accounts & Authentication</a>
+              <a href="#wallet-refunds">4. Wallet, Refunds & Referrals</a>
+              <a href="#acceptable-use">5. Acceptable Use Policy</a>
+              <a href="#ownership">6. Number Ownership & Limits</a>
+              <a href="#liability">7. Disclaimers & Liability</a>
+              <a href="#termination">8. Termination & Suspension</a>
+              <a href="#modifications">9. Changes to Terms</a>
+              <a href="#contact">10. Contact Information</a>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Document Content */}
+        <article class="legal-content">
+          {/* 1. Acceptance */}
+          <section id="acceptance" class="legal-section">
+            <h2>1. Acceptance of Terms</h2>
+            <p>
+              These Terms of Service ("Terms") constitute a legally binding agreement between you ("User," "you," or "your") and <strong>OTPWala</strong> ("Platform," "we," "us," or "our").
+            </p>
+            <p>
+              By visiting <strong>https://otpwala.me</strong>, registering an account, authenticating via Google OAuth, depositing funds into your wallet, or provisioning a virtual phone number, you explicitly acknowledge that you have read, understood, and agreed to be bound by these Terms and our accompanying <a href="/privacy">Privacy Policy</a>.
+            </p>
+            <p>
+              If you do not agree to these Terms, you must not access the platform or make use of any of our services.
+            </p>
+          </section>
+
+          {/* 2. Description of Service */}
+          <section id="description" class="legal-section">
+            <h2>2. Description of Service</h2>
+            <p>
+              OTPWala provides automated access to temporary, disposable virtual telephone numbers sourced from global telecommunication partners. These numbers are engineered specifically to receive automated SMS verification codes (One-Time Passwords) when registering or verifying accounts across supported third-party web platforms, mobile applications, and online services.
+            </p>
+            <div class="notice-callout">
+              <strong>Crucial Operational Note:</strong> Virtual numbers provided on OTPWala are temporary and non-persistent. They are active solely for the duration of a single activation session (typically 10–20 minutes) and are not intended for ongoing communications, outbound calls, emergency dialling (such as 112 or 911), or permanent identity recovery.
+            </div>
+          </section>
+
+          {/* 3. Accounts & Authentication */}
+          <section id="accounts" class="legal-section">
+            <h2>3. Accounts & Authentication</h2>
+            <p>
+              To purchase and activate virtual numbers, you must create an account. You may register using your email address and password, or via Google OAuth single sign-on.
+            </p>
+            <ul>
+              <li><strong>Accurate Information:</strong> You agree to provide true, accurate, and current information during registration.</li>
+              <li><strong>Account Security:</strong> You are solely responsible for maintaining the confidentiality of your credentials and for all activities that occur under your account.</li>
+              <li><strong>One Account per Individual:</strong> Creation of multiple abusive accounts or utilizing automated scripts to spam registrations is strictly prohibited.</li>
+              <li><strong>Eligibility:</strong> You must be at least 18 years of age (or the legal age of majority in your jurisdiction) to form a binding contract and use this service.</li>
+            </ul>
+          </section>
+
+          {/* 4. Wallet, Pricing & Strict No-Refund Policy */}
+          <section id="wallet-refunds" class="legal-section highlight-box">
+            <div class="box-tag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              PREPAID WALLET & POLICY TERMS
+            </div>
+            <h2>4. Wallet, Pricing & Strict No-Refund Policy</h2>
+            <p>
+              OTPWala operates on a prepaid wallet model. Users deposit funds in Indian Rupees (INR) using supported payment methods (such as UPI) to maintain a positive account balance before ordering numbers.
+            </p>
+
+            <div class="rules-grid">
+              <div class="rule-card">
+                <h3>A. Transparent Pricing</h3>
+                <p>
+                  Prices for numbers vary by service and country based on carrier availability and platform markup. The total final price in INR is explicitly displayed before you confirm your purchase. Once confirmed, the price is deducted from your wallet balance.
+                </p>
+              </div>
+
+              <div class="rule-card">
+                <h3>B. Automatic Order Cancellation Credits</h3>
+                <p>
+                  <strong>No Code, No Charge:</strong> If an SMS code is not delivered within the activation countdown window, or if you cancel an order before an SMS is received, your platform wallet is <strong>instantly and automatically refunded 100%</strong> of that specific order's purchase amount back to your internal OTPWala balance.
+                </p>
+              </div>
+
+              <div class="rule-card" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04);">
+                <h3 style="color: #b91c1c;">C. Strict No-Refund Policy on Wallet Deposits</h3>
+                <p>
+                  <strong>No refund requests will be entertained once funds are deposited.</strong> All wallet top-ups and deposits made via UPI or any other payment method are strictly final, irreversible, and non-refundable under any circumstances. Deposited balances cannot be withdrawn, transferred back to your bank account, card, or original UPI handle, and <strong>can strictly and exclusively be used on the platform</strong> to purchase virtual phone numbers and SMS verification services.
+                </p>
+              </div>
+
+              <div class="rule-card">
+                <h3>D. Non-Transferability</h3>
+                <p>
+                  Wallet balances are non-transferable between different user accounts, cannot be exchanged for cash, and remain locked to the registered account for on-platform utilization.
+                </p>
+              </div>
+
+              <div class="rule-card">
+                <h3>E. Refer & Earn Bonus Terms</h3>
+                <p>
+                  Referrers receive commission bonuses on their referred friend's <strong>1st, 2nd, and 3rd completed deposits</strong> according to the active platform percentages configured by administration (e.g., 20% on 1st deposit, 5% on 2nd, 5% on 3rd). <strong>Crucial Eligibility Rule:</strong> The 2nd and 3rd deposit bonuses can strictly only be awarded if deposited within <strong>30 days of the referred user's account creation</strong>. Deposits made beyond 30 days or subsequent deposits (4th deposit onwards) are not eligible for referral bonuses. Users may claim a friend's referral code from the Refer &amp; Earn dashboard strictly within <strong>24 hours of account registration</strong>; after 24 hours or once claimed, the referral code permanently locks and cannot be modified. All referral earnings are credited directly to your OTPWala prepaid balance. <strong>Referral bonus funds cannot be withdrawn or converted to external fiat cash</strong> and may strictly be used only to purchase virtual number services on OTPWala. Self-referrals or creating duplicate accounts to farm referral commissions is strictly prohibited and results in immediate account forfeiture.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. Acceptable Use Policy */}
+          <section id="acceptable-use" class="legal-section">
+            <h2>5. Acceptable Use Policy & Prohibited Conduct</h2>
+            <p>
+              OTPWala is provided strictly for legitimate privacy testing, application development, personal privacy preservation, and valid account verification. You agree <strong>NOT</strong> to use our services for:
+            </p>
+            <ul class="danger-list">
+              <li><strong>Illegal Activities:</strong> Any unlawful purpose, including fraud, money laundering, extortion, terrorism, or violation of local, national, or international laws.</li>
+              <li><strong>Financial & Banking Fraud:</strong> Creating illicit bank accounts, conducting unauthorized payment transactions, or defrauding financial institutions.</li>
+              <li><strong>Spam & Harassment:</strong> Generating bulk automated accounts for unsolicited marketing, bulk spamming, phishing campaigns, or harassing individuals.</li>
+              <li><strong>Telemarketing & Scam Operations:</strong> Any activity designed to deceive, impersonate government agencies, or operate phone scams.</li>
+              <li><strong>Circumvention of Platform Bans:</strong> Evading law enforcement bans, court orders, or system restrictions imposed on criminal actors.</li>
+              <li><strong>Automated Platform Attacks:</strong> Reverse engineering, overloading, DDoS attacks, scraping, or exploiting API vulnerabilities on OTPWala.</li>
+            </ul>
+            <p>
+              Any violation of this Acceptable Use Policy will result in immediate termination of your account, forfeiture of remaining wallet balances, and potential reporting to law enforcement authorities.
+            </p>
+          </section>
+
+          {/* 6. Number Ownership */}
+          <section id="ownership" class="legal-section">
+            <h2>6. Number Ownership & Limitations</h2>
+            <ul>
+              <li><strong>No Permanent Ownership:</strong> You do not acquire any proprietary interest, ownership, or perpetual title to any telephone number provided through OTPWala.</li>
+              <li><strong>Single-Activation Nature:</strong> Numbers are disposable. Once an activation session terminates or completes, the number is released to the upstream provider and cannot be retrieved again for subsequent verification codes.</li>
+              <li><strong>Third-Party Application Discretion:</strong> We do not control whether a third-party service (e.g., WhatsApp, Telegram, or Google) accepts or flags a virtual number. While our delivery rates are continually optimized, acceptance remains subject to third-party policies.</li>
+            </ul>
+          </section>
+
+          {/* 7. Disclaimers & Liability */}
+          <section id="liability" class="legal-section">
+            <h2>7. Disclaimers & Limitation of Liability</h2>
+            <p>
+              TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, OTPWALA AND ITS AFFILIATES PROVIDE ALL SERVICES ON AN "AS IS" AND "AS AVAILABLE" BASIS, WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE.
+            </p>
+            <p>
+              IN NO EVENT SHALL OTPWALA, ITS DIRECTORS, EMPLOYEES, OR PARTNERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, GOODWILL, OR BUSINESS INTERRUPTION ARISING OUT OF OR IN CONNECTION WITH YOUR ACCESS TO OR USE OF (OR INABILITY TO USE) THE PLATFORM.
+            </p>
+            <p>
+              OUR TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATING TO THESE TERMS SHALL BE LIMITED TO THE TOTAL AMOUNT PAID BY YOU TO OTPWALA DURING THE THREE (3) MONTHS IMMEDIATELY PRECEDING THE CLAIM.
+            </p>
+          </section>
+
+          {/* 8. Termination */}
+          <section id="termination" class="legal-section">
+            <h2>8. Termination & Suspension</h2>
+            <p>
+              We reserve the right, in our sole discretion and without prior notice, to suspend or terminate your account and refuse current or future use of the platform if:
+            </p>
+            <ul>
+              <li>You breach any provision of these Terms or the Acceptable Use Policy;</li>
+              <li>We detect fraudulent, abusive, or suspicious activity on your account;</li>
+              <li>Requested by law enforcement or governmental agencies;</li>
+              <li>Discontinuing or substantially modifying the service or any part thereof.</li>
+            </ul>
+          </section>
+
+          {/* 9. Changes */}
+          <section id="modifications" class="legal-section">
+            <h2>9. Modifications to Terms</h2>
+            <p>
+              We reserve the right to revise or update these Terms at any time. When modifications are made, the "Last Updated" date at the top of this document will be updated accordingly. Continued use of OTPWala following any such updates constitutes your acceptance of the revised Terms.
+            </p>
+          </section>
+
+          {/* 10. Contact */}
+          <section id="contact" class="legal-section">
+            <h2>10. Contact Information</h2>
+            <p>
+              If you have any questions or require legal clarification regarding these Terms of Service, please contact us:
+            </p>
+            <div class="contact-card">
+              <div>
+                <strong>OTPWala Legal Department</strong><br/>
+                <span>Email:</span> <a href="mailto:support@otpwala.me">support@otpwala.me</a><br/>
+                <span>Telegram Support:</span> <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener">@OTPWalaSupport</a><br/>
+                <span>Website:</span> <a href="https://otpwala.me">https://otpwala.me</a>
+              </div>
+            </div>
+          </section>
+        </article>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

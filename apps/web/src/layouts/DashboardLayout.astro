@@ -1,0 +1,848 @@
+---
+import '../styles/global.css';
+import { formatPageTitle } from '../lib/branding';
+
+export interface Props {
+  title?: string;
+  activeNav?: string;
+}
+
+const { title = 'Dashboard', activeNav = 'dashboard' } = Astro.props;
+const formattedTitle = formatPageTitle(title);
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{formattedTitle}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
+  <link rel="shortcut icon" href="/favicon.ico?v=3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+
+  <!-- Instant Site Branding Pre-Hydration (Zero FOUC) -->
+  <script is:inline>
+    (function() {
+      try {
+        var rawB = localStorage.getItem('otpwala_branding');
+        if (rawB) {
+          var b = JSON.parse(rawB);
+          var bName = b.brandName || 'OTPWala';
+          var bSep = b.separator || '—';
+          var parts = document.title.split(/ [—|•-] /);
+          var prefix = parts[0] ? parts[0].trim() : '';
+          if (prefix && prefix !== bName) {
+            document.title = prefix + ' ' + bSep + ' ' + bName;
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="logo">
+          <span class="logo-icon">
+            <svg width="32" height="32" viewBox="0 0 512 512" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="dashLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0f172a" />
+                  <stop offset="35%" stop-color="#1e1b4b" />
+                  <stop offset="70%" stop-color="#1d4ed8" />
+                  <stop offset="100%" stop-color="#0284c7" />
+                </linearGradient>
+                <radialGradient id="dashLogoCenterGlow" cx="50%" cy="48%" r="50%">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="dashLogoORingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="50%" stop-color="#f0f9ff" />
+                  <stop offset="100%" stop-color="#bae6fd" />
+                </linearGradient>
+                <linearGradient id="dashLogoWLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="100%" stop-color="#2563eb" />
+                </linearGradient>
+                <linearGradient id="dashLogoWRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#60a5fa" />
+                  <stop offset="100%" stop-color="#1d4ed8" />
+                </linearGradient>
+                <linearGradient id="dashLogoVaultCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+                <filter id="dashLogoMainShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#020617" flood-opacity="0.5" />
+                </filter>
+              </defs>
+              <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#dashLogoBg)" />
+              <rect x="16" y="16" width="480" height="480" rx="118" fill="url(#dashLogoCenterGlow)" />
+              <rect x="18" y="18" width="476" height="476" rx="116" fill="none" stroke="rgba(255, 255, 255, 0.22)" stroke-width="3" />
+              <path d="M 16 134 C 16 50 50 16 134 16 L 378 16 C 462 16 496 50 496 134 L 496 220 C 330 255 182 255 16 220 Z" fill="#ffffff" opacity="0.08" />
+              <g filter="url(#dashLogoMainShadow)">
+                <path d="M 256,76 C 358,76 436,154 436,256 C 436,334 372,398 256,436 C 140,398 76,334 76,256 C 76,154 154,76 256,76 Z M 256,134 C 188,134 134,188 134,256 C 134,312 180,360 256,388 C 332,360 378,312 378,256 C 378,188 324,134 256,134 Z" fill="url(#dashLogoORingGrad)" fill-rule="evenodd" />
+                <path d="M 172,216 L 208,216 L 236,326 L 204,326 Z" fill="url(#dashLogoWLeftGrad)" />
+                <path d="M 204,326 L 236,326 L 256,254 L 238,254 Z" fill="#60a5fa" />
+                <path d="M 256,254 L 274,254 L 308,326 L 276,326 Z" fill="#3b82f6" />
+                <path d="M 304,216 L 340,216 L 308,326 L 276,326 Z" fill="url(#dashLogoWRightGrad)" />
+                <rect x="172" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+                <rect x="304" y="212" width="36" height="6" rx="3" fill="#ffffff" />
+                <circle cx="256" cy="186" r="16" fill="url(#dashLogoVaultCoreGrad)" />
+                <path d="M 248,194 L 264,194 L 267,222 L 245,222 Z" fill="url(#dashLogoVaultCoreGrad)" />
+                <polyline points="250,186 254,190 262,182" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 364,136 C 382,152 392,174 394,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" />
+                <path d="M 396,108 C 422,132 436,162 438,198" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+                <circle cx="406" cy="98" r="9" fill="#10b981" />
+                <circle cx="406" cy="98" r="4.5" fill="#ffffff" />
+              </g>
+            </svg>
+          </span>
+          <span class="logo-text"><span data-brand-name>OTPWala</span></span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class={`nav-item ${activeNav === 'dashboard' ? 'active' : ''}`} id="nav-dashboard">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+          </span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/dashboard/buy" class={`nav-item ${activeNav === 'buy' ? 'active' : ''}`} id="nav-buy">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
+          </span>
+          <span>Buy Number</span>
+        </a>
+        <a href="/dashboard/orders" class={`nav-item ${activeNav === 'orders' ? 'active' : ''}`} id="nav-orders">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="15" y2="16" />
+            </svg>
+          </span>
+          <span>My Orders</span>
+        </a>
+        <a href="/dashboard/wallet" class={`nav-item ${activeNav === 'wallet' ? 'active' : ''}`} id="nav-wallet">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+          </span>
+          <span>Wallet</span>
+        </a>
+
+        <a href="/dashboard/refer" class={`nav-item ${activeNav === 'refer' ? 'active' : ''}`} id="nav-refer">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </span>
+          <span>Refer & Earn</span>
+        </a>
+
+        <a href="/dashboard/settings" class={`nav-item ${activeNav === 'settings' ? 'active' : ''}`} id="nav-settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </span>
+          <span>Settings &amp; Security</span>
+        </a>
+        
+        <div class="nav-divider"></div>
+        
+        <a href="/admin" class="nav-item" id="nav-admin" style="display: none;">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </span>
+          <span>Admin Panel</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" id="logout-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+      <header class="dashboard-header">
+        <button class="btn btn-ghost btn-icon mobile-menu-btn" id="mobile-menu-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="header-right flex items-center gap-md">
+          <div class="system-status-pill" title="All OTPWala Core Servers & SMS Dispatch Engines are Operational">
+            <span class="status-dot active pulse-dot"></span>
+            <span class="status-text" style="font-size: 0.72rem;">Servers Operational</span>
+          </div>
+          <div class="wallet-badge" id="wallet-badge">
+            <span class="wallet-icon" style="display: flex; align-items: center;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+            </span>
+            <span class="wallet-amount" id="wallet-amount">₹0.00</span>
+          </div>
+          <div class="user-badge-wrapper" style="position: relative;">
+            <div class="user-badge" id="user-badge" role="button" tabindex="0" title="Account Menu">
+              <span class="user-avatar" id="user-avatar">U</span>
+            </div>
+            
+            <!-- User Dropdown Menu -->
+            <div class="user-menu-dropdown" id="user-menu-dropdown" style="display: none;">
+              <div class="user-menu-header">
+                <span class="user-menu-email" id="dropdown-user-email">Account</span>
+                <span class="user-menu-role" id="dropdown-user-role">Customer</span>
+              </div>
+              <div class="user-menu-divider"></div>
+              <a href="/dashboard/settings" class="user-menu-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <span>Change Password</span>
+              </a>
+              <a href="/dashboard/wallet" class="user-menu-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+                <span>Wallet Balance</span>
+              </a>
+              <div class="user-menu-divider"></div>
+              <button type="button" class="user-menu-item user-menu-logout" id="dropdown-logout-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard-content">
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <style>
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      transition: transform var(--transition-base);
+    }
+
+    .sidebar-header {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      font-family: var(--font-display, 'Outfit', -apple-system, sans-serif);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .logo-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform var(--transition-fast);
+    }
+
+    .logo:hover .logo-icon {
+      transform: scale(1.05);
+    }
+
+    .logo-text {
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+
+    .logo-text .text-gradient {
+      color: #2563eb;
+      font-weight: 800;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-glass);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent-primary);
+      border: 1px solid var(--border-glow);
+    }
+
+    .nav-icon {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: var(--space-sm) 0;
+    }
+
+    .sidebar-footer {
+      padding: var(--space-md);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Main */
+    .dashboard-main {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dashboard-header {
+      height: var(--header-height);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 var(--space-xl);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+    }
+
+    .wallet-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: 0.4rem 0.8rem;
+      background: var(--bg-glass-strong);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: white;
+    }
+
+    .user-badge {
+      cursor: pointer;
+      user-select: none;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .user-badge:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .user-menu-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 230px;
+      background: var(--bg-surface, #ffffff);
+      border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
+      border-radius: var(--radius-md, 12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+      z-index: 1000;
+      padding: 0.5rem 0;
+      backdrop-filter: blur(12px);
+    }
+
+    .user-menu-header {
+      padding: 0.6rem 1rem;
+    }
+
+    .user-menu-email {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-menu-role {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent-primary, #6366f1);
+      margin-top: 0.25rem;
+      font-weight: 600;
+    }
+
+    .user-menu-divider {
+      height: 1px;
+      background: var(--border-subtle, rgba(0, 0, 0, 0.08));
+      margin: 0.35rem 0;
+    }
+
+    .user-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .user-menu-item:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--text-primary);
+    }
+
+    .user-menu-logout {
+      color: var(--error, #ef4444);
+    }
+
+    .user-menu-logout:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error, #ef4444);
+    }
+
+    .dashboard-content {
+      flex: 1;
+      padding: var(--space-xl);
+      max-width: 1100px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .dashboard-main {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+      }
+
+      .dashboard-header {
+        justify-content: space-between;
+      }
+
+      .dashboard-content {
+        padding: var(--space-md);
+      }
+    }
+  </style>
+
+  <script>
+    import { supabase } from '../lib/supabase';
+    import { validateAllowedEmail } from '../lib/emailValidation';
+    import {
+      getLocalSessionId,
+      registerCurrentSession,
+      verifyActiveSession,
+      handleSessionTermination,
+      startSessionHeartbeat,
+      clearLocalSessionId,
+    } from '../lib/sessionManager';
+
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sidebar');
+    menuBtn?.addEventListener('click', () => {
+      sidebar?.classList.toggle('open');
+    });
+
+    // Logout
+    document.getElementById('logout-btn')?.addEventListener('click', async () => {
+      clearLocalSessionId();
+      await supabase.auth.signOut();
+      window.location.href = '/auth/login';
+    });
+
+    // Check auth & load user info
+    (async () => {
+      let { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
+          await new Promise<void>((resolve) => {
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+              if (newSession) {
+                session = newSession;
+                subscription.unsubscribe();
+                resolve();
+              }
+            });
+            setTimeout(() => {
+              subscription.unsubscribe();
+              resolve();
+            }, 2500);
+          });
+        }
+      }
+
+      if (!session) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      // 1. Verify user exists in Supabase Auth (detects deleted user immediately)
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user) {
+        await handleSessionTermination('account_deleted');
+        return;
+      }
+
+      // 2. Validate email domain
+      const emailValidation = validateAllowedEmail(session.user.email || '');
+      if (!emailValidation.valid) {
+        clearLocalSessionId();
+        await supabase.auth.signOut();
+        window.location.href = `/auth/login?error=${encodeURIComponent(emailValidation.error || 'Email domain not permitted')}`;
+        return;
+      }
+
+      // 3. Check profile existence and ban status
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, role, is_banned')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        const isBrandNew = (Date.now() - new Date(session.user.created_at).getTime()) < 120000;
+        if (!isBrandNew) {
+          // Profile was deleted by admin
+          await handleSessionTermination('account_deleted');
+          return;
+        }
+
+        try {
+          const cfgRes = await fetch(
+            (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/auth/config'
+          );
+          const cfgData = await cfgRes.json();
+          if (cfgData?.data?.allowRegistration === false) {
+            clearLocalSessionId();
+            await supabase.auth.signOut();
+            window.location.href = '/auth/login?error=registration_closed';
+            return;
+          }
+        } catch {}
+      } else if (existingProfile.is_banned) {
+        await handleSessionTermination('account_banned');
+        return;
+      }
+
+      // 4. Single-device session verification
+      if (!getLocalSessionId()) {
+        // First load or post-OAuth: register this device as the active session
+        await registerCurrentSession(session.access_token);
+      } else {
+        const check = await verifyActiveSession(session.access_token);
+        if (!check.valid && check.reason) {
+          await handleSessionTermination(check.reason);
+          return;
+        }
+      }
+
+      // 5. Start real-time session heartbeat
+      startSessionHeartbeat(() => session?.access_token || null, 10000);
+
+      // 6. Check pending referral attribution from registration / invite
+      try {
+        const pendingRef = localStorage.getItem('otpwala_ref_code');
+        if (pendingRef) {
+          await fetch(
+            (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/referrals/attribute',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+                'x-session-id': getLocalSessionId() || '',
+              },
+              body: JSON.stringify({ referralCode: pendingRef }),
+            }
+          );
+          localStorage.removeItem('otpwala_ref_code');
+        }
+      } catch {}
+
+      // Set avatar initial and dropdown profile info
+      const avatar = document.getElementById('user-avatar');
+      const dropdownEmail = document.getElementById('dropdown-user-email');
+      const dropdownRole = document.getElementById('dropdown-user-role');
+      if (session.user.email) {
+        if (avatar) avatar.textContent = session.user.email[0].toUpperCase();
+        if (dropdownEmail) dropdownEmail.textContent = session.user.email;
+      }
+      if (dropdownRole) {
+        dropdownRole.textContent = existingProfile?.role === 'admin' ? 'Administrator' : 'Customer';
+      }
+
+      // User dropdown menu interaction
+      const userBadge = document.getElementById('user-badge');
+      const userDropdown = document.getElementById('user-menu-dropdown');
+      const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
+
+      userBadge?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (userDropdown) {
+          const isHidden = userDropdown.style.display === 'none';
+          userDropdown.style.display = isHidden ? 'block' : 'none';
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (userDropdown && userDropdown.style.display !== 'none') {
+          if (!userDropdown.contains(e.target as Node) && !userBadge?.contains(e.target as Node)) {
+            userDropdown.style.display = 'none';
+          }
+        }
+      });
+
+      dropdownLogoutBtn?.addEventListener('click', async () => {
+        clearLocalSessionId();
+        await supabase.auth.signOut();
+        window.location.href = '/auth/login';
+      });
+
+      // Fetch wallet balance
+      try {
+        const res = await fetch(
+          (import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me') + '/api/wallet',
+          {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'x-session-id': getLocalSessionId() || '',
+            }
+          }
+        );
+        const data = await res.json();
+        if (data.success) {
+          const amount = document.getElementById('wallet-amount');
+          if (amount) amount.textContent = `₹${parseFloat(data.data.balance).toFixed(2)}`;
+        } else if (
+          data.error === 'concurrent_session' ||
+          data.error === 'account_deleted' ||
+          data.error === 'account_banned'
+        ) {
+          await handleSessionTermination(data.error);
+          return;
+        }
+      } catch {}
+
+      // Check if admin
+      if (existingProfile?.role === 'admin') {
+        const adminNav = document.getElementById('nav-admin');
+        if (adminNav) adminNav.style.display = 'flex';
+      }
+    })();
+
+    // Dynamic Branding Sync
+    (function syncBranding() {
+      function applyBrand(b) {
+        if (!b) return;
+        var bName = b.brandName || 'OTPWala';
+        var bSep = b.separator || '—';
+        if (document.title) {
+          var parts = document.title.split(/ [—|•-] /);
+          var prefix = parts[0] ? parts[0].trim() : '';
+          if (prefix && prefix !== bName) {
+            document.title = prefix + ' ' + bSep + ' ' + bName;
+          }
+        }
+        document.querySelectorAll('[data-brand-name]').forEach(function(el) {
+          el.textContent = bName;
+        });
+        document.querySelectorAll('[data-brand-separator]').forEach(function(el) {
+          el.textContent = bSep;
+        });
+
+        if (typeof b.maintenanceMode !== 'undefined') {
+          checkMaintenance(b.maintenanceMode);
+        }
+      }
+
+      function checkMaintenance(isMaint) {
+        var overlay = document.getElementById('fullsite-maintenance-overlay');
+        if (!overlay) return;
+        if (isMaint) {
+          try {
+            var rawUser = localStorage.getItem('otpwala_user_profile');
+            if (rawUser) {
+              var profile = JSON.parse(rawUser);
+              if (profile && profile.role === 'admin') {
+                overlay.style.display = 'none';
+                return;
+              }
+            }
+          } catch(e) {}
+          overlay.style.display = 'flex';
+        } else {
+          overlay.style.display = 'none';
+        }
+      }
+
+      try {
+        var cachedMaint = localStorage.getItem('otpwala_maintenance_mode');
+        if (cachedMaint === 'true') checkMaintenance(true);
+      } catch(e) {}
+
+      try {
+        var cached = localStorage.getItem('otpwala_branding');
+        if (cached) applyBrand(JSON.parse(cached));
+      } catch(e) {}
+
+      fetch('/api/branding')
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+          if (json && json.success && json.data) {
+            localStorage.setItem('otpwala_branding', JSON.stringify(json.data));
+            if (typeof json.data.maintenanceMode !== 'undefined') {
+              localStorage.setItem('otpwala_maintenance_mode', String(json.data.maintenanceMode));
+            }
+            applyBrand(json.data);
+          }
+        })
+        .catch(function() {});
+    })();
+  </script>
+
+  <!-- Full-Site Maintenance Overlay -->
+  <div id="fullsite-maintenance-overlay" style="display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(8, 10, 18, 0.96); backdrop-filter: blur(24px); align-items: center; justify-content: center; padding: 1.5rem; text-align: center;">
+    <div style="max-width: 560px; width: 100%; background: linear-gradient(180deg, rgba(26, 32, 53, 0.85) 0%, rgba(13, 17, 28, 0.98) 100%); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 24px; padding: 3rem 2rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 50px rgba(239, 68, 68, 0.15);">
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.75rem;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+        <span>SYSTEM MAINTENANCE ACTIVE</span>
+      </div>
+      <div style="width: 72px; height: 72px; border-radius: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; margin: 0 0 0.85rem 0; font-family: var(--font-display, 'Outfit', sans-serif);">
+        Platform Under <span style="color: #f87171;">Maintenance</span>
+      </h1>
+      <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin: 0 0 2rem 0;">
+        <strong style="color: #ffffff;"><span data-brand-name>OTPWala</span></strong> is currently undergoing scheduled platform upgrades. All user balances and active numbers are safe. Services will resume shortly.
+      </p>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <button onclick="window.location.reload()" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Refresh Page</span>
+        </button>
+        <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 600;">
+          Telegram Support
+        </a>
+      </div>
+      <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem; font-size: 0.8rem; color: #64748b;">
+        Administrator? <a href="/admin" style="color: #60a5fa; text-decoration: underline; font-weight: 600;">Access Admin Panel &rarr;</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
