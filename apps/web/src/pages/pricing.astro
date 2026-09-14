@@ -734,8 +734,21 @@ const pricingFaqSchema = {
         detailRow.style.display = 'none';
         checkBtn.textContent = 'Check Live Rate';
         isExpanded = false;
+        
+        // Show all services again
+        document.querySelectorAll('.rate-row').forEach((r: any) => {
+          r.style.display = '';
+        });
+        
         return;
       }
+
+      // Hide all other services
+      document.querySelectorAll('.rate-row').forEach((r: any) => {
+        if (r !== row) {
+          r.style.display = 'none';
+        }
+      });
 
       detailRow.style.display = 'table-row';
       checkBtn.textContent = 'Close';
@@ -767,12 +780,12 @@ const pricingFaqSchema = {
           `;
           
           result.data.forEach((c: any) => {
-            const price = c.sellPriceInr ? parseFloat(c.sellPriceInr).toFixed(2) : '-';
+            const price = c.priceInr ? parseFloat(c.priceInr).toFixed(2) : '-';
             html += `
               <tr style="border-bottom: 1px solid var(--border-subtle);">
                 <td style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
                   <img src="/icons/flags/${c.id}.svg" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="this.src='/icons/flags/default.svg'">
-                  <span style="font-weight: 500;">${c.name_en || c.country}</span>
+                  <span style="font-weight: 500;">${c.name}</span>
                 </td>
                 <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">₹${price}</td>
               </tr>
