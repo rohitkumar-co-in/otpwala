@@ -700,7 +700,7 @@ const faqSchema = {
 ══════════════════════════════════════════ */
 .hero {
   position: relative;
-  padding-top: calc(var(--header-height) + 4rem);
+  padding-top: 1.5rem;
   padding-bottom: 0;
   overflow: hidden;
   background: #ffffff;
@@ -767,9 +767,9 @@ const faqSchema = {
 .hero-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 3.5rem;
   align-items: center;
-  min-height: 82vh;
+  min-height: calc(75vh - var(--header-height));
   position: relative;
   z-index: 1;
 }
@@ -1654,13 +1654,16 @@ const faqSchema = {
 }
 
 @media (max-width: 768px) {
+  .hero {
+    padding-top: 1rem;
+  }
   .hero-inner {
     grid-template-columns: 1fr;
     min-height: unset;
     text-align: center;
-    padding-top: 1.5rem;
-    padding-bottom: 2.5rem;
-    gap: 2.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 2rem;
+    gap: 2rem;
   }
   .hero-visual {
     display: flex;
