@@ -223,6 +223,8 @@ export const getAdminOrders = (limit = 20, offset = 0) =>
   apiFetch<any>(`/api/admin/orders?limit=${limit}&offset=${offset}`);
 export const getAdminPaymentRequests = () =>
   apiFetch<any[]>('/api/admin/payment-requests');
+export const getAdminRecharges = (limit = 20, offset = 0, search = '') =>
+  apiFetch<any>(`/api/admin/recharges?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`);
 export const approvePaymentRequest = (id: string) =>
   apiFetch<any>(`/api/admin/payment-requests/${id}/approve`, { method: 'POST' });
 export const rejectPaymentRequest = (id: string, reason?: string) =>

@@ -121,7 +121,7 @@ const servicesFaqSchema = {
       <!-- Quick Stats Bar -->
       <div class="stats-bar">
         <div class="stat-item">
-          <strong class="stat-val" id="services-total-count">—</strong>
+          <strong class="stat-val" id="services-total-count">985+</strong>
           <span class="stat-lbl">Services Supported</span>
         </div>
         <div class="stat-item">
@@ -129,7 +129,7 @@ const servicesFaqSchema = {
           <span class="stat-lbl">Order Status</span>
         </div>
         <div class="stat-item">
-          <strong class="stat-val" id="countries-total-count">—</strong>
+          <strong class="stat-val" id="countries-total-count">197+</strong>
           <span class="stat-lbl">Countries Supported</span>
         </div>
         <div class="stat-item">
@@ -157,8 +157,8 @@ const servicesFaqSchema = {
           <h3>Looking for More Services or Private Numbers?</h3>
           <p>Create an account to browse the complete catalog with live country availability and current pricing.</p>
         </div>
-        <a href="/auth/register" class="btn btn-primary btn-lg explore-more-btn" id="explore-more-services-btn">
-          Explore More Services →
+        <a href="/pricing" class="btn btn-primary btn-lg explore-more-btn" id="explore-more-services-btn">
+          Explore More 985+ Services →
         </a>
       </div>
 
@@ -836,13 +836,6 @@ const servicesFaqSchema = {
         servicesGrid.replaceChildren(...result.data.map(createServiceCard));
         filterCards();
       }
-      const services = Number(result.meta?.serviceCount || 0);
-      const countries = Number(result.meta?.countryCount || 0);
-      if (serviceTotal) serviceTotal.textContent = services ? `${services}+` : 'Live';
-      if (countryTotal) countryTotal.textContent = countries ? `${countries}+` : 'Live';
-      if (exploreButton) exploreButton.textContent = services
-        ? `Explore More ${services}+ Services →`
-        : 'Explore More Services →';
     })
     .catch(() => {
       servicesGrid.textContent = 'Live service catalog is temporarily unavailable. Please try again shortly.';

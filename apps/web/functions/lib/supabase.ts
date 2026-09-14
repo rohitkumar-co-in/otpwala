@@ -51,7 +51,7 @@ export async function authenticateUser(request: Request, env?: any): Promise<{ u
           email,
           full_name: fullName,
           role: 'user',
-          balance: 0,
+          wallet_balance: 0,
           is_banned: false,
         })
         .select('id, email, role, is_banned')

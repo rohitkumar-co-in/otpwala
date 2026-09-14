@@ -90,7 +90,7 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
     
     return {
       ...u,
-      wallet_balance: parseFloat(u.balance || 0) || 0,
+      wallet_balance: parseFloat(u.wallet_balance ?? u.balance ?? 0) || 0,
       full_name: resolvedName,
       name: resolvedName,
       avatar_url: authInfo.avatar_url || null,

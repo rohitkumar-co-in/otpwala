@@ -1091,9 +1091,253 @@ router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, re
     }
 
     res.json({ success: true, message: 'Deposit request rejected' });
+
+/**
+ * POST /api/admin/catalog/country
+ * Toggle or set a specific country enabled/disabled.
+ * Body: { id: 22, enabled: false }
+ */
+router.post('/catalog/country', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id, enabled } = req.body;
+    if (id === undefined || typeof enabled !== 'boolean') {
+      res.status(400).json({ success: false, error: 'Invalid id or enabled status' });
+      return;
+    }
+
+    const updated = await setCountryActiveStatus(Number(id), enabled);
+    res.json({
+      success: true,
+      message: `Country ID ${id} is now ${enabled ? 'enabled' : 'disabled'}`,
+      data: updated,
+    });
+  } catch (e) {
+    console.error('Toggle country error:', e);
+    res.status(500).json({ success: false, error: 'Failed to update country status' });
+  }
+});
+
+/**
+ * POST /api/admin/catalog/batch
+ * Batch enable or disable services or countries.
+ * Body: { action: "enable_all_services" | "disable_all_services" | ... }
+ */
+router.post('/catalog/batch', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { action } = req.body;
+
+    const [allServices, allCountries] = await Promise.all([
+      tigerSms.getServicesList('en').catch(() => []),
+      tigerSms.getCountries().catch(() => []),
+    ]);
+
+    if (action === 'enable_all_services') {
+      await setDisabledCatalog([]);
+    } else if (action === 'disable_all_services') {
+      await setDisabledCatalog(allServices.map((s) => s.code));
+    } else if (action === 'enable_all_countries') {
+      await setDisabledCatalog(undefined, []);
+    } else if (action === 'disable_all_countries') {
+      await setDisabledCatalog(undefined, allCountries.map((c) => c.id));
+    } else {
+      res.status(400).json({ success: false, error: 'Unknown batch action' });
+      return;
+    }
+
+    res.json({ success: true, message: `Batch action "${action}" executed successfully` });
+  } catch (e) {
+    console.error('Batch catalog error:', e);
+    res.status(500).json({ success: false, error: 'Failed to process batch catalog update' });
+  }
+});
+
+/**
+ * POST /api/admin/telegram/test
+ * Test Telegram notification connection.
+ * Body: { botToken?: string, chatId?: string }
+ */
+router.post('/telegram/test', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { botToken, chatId } = req.body;
+    const result = await testTelegramConnection(botToken, chatId);
+    res.json(result);
+  } catch (e: any) {
+    console.error('Telegram test error:', e);
+    res.status(400).json({ success: false, error: e.message || 'Failed to send test message via Telegram' });
+  }
+});
+
+/**
+ * GET /api/admin/payment-requests
+ * List all manual deposit / payment requests.
+ */
+router.get('/payment-requests', async (_req: AuthenticatedRequest, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('payment_requests')
+      .select('*, profiles:user_id(email, full_name)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const normalized = (data || []).map((req: any) => {
+      const s = String(req.status || '').toLowerCase().trim();
+      const normalizedStatus =
+        s === 'paid' || s === 'approved' || s === 'completed' || s === 'success'
+          ? 'approved'
+          : s === 'failed' || s === 'rejected' || s === 'cancelled'
+          ? 'rejected'
+          : 'pending';
+
+      return {
+        ...req,
+        amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
+        amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
+        transaction_id: req.transaction_id || req.gateway_payment_id || '',
+        gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
+        payment_method: req.payment_method || req.gateway || 'upi',
+        gateway: req.gateway || req.payment_method || 'upi',
+        status: normalizedStatus,
+      };
+    });
+
+    res.json({ success: true, data: normalized });
+  } catch (e: any) {
+    console.error('Error fetching admin payment requests:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to fetch payment requests' });
+  }
+});
+
+/**
+ * POST /api/admin/payment-requests/:id/approve
+ * Approve deposit and credit user wallet balance.
+ */
+router.post('/payment-requests/:id/approve', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { data: request, error: fetchErr } = await supabaseAdmin
+      .from('payment_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !request) {
+      res.status(404).json({ success: false, error: 'Payment request not found' });
+      return;
+    }
+
+    const st = request.status;
+    if (st === 'approved' || st === 'paid') {
+      res.status(400).json({ success: false, error: 'This payment request has already been approved and credited.' });
+      return;
+    }
+
+    const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
+    const utr = request.transaction_id || request.gateway_payment_id || id;
+
+    // Credit user balance
+    await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup');
+
+    // Update status in payment_requests
+    const res1 = await supabaseAdmin
+      .from('payment_requests')
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (res1.error) {
+      await supabaseAdmin
+        .from('payment_requests')
+        .update({ status: 'paid', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    }
+
+    res.json({ success: true, message: 'Deposit approved and credited successfully' });
+  } catch (e: any) {
+    console.error('Error approving payment request:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to approve payment request' });
+  }
+});
+
+/**
+ * POST /api/admin/payment-requests/:id/reject
+ * Reject a deposit request.
+ */
+router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body || {};
+
+    const updateRes = await supabaseAdmin
+      .from('payment_requests')
+      .update({ status: 'rejected', admin_notes: reason || null, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (updateRes.error) {
+      await supabaseAdmin
+        .from('payment_requests')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    }
+
+    res.json({ success: true, message: 'Deposit request rejected' });
   } catch (e: any) {
     console.error('Error rejecting payment request:', e);
     res.status(500).json({ success: false, error: e.message || 'Failed to reject payment request' });
+  }
+});
+
+/**
+ * GET /api/admin/recharges
+ * Fetch wallet recharge history (topups and admin credits) across all users.
+ */
+router.get('/recharges', async (req: AuthenticatedRequest, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const search = req.query.search as string || '';
+
+    // First, if there's a search term (like email), we might need to find the user IDs first.
+    let userIds: string[] = [];
+    if (search.trim()) {
+      const { data: profiles } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .ilike('email', `%${search.trim()}%`)
+        .limit(50);
+      if (profiles && profiles.length > 0) {
+        userIds = profiles.map(p => p.id);
+      } else {
+        // If search doesn't match any user, return empty
+        return res.json({ success: true, data: { recharges: [], total: 0 } });
+      }
+    }
+
+    let query = supabaseAdmin
+      .from('wallet_transactions')
+      .select('*, profiles(email, full_name)', { count: 'exact' })
+      .in('type', ['topup', 'admin_credit']);
+
+    if (userIds.length > 0) {
+      query = query.in('user_id', userIds);
+    }
+
+    const { data, count, error } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    // Normalize output
+    const recharges = (data || []).map((tx: any) => ({
+      ...tx,
+      email: tx.profiles?.email || 'Unknown',
+      name: tx.profiles?.full_name || 'Unknown',
+    }));
+
+    res.json({ success: true, data: { recharges, total: count || 0 } });
+  } catch (e: any) {
+    console.error('Error fetching recharge history:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to fetch recharge history' });
   }
 });
 

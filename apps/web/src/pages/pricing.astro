@@ -159,6 +159,9 @@ const pricingFaqSchema = {
           <div id="no-pricing-found" style="display:none; text-align:center; padding:3rem; color:#64748b;">
             No services matched your search.
           </div>
+          <div style="text-align: center; padding: 1rem;">
+            <button id="load-more-btn" class="btn btn-secondary" style="display:none;">Load More Services</button>
+          </div>
         </div>
       </div>
 
@@ -632,21 +635,54 @@ const pricingFaqSchema = {
   const tableBody = document.getElementById('pricing-services-body') as HTMLTableSectionElement;
   const noFound = document.getElementById('no-pricing-found') as HTMLElement;
 
+  let allServices: any[] = [];
+  let filteredServices: any[] = [];
+  let currentPage = 1;
+  const PAGE_SIZE = 50;
+
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  loadMoreBtn?.addEventListener('click', () => {
+    currentPage++;
+    renderPage();
+  });
+
+  function renderPage() {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageItems = filteredServices.slice(start, end);
+    
+    if (currentPage === 1) {
+      tableBody.replaceChildren(...pageItems.map(createPricingRow));
+    } else {
+      tableBody.append(...pageItems.map(createPricingRow));
+    }
+
+    if (loadMoreBtn) {
+      if (end < filteredServices.length) {
+        loadMoreBtn.style.display = 'inline-flex';
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+    }
+
+    if (noFound) {
+      noFound.style.display = filteredServices.length === 0 ? 'block' : 'none';
+    }
+    updateAuthenticatedActions();
+  }
+
   function filterRows() {
     const q = searchInput?.value.toLowerCase().trim() || '';
-    let visible = 0;
-    tableBody?.querySelectorAll<HTMLElement>('.rate-row').forEach((row) => {
-      const name = row.dataset.name || '';
-      if (!q || name.includes(q)) {
-        row.style.display = '';
-        visible++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-    if (noFound) {
-      noFound.style.display = visible === 0 ? 'block' : 'none';
+    if (!q) {
+      filteredServices = allServices;
+    } else {
+      filteredServices = allServices.filter(s => 
+        (s.name && s.name.toLowerCase().includes(q)) || 
+        (s.code && s.code.toLowerCase().includes(q))
+      );
     }
+    currentPage = 1;
+    renderPage();
   }
   searchInput?.addEventListener('input', filterRows);
 
@@ -704,9 +740,8 @@ const pricingFaqSchema = {
     .then((response) => response.json())
     .then((result) => {
       if (!result.success || !Array.isArray(result.data)) throw new Error(result.error || 'Unable to load services');
-      tableBody.replaceChildren(...result.data.map(createPricingRow));
+      allServices = result.data;
       filterRows();
-      updateAuthenticatedActions();
     })
     .catch(() => {
       tableBody.innerHTML = '<tr><td colspan="4">Live service catalog is temporarily unavailable. Please try again shortly.</td></tr>';

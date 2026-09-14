@@ -146,6 +146,11 @@ export default function WalletPage() {
       return;
     }
 
+    if (!agreeNote) {
+      setTopUpError('Please agree to the note before submitting your deposit request.');
+      return;
+    }
+
     setTopUpLoading(true);
     setTopUpError(null);
     setTopUpSuccess(null);
