@@ -280,3 +280,44 @@ export async function rejectPaymentRequest(id: string, reason = '', env?: any) {
 
   return { success: true };
 }
+
+export async function getAdminRecharges(limit = 20, offset = 0, search = '', env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  
+  let userIds: string[] = [];
+  if (search.trim()) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('email', `%${search.trim()}%`)
+      .limit(50);
+    if (profiles && profiles.length > 0) {
+      userIds = profiles.map((p: any) => p.id);
+    } else {
+      return { recharges: [], total: 0 };
+    }
+  }
+
+  let query = supabase
+    .from('wallet_transactions')
+    .select('*, profiles(email, full_name)', { count: 'exact' })
+    .in('type', ['topup', 'admin_credit']);
+
+  if (userIds.length > 0) {
+    query = query.in('user_id', userIds);
+  }
+
+  const { data, count, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+
+  const recharges = (data || []).map((tx: any) => ({
+    ...tx,
+    email: tx.profiles?.email || 'Unknown',
+    name: tx.profiles?.full_name || 'Unknown',
+  }));
+
+  return { recharges, total: count || 0 };
+}

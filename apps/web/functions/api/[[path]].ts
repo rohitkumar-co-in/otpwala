@@ -28,6 +28,7 @@ import {
   getPaymentRequests,
   approvePaymentRequest,
   rejectPaymentRequest,
+  getAdminRecharges,
 } from '../lib/admin';
 import { TigerSmsClient } from '../lib/tiger';
 
@@ -1035,10 +1036,18 @@ export const onRequest = async (context: any) => {
         await saveAdminSettings(body.settings || body, env);
         return jsonResponse({ success: true });
       }
-
       if (path === '/api/admin/payment-requests' && method === 'GET') {
         const requests = await getPaymentRequests(env);
         return jsonResponse({ success: true, data: requests });
+      }
+
+      if (path === '/api/admin/recharges' && method === 'GET') {
+        const url = new URL(request.url);
+        const limit = parseInt(url.searchParams.get('limit') || '20');
+        const offset = parseInt(url.searchParams.get('offset') || '0');
+        const search = url.searchParams.get('search') || '';
+        const recharges = await getAdminRecharges(limit, offset, search, env);
+        return jsonResponse({ success: true, data: recharges });
       }
 
       const paymentApproveMatch = path.match(/^\/api\/admin\/payment-requests\/([^\/]+)\/approve$/);
