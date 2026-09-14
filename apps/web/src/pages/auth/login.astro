@@ -74,13 +74,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
                   type="text" 
                   id="otp-code" 
                   class="input otp-input" 
-                  placeholder="••••••••" 
-                  maxlength="10" 
-                  pattern="[0-9]{6,10}"
+                  placeholder="••••••" 
+                  maxlength="6" 
+                  pattern="[0-9]{6}"
+                  inputmode="numeric"
                   autocomplete="one-time-code" 
                   required 
                 />
-                <span class="input-hint" style="text-align: center;">Enter the code from your email</span>
+                <span class="input-hint" style="text-align: center;">Enter the 6-digit code from your email</span>
               </div>
 
               <button type="submit" class="btn btn-primary" style="width: 100%;" id="verify-otp-btn">
@@ -810,14 +811,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     clearAlerts();
   });
 
+  // Restrict OTP input to numbers only (up to 6 digits)
+  otpCodeInput?.addEventListener('input', () => {
+    otpCodeInput.value = otpCodeInput.value.replace(/\D/g, '').slice(0, 6);
+  });
+
   // ─── 3. Verify Email OTP ───
   otpVerifyForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearAlerts();
 
     const code = otpCodeInput.value.trim().replace(/\s+/g, '');
-    if (!code || code.length < 6 || code.length > 10) {
-      showError('Please enter the complete verification code received in your email.');
+    if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
+      showError('Please enter the 6-digit verification code received in your email.');
       return;
     }
 
