@@ -83,12 +83,39 @@ export async function registerCurrentSession(
 }
 
 /**
+ * Synchronously retrieves any valid Supabase session from localStorage.
+ * This is instantaneous (0ms) and completely bypasses navigator.locks and promise contention.
+ */
+export function getStoredSessionSync(): any {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return null;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const item = localStorage.getItem(key);
+        if (item) {
+          const parsed = JSON.parse(item);
+          if (parsed?.access_token && parsed?.user) {
+            return parsed;
+          }
+        }
+      }
+    }
+  } catch {}
+  return null;
+}
+
+/**
  * Safely get or wait for Supabase Auth session on page load.
  * Handles OAuth redirects (PKCE code, access_token in hash),
  * localStorage restoration delays, and navigator.locks concurrency.
  */
-export async function getOrWaitForSession(maxWaitMs = 6000): Promise<any> {
-  // 1. Check if session is already available in memory / cache
+export async function getOrWaitForSession(maxWaitMs = 3000): Promise<any> {
+  // 0. Synchronous instant check — 0ms, never blocks
+  const syncSession = getStoredSessionSync();
+  if (syncSession?.user) return syncSession;
+
+  // 1. Check if session is available via Supabase memory / cache
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) return session;
@@ -126,6 +153,16 @@ export async function getOrWaitForSession(maxWaitMs = 6000): Promise<any> {
 
     const startTime = Date.now();
     const interval = setInterval(async () => {
+      // Periodic sync check in case localStorage was written by another tab
+      const currentSync = getStoredSessionSync();
+      if (currentSync?.user && !resolved) {
+        resolved = true;
+        clearInterval(interval);
+        if (subscription) subscription.unsubscribe();
+        resolve(currentSync);
+        return;
+      }
+
       try {
         const { data: { session: retrySession } } = await supabase.auth.getSession();
         if (retrySession?.user && !resolved) {
@@ -141,9 +178,11 @@ export async function getOrWaitForSession(maxWaitMs = 6000): Promise<any> {
         resolved = true;
         clearInterval(interval);
         if (subscription) subscription.unsubscribe();
-        resolve(null);
+        // Last-chance check against localStorage before concluding null
+        const lastChance = getStoredSessionSync();
+        resolve(lastChance || null);
       }
-    }, 200);
+    }, 150);
   });
 }
 

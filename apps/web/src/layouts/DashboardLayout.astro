@@ -525,7 +525,6 @@ const formattedTitle = formatPageTitle(title);
 
   <script>
     import { supabase } from '../lib/supabase';
-    import { validateAllowedEmail } from '../lib/emailValidation';
     import {
       getLocalSessionId,
       registerCurrentSession,
@@ -534,6 +533,7 @@ const formattedTitle = formatPageTitle(title);
       startSessionHeartbeat,
       clearLocalSessionId,
       getOrWaitForSession,
+      getStoredSessionSync,
     } from '../lib/sessionManager';
 
     // Mobile menu toggle & outside-click close
@@ -574,28 +574,24 @@ const formattedTitle = formatPageTitle(title);
 
     // Check auth & load user info
     (async () => {
-      const session = await getOrWaitForSession();
+      // 0. Synchronous instant check from localStorage (0ms)
+      let session = getStoredSessionSync();
+      if (!session?.user) {
+        session = await getOrWaitForSession(3000);
+      }
 
       if (!session?.user) {
-        window.location.href = '/auth/login';
-        return;
+        // Double-check if token exists in localStorage before redirecting
+        const hasStoredToken = typeof localStorage !== 'undefined' && Object.keys(localStorage).some(
+          k => k.startsWith('sb-') && k.endsWith('-auth-token')
+        );
+        if (!hasStoredToken) {
+          window.location.href = '/auth/login';
+          return;
+        }
       }
 
-      // NOTE: We intentionally do NOT call supabase.auth.getUser() here.
-      // getOrWaitForSession() already returns a cryptographically valid session.
-      // Calling getUser() adds a network round-trip that can fail transiently
-      // and would incorrectly log the user out.
-
-      // 1. Validate email domain
-      const emailValidation = validateAllowedEmail(session.user.email || '');
-      if (!emailValidation.valid) {
-        clearLocalSessionId();
-        await supabase.auth.signOut();
-        window.location.href = `/auth/login?error=${encodeURIComponent(emailValidation.error || 'Email domain not permitted')}`;
-        return;
-      }
-
-      // 2. Check profile existence and ban status
+      // Check profile existence and ban status
       let existingProfile: any = null;
       try {
         const { data } = await supabase

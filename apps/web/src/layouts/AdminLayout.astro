@@ -283,15 +283,26 @@ const formattedTitle = formatPageTitle(title);
       startSessionHeartbeat,
       clearLocalSessionId,
       getOrWaitForSession,
+      getStoredSessionSync,
     } from '../lib/sessionManager';
     import { getAdminTigerBalance } from '../lib/api';
 
     (async () => {
-      const session = await getOrWaitForSession();
+      // 0. Synchronous instant check from localStorage (0ms)
+      let session = getStoredSessionSync();
+      if (!session?.user) {
+        session = await getOrWaitForSession(3000);
+      }
 
       if (!session?.user) {
-        window.location.href = '/auth/login';
-        return;
+        // Double-check if token exists in localStorage before redirecting
+        const hasStoredToken = typeof localStorage !== 'undefined' && Object.keys(localStorage).some(
+          k => k.startsWith('sb-') && k.endsWith('-auth-token')
+        );
+        if (!hasStoredToken) {
+          window.location.href = '/auth/login';
+          return;
+        }
       }
 
       // NOTE: We do NOT call supabase.auth.getUser() here.

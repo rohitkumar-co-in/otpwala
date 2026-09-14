@@ -1,5 +1,10 @@
 import { supabase } from './supabase';
-import { getLocalSessionId, handleSessionTermination, getOrWaitForSession } from './sessionManager';
+import {
+  getLocalSessionId,
+  handleSessionTermination,
+  getOrWaitForSession,
+  getStoredSessionSync,
+} from './sessionManager';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -14,11 +19,20 @@ export function getApiBaseUrl(): string {
 
 const API_URL = getApiBaseUrl();
 
-async function getAuthToken(): Promise<string | null> {
+const PUBLIC_PATHS = ['/api/services', '/api/countries', '/api/branding', '/api/health', '/api/auth/config'];
+
+async function getAuthToken(isPublic = false): Promise<string | null> {
+  // 1. Instant synchronous check from localStorage (0ms)
+  const syncSession = getStoredSessionSync();
+  if (syncSession?.access_token) return syncSession.access_token;
+
+  // If this is a public catalog/branding route, never block on auth resolution
+  if (isPublic) {
+    return null;
+  }
+
   try {
-    // Use getOrWaitForSession to avoid race condition where session isn't
-    // restored from storage yet (would return null and cause 401 errors)
-    const session = await getOrWaitForSession();
+    const session = await getOrWaitForSession(1500);
     return session?.access_token || null;
   } catch {
     return null;
@@ -26,7 +40,8 @@ async function getAuthToken(): Promise<string | null> {
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = await getAuthToken();
+  const isPublic = PUBLIC_PATHS.some((p) => path.startsWith(p));
+  const token = await getAuthToken(isPublic);
   const sessionId = getLocalSessionId();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

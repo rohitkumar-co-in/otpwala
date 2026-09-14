@@ -192,12 +192,29 @@ const QUICK_CHIPS = [
   { code: 'nf', label: 'Netflix' },
 ];
 
+const DEFAULT_POPULAR_SERVICES = [
+  { code: 'wa', name: 'WhatsApp', iconUrl: '/icons/services/wa.svg', isPopular: true, rank: 1, category: 'social', deliveryRate: 98.8, minPriceInr: 25 },
+  { code: 'tg', name: 'Telegram', iconUrl: '/icons/services/tg.svg', isPopular: true, rank: 2, category: 'social', deliveryRate: 98.5, minPriceInr: 20 },
+  { code: 'go', name: 'Google / YouTube', iconUrl: '/icons/services/go.svg', isPopular: true, rank: 3, category: 'tech', deliveryRate: 97.9, minPriceInr: 5 },
+  { code: 'ig', name: 'Instagram', iconUrl: '/icons/services/ig.svg', isPopular: true, rank: 4, category: 'social', deliveryRate: 97.4, minPriceInr: 15 },
+  { code: 'dr', name: 'OpenAI / ChatGPT', iconUrl: '/icons/services/dr.svg', isPopular: true, rank: 5, category: 'tech', deliveryRate: 98.2, minPriceInr: 20 },
+  { code: 'fb', name: 'Facebook', iconUrl: '/icons/services/fb.svg', isPopular: true, rank: 6, category: 'social', deliveryRate: 96.8, minPriceInr: 12 },
+  { code: 'tw', name: 'Twitter / X', iconUrl: '/icons/services/tw.svg', isPopular: true, rank: 7, category: 'social', deliveryRate: 96.5, minPriceInr: 12 },
+  { code: 'am', name: 'Amazon', iconUrl: '/icons/services/am.svg', isPopular: true, rank: 8, category: 'shopping', deliveryRate: 96.6, minPriceInr: 18 },
+  { code: 'mm', name: 'Microsoft', iconUrl: '/icons/services/mm.svg', isPopular: true, rank: 9, category: 'tech', deliveryRate: 97.2, minPriceInr: 15 },
+  { code: 'lf', name: 'TikTok', iconUrl: '/icons/services/lf.svg', isPopular: true, rank: 10, category: 'social', deliveryRate: 96.4, minPriceInr: 12 },
+  { code: 'nf', name: 'Netflix', iconUrl: '/icons/services/nf.svg', isPopular: true, rank: 11, category: 'shopping', deliveryRate: 96.0, minPriceInr: 20 },
+  { code: 'wx', name: 'Apple', iconUrl: '/icons/services/wx.svg', isPopular: true, rank: 12, category: 'tech', deliveryRate: 98.1, minPriceInr: 22 },
+  { code: 'ds', name: 'Discord', iconUrl: '/icons/services/ds.svg', isPopular: true, rank: 13, category: 'social', deliveryRate: 97.0, minPriceInr: 15 },
+  { code: 'ub', name: 'Uber', iconUrl: '/icons/services/ub.svg', isPopular: true, rank: 14, category: 'tech', deliveryRate: 97.7, minPriceInr: 18 },
+];
+
 export type ServiceSortOption = 'popular' | 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'delivery_desc';
 export type CountrySortOption = 'popular' | 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'delivery_desc' | 'stock_desc';
 
 export default function BuyNumber() {
   const [step, setStep] = useState<Step>('service');
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>(DEFAULT_POPULAR_SERVICES);
   const [countries, setCountries] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedCountry, setSelectedCountry] = useState<any>(null);
@@ -205,7 +222,7 @@ export default function BuyNumber() {
   const [order, setOrder] = useState<any>(null);
   const [otpData, setOtpData] = useState<any>(null);
   const [secondsLeft, setSecondsLeft] = useState<number>(1200);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [buyingCountryId, setBuyingCountryId] = useState<number | null>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -329,19 +346,33 @@ export default function BuyNumber() {
 
   async function loadServices() {
     try {
-      // Step 1: Load only popular services first for instant render
+      // Step 1: Load live popular services first
       const popularData = await getServices(true);
-      setServices(popularData);
+      if (Array.isArray(popularData) && popularData.length > 0) {
+        setServices(popularData);
+      }
       setLoading(false);
 
       // Step 2: Silently load all services in background
       getServices(false).then((allData) => {
-        setServices(allData);
-        setTotalServicesCount(allData.length);
-        setAllServicesLoaded(true);
+        if (Array.isArray(allData) && allData.length > 0) {
+          setServices(allData);
+          setTotalServicesCount(allData.length);
+          setAllServicesLoaded(true);
+        }
       }).catch(() => {});
     } catch (err: any) {
-      setError(err.message);
+      console.warn('Failed to load popular services, falling back:', err);
+      try {
+        const allData = await getServices(false);
+        if (Array.isArray(allData) && allData.length > 0) {
+          setServices(allData);
+          setTotalServicesCount(allData.length);
+          setAllServicesLoaded(true);
+        }
+      } catch (fallbackErr: any) {
+        console.warn('Fallback error loading services:', fallbackErr);
+      }
       setLoading(false);
     }
   }
