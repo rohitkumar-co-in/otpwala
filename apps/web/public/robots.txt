@@ -18,6 +18,7 @@ Allow: /auth/forgot-password
 Disallow: /dashboard/
 Disallow: /admin/
 Disallow: /api/
+Disallow: https://otpwala-c9r.pages.dev/*
 
 # Sitemap location
 Sitemap: https://otpwala.me/sitemap.xml
