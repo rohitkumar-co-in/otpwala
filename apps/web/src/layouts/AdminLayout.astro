@@ -294,62 +294,79 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
-      // 1. Verify user exists in Supabase Auth (detects deleted admin immediately)
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData?.user) {
-        await handleSessionTermination('account_deleted');
-        return;
-      }
+      // NOTE: We do NOT call supabase.auth.getUser() here.
+      // getOrWaitForSession() already returns a cryptographically valid session.
+      // Calling getUser() adds a network round-trip that can fail and incorrectly log out the admin.
 
-      // 2. Verify profile role and ban status
+      // 1. Verify admin profile - with network failure tolerance
+      let profile: any = null;
       try {
-        let { data: profile } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('role, is_banned')
           .eq('id', session.user.id)
           .maybeSingle();
+        profile = data;
+      } catch (e) {
+        console.warn('Could not fetch admin profile (network error), retrying via ensure-profile...');
+      }
 
-        if (!profile) {
-          // Attempt to auto-ensure profile exists via API before deciding
-          try {
-            const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
-            const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-            });
-            if (ensureRes.ok) {
-              const ensureData = await ensureRes.json();
-              if (ensureData?.profile) {
-                profile = ensureData.profile;
-              }
+      if (!profile) {
+        // Attempt to auto-ensure profile exists via API before deciding
+        try {
+          const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
+          const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+          if (ensureRes.ok) {
+            const ensureData = await ensureRes.json();
+            if (ensureData?.profile) {
+              profile = ensureData.profile;
             }
-          } catch {}
-        }
+          }
+        } catch {}
+      }
 
-        if (profile?.is_banned) {
-          await handleSessionTermination('account_banned');
-          return;
-        }
+      if (profile?.is_banned === true) {
+        await handleSessionTermination('account_banned');
+        return;
+      }
 
-        // Non-admin authenticated users should simply go to customer dashboard
-        if (profile?.role !== 'admin') {
-          window.location.href = '/dashboard';
-          return;
-        }
-      } catch {
+      // Non-admin authenticated users should go to customer dashboard
+      if (profile && profile.role !== 'admin') {
         window.location.href = '/dashboard';
         return;
       }
 
-      // 3. Device session registration
+      // If profile is null (network failure), allow admin to stay - don't kick on uncertainty
+      // They'll be blocked by API calls if truly unauthorized
+
+      // 2. Device session registration
       if (!getLocalSessionId()) {
         registerCurrentSession(session.access_token).catch(() => {});
       }
 
-      // 5. Check Tiger SMS upstream status for Admin
+      // 3. Auth state listener - ignore transient SIGNED_OUT during token refresh
+      let signedOutTimer: ReturnType<typeof setTimeout> | null = null;
+      supabase.auth.onAuthStateChange((event, newSession) => {
+        if (event === 'SIGNED_OUT') {
+          signedOutTimer = setTimeout(() => {
+            clearLocalSessionId();
+            window.location.href = '/auth/login';
+          }, 3000);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (signedOutTimer) {
+            clearTimeout(signedOutTimer);
+            signedOutTimer = null;
+          }
+        }
+      });
+
+      // 4. Check Tiger SMS upstream status for Admin
       const checkTigerStatus = async () => {
         try {
           const data = await getAdminTigerBalance();

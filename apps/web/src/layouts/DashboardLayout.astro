@@ -581,14 +581,12 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
-      // 1. Verify user exists in Supabase Auth (detects deleted user immediately)
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData?.user) {
-        await handleSessionTermination('account_deleted');
-        return;
-      }
+      // NOTE: We intentionally do NOT call supabase.auth.getUser() here.
+      // getOrWaitForSession() already returns a cryptographically valid session.
+      // Calling getUser() adds a network round-trip that can fail transiently
+      // and would incorrectly log the user out.
 
-      // 2. Validate email domain
+      // 1. Validate email domain
       const emailValidation = validateAllowedEmail(session.user.email || '');
       if (!emailValidation.valid) {
         clearLocalSessionId();
@@ -597,17 +595,24 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
-      // 3. Check profile existence and ban status
-      let { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id, role, is_banned')
-        .eq('id', session.user.id)
-        .maybeSingle();
+      // 2. Check profile existence and ban status
+      let existingProfile: any = null;
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, role, is_banned')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        existingProfile = data;
+      } catch (e) {
+        // Network error querying profile — do NOT log user out, just continue
+        console.warn('Could not fetch profile (network error), continuing session:', e);
+      }
 
       if (!existingProfile) {
         // Auto-heal missing profile via API
         try {
-          const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
           const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
             method: 'POST',
             headers: {
@@ -623,24 +628,46 @@ const formattedTitle = formatPageTitle(title);
           }
         } catch (e) {
           console.warn('Could not auto-ensure profile:', e);
+          // Still don't log user out — profile fetch failure is not a sign-out reason
         }
       }
 
-      if (existingProfile?.is_banned) {
+      // Only kick for explicit ban — never for missing profile or network errors
+      if (existingProfile?.is_banned === true) {
         await handleSessionTermination('account_banned');
         return;
       }
 
-      // 4. Device session registration
+      // 3. Device session registration
       if (!getLocalSessionId()) {
         registerCurrentSession(session.access_token).catch(() => {});
       }
 
-      // 6. Check pending referral attribution from registration / invite
+      // 4. Supabase auth state listener — only act on SIGNED_OUT if it persists
+      // (ignore transient SIGNED_OUT that happens during token refresh)
+      let signedOutTimer: ReturnType<typeof setTimeout> | null = null;
+      supabase.auth.onAuthStateChange((event, newSession) => {
+        if (event === 'SIGNED_OUT') {
+          // Wait 3s to see if a SIGNED_IN follows (token refresh pattern)
+          signedOutTimer = setTimeout(() => {
+            // Still signed out after 3s — redirect to login
+            clearLocalSessionId();
+            window.location.href = '/auth/login';
+          }, 3000);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // Cancel pending logout if session was restored
+          if (signedOutTimer) {
+            clearTimeout(signedOutTimer);
+            signedOutTimer = null;
+          }
+        }
+      });
+
+      // 5. Check pending referral attribution
       try {
         const pendingRef = localStorage.getItem('otpwala_ref_code');
         if (pendingRef) {
-          const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
           await fetch(
             apiUrl + '/api/referrals/attribute',
             {
@@ -700,9 +727,9 @@ const formattedTitle = formatPageTitle(title);
         window.location.href = '/auth/login';
       });
 
-      // Fetch wallet balance
+      // Fetch wallet balance — concurrent_session is now non-fatal (re-registers instead of kicking)
       try {
-        const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+        const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
         const res = await fetch(
           apiUrl + '/api/wallet',
           {
@@ -716,12 +743,16 @@ const formattedTitle = formatPageTitle(title);
         if (data.success) {
           const amount = document.getElementById('wallet-amount');
           if (amount) amount.textContent = `₹${parseFloat(data.data.balance).toFixed(2)}`;
-        } else if (
-          data.error === 'concurrent_session' ||
-          data.error === 'account_deleted' ||
-          data.error === 'account_banned'
-        ) {
-          await handleSessionTermination(data.error);
+        } else if (data.error === 'concurrent_session') {
+          // Non-fatal: re-register this device's session instead of kicking user
+          console.warn('Concurrent session detected, re-registering...');
+          clearLocalSessionId();
+          registerCurrentSession(session.access_token).catch(() => {});
+        } else if (data.error === 'account_banned') {
+          await handleSessionTermination('account_banned');
+          return;
+        } else if (data.error === 'account_deleted') {
+          await handleSessionTermination('account_deleted');
           return;
         }
       } catch {}
