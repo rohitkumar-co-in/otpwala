@@ -5,6 +5,7 @@ import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
 import { calculateSellPrice, getZeroMarkupUsers, setZeroMarkupUser } from '../lib/pricing';
+import { TigerSmsError } from '../lib/tiger';
 import {
   testTelegramConnection,
   notifyPaymentApprovalRequest,
@@ -264,7 +265,8 @@ export const onRequest = async (context: any) => {
 
     // ─── Catalog ───
     if (path === '/api/services' && method === 'GET') {
-      const services = await getServices(env);
+      const popularOnly = url.searchParams.get('popular') === 'true';
+      const services = await getServices(popularOnly, env);
       return jsonResponse({ success: true, data: services });
     }
 
@@ -276,8 +278,9 @@ export const onRequest = async (context: any) => {
     const serviceCountriesMatch = path.match(/^\/api\/services\/([^\/]+)\/countries$/);
     if (serviceCountriesMatch && method === 'GET') {
       const serviceCode = serviceCountriesMatch[1];
+      const popularOnly = url.searchParams.get('popular') === 'true';
       const auth = await authenticateUser(request, env);
-      const countries = await getServiceCountries(serviceCode, auth?.userId, env);
+      const countries = await getServiceCountries(serviceCode, auth?.userId, popularOnly, env);
       return jsonResponse({ success: true, data: countries });
     }
 
@@ -356,8 +359,21 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const orderId = orderCancelMatch[1];
-      await cancelOrder(orderId, auth.userId, env);
-      return jsonResponse({ success: true, message: 'Order cancelled and refunded' });
+      try {
+        await cancelOrder(orderId, auth.userId, env);
+        return jsonResponse({ success: true, message: 'Order cancelled and refunded' });
+      } catch (err) {
+        if (err instanceof TigerSmsError) {
+          return jsonResponse({
+            success: false,
+            error: err.code,
+            code: err.code,
+            message: err.message,
+            provider: err.code === 'WAIT_BEFORE_CANCEL' ? 'otpwala' : 'tiger_sms',
+          }, ['WAIT_BEFORE_CANCEL', 'EARLY_CANCEL_DENIED'].includes(err.code) ? 409 : 502);
+        }
+        throw err;
+      }
     }
 
     const orderCompleteMatch = path.match(/^\/api\/numbers\/([^\/]+)\/complete$/);

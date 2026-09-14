@@ -4,27 +4,6 @@ import { calculateSellPrice } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 
-import countryFlags from '../data/countryFlags.json';
-
-const POPULAR_SERVICE_NAMES: Record<string, string> = {
-  wa: 'WhatsApp',
-  tg: 'Telegram',
-  go: 'Google / YouTube',
-  ig: 'Instagram',
-  fb: 'Facebook',
-  tw: 'Twitter / X',
-  vi: 'Viber',
-  oi: 'Tinder',
-  mb: 'Yahoo',
-  ds: 'Discord',
-  nf: 'Netflix',
-  am: 'Amazon',
-  tk: 'TikTok',
-  dr: 'OpenAI / ChatGPT',
-  mm: 'Microsoft',
-  ap: 'Apple',
-};
-
 export async function buyNumber(
   userId: string,
   serviceCode: string,
@@ -83,9 +62,14 @@ export async function buyNumber(
 
   // 6. Save order in Supabase
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString(); // 20 min TTL
-  const flagMeta = (countryFlags as any)[String(countryCode)];
-  const countryName = flagMeta?.name || `Country ${countryCode}`;
-  const serviceName = POPULAR_SERVICE_NAMES[serviceCode.toLowerCase()] || serviceCode.toUpperCase();
+  // Store Tiger's catalog labels rather than maintaining a separate country ID
+  // or service-name mapping that can drift from the provider.
+  const [tigerServices, tigerCountries] = await Promise.all([
+    tiger.getServicesList().catch(() => []),
+    tiger.getCountries().catch(() => []),
+  ]);
+  const serviceName = tigerServices.find((service: any) => service.code === serviceCode)?.name || serviceCode;
+  const countryName = tigerCountries.find((country: any) => Number(country.id) === countryCode)?.eng || String(countryCode);
 
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -132,6 +116,7 @@ export async function buyNumber(
     serviceName,
     countryCode,
     countryName,
+    priceInr: sellPriceInr,
     sellPriceInr,
     expiresAt,
   };
@@ -158,9 +143,16 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
   // If already terminal status, return saved status
   if (['completed', 'cancelled', 'refunded', 'expired'].includes(order.status)) {
     return {
+      orderId: order.id,
       status: order.status,
+      phoneNumber: order.phone_number,
       smsCode: order.sms_code,
       smsText: order.sms_text,
+      serviceCode: order.service_code,
+      serviceName: order.service_name,
+      countryName: order.country_name,
+      priceInr: order.sell_price_inr,
+      createdAt: order.created_at,
     };
   }
 
@@ -179,9 +171,16 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
       .eq('id', order.id);
 
     return {
+      orderId: order.id,
       status: 'code_received',
+      phoneNumber: order.phone_number,
       smsCode: statusResult.code,
       smsText: statusResult.text,
+      serviceCode: order.service_code,
+      serviceName: order.service_name,
+      countryName: order.country_name,
+      priceInr: order.sell_price_inr,
+      createdAt: order.created_at,
     };
   }
 
@@ -192,10 +191,30 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
       .update({ status: 'cancelled', updated_at: new Date().toISOString() })
       .eq('id', order.id);
 
-    return { status: 'cancelled' };
+    return {
+      orderId: order.id,
+      status: 'cancelled',
+      phoneNumber: order.phone_number,
+      serviceCode: order.service_code,
+      serviceName: order.service_name,
+      countryName: order.country_name,
+      priceInr: order.sell_price_inr,
+      createdAt: order.created_at,
+    };
   }
 
-  return { status: order.status };
+  return {
+    orderId: order.id,
+    status: order.status,
+    phoneNumber: order.phone_number,
+    smsCode: order.sms_code,
+    smsText: order.sms_text,
+    serviceCode: order.service_code,
+    serviceName: order.service_name,
+    countryName: order.country_name,
+    priceInr: order.sell_price_inr,
+    createdAt: order.created_at,
+  };
 }
 
 export async function cancelOrder(orderId: string, userId: string, env?: any) {
@@ -205,16 +224,32 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
-  if (['completed', 'cancelled', 'refunded'].includes(order.status)) {
-    throw new Error('Order cannot be cancelled');
+  if (!['waiting', 'code_received'].includes(order.status)) {
+    throw new Error('Order cannot be cancelled in its current status');
   }
 
-  // Cancel in Tiger SMS
-  try {
-    await tiger.setStatus(order.activation_id, 8);
-  } catch {}
+  const activationAgeMs = Date.now() - new Date(order.created_at).getTime();
+  if (!Number.isFinite(activationAgeMs) || activationAgeMs < 120_000) {
+    throw new TigerSmsError(
+      'WAIT_BEFORE_CANCEL',
+      'Please wait 2 minutes for the OTP before cancelling this number.'
+    );
+  }
 
-  // Refund user
+  // Tiger is the source of truth. Never refund or change the local status unless
+  // it explicitly confirms the cancellation with ACCESS_CANCEL.
+  try {
+    const tigerStatus = await tiger.setStatus(order.activation_id, 8);
+    if (tigerStatus !== 'ACCESS_CANCEL') {
+      throw new TigerSmsError(tigerStatus, tigerStatus);
+    }
+  } catch (err) {
+    if (err instanceof TigerSmsError) throw err;
+    throw new TigerSmsError('TIGER_SMS_UNAVAILABLE', 'TIGER_SMS_UNAVAILABLE');
+  }
+
+  // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
+  // now is it safe to credit the user's OTPWala wallet.
   await creditBalance(userId, parseFloat(order.sell_price_inr), `Refund: Order cancelled by user (${order.service_name})`, 'refund', env);
 
   await supabase

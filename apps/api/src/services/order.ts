@@ -291,18 +291,32 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
     throw new OrderError('INVALID_STATUS', 'Cannot cancel order in current status');
   }
 
-  // Cancel on Tiger SMS
-  try {
-    await tigerSms.setStatus(order.activation_id, 8);
-  } catch (e) {
-    if (e instanceof TigerSmsError && e.code === 'EARLY_CANCEL_DENIED') {
-      throw new OrderError('EARLY_CANCEL_DENIED', 'Cannot cancel yet — please wait a moment');
-    }
-    // Log but continue with refund — Tiger SMS may have already expired it
-    console.error('Tiger SMS cancel failed:', e);
+  const activationAgeMs = Date.now() - new Date(order.created_at).getTime();
+  if (!Number.isFinite(activationAgeMs) || activationAgeMs < 120_000) {
+    throw new OrderError(
+      'WAIT_BEFORE_CANCEL',
+      'Please wait 2 minutes for the OTP before cancelling this number.'
+    );
   }
 
-  // Refund user
+  // Tiger is the source of truth. Do not refund or mutate the local order unless
+  // the provider explicitly confirms this exact cancellation operation.
+  try {
+    const tigerStatus = await tigerSms.setStatus(order.activation_id, 8);
+    if (tigerStatus !== 'ACCESS_CANCEL') {
+      throw new TigerSmsError(tigerStatus, tigerStatus);
+    }
+  } catch (e) {
+    if (e instanceof TigerSmsError) {
+      console.error(`Tiger SMS cancel rejected activation ${order.activation_id}:`, e.code);
+      throw new OrderError(e.code, e.code);
+    }
+    console.error('Tiger SMS cancel failed:', e);
+    throw new OrderError('TIGER_SMS_UNAVAILABLE', 'TIGER_SMS_UNAVAILABLE');
+  }
+
+  // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
+  // now is it safe to credit the user's OTPWala wallet.
   await creditBalance(
     userId,
     parseFloat(order.sell_price_inr),

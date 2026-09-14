@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
-import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon } from '../ui/Icons';
 
 export default function OrderHistory() {
@@ -116,10 +115,10 @@ export default function OrderHistory() {
                       {order.phone_number ? (
                         <span
                           style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                          onClick={() => navigator.clipboard?.writeText(formatPhoneNumber(order.phone_number, order.country_id).copyValue)}
-                          title={`Copy ${formatPhoneNumber(order.phone_number, order.country_id).copyValue}`}
+                          onClick={() => navigator.clipboard?.writeText(String(order.phone_number || ''))}
+                          title={`Copy ${order.phone_number}`}
                         >
-                          {formatPhoneNumber(order.phone_number, order.country_id).display}
+                          {order.phone_number}
                         </span>
                       ) : '—'}
                     </td>

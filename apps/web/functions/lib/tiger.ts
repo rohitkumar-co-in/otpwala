@@ -25,7 +25,7 @@ export class TigerSmsClient {
       headers: { 'Accept': '*/*' },
     });
 
-    const text = await response.text();
+    const text = (await response.text()).trim();
 
     if (text === 'BAD_KEY') {
       throw new TigerSmsError('BAD_KEY', 'Invalid Tiger SMS API key');
@@ -111,6 +111,16 @@ export class TigerSmsClient {
   }
 
   async setStatus(activationId: string, status: number): Promise<string> {
-    return this.request('setStatus', { id: activationId, status });
+    const text = await this.request('setStatus', { id: activationId, status });
+    const expectedResponse: Record<number, string> = {
+      1: 'ACCESS_READY',
+      3: 'ACCESS_RETRY_GET',
+      6: 'ACCESS_ACTIVATION',
+      8: 'ACCESS_CANCEL',
+    };
+
+    if (text === expectedResponse[status]) return text;
+
+    throw new TigerSmsError(text || 'EMPTY_RESPONSE', text || 'EMPTY_RESPONSE');
   }
 }

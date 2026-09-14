@@ -31,7 +31,7 @@ class TigerSmsClient {
       signal: AbortSignal.timeout(4000),
     });
 
-    const text = await response.text();
+    const text = (await response.text()).trim();
 
     // Check for auth errors
     if (text === 'BAD_KEY') {
@@ -220,10 +220,13 @@ class TigerSmsClient {
   async setStatus(activationId: string, status: 1 | 3 | 6 | 8): Promise<string> {
     const text = await this.request('setStatus', { id: activationId, status });
 
-    const successTokens = ['ACCESS_READY', 'ACCESS_RETRY_GET', 'ACCESS_ACTIVATION', 'ACCESS_CANCEL'];
-    if (successTokens.includes(text)) {
-      return text;
-    }
+    const expectedResponse: Record<number, string> = {
+      1: 'ACCESS_READY',
+      3: 'ACCESS_RETRY_GET',
+      6: 'ACCESS_ACTIVATION',
+      8: 'ACCESS_CANCEL',
+    };
+    if (text === expectedResponse[status]) return text;
 
     if (text === 'NO_ACTIVATION') {
       throw new TigerSmsError('NO_ACTIVATION', 'Activation not found');

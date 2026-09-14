@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
-import { formatPhoneNumber } from '../../lib/phone';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -63,6 +62,30 @@ function playNotificationSound() {
     osc.start();
     osc.stop(ctx.currentTime + 0.4);
   } catch {}
+}
+
+function showSuccessToast(message: string) {
+  if (typeof document === 'undefined') return;
+
+  let container = document.querySelector('.toast-container') as HTMLElement | null;
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.setAttribute('role', 'status');
+  toast.style.borderColor = 'rgba(16, 185, 129, 0.55)';
+  toast.style.color = '#34d399';
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  window.setTimeout(() => {
+    toast.remove();
+    if (container && !container.children.length) container.remove();
+  }, 6000);
 }
 
 export function renderServiceIcon(serviceOrCode: any, size = 26) {
@@ -300,7 +323,6 @@ export default function BuyNumber() {
             serviceName: act.service_name,
             serviceCode: act.service_code,
             countryName: act.country_name,
-            countryId: act.country_id,
             priceInr: parseFloat(act.sell_price_inr) || 0,
             status: act.status,
             createdAt: act.created_at,
@@ -329,7 +351,7 @@ export default function BuyNumber() {
           createdAt: status.createdAt,
         });
         setSelectedService({ name: status.serviceName, code: status.serviceCode || '' });
-        setSelectedCountry({ name: status.countryName, id: status.countryCode || 0 });
+        setSelectedCountry({ name: status.countryName });
         if (status.status === 'code_received' || status.smsCode) {
           setOtpData(status);
         } else if (status.status === 'waiting') {
@@ -420,12 +442,10 @@ export default function BuyNumber() {
       const newOrder = {
         orderId: data.orderId,
         phoneNumber: data.phoneNumber,
-        serviceName: selectedService.name,
+        serviceName: data.serviceName || selectedService.name,
         serviceCode: selectedService.code,
-        countryName: country.name,
-        countryId: country.id,
-        countryIso: country.iso,
-        priceInr: country.priceInr || data.priceInr,
+        countryName: data.countryName || country.name,
+        priceInr: data.priceInr ?? data.sellPriceInr ?? country.priceInr,
         status: 'waiting',
         createdAt: new Date().toISOString(),
       };
@@ -483,6 +503,12 @@ export default function BuyNumber() {
 
   async function handleCancel() {
     if (!order) return;
+    const elapsedSeconds = Math.max(0, 1200 - secondsLeft);
+    if (elapsedSeconds < 120) {
+      setError('Please wait 2 minutes for the OTP before cancelling this number.');
+      return;
+    }
+    setError('');
     setLoading(true);
     try {
       await cancelOrder(order.orderId);
@@ -490,6 +516,7 @@ export default function BuyNumber() {
       setOrder(null);
       setOtpData(null);
       setStep('service');
+      showSuccessToast('Number cancelled. Your refund will be credited to your wallet within 2–5 minutes.');
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
@@ -1187,6 +1214,9 @@ export default function BuyNumber() {
     const hasOtp = !!(order?.smsCode || otpData?.smsCode);
     const smsCode = order?.smsCode || otpData?.smsCode || '';
     const smsText = order?.smsText || otpData?.smsText || '';
+    const cancelWaitSeconds = Math.max(0, 120 - Math.max(0, 1200 - secondsLeft));
+    const cancelWaitMins = Math.floor(cancelWaitSeconds / 60);
+    const cancelWaitRemainder = cancelWaitSeconds % 60;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -1359,12 +1389,12 @@ export default function BuyNumber() {
                   Virtual Phone Number
                 </div>
                 {(() => {
-                  const phoneInfo = formatPhoneNumber(order?.phoneNumber, order?.countryIso || order?.countryId);
+                  const apiPhoneNumber = String(order?.phoneNumber || '');
                   return (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <span
-                          onClick={() => order?.phoneNumber && copyToClipboard(phoneInfo.copyValue)}
+                          onClick={() => apiPhoneNumber && copyToClipboard(apiPhoneNumber)}
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: 'clamp(1.25rem, 4vw, 1.6rem)',
@@ -1374,16 +1404,16 @@ export default function BuyNumber() {
                             wordBreak: 'break-all',
                             cursor: order?.phoneNumber ? 'pointer' : 'default',
                           }}
-                          title={order?.phoneNumber ? `Click to copy ${phoneInfo.copyValue}` : undefined}
+                          title={apiPhoneNumber ? `Click to copy ${apiPhoneNumber}` : undefined}
                         >
-                          {order?.phoneNumber ? phoneInfo.display : 'Generating...'}
+                          {apiPhoneNumber || 'Generating...'}
                         </span>
-                        {order?.phoneNumber && (
+                        {apiPhoneNumber && (
                           <button
-                            onClick={() => copyToClipboard(phoneInfo.copyValue)}
+                            onClick={() => copyToClipboard(apiPhoneNumber)}
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                            title={`Copy ${phoneInfo.copyValue}`}
+                            title={`Copy ${apiPhoneNumber}`}
                           >
                             {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
                             <span>{copied ? 'Copied!' : 'Copy Number'}</span>
@@ -1391,7 +1421,7 @@ export default function BuyNumber() {
                         )}
                       </div>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
-                        Copy &amp; paste this number into <b>{order?.serviceName || 'your app'}</b> to trigger SMS. Country code is included.
+                        Use this Tiger SMS number exactly as provided in <b>{order?.serviceName || 'your app'}</b>.
                       </p>
                     </>
                   );
@@ -1498,15 +1528,28 @@ export default function BuyNumber() {
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {isWaiting && (
-                  <button
-                    onClick={handleCancel}
-                    disabled={loading}
-                    className="btn btn-danger btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                  >
-                    <XIcon size={13} />
-                    <span>{loading ? 'Cancelling...' : 'Cancel Order & Refund'}</span>
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
+                    {cancelWaitSeconds > 0 && (
+                      <span style={{ color: '#f59e0b', fontSize: '0.75rem', maxWidth: '300px', textAlign: 'right' }}>
+                        Please wait 2 minutes for the OTP before cancelling this number.
+                      </span>
+                    )}
+                    <button
+                      onClick={handleCancel}
+                      disabled={loading || cancelWaitSeconds > 0}
+                      className="btn btn-danger btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
+                    >
+                      <XIcon size={13} />
+                      <span>
+                        {loading
+                          ? 'Cancelling...'
+                          : cancelWaitSeconds > 0
+                          ? `Cancel available in ${cancelWaitMins}:${cancelWaitRemainder.toString().padStart(2, '0')}`
+                          : 'Cancel Order & Refund'}
+                      </span>
+                    </button>
+                  </div>
                 )}
                 {hasOtp && (
                   <>
@@ -1590,7 +1633,7 @@ export default function BuyNumber() {
                       <td style={{ fontWeight: 600 }}>{ro.service_name}</td>
                       <td>{ro.country_name}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                        {formatPhoneNumber(ro.phone_number, ro.country_id).display}
+                        {ro.phone_number}
                       </td>
                       <td>
                         {ro.sms_code ? (
