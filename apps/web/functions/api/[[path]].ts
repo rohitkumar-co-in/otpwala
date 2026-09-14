@@ -264,10 +264,56 @@ export const onRequest = async (context: any) => {
     }
 
     // ─── Catalog ───
+    const serviceIconMatch = path.match(/^\/api\/catalog\/service-icon\/([a-zA-Z0-9_-]+)$/);
+    if (serviceIconMatch && method === 'GET') {
+      const iconResponse = await fetch(`https://tiger-sms.com/img/service/${serviceIconMatch[1]}.svg`, {
+        headers: { Accept: 'image/svg+xml' },
+      });
+      if (!iconResponse.ok) {
+        return new Response(null, { status: 404 });
+      }
+      return new Response(iconResponse.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    }
+
     if (path === '/api/services' && method === 'GET') {
       const featuredOnly = url.searchParams.get('featured') === 'true';
+      if (featuredOnly && url.searchParams.get('summary') === 'true') {
+        const [allServices, countries] = await Promise.all([
+          getServices(false, env),
+          getCountries(env),
+        ]);
+        return jsonResponse({
+          success: true,
+          data: allServices.filter((service: any) => service.isFeatured),
+          meta: {
+            serviceCount: allServices.length,
+            countryCount: countries.length,
+          },
+        });
+      }
       const services = await getServices(featuredOnly, env);
       return jsonResponse({ success: true, data: services });
+    }
+
+    if (path === '/api/catalog/summary' && method === 'GET') {
+      const [services, countries] = await Promise.all([
+        getServices(false, env),
+        getCountries(env),
+      ]);
+      return jsonResponse({
+        success: true,
+        data: {
+          serviceCount: services.length,
+          countryCount: countries.length,
+        },
+      });
     }
 
     if (path === '/api/countries' && method === 'GET') {
@@ -368,7 +414,7 @@ export const onRequest = async (context: any) => {
             error: err.code,
             code: err.code,
             message: err.message,
-            provider: err.code === 'WAIT_BEFORE_CANCEL' ? 'otpwala' : 'tiger_sms',
+            provider: 'otpwala',
           }, ['WAIT_BEFORE_CANCEL', 'EARLY_CANCEL_DENIED'].includes(err.code) ? 409 : 502);
         }
         throw err;

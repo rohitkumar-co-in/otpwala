@@ -245,7 +245,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
     }
   } catch (err) {
     if (err instanceof TigerSmsError) throw err;
-    throw new TigerSmsError('TIGER_SMS_UNAVAILABLE', 'TIGER_SMS_UNAVAILABLE');
+    throw new TigerSmsError('SERVICE_TEMPORARILY_UNAVAILABLE', 'SERVICE_TEMPORARILY_UNAVAILABLE');
   }
 
   // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only

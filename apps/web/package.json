@@ -7,10 +7,10 @@
   },
   "scripts": {
     "dev": "node dev.mjs",
-    "build": "astro build",
+    "build": "node scripts/sync-pages-functions.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "astro build && wrangler pages deploy dist --project-name=otpwala"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=otpwala"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
