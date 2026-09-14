@@ -147,11 +147,21 @@ export default function UserManager() {
     setActionLoading(`markup-${user.id}`);
     setError(null);
     setSuccess(null);
+    // Optimistically update UI immediately
+    setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, has_zero_markup: newStatus } : u));
+    // Also update inspect panel if this user is open
+    if (inspectTarget?.id === user.id) {
+      setInspectTarget((prev: any) => prev ? { ...prev, has_zero_markup: newStatus } : prev);
+    }
     try {
       await setUserZeroMarkup(user.id, newStatus);
       setSuccess(`Updated pricing for ${user.email}: ${newStatus ? '0% Markup (Tiger Cost) enabled' : 'Standard Markup restored'}.`);
-      await loadUsers();
     } catch (err: any) {
+      // Revert on failure
+      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, has_zero_markup: !newStatus } : u));
+      if (inspectTarget?.id === user.id) {
+        setInspectTarget((prev: any) => prev ? { ...prev, has_zero_markup: !newStatus } : prev);
+      }
       setError(err.message || 'Failed to update markup status');
     } finally {
       setActionLoading(null);

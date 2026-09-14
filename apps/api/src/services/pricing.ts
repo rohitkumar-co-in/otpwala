@@ -94,17 +94,9 @@ function findRule(rules: PricingRule[], serviceCode: string, countryCode: number
   return null;
 }
 
-// In-memory cache for zero-markup user IDs
-let cachedZeroMarkupUsers: Set<string> | null = null;
-let zeroMarkupLastFetched = 0;
-const ZERO_MARKUP_CACHE_TTL = 30_000; // 30 seconds
-
+// No in-memory cache for zero-markup user IDs — always read fresh from DB
+// so that admin changes are reflected immediately across all server instances.
 export async function getZeroMarkupUserIds(): Promise<Set<string>> {
-  const now = Date.now();
-  if (cachedZeroMarkupUsers && now - zeroMarkupLastFetched < ZERO_MARKUP_CACHE_TTL) {
-    return cachedZeroMarkupUsers;
-  }
-
   const { data } = await supabaseAdmin
     .from('settings')
     .select('value')
@@ -121,9 +113,7 @@ export async function getZeroMarkupUserIds(): Promise<Set<string>> {
     userIds = [];
   }
 
-  cachedZeroMarkupUsers = new Set(userIds);
-  zeroMarkupLastFetched = now;
-  return cachedZeroMarkupUsers;
+  return new Set(userIds);
 }
 
 export async function isZeroMarkupUser(userId?: string): Promise<boolean> {
@@ -154,8 +144,6 @@ export async function setZeroMarkupUser(userId: string, hasZeroMarkup: boolean):
     throw error;
   }
 
-  cachedZeroMarkupUsers = currentSet;
-  zeroMarkupLastFetched = Date.now();
   return hasZeroMarkup;
 }
 
@@ -216,8 +204,6 @@ export function invalidatePricingCache(): void {
   cachedRate = null;
   cachedDefaultMarkup = null;
   cachedRules = null;
-  cachedZeroMarkupUsers = null;
   rateLastFetched = 0;
   rulesLastFetched = 0;
-  zeroMarkupLastFetched = 0;
 }
