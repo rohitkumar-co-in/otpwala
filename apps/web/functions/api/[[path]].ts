@@ -277,16 +277,17 @@ export const onRequest = async (context: any) => {
       }
 
       const tiger = new TigerSmsClient(env);
-      const priceData = await tiger.getPricesV3(service, country);
+      const priceData = await tiger.getPrices(service, country);
       const countryData = priceData[String(country)];
-      const sPrice = countryData ? countryData[service] : null;
+      const sPrice = countryData ? (countryData[service] as any) : null;
 
       if (!sPrice || sPrice.count <= 0) {
         return jsonResponse({ success: true, data: { available: false, count: 0, priceInr: 0, priceUsd: 0 } });
       }
 
+      const costPriceUsd = parseFloat(String(sPrice.cost ?? sPrice.price ?? '0'));
       const auth = await authenticateUser(request, env);
-      const priceInr = await calculateSellPrice(sPrice.price, service, country, auth?.userId, env);
+      const priceInr = await calculateSellPrice(costPriceUsd, service, country, auth?.userId, env);
 
       return jsonResponse({
         success: true,
@@ -294,7 +295,7 @@ export const onRequest = async (context: any) => {
           available: true,
           count: sPrice.count,
           priceInr,
-          priceUsd: sPrice.price,
+          priceUsd: costPriceUsd,
         },
       });
     }

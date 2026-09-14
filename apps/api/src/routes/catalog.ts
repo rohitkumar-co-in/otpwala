@@ -290,8 +290,8 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
     }
 
     // Fetch all country prices and stock in a single upstream call
-    const [freePrices, { disabledCountries }] = await Promise.all([
-      tigerSms.getFreePrices(code),
+    const [livePrices, { disabledCountries }] = await Promise.all([
+      tigerSms.getPrices(code),
       getCatalogFilterConfig(),
     ]);
 
@@ -305,33 +305,33 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
     const countryMap = new Map((countriesCache || []).map((c) => [String(c.id), c.eng]));
 
     const countries: any[] = [];
-    for (const [cIdStr, serviceObj] of Object.entries(freePrices)) {
+    for (const [cIdStr, serviceObj] of Object.entries(livePrices)) {
       const countryId = parseInt(cIdStr, 10);
       if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
 
       const sData = (serviceObj as any)?.[code];
-      if (!sData || !sData.prices) continue;
+      if (!sData) continue;
 
-      const priceList = Object.keys(sData.prices).map(Number);
-      if (priceList.length === 0) continue;
+      const costPriceUsd = parseFloat(String(sData.cost ?? '0'));
+      const stock = parseInt(String(sData.count ?? '0'), 10);
 
-      const minPriceUsd = Math.min(...priceList);
-      const stock = Math.max(...(Object.values(sData.prices) as number[]));
+      if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) continue;
 
-      if (stock <= 0 || !isFinite(minPriceUsd)) continue;
-
-      const priceInr = await calculateSellPrice(minPriceUsd, code, countryId, req.userId);
+      const priceInr = await calculateSellPrice(costPriceUsd, code, countryId, req.userId);
       const flag = countryFlags[String(countryId)];
       const pop = POPULAR_COUNTRIES[countryId];
       const deliveryRate = getCountryDeliveryRate(countryId, stock);
 
       countries.push({
         id: countryId,
+        countryId,
         name: countryMap.get(String(countryId)) || `Country ${countryId}`,
         iso: flag ? flag.iso : 'un',
         flagUrl: flag ? flag.flagUrl : 'https://flagcdn.com/un.svg',
         available: stock,
+        count: stock,
         priceInr,
+        priceUsd: costPriceUsd,
         deliveryRate,
         isPopular: !!pop,
         rank: pop ? pop.rank : 9999,

@@ -60,15 +60,19 @@ export async function buyNumber(
   // 1. Get pricing from Tiger SMS
   let costPriceUsd: number;
   try {
-    const priceData = await tigerSms.getPricesV3(serviceCode, countryCode);
+    const priceData = await tigerSms.getPrices(serviceCode, countryCode);
     const countryPrices = priceData[String(countryCode)];
     if (!countryPrices || !countryPrices[serviceCode]) {
-      throw new Error('Service not available for this country');
+      throw new OrderError('NOT_AVAILABLE', 'Service not available for this country');
     }
-    costPriceUsd = countryPrices[serviceCode].price;
+    const sData = countryPrices[serviceCode] as any;
+    costPriceUsd = parseFloat(String(sData.cost ?? sData.price ?? '0'));
+    if (isNaN(costPriceUsd) || costPriceUsd <= 0) {
+      throw new OrderError('PRICE_FETCH_FAILED', 'Could not fetch pricing');
+    }
   } catch (e) {
-    if (e instanceof TigerSmsError) {
-      throw new OrderError(e.code, e.message);
+    if (e instanceof TigerSmsError || e instanceof OrderError) {
+      throw e;
     }
     throw new OrderError('PRICE_FETCH_FAILED', 'Could not fetch pricing');
   }

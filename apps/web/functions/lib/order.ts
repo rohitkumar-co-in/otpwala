@@ -23,12 +23,16 @@ export async function buyNumber(
   }
 
   // 2. Fetch pricing from Tiger SMS
-  const priceData = await tiger.getPricesV3(serviceCode, countryCode);
+  const priceData = await tiger.getPrices(serviceCode, countryCode);
   const countryPrices = priceData[String(countryCode)];
   if (!countryPrices || !countryPrices[serviceCode]) {
     throw new Error('Service not available for this country');
   }
-  const costPriceUsd = countryPrices[serviceCode].price;
+  const sData = countryPrices[serviceCode] as any;
+  const costPriceUsd = parseFloat(String(sData.cost ?? sData.price ?? '0'));
+  if (isNaN(costPriceUsd) || costPriceUsd <= 0) {
+    throw new Error('Service pricing unavailable for this country');
+  }
 
   // 3. Calculate sell price in INR
   const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env);

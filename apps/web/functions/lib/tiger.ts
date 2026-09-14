@@ -63,6 +63,13 @@ export class TigerSmsClient {
     return Array.isArray(result) ? result : (result?.countries || []);
   }
 
+  async getPrices(service?: string, country?: number): Promise<Record<string, Record<string, { cost: string | number; count: number }>>> {
+    const params: Record<string, string | number> = {};
+    if (service) params.service = service;
+    if (country !== undefined) params.country = country;
+    return this.requestJson('getPrices', params);
+  }
+
   async getPricesV3(service?: string, country?: number): Promise<Record<string, Record<string, { price: number; count: number }>>> {
     const params: Record<string, string | number> = {};
     if (service) params.service = service;

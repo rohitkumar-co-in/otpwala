@@ -258,10 +258,10 @@ export async function setDisabledCatalog(services?: string[], countries?: number
 
 export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
-  const [{ disabledCountries }, allCountries, freePrices] = await Promise.all([
+  const [{ disabledCountries }, allCountries, livePrices] = await Promise.all([
     getDisabledCatalog(env),
     tiger.getCountries(),
-    tiger.getFreePrices(serviceCode),
+    tiger.getPrices(serviceCode),
   ]);
 
   const flags = countryFlags as Record<string, { id: number; name: string; iso: string; flagUrl: string }>;
@@ -269,25 +269,23 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
 
   const results: any[] = [];
 
-  for (const [countryIdStr, serviceObj] of Object.entries(freePrices)) {
+  for (const [countryIdStr, serviceObj] of Object.entries(livePrices)) {
     const countryId = parseInt(countryIdStr, 10);
     if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
 
     const sData = (serviceObj as any)?.[serviceCode];
-    if (!sData || !sData.prices) continue;
+    if (!sData) continue;
 
-    const priceList = Object.keys(sData.prices).map(Number);
-    if (priceList.length === 0) continue;
+    const costPriceUsd = parseFloat(String(sData.cost ?? '0'));
+    const stock = parseInt(String(sData.count ?? '0'), 10);
 
-    const minPriceUsd = Math.min(...priceList);
-    const stock = Math.max(...(Object.values(sData.prices) as number[]));
+    if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) continue;
 
-    if (stock <= 0 || !isFinite(minPriceUsd)) continue;
-
-    const priceInr = await calculateSellPrice(minPriceUsd, serviceCode, countryId, userId, env);
+    const priceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryId, userId, env);
     const meta = flags[countryIdStr];
     const iso = meta?.iso || '';
-    const flagUrl = meta?.flagUrl || (iso ? `https://tiger-sms.com/img/country/${iso}.svg` : 'https://flagcdn.com/un.svg');
+    const isoUpper = iso.toUpperCase();
+    const flagUrl = meta?.flagUrl || (isoUpper ? `https://tiger-sms.com/img/country/${isoUpper}.svg` : 'https://flagcdn.com/un.svg');
     const pop = POPULAR_COUNTRIES[countryId];
 
     results.push({
@@ -299,7 +297,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
       count: stock,
       available: stock,
       priceInr,
-      priceUsd: minPriceUsd,
+      priceUsd: costPriceUsd,
       isPopular: !!pop,
       rank: pop?.rank || 9999,
       deliveryRate: pop?.deliveryRate || 95.0,
