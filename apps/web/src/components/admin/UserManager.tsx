@@ -260,7 +260,7 @@ export default function UserManager() {
   };
 
   // ─── Bulk Selection Toggles ───
-  const selectableUsers = users.filter((u) => u.role !== 'admin');
+  const selectableUsers = users.filter((u) => u.role !== 'admin' && u.role !== 'superadmin');
   const allSelectableChecked = selectableUsers.length > 0 && selectableUsers.every((u) => selectedUserIds.includes(u.id));
 
   const handleToggleSelectAll = () => {

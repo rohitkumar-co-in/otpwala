@@ -436,7 +436,45 @@ export async function getOrderHistory(
   const { data, error, count } = await query;
 
   if (error) throw new Error('Failed to fetch orders');
-  return { orders: data as Order[], total: count || 0 };
+
+  const orders = data as Order[];
+  const now = Date.now();
+
+  // Auto-expire waiting orders > 20 mins before returning them
+  for (let i = 0; i < orders.length; i++) {
+    const order = orders[i];
+    if (order.status === 'waiting') {
+      const elapsedSec = (now - new Date(order.created_at).getTime()) / 1000;
+      if (elapsedSec > 1200) {
+        // Mark as expired in DB
+        await supabaseAdmin
+          .from('orders')
+          .update({
+            status: 'expired',
+            tiger_status: 'EXPIRED',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', order.id);
+
+        // Refund user
+        await creditBalance(
+          userId,
+          Number(order.sell_price_inr),
+          'refund',
+          `Auto-refund: Order expired without SMS (${order.service_name})`
+        );
+        
+        // Update local object so UI reflects it immediately
+        order.status = 'expired';
+        order.tiger_status = 'EXPIRED';
+
+        // Best effort upstream cancel in background (don't block request)
+        tigerSms.setStatus(order.activation_id, 8).catch(() => {});
+      }
+    }
+  }
+
+  return { orders, total: count || 0 };
 }
 
 function formatOrderStatus(order: Order): OrderStatusResponse {

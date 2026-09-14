@@ -692,9 +692,9 @@ const formattedTitle = formatPageTitle(title);
         if (dropdownEmail) dropdownEmail.textContent = session.user.email;
       }
       if (dropdownRole) {
-        dropdownRole.textContent = existingProfile?.role === 'admin' ? 'Administrator' : 'Customer';
+        dropdownRole.textContent = (existingProfile?.role === 'admin' || existingProfile?.role === 'superadmin') ? 'Administrator' : 'Customer';
       }
-      if (existingProfile?.role === 'admin') {
+      if ((existingProfile?.role === 'admin' || existingProfile?.role === 'superadmin')) {
         const adminLink = document.getElementById('dropdown-admin-link');
         if (adminLink) adminLink.style.display = 'flex';
       }
@@ -760,7 +760,7 @@ const formattedTitle = formatPageTitle(title);
       } catch {}
 
       // Check if admin
-      if (existingProfile?.role === 'admin') {
+      if ((existingProfile?.role === 'admin' || existingProfile?.role === 'superadmin')) {
         const adminNav = document.getElementById('nav-admin');
         if (adminNav) adminNav.style.display = 'flex';
       }
@@ -799,7 +799,7 @@ const formattedTitle = formatPageTitle(title);
             var rawUser = localStorage.getItem('otpwala_user_profile');
             if (rawUser) {
               var profile = JSON.parse(rawUser);
-              if (profile && profile.role === 'admin') {
+              if (profile && (profile.role === 'admin' || profile.role === 'superadmin')) {
                 overlay.style.display = 'none';
                 return;
               }

@@ -652,7 +652,7 @@ const webAppSchema = {
             .select('role')
             .eq('id', session.user.id)
             .single();
-          if (profile?.role === 'admin') {
+          if ((profile?.role === 'admin' || profile?.role === 'superadmin')) {
             targetUrl = '/admin';
             label = 'Admin Panel';
           }
@@ -779,7 +779,7 @@ const webAppSchema = {
             var rawUser = localStorage.getItem('otpwala_user_profile');
             if (rawUser) {
               var profile = JSON.parse(rawUser);
-              if (profile && profile.role === 'admin') {
+              if (profile && (profile.role === 'admin' || profile.role === 'superadmin')) {
                 overlay.style.display = 'none';
                 return;
               }

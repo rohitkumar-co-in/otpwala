@@ -439,7 +439,7 @@ export default function SettingsPage() {
                   Account Role
                 </span>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600, marginTop: '0.25rem', display: 'block' }}>
-                  {profile?.role === 'admin' ? 'Administrator' : 'Standard Customer'}
+                  {(profile?.role === 'admin' || profile?.role === 'superadmin') ? 'Administrator' : 'Standard Customer'}
                 </span>
               </div>
 

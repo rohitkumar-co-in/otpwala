@@ -482,7 +482,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           </div>
         `;
       }
-      if (profile?.role === 'admin') {
+      if ((profile?.role === 'admin' || profile?.role === 'superadmin')) {
         window.location.href = '/admin';
         return;
       }
@@ -647,7 +647,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         .eq('id', user.id)
         .single();
 
-      if (profile?.role === 'admin') {
+      if ((profile?.role === 'admin' || profile?.role === 'superadmin')) {
         window.location.href = '/admin';
         return;
       }
