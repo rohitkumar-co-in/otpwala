@@ -384,21 +384,16 @@ export default function UserManager() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {/* Smart single ban/unban button: unban if all selected are already banned, else ban */}
             <button
               className="btn btn-secondary btn-sm"
               disabled={bulkActionLoading}
-              onClick={() => handleBulkBan(true)}
-              style={{ fontSize: '0.8rem', color: '#b91c1c' }}
+              onClick={() => handleBulkBan(selectedUserIds.length === selectedBannedUsers.length ? false : true)}
+              style={{ fontSize: '0.8rem', color: selectedUserIds.length === selectedBannedUsers.length ? '#15803d' : '#b91c1c' }}
             >
-              Ban Selected ({selectedUserIds.length})
-            </button>
-            <button
-              className="btn btn-secondary btn-sm"
-              disabled={bulkActionLoading}
-              onClick={() => handleBulkBan(false)}
-              style={{ fontSize: '0.8rem', color: '#15803d' }}
-            >
-              Unban Selected ({selectedUserIds.length})
+              {selectedUserIds.length === selectedBannedUsers.length
+                ? `Unban Selected (${selectedUserIds.length})`
+                : `Ban Selected (${selectedUserIds.length})`}
             </button>
             <button
               className="btn btn-sm"
