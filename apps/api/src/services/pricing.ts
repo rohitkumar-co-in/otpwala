@@ -155,12 +155,18 @@ export async function calculateSellPrice(
   costPriceUsd: number,
   serviceCode: string,
   countryCode: number,
-  userId?: string
+  userId?: string,
+  userRole?: string
 ): Promise<number> {
   const { rate, defaultMarkup } = await getSettings();
 
   // Convert USD to INR
   const costPriceInr = costPriceUsd * rate;
+
+  // Admins always buy at Tiger SMS base cost (0% markup)
+  if (userRole === 'admin') {
+    return Math.ceil(costPriceInr * 2) / 2;
+  }
 
   // Check if user is granted Zero-Markup (buys at pure Tiger SMS base rate)
   if (userId && (await isZeroMarkupUser(userId))) {

@@ -33,7 +33,7 @@ router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) =
 
     const info = countryPrices[service] as any;
     const costPriceUsd = parseFloat(String(info.cost ?? info.price ?? '0'));
-    const priceInr = await calculateSellPrice(costPriceUsd, service, countryCode, req.userId);
+    const priceInr = await calculateSellPrice(costPriceUsd, service, countryCode, req.userId, req.userRole);
 
     res.json({
       success: true,

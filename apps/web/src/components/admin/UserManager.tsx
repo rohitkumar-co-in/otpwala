@@ -541,9 +541,9 @@ export default function UserManager() {
                       </td>
                       <td style={{ padding: '0.75rem' }}>
                         {isAdmin ? (
-                          <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }}></span>
-                            Standard Rate
+                          <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.35)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }}></span>
+                            0% Markup (Tiger)
                           </span>
                         ) : (
                           <button
@@ -1064,8 +1064,8 @@ export default function UserManager() {
                 <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Pricing Policy
                 </div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: inspectTarget.has_zero_markup ? '#10b981' : 'var(--text-primary)', marginTop: '0.45rem' }}>
-                  {inspectTarget.has_zero_markup ? '0% Markup (Tiger)' : 'Standard Markup'}
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: (inspectTarget.has_zero_markup || inspectTarget.role === 'admin') ? '#10b981' : 'var(--text-primary)', marginTop: '0.45rem' }}>
+                  {(inspectTarget.has_zero_markup || inspectTarget.role === 'admin') ? '0% Markup (Tiger)' : 'Standard Markup'}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                   Active pricing rule

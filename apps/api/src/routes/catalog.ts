@@ -207,7 +207,7 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
         flagUrl: flag?.flagUrl || 'https://flagcdn.com/un.svg',
         available,
         count: available,
-        priceInr: await calculateSellPrice(priceUsd, code, countryId, req.userId),
+        priceInr: await calculateSellPrice(priceUsd, code, countryId, req.userId, req.userRole),
         priceUsd,
         isHighDelivery: deliveryRanks.has(normalizeCatalogName(countryMap.get(String(countryId)) || '')),
         deliveryRank: deliveryRanks.get(normalizeCatalogName(countryMap.get(String(countryId)) || '')) || null,
