@@ -85,7 +85,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     throw errObj;
   }
 
-  return data.data as T;
+  return (data.data !== undefined ? data.data : data) as T;
 }
 
 // ─── Catalog ───
