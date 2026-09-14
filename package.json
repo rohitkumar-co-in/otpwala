@@ -5,8 +5,8 @@
     "dev": "pnpm --parallel -r run dev",
     "dev:web": "pnpm --filter @otpwala/web dev",
     "dev:api": "pnpm --filter @otpwala/api dev",
-    "build": "pnpm -r run build",
-    "build:web": "pnpm --filter @otpwala/web build",
+    "build": "npm --prefix apps/web run build && node -e \"const fs=require('fs'); if(fs.existsSync('apps/web/dist')){fs.cpSync('apps/web/dist','dist',{recursive:true});}\"",
+    "build:web": "npm --prefix apps/web run build",
     "build:api": "pnpm --filter @otpwala/api build",
     "deploy:web": "npm --prefix apps/web run build && npx wrangler pages deploy dist --project-name=otpwala --cwd apps/web --commit-dirty=true"
   },
