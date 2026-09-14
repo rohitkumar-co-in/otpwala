@@ -973,10 +973,14 @@ export const onRequest = async (context: any) => {
       // POST /api/admin/users/:id/promote
       const userPromoteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/promote$/);
       if (userPromoteMatch && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can promote users to admin.' }, 403);
         const targetUserId = userPromoteMatch[1];
+        if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'Cannot promote yourself.' }, 400);
+        
         const supabase = getSupabaseAdmin(env);
         const { data: profile } = await supabase.from('profiles').select('id,role').eq('id', targetUserId).maybeSingle();
         if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+        if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'User is already an admin or superadmin.' }, 400);
         
         await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
         return jsonResponse({ success: true, message: 'User promoted to admin' });
