@@ -4,6 +4,8 @@ import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder } f
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
+import { calculateSellPrice, getZeroMarkupUsers, setZeroMarkupUser } from '../lib/pricing';
+import { testTelegramConnection } from '../lib/telegram';
 import {
   getAdminDashboard,
   getAdminUsers,
@@ -375,6 +377,19 @@ export const onRequest = async (context: any) => {
       return jsonResponse(result);
     }
 
+    if (path === '/api/referrals/claim' && method === 'POST') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+
+      const body = await request.json().catch(() => ({}));
+      const { referralCode } = body;
+      if (!referralCode) return jsonResponse({ success: false, error: 'Referral code is required' }, 400);
+
+      const result = await attributeReferral(auth.userId, referralCode, env);
+      if (!result.success) return jsonResponse({ success: false, error: (result as any).message || 'Failed to link referral' }, 400);
+      return jsonResponse({ success: true, data: { attributed: true }, message: (result as any).message });
+    }
+
     // ─── Admin Routes ───
     if (path.startsWith('/api/admin/')) {
       const auth = await authenticateUser(request, env);
@@ -401,6 +416,45 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, data: users });
       }
 
+      // GET /api/admin/users/:id/details
+      const userDetailsMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/details$/);
+      if (userDetailsMatch && method === 'GET') {
+        const targetId = userDetailsMatch[1];
+        const supabase = getSupabaseAdmin(env);
+        const { data: profile, error: profileErr } = await supabase
+          .from('profiles').select('*').eq('id', targetId).maybeSingle();
+        if (profileErr || !profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+
+        let authMeta: any = {};
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(targetId);
+          if (authUser?.user) {
+            authMeta = {
+              name: authUser.user.user_metadata?.full_name || authUser.user.user_metadata?.name || null,
+              avatar_url: authUser.user.user_metadata?.avatar_url || authUser.user.user_metadata?.picture || null,
+              last_sign_in_at: authUser.user.last_sign_in_at || null,
+              email: authUser.user.email || profile.email,
+            };
+          }
+        } catch {}
+
+        const zeroUsers = await getZeroMarkupUsers(env);
+        const [txRes, ordersRes] = await Promise.all([
+          supabase.from('wallet_transactions').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
+          supabase.from('orders').select('id,service_name,country_name,phone_number,price_inr,status,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(5),
+        ]);
+
+        const resolvedName = (profile.full_name?.trim()) || authMeta.name || null;
+        return jsonResponse({
+          success: true,
+          data: {
+            user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId) },
+            transactions: txRes.data || [],
+            orders: ordersRes.data || [],
+          },
+        });
+      }
+
       const userCreditMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/credit$/);
       if (userCreditMatch && method === 'POST') {
         const targetUserId = userCreditMatch[1];
@@ -409,12 +463,76 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true });
       }
 
+      // POST /api/admin/users/:id/zero-markup
+      const userZeroMarkupMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/zero-markup$/);
+      if (userZeroMarkupMatch && method === 'POST') {
+        const targetUserId = userZeroMarkupMatch[1];
+        const body = await request.json().catch(() => ({}));
+        const updated = await setZeroMarkupUser(targetUserId, !!body.hasZeroMarkup, env);
+        return jsonResponse({ success: true, data: { userId: targetUserId, hasZeroMarkup: updated }, message: updated ? 'User granted zero-markup (Tiger SMS cost rate).' : 'User returned to standard markup rate.' });
+      }
+
+      // POST /api/admin/users/:id/ban  
       const userBanMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/ban$/);
       if (userBanMatch && method === 'POST') {
         const targetUserId = userBanMatch[1];
         const body = await request.json().catch(() => ({}));
         await banUser(targetUserId, !!body.banned, body.reason, env);
-        return jsonResponse({ success: true });
+        return jsonResponse({ success: true, message: body.banned ? 'User banned' : 'User unbanned' });
+      }
+
+      // DELETE /api/admin/users/:id
+      const userDeleteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)$/);
+      if (userDeleteMatch && method === 'DELETE') {
+        const targetUserId = userDeleteMatch[1];
+        const supabase = getSupabaseAdmin(env);
+        if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'You cannot delete your own account.' }, 400);
+
+        const { data: profile } = await supabase.from('profiles').select('id,email,role,is_banned').eq('id', targetUserId).maybeSingle();
+        if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+        if (profile.role === 'admin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
+        if (!profile.is_banned) return jsonResponse({ success: false, error: 'User must be banned before they can be deleted. Please ban the user first.' }, 400);
+
+        await supabase.from('payment_requests').delete().eq('user_id', targetUserId);
+        await supabase.from('orders').delete().eq('user_id', targetUserId);
+        await supabase.from('wallet_transactions').delete().eq('user_id', targetUserId);
+        await supabase.from('profiles').delete().eq('id', targetUserId);
+        try { await supabase.auth.admin.deleteUser(targetUserId); } catch {}
+        return jsonResponse({ success: true, message: `User ${profile.email || targetUserId} permanently deleted.` });
+      }
+
+      // POST /api/admin/users/bulk-ban
+      if (path === '/api/admin/users/bulk-ban' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { userIds, banned } = body;
+        if (!Array.isArray(userIds) || userIds.length === 0) return jsonResponse({ success: false, error: 'No users selected.' }, 400);
+        const targets = userIds.filter((uid: string) => uid !== auth.userId);
+        if (targets.length === 0) return jsonResponse({ success: false, error: 'Cannot ban your own account.' }, 400);
+        const supabase = getSupabaseAdmin(env);
+        const { error } = await supabase.from('profiles').update({ is_banned: !!banned, updated_at: new Date().toISOString() }).in('id', targets).neq('role', 'admin');
+        if (error) throw error;
+        return jsonResponse({ success: true, message: `${targets.length} user(s) ${banned ? 'banned' : 'unbanned'} successfully.` });
+      }
+
+      // POST /api/admin/users/bulk-delete
+      if (path === '/api/admin/users/bulk-delete' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { userIds } = body;
+        if (!Array.isArray(userIds) || userIds.length === 0) return jsonResponse({ success: false, error: 'No users selected.' }, 400);
+        const targets = userIds.filter((uid: string) => uid !== auth.userId);
+        const supabase = getSupabaseAdmin(env);
+        const { data: profiles } = await supabase.from('profiles').select('id,email,role,is_banned').in('id', targets);
+        if (!profiles || profiles.length === 0) return jsonResponse({ success: false, error: 'No matching users found.' }, 404);
+        const unbanned = profiles.filter((p: any) => !p.is_banned);
+        if (unbanned.length > 0) return jsonResponse({ success: false, error: `Cannot delete unbanned users (${unbanned.length} unbanned). All selected users must be banned first.` }, 400);
+        const eligible = profiles.filter((p: any) => p.role !== 'admin' && p.is_banned).map((p: any) => p.id);
+        if (eligible.length === 0) return jsonResponse({ success: false, error: 'No eligible banned users to delete.' }, 400);
+        await supabase.from('payment_requests').delete().in('user_id', eligible);
+        await supabase.from('orders').delete().in('user_id', eligible);
+        await supabase.from('wallet_transactions').delete().in('user_id', eligible);
+        await supabase.from('profiles').delete().in('id', eligible);
+        await Promise.allSettled(eligible.map((uid: string) => supabase.auth.admin.deleteUser(uid)));
+        return jsonResponse({ success: true, message: `${eligible.length} banned user(s) permanently deleted.` });
       }
 
       if (path === '/api/admin/orders' && method === 'GET') {
@@ -561,6 +679,13 @@ export const onRequest = async (context: any) => {
         }
 
         return jsonResponse({ success: true, message: `Batch action "${action}" executed successfully` });
+      }
+
+      // POST /api/admin/telegram/test
+      if (path === '/api/admin/telegram/test' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const result = await testTelegramConnection(body.botToken, body.chatId, env);
+        return jsonResponse(result);
       }
     }
 

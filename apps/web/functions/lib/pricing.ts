@@ -126,3 +126,33 @@ export async function calculateSellPrice(
 
   return Math.ceil(sellPrice * 2) / 2;
 }
+
+export async function getZeroMarkupUsers(env?: any): Promise<string[]> {
+  return getCachedZeroUsers(env) as Promise<string[]>;
+}
+
+export async function setZeroMarkupUser(userId: string, hasZeroMarkup: boolean, env?: any): Promise<boolean> {
+  const supabase = getSupabaseAdmin(env);
+  const current = await getCachedZeroUsers(env) as string[];
+  let updated: string[];
+
+  if (hasZeroMarkup) {
+    updated = current.includes(userId) ? current : [...current, userId];
+  } else {
+    updated = current.filter((id) => id !== userId);
+  }
+
+  const { error } = await supabase.from('settings').upsert({
+    key: 'zero_markup_user_ids',
+    value: JSON.stringify(updated),
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) throw error;
+
+  // Invalidate cache
+  cachedZeroUsers = updated;
+  zeroUsersTime = Date.now();
+  return hasZeroMarkup;
+}
+
