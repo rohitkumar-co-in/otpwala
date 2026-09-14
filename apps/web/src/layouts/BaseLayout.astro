@@ -287,9 +287,32 @@ const webAppSchema = {
       <div class="header-actions flex items-center gap-md">
         <a href="/auth/login" style="font-size:0.875rem; font-weight:600; color:#64748b; text-decoration:none; transition:color 0.15s;" id="login-btn" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">Log In</a>
         <a href="/auth/register" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.5rem 1.1rem; background:#2563eb; color:#fff; border-radius:8px; font-size:0.875rem; font-weight:700; text-decoration:none; transition:all 0.2s; box-shadow:0 2px 10px rgba(37,99,235,0.2);" id="register-btn" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Get Started</a>
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle Navigation Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+    <nav class="mobile-nav-links">
+      <a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a>
+      <a href="/services" class={currentPath.startsWith('/services') ? 'active' : ''}>Services (980+)</a>
+      <a href="/how-it-works" class={currentPath.startsWith('/how-it-works') ? 'active' : ''}>How it Works</a>
+      <a href="/pricing" class={currentPath.startsWith('/pricing') ? 'active' : ''}>Pricing &amp; Rates</a>
+    </nav>
+    <div class="mobile-nav-divider"></div>
+    <div class="mobile-nav-actions">
+      <a href="/auth/login" class="btn btn-secondary" id="mobile-login-btn">Log In</a>
+      <a href="/auth/register" class="btn btn-primary" id="mobile-register-btn">Get Started Free</a>
+    </div>
+  </div>
+  <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
   <!-- Main Content -->
   <main>
@@ -513,11 +536,102 @@ const webAppSchema = {
       color: #475569;
     }
 
+    /* Mobile Nav Drawer Styles */
+    .mobile-nav-toggle {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.4rem;
+      cursor: pointer;
+      color: var(--text-primary);
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast);
+    }
+    .mobile-nav-toggle:hover {
+      background: var(--bg-glass);
+    }
+
+    .mobile-nav-drawer {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-subtle);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+      padding: 1.25rem 1.5rem 1.75rem;
+      transform: translateY(-130%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 99;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .mobile-nav-drawer.open {
+      transform: translateY(0);
+    }
+
+    .mobile-nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .mobile-nav-links a {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    }
+
+    .mobile-nav-links a.active {
+      color: var(--accent-primary);
+    }
+
+    .mobile-nav-divider {
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .mobile-nav-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .mobile-nav-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 98;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .mobile-nav-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
     @media (max-width: 768px) {
+      .mobile-nav-toggle {
+        display: flex;
+      }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     }
     @media (max-width: 480px) {
       .footer-grid { grid-template-columns: 1fr; }
+      .header-actions #login-btn,
+      .header-actions #register-btn {
+        display: none !important;
+      }
     }
   </style>
 
@@ -547,6 +661,8 @@ const webAppSchema = {
         // Update header buttons
         const loginBtn = document.getElementById('login-btn');
         const registerBtn = document.getElementById('register-btn');
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        const mobileRegisterBtn = document.getElementById('mobile-register-btn');
         const heroCta = document.getElementById('hero-cta');
 
         if (loginBtn) {
@@ -554,16 +670,28 @@ const webAppSchema = {
           loginBtn.setAttribute('href', targetUrl);
           loginBtn.className = 'btn btn-secondary btn-sm';
         }
+        if (mobileLoginBtn) {
+          mobileLoginBtn.textContent = label;
+          mobileLoginBtn.setAttribute('href', targetUrl);
+        }
+
+        const handleSignOut = async (e: Event) => {
+          e.preventDefault();
+          await supabase.auth.signOut();
+          window.location.href = '/auth/login';
+        };
 
         if (registerBtn) {
           registerBtn.textContent = 'Log Out';
           registerBtn.setAttribute('href', '#');
           registerBtn.className = 'btn btn-ghost btn-sm';
-          registerBtn.onclick = async (e) => {
-            e.preventDefault();
-            await supabase.auth.signOut();
-            window.location.href = '/auth/login';
-          };
+          registerBtn.onclick = handleSignOut;
+        }
+        if (mobileRegisterBtn) {
+          mobileRegisterBtn.textContent = 'Log Out';
+          mobileRegisterBtn.setAttribute('href', '#');
+          mobileRegisterBtn.className = 'btn btn-ghost';
+          mobileRegisterBtn.onclick = handleSignOut;
         }
 
         if (heroCta) {
@@ -572,6 +700,29 @@ const webAppSchema = {
         }
       } catch {}
     }
+
+    // Mobile nav toggle
+    const navToggle = document.getElementById('mobile-nav-toggle');
+    const navDrawer = document.getElementById('mobile-nav-drawer');
+    const navBackdrop = document.getElementById('mobile-nav-backdrop');
+
+    function toggleMobileNav() {
+      const isOpen = navDrawer?.classList.toggle('open');
+      navBackdrop?.classList.toggle('active', !!isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    navToggle?.addEventListener('click', toggleMobileNav);
+    navBackdrop?.addEventListener('click', toggleMobileNav);
+
+    // Close on drawer link click
+    navDrawer?.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        navDrawer.classList.remove('open');
+        navBackdrop?.classList.remove('active');
+        document.body.style.overflow = '';
+      });
+    });
 
     // Run on mount and listen to auth changes
     syncNavAuth();

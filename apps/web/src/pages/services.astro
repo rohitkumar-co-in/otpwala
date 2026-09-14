@@ -751,6 +751,18 @@ const popularServices = [
     .stats-bar { grid-template-columns: repeat(2, 1fr); }
     .features-grid { grid-template-columns: 1fr; }
   }
+
+  @media (max-width: 480px) {
+    .services-hero h1 { font-size: 1.75rem; }
+    .stats-bar { grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 1rem; }
+    .stat-val { font-size: 1.4rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .category-tabs { gap: 0.35rem; }
+    .tab-btn { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+    .bottom-cta { padding: 2.5rem 1.25rem; }
+    .bottom-cta h2 { font-size: 1.75rem; }
+    .cta-actions .btn { width: 100%; justify-content: center; }
+  }
 </style>
 
 <script>

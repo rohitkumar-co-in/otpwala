@@ -371,6 +371,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .link-btn:hover {
     color: var(--text-primary);
   }
+
+  @media (max-width: 480px) {
+    .auth-page {
+      padding: 1.5rem 1rem;
+    }
+    .auth-card {
+      padding: 1.75rem 1.25rem;
+      border-radius: var(--radius-md);
+    }
+  }
 </style>
 
 <script>

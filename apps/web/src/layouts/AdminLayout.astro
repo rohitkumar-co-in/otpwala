@@ -182,10 +182,18 @@ const formattedTitle = formatPageTitle(title);
         </button>
       </div>
     </aside>
+    <div class="sidebar-backdrop" id="admin-sidebar-backdrop"></div>
 
     <div class="dashboard-main">
       <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 var(--space-xl);">
-        <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;"><span data-brand-name>OTPWala</span> Admin Operations</div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button class="btn btn-ghost btn-icon mobile-menu-btn" id="admin-mobile-menu-btn" aria-label="Open Admin Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;"><span data-brand-name>OTPWala</span> Admin Operations</div>
+        </div>
         <div id="admin-tiger-status-indicator" style="display: flex; align-items: center; gap: 0.5rem;">
           <div class="system-status-pill" id="tiger-status-badge" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); color: #34d399;" title="Upstream Tiger SMS API Gateway Connectivity">
             <span class="status-dot active pulse-dot" id="tiger-status-dot"></span>
@@ -201,7 +209,7 @@ const formattedTitle = formatPageTitle(title);
 
   <style>
     .dashboard-layout { display: flex; min-height: 100vh; }
-    .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+    .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
     .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; }
     .sidebar-nav { flex: 1; padding: var(--space-md); display: flex; flex-direction: column; gap: 0.25rem; }
     .nav-item { display: flex; align-items: center; gap: var(--space-sm); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; transition: all var(--transition-fast); text-decoration: none; }
@@ -213,6 +221,28 @@ const formattedTitle = formatPageTitle(title);
     .dashboard-main { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; }
     .dashboard-header { height: var(--header-height); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: flex-end; padding: 0 var(--space-xl); background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 50; }
     .dashboard-content { flex: 1; padding: var(--space-xl); max-width: 1200px; }
+    .mobile-menu-btn { display: none; }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .dashboard-main {
+        margin-left: 0;
+      }
+      .mobile-menu-btn {
+        display: flex;
+      }
+      .dashboard-header {
+        padding: 0 1rem !important;
+      }
+      .dashboard-content {
+        padding: 1rem !important;
+      }
+    }
     .logo {
       display: inline-flex;
       align-items: center;
@@ -420,6 +450,29 @@ const formattedTitle = formatPageTitle(title);
           }
         })
         .catch(function() {});
+
+      // Admin mobile menu toggle
+      var adminMenuBtn = document.getElementById('admin-mobile-menu-btn');
+      var adminSidebar = document.querySelector('.sidebar');
+      var adminBackdrop = document.getElementById('admin-sidebar-backdrop');
+      function toggleAdmin() {
+        var isOpen = adminSidebar && adminSidebar.classList.toggle('open');
+        if (adminBackdrop) adminBackdrop.classList.toggle('active', !!isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+      if (adminMenuBtn) adminMenuBtn.addEventListener('click', toggleAdmin);
+      if (adminBackdrop) adminBackdrop.addEventListener('click', toggleAdmin);
+      if (adminSidebar) {
+        adminSidebar.querySelectorAll('.nav-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+              adminSidebar.classList.remove('open');
+              if (adminBackdrop) adminBackdrop.classList.remove('active');
+              document.body.style.overflow = '';
+            }
+          });
+        });
+      }
     })();
   </script>
 </body>

@@ -178,6 +178,7 @@ const formattedTitle = formatPageTitle(title);
         </button>
       </div>
     </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <!-- Main Content -->
     <div class="dashboard-main">
@@ -528,11 +529,33 @@ const formattedTitle = formatPageTitle(title);
       clearLocalSessionId,
     } from '../lib/sessionManager';
 
-    // Mobile menu toggle
+    // Mobile menu toggle & outside-click close
     const menuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.getElementById('sidebar');
-    menuBtn?.addEventListener('click', () => {
-      sidebar?.classList.toggle('open');
+    const backdrop = document.getElementById('sidebar-backdrop');
+
+    function toggleSidebar() {
+      const isOpen = sidebar?.classList.toggle('open');
+      backdrop?.classList.toggle('active', !!isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    menuBtn?.addEventListener('click', toggleSidebar);
+    backdrop?.addEventListener('click', () => {
+      sidebar?.classList.remove('open');
+      backdrop?.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+
+    // Close mobile sidebar on nav click
+    sidebar?.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          sidebar?.classList.remove('open');
+          backdrop?.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
     });
 
     // Logout

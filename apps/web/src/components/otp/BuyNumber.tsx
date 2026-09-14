@@ -666,7 +666,7 @@ export default function BuyNumber() {
             No services found matching "{searchQuery}".
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(195px, 1fr))', gap: '0.85rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.85rem' }}>
             {sortedServices.map((service) => (
               <button
                 key={service.code}
@@ -1223,7 +1223,7 @@ export default function BuyNumber() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                 gap: '1.25rem',
                 alignItems: 'stretch',
                 background: 'var(--bg-glass-strong)',
@@ -1238,7 +1238,7 @@ export default function BuyNumber() {
                   Virtual Phone Number
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(1.25rem, 4vw, 1.6rem)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.02em', wordBreak: 'break-all' }}>
                     {order?.phoneNumber || 'Generating...'}
                   </span>
                   {order?.phoneNumber && (

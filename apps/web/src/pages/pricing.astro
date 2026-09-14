@@ -661,6 +661,20 @@ const pricingServices = [
     .value-props-grid { grid-template-columns: 1fr; }
     .tiers-grid { grid-template-columns: 1fr; }
     .comp-box { grid-template-columns: 1fr; }
+    .section-top-bar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .table-search { width: 100%; }
+    .pricing-input { width: 100%; font-size: 16px !important; }
+    .rates-table th, .rates-table td { padding: 0.75rem 0.85rem; font-size: 0.85rem; }
+  }
+
+  @media (max-width: 480px) {
+    .pricing-hero h1 { font-size: 1.75rem; }
+    .section-heading h2 { font-size: 1.65rem; }
+    .tier-card { padding: 1.75rem 1.25rem; }
+    .comp-box { padding: 1.5rem 1.25rem; }
+    .bottom-cta { padding: 2.5rem 1.25rem; }
+    .bottom-cta h2 { font-size: 1.75rem; }
+    .cta-actions .btn { width: 100%; justify-content: center; }
   }
 </style>
 

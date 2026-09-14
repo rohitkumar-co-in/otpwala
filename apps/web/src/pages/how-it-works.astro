@@ -831,6 +831,16 @@ const howItWorksFaqSchema = {
     .steps-timeline { grid-template-columns: 1fr; }
     .refund-grid { grid-template-columns: 1fr; }
   }
+
+  @media (max-width: 480px) {
+    .how-hero h1 { font-size: 1.75rem; }
+    .hero-desc { font-size: 0.95rem; }
+    .step-box { padding: 1.75rem 1.25rem; }
+    .refund-card-visual { padding: 1.75rem 1.25rem; }
+    .bottom-cta { padding: 2.5rem 1.25rem; }
+    .bottom-cta h2 { font-size: 1.75rem; }
+    .cta-actions .btn { width: 100%; justify-content: center; }
+  }
 </style>
 
 <script>
