@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet } from '../../lib/api';
+import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -29,7 +29,26 @@ import {
   AppleIcon,
 } from '../ui/BrandIcons';
 
-type Step = 'service' | 'country' | 'confirm' | 'waiting' | 'received' | 'expired';
+type Step = 'service' | 'country' | 'confirm' | 'waiting' | 'received' | 'expired' | 'messages';
+
+function playNotificationSound() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } catch {}
+}
 
 export function renderServiceIcon(serviceOrCode: any, size = 26) {
   const isObj = typeof serviceOrCode === 'object' && serviceOrCode !== null;
@@ -141,6 +160,8 @@ export default function BuyNumber() {
   const [otpData, setOtpData] = useState<any>(null);
   const [secondsLeft, setSecondsLeft] = useState<number>(1200);
   const [loading, setLoading] = useState(true);
+  const [buyingCountryId, setBuyingCountryId] = useState<number | null>(null);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [countrySearch, setCountrySearch] = useState('');
@@ -168,28 +189,62 @@ export default function BuyNumber() {
     }
   }
 
-  // Timer countdown effect for waiting step
+  async function loadRecentOrders() {
+    try {
+      const data = await getOrders(10, 0);
+      setRecentOrders(data.orders || []);
+    } catch {}
+  }
+
+  // Timer countdown effect for waiting / messages step
   useEffect(() => {
-    if (step !== 'waiting') return;
+    if (step !== 'waiting' && step !== 'messages') return;
+    if (order?.status !== 'waiting') return;
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           if (pollRef.current) clearInterval(pollRef.current);
-          setStep('expired');
+          setOrder((prevOrd: any) => ({ ...prevOrd, status: 'expired' }));
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [step]);
+  }, [step, order?.status]);
 
   async function checkActiveParam() {
+    loadRecentOrders();
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const activeId = params.get('active');
-    if (!activeId) return;
+
+    if (!activeId) {
+      // Check if user has an active waiting order
+      try {
+        const data = await getOrders(1, 0, 'waiting');
+        if (data && data.orders && data.orders.length > 0) {
+          const act = data.orders[0];
+          setOrder({
+            orderId: act.id,
+            phoneNumber: act.phone_number,
+            serviceName: act.service_name,
+            serviceCode: act.service_code,
+            countryName: act.country_name,
+            countryId: act.country_id,
+            priceInr: parseFloat(act.sell_price_inr) || 0,
+            status: act.status,
+            createdAt: act.created_at,
+          });
+          const elapsed = act.created_at ? Math.floor((Date.now() - new Date(act.created_at).getTime()) / 1000) : 0;
+          setSecondsLeft(Math.max(0, 1200 - elapsed));
+          setStep('messages');
+          startPolling(act.id);
+        }
+      } catch {}
+      return;
+    }
 
     try {
       const status = await getOrderStatus(activeId);
@@ -200,21 +255,21 @@ export default function BuyNumber() {
           serviceName: status.serviceName,
           countryName: status.countryName,
           priceInr: status.priceInr,
+          status: status.status,
+          smsCode: status.smsCode,
+          smsText: status.smsText || status.text,
           createdAt: status.createdAt,
         });
-        setSelectedService({ name: status.serviceName, code: '' });
-        setSelectedCountry({ name: status.countryName, id: 0 });
+        setSelectedService({ name: status.serviceName, code: status.serviceCode || '' });
+        setSelectedCountry({ name: status.countryName, id: status.countryCode || 0 });
         if (status.status === 'code_received' || status.smsCode) {
           setOtpData(status);
-          setStep('received');
         } else if (status.status === 'waiting') {
           const elapsed = status.createdAt ? Math.floor((Date.now() - new Date(status.createdAt).getTime()) / 1000) : 0;
           setSecondsLeft(Math.max(0, 1200 - elapsed));
-          setStep('waiting');
           startPolling(activeId);
-        } else if (status.status === 'expired' || status.status === 'cancelled') {
-          setStep('expired');
         }
+        setStep('messages');
       }
     } catch (err) {
       console.warn('Failed to resume active order:', err);
@@ -250,44 +305,48 @@ export default function BuyNumber() {
     }
   }
 
-  async function selectCountry(country: any) {
+  async function handleDirectBuy(country: any) {
     setSelectedCountry(country);
-    setStep('confirm');
-    setLoading(true);
-    setError('');
-    try {
-      const data = await getPrice(selectedService.code, country.id);
-      setPriceInfo(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
-  async function handleBuy() {
-    if (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) {
+    // Instant wallet check
+    if (walletBalance !== null && country.priceInr && walletBalance < country.priceInr) {
       window.location.href = '/dashboard/wallet?insufficient=1';
       return;
     }
 
-    setLoading(true);
+    setBuyingCountryId(country.id);
     setError('');
+
     try {
-      const data = await apiBuyNumber(selectedService.code, selectedCountry.id);
-      setOrder(data);
+      const data = await apiBuyNumber(selectedService.code, country.id);
+      const newOrder = {
+        orderId: data.orderId,
+        phoneNumber: data.phoneNumber,
+        serviceName: selectedService.name,
+        serviceCode: selectedService.code,
+        countryName: country.name,
+        countryId: country.id,
+        countryIso: country.iso,
+        priceInr: country.priceInr || data.priceInr,
+        status: 'waiting',
+        createdAt: new Date().toISOString(),
+      };
+      setOrder(newOrder);
+      setOtpData(null);
       setSecondsLeft(1200);
-      setStep('waiting');
+      setStep('messages');
       startPolling(data.orderId);
+      loadWalletBalance();
+      loadRecentOrders();
     } catch (err: any) {
       const msg = (err?.message || err?.code || '').toLowerCase();
       if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('fund')) {
         window.location.href = '/dashboard/wallet?insufficient=1';
         return;
       }
-      setError(err.message);
+      setError(err.message || 'Failed to buy number. Please choose another country or retry.');
     } finally {
-      setLoading(false);
+      setBuyingCountryId(null);
     }
   }
 
@@ -296,13 +355,26 @@ export default function BuyNumber() {
     pollRef.current = setInterval(async () => {
       try {
         const status = await getOrderStatus(orderId);
-        if (status.smsCode || status.status === 'code_received') {
-          setOtpData(status);
-          setStep('received');
-          if (pollRef.current) clearInterval(pollRef.current);
-        } else if (status.status === 'expired' || status.status === 'cancelled') {
-          if (pollRef.current) clearInterval(pollRef.current);
-          setStep('expired');
+        if (status) {
+          if (status.smsCode || status.status === 'code_received') {
+            setOtpData(status);
+            setOrder((prev: any) => ({
+              ...prev,
+              ...status,
+              status: 'code_received',
+              smsCode: status.smsCode,
+              smsText: status.smsText || status.text,
+            }));
+            playNotificationSound();
+            if (pollRef.current) clearInterval(pollRef.current);
+            loadWalletBalance();
+            loadRecentOrders();
+          } else if (status.status === 'expired' || status.status === 'cancelled') {
+            setOrder((prev: any) => ({ ...prev, status: status.status }));
+            if (pollRef.current) clearInterval(pollRef.current);
+            loadWalletBalance();
+            loadRecentOrders();
+          }
         }
       } catch {
         // Ignore poll errors
@@ -316,12 +388,13 @@ export default function BuyNumber() {
     try {
       await cancelOrder(order.orderId);
       if (pollRef.current) clearInterval(pollRef.current);
-      setStep('service');
       setOrder(null);
-      setSelectedService(null);
-      setSelectedCountry(null);
+      setOtpData(null);
+      setStep('service');
+      loadWalletBalance();
+      loadRecentOrders();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to cancel order');
     } finally {
       setLoading(false);
     }
@@ -333,6 +406,9 @@ export default function BuyNumber() {
       await completeOrder(order.orderId);
       setStep('service');
       setOrder(null);
+      setOtpData(null);
+      loadWalletBalance();
+      loadRecentOrders();
     } catch {}
   }
 
@@ -341,8 +417,10 @@ export default function BuyNumber() {
     setLoading(true);
     try {
       await retryOrder(order.orderId);
-      setStep('waiting');
+      setOrder((prev: any) => ({ ...prev, status: 'waiting', smsCode: null, smsText: null }));
       setOtpData(null);
+      setSecondsLeft(1200);
+      setStep('messages');
       startPolling(order.orderId);
     } catch (err: any) {
       setError(err.message);
@@ -904,8 +982,23 @@ export default function BuyNumber() {
                       {country.priceInr > 0 ? `₹${country.priceInr.toFixed(2)}` : '—'}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button onClick={() => selectCountry(country)} className="btn btn-primary btn-sm">
-                        Select
+                      <button
+                        onClick={() => handleDirectBuy(country)}
+                        disabled={buyingCountryId === country.id}
+                        className="btn btn-primary btn-sm"
+                        style={{ minWidth: '78px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
+                      >
+                        {buyingCountryId === country.id ? (
+                          <>
+                            <RefreshCwIcon size={12} className="animate-spin" />
+                            <span>Buying...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCartIcon size={13} />
+                            <span>Buy</span>
+                          </>
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -918,277 +1011,439 @@ export default function BuyNumber() {
     );
   }
 
-  // ─── Step: Confirm Purchase ───
-  if (step === 'confirm') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: 500 }}>
-        <button onClick={() => setStep('country')} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-          <ArrowLeftIcon size={14} />
-          <span>Back</span>
-        </button>
-        
-        <div className="card-glass" style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '1.5rem' }}>Confirm Purchase</h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Service</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                {renderServiceIcon(selectedService, 20)}
-                <span style={{ fontWeight: 600 }}>{selectedService?.name}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Country</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                {renderCountryFlag(selectedCountry, 22, 15)}
-                <span style={{ fontWeight: 600 }}>{selectedCountry?.name}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Available Stock</span>
-              <span className="badge badge-success">{priceInfo?.count?.toLocaleString() || '—'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Price</span>
-              <span style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--success)' }}>
-                ₹{priceInfo?.priceInr?.toFixed(2) || '—'}
-              </span>
-            </div>
-            {walletBalance !== null && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0', borderTop: '1px solid var(--border-subtle)' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Wallet Balance</span>
-                <span style={{ fontWeight: 700, color: (priceInfo?.priceInr && walletBalance < priceInfo.priceInr) ? '#ef4444' : 'var(--text-primary)' }}>
-                  ₹{walletBalance.toFixed(2)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr && (
-            <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 'var(--radius-md)', color: '#dc2626', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', textAlign: 'left' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <AlertCircleIcon size={16} />
-                <span>Insufficient balance (Short by ₹{(priceInfo.priceInr - walletBalance).toFixed(2)})</span>
-              </div>
-              <a href="/dashboard/wallet?insufficient=1" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                Recharge
-              </a>
-            </div>
-          )}
-
-          {error && (
-            <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertCircleIcon size={16} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) {
-                window.location.href = '/dashboard/wallet?insufficient=1';
-              } else {
-                handleBuy();
-              }
-            }}
-            className="btn btn-primary btn-lg"
-            style={{ width: '100%' }}
-            disabled={loading}
-          >
-            {loading ? 'Purchasing...' : (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) ? 'Insufficient Funds — Recharge Wallet' : `Buy for ₹${priceInfo?.priceInr?.toFixed(2) || '—'}`}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Step: Waiting for OTP ───
-  if (step === 'waiting') {
+  // ─── Step: Live Room & Received Messages ───
+  if (step === 'messages' || step === 'waiting' || step === 'received' || step === 'expired' || step === 'confirm') {
     const mins = Math.floor(secondsLeft / 60);
     const secs = secondsLeft % 60;
     const progressPercent = Math.max(0, Math.min(100, (secondsLeft / 1200) * 100));
+    const isWaiting = (order?.status === 'waiting' || step === 'waiting') && !order?.smsCode && !otpData?.smsCode;
+    const isExpired = order?.status === 'expired' || step === 'expired' || order?.status === 'cancelled';
+    const hasOtp = !!(order?.smsCode || otpData?.smsCode);
+    const smsCode = order?.smsCode || otpData?.smsCode || '';
+    const smsText = order?.smsText || otpData?.smsText || '';
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '2rem 0', maxWidth: 520, margin: '0 auto' }}>
-        <div className="card-glass" style={{ padding: '2.5rem 2rem', textAlign: 'center', width: '100%', borderRadius: '18px', border: '1px solid var(--border-glow)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <ClockIcon size={48} color="#f59e0b" className="pulse" />
-          </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.65rem', marginBottom: '0.35rem' }}>
-            Waiting for <span className="text-gradient">SMS Code</span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.25rem', lineHeight: 1.45 }}>
-            Send the OTP from your app to this temporary number. SMS code usually arrives in 10–60 seconds.
-          </p>
-
-          {/* Service & Country Badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-glass)', padding: '0.45rem 1rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {renderServiceIcon(selectedService, 18)}
-              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedService?.name || order?.serviceName}</span>
-            </div>
-            <span style={{ color: 'var(--text-muted)' }}>•</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {renderCountryFlag(selectedCountry, 20, 14)}
-              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedCountry?.name || order?.countryName}</span>
-            </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+        {/* Header with Navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.65rem', margin: 0 }}>
+              Live <span className="text-gradient">SMS &amp; Received Messages</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+              Your virtual number is listening. Verification codes arrive in real time right here.
+            </p>
           </div>
 
-          {/* Number Box */}
-          <div style={{ background: 'var(--bg-glass-strong)', borderRadius: 'var(--radius-md)', padding: '1.25rem', marginBottom: '1.25rem', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Your Temporary Virtual Number
-            </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-              <span>{order?.phoneNumber}</span>
-              <button
-                onClick={() => copyToClipboard(order?.phoneNumber || '')}
-                className="btn btn-secondary btn-sm"
-                style={{ padding: '0.3rem 0.6rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
-                title="Copy Phone Number"
-              >
-                {copied ? <CheckIcon size={14} color="#34d399" /> : <CopyIcon size={14} />}
-                <span>{copied ? 'Copied!' : 'Copy'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Countdown Timer & Progress Bar */}
-          <div style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span>⏳</span> Time Remaining:
-              </span>
-              <strong style={{ fontFamily: 'var(--font-mono)', color: secondsLeft < 180 ? '#ef4444' : '#f59e0b', fontSize: '1.05rem' }}>
-                {mins}:{secs.toString().padStart(2, '0')}
-              </strong>
-            </div>
-            {/* Progress bar */}
-            <div style={{ height: '6px', width: '100%', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '999px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  height: '100%',
-                  width: `${progressPercent}%`,
-                  background: secondsLeft < 180 ? '#ef4444' : 'linear-gradient(90deg, #f59e0b, #10b981)',
-                  transition: 'width 1s linear',
-                }}
-              />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <span>100% Auto-Refund if expired</span>
-              <span>₹{parseFloat(order?.priceInr || priceInfo?.priceInr || 0).toFixed(2)} Protected</span>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={handleCancel} className="btn btn-danger btn-sm" disabled={loading} style={{ padding: '0.55rem 1.25rem', fontWeight: 600 }}>
-              {loading ? 'Processing...' : 'Cancel Order & Instant Refund'}
-            </button>
-            <a
-              href="/dashboard/buy"
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
               onClick={() => {
                 if (pollRef.current) clearInterval(pollRef.current);
                 setStep('service');
-                setOrder(null);
               }}
-              className="btn btn-ghost btn-sm"
+              className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
             >
-              Keep Running in Background
+              <ShoppingCartIcon size={14} />
+              <span>Buy Another Number</span>
+            </button>
+            <a href="/dashboard/orders" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span>View All Orders →</span>
             </a>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  // ─── Step: Order Expired ───
-  if (step === 'expired') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '2rem 0', maxWidth: 500, margin: '0 auto' }}>
-        <div className="card-glass" style={{ padding: '2.5rem', textAlign: 'center', width: '100%', borderRadius: '18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <ClockIcon size={48} color="#ef4444" />
+        {/* Error Notification banner if any */}
+        {error && (
+          <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertCircleIcon size={16} />
+            <span>{error}</span>
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-            Order Expired &amp; <span style={{ color: '#34d399' }}>Refunded</span>
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-            No SMS code was received for <strong>{order?.phoneNumber || 'this number'}</strong> within the 20-minute window.
-            <br />
-            <strong style={{ color: '#34d399' }}>100% of the purchase amount has been automatically credited back to your wallet.</strong>
-          </p>
-          <button
-            onClick={() => {
-              setStep('service');
-              setOrder(null);
-              setOtpData(null);
+        )}
+
+        {/* Active Number Card (Phone on Left, OTP Code / Loader on RIGHT) */}
+        {order && (
+          <div
+            className="card"
+            style={{
+              padding: '1.5rem',
+              background: hasOtp
+                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.95))'
+                : isExpired
+                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(15, 23, 42, 0.95))'
+                : 'var(--bg-card)',
+              border: hasOtp
+                ? '1px solid rgba(16, 185, 129, 0.45)'
+                : isExpired
+                ? '1px solid rgba(239, 68, 68, 0.35)'
+                : '1px solid var(--border-glow)',
+              borderRadius: '16px',
+              boxShadow: hasOtp
+                ? '0 10px 30px rgba(16, 185, 129, 0.15)'
+                : '0 10px 25px rgba(0,0,0,0.3)',
             }}
-            className="btn btn-primary"
-            style={{ padding: '0.65rem 1.75rem', fontWeight: 700 }}
           >
-            Buy Another Number
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Step: OTP Received ───
-  if (step === 'received') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '2rem 0', maxWidth: 500, margin: '0 auto' }}>
-        <div className="card-glass" style={{ padding: '2.5rem', textAlign: 'center', width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <CheckCircleIcon size={48} color="var(--success)" />
-          </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '0.5rem', color: 'var(--success)' }}>OTP Received!</h2>
-
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-glass)', padding: '0.45rem 1rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {renderServiceIcon(selectedService, 18)}
-              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedService?.name}</span>
-            </div>
-            <span style={{ color: 'var(--text-muted)' }}>•</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {renderCountryFlag(selectedCountry, 20, 14)}
-              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{selectedCountry?.name}</span>
-            </div>
-          </div>
-
-          <div style={{ background: 'var(--bg-glass-strong)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', marginBottom: '1rem', cursor: 'pointer', border: '1px solid var(--success-border)' }} onClick={() => copyToClipboard(otpData?.smsCode || '')}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Verification Code (click to copy)</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 800, color: 'var(--success)', letterSpacing: '0.15em' }}>
-              {otpData?.smsCode}
-            </div>
-            {copied && (
-              <div style={{ fontSize: '0.8rem', color: 'var(--success)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                <CheckIcon size={12} />
-                <span>Copied!</span>
+            {/* Top Info Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    background: getServiceBg(order?.serviceCode || selectedService?.code || ''),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '7px',
+                  }}
+                >
+                  {renderServiceIcon(selectedService || { code: order?.serviceCode, name: order?.serviceName }, 24)}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                    {order?.serviceName || selectedService?.name || 'SMS Verification'}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 18, 12)}
+                    <span>{order?.countryName || selectedCountry?.name}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>•</span>
+                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>₹{parseFloat(order?.priceInr || 0).toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
-            )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {isWaiting && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: 'rgba(245, 158, 11, 0.12)',
+                      color: '#f59e0b',
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                    }}
+                  >
+                    <RefreshCwIcon size={12} className="animate-spin" />
+                    <span>Checking live every 3s</span>
+                  </div>
+                )}
+                {hasOtp && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#10b981',
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      border: '1px solid rgba(16, 185, 129, 0.35)',
+                    }}
+                  >
+                    <CheckCircleIcon size={14} color="#10b981" />
+                    <span>OTP Received</span>
+                  </div>
+                )}
+                {isExpired && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#ef4444',
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                    }}
+                  >
+                    <ClockIcon size={14} color="#ef4444" />
+                    <span>Expired &amp; Refunded</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Split Panel: Phone Number on LEFT, OTP Code / Loader on the RIGHT */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '1.25rem',
+                alignItems: 'stretch',
+                background: 'var(--bg-glass-strong)',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              {/* Left Column: Phone Number */}
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.4rem', fontWeight: 600 }}>
+                  Virtual Phone Number
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+                    {order?.phoneNumber || 'Generating...'}
+                  </span>
+                  {order?.phoneNumber && (
+                    <button
+                      onClick={() => copyToClipboard(order.phoneNumber)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
+                      title="Copy Phone Number"
+                    >
+                      {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
+                      <span>{copied ? 'Copied!' : 'Copy Number'}</span>
+                    </button>
+                  )}
+                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
+                  Copy &amp; paste this number into <b>{order?.serviceName || 'your app'}</b> to trigger SMS.
+                </p>
+              </div>
+
+              {/* Right Column: OTP Code / Live Loader on the RIGHT */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: hasOtp ? 'flex-start' : 'center',
+                  padding: '1.15rem',
+                  borderRadius: '10px',
+                  background: hasOtp ? 'rgba(16, 185, 129, 0.12)' : isExpired ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.06)',
+                  border: hasOtp ? '1px solid rgba(16, 185, 129, 0.45)' : isExpired ? '1px solid rgba(239, 68, 68, 0.3)' : '1px dashed rgba(245, 158, 11, 0.4)',
+                }}
+              >
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: hasOtp ? '#10b981' : isExpired ? '#ef4444' : '#f59e0b', marginBottom: '0.45rem', fontWeight: 700 }}>
+                  {hasOtp ? '✅ OTP Received' : isExpired ? '❌ Order Expired' : '⏳ Waiting for OTP Code'}
+                </div>
+
+                {isWaiting && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: '#f59e0b' }}>
+                      <RefreshCwIcon size={20} className="animate-spin" />
+                      <span style={{ fontWeight: 700, fontSize: '1rem' }}>Waiting for SMS to arrive...</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <span>Window expires in:</span>
+                      <strong style={{ fontFamily: 'var(--font-mono)', color: secondsLeft < 180 ? '#ef4444' : '#f59e0b', fontSize: '0.95rem' }}>
+                        {mins}:{secs.toString().padStart(2, '0')}
+                      </strong>
+                    </div>
+                    {/* Progress Bar */}
+                    <div style={{ height: '4px', width: '100%', maxWidth: '240px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '999px', overflow: 'hidden', marginTop: '0.2rem' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${progressPercent}%`,
+                          background: secondsLeft < 180 ? '#ef4444' : '#f59e0b',
+                          transition: 'width 1s linear',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {hasOtp && (
+                  <div style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '2rem',
+                          fontWeight: 900,
+                          color: '#10b981',
+                          letterSpacing: '0.12em',
+                          background: 'rgba(16, 185, 129, 0.22)',
+                          padding: '0.25rem 0.95rem',
+                          borderRadius: '8px',
+                          display: 'inline-block',
+                          boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)',
+                        }}
+                      >
+                        {smsCode}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(smsCode)}
+                        className="btn btn-primary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 700 }}
+                      >
+                        {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+                        <span>{copied ? 'Copied!' : 'Copy OTP'}</span>
+                      </button>
+                    </div>
+                    {smsText && (
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.3)', padding: '0.5rem 0.75rem', borderRadius: '6px', marginTop: '0.4rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        "{smsText}"
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isExpired && (
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0 0 0.5rem', fontWeight: 600 }}>
+                      No SMS code arrived within 20 minutes.
+                    </p>
+                    <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
+                      100% of ₹{parseFloat(order?.priceInr || 0).toFixed(2)} was refunded to your wallet.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Actions Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                🛡️ 100% Instant Refund if no SMS is received. You only pay when you get your code.
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {isWaiting && (
+                  <button
+                    onClick={handleCancel}
+                    disabled={loading}
+                    className="btn btn-danger btn-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
+                  >
+                    <XIcon size={13} />
+                    <span>{loading ? 'Cancelling...' : 'Cancel Order & Refund'}</span>
+                  </button>
+                )}
+                {hasOtp && (
+                  <>
+                    <button
+                      onClick={handleComplete}
+                      className="btn btn-success btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
+                    >
+                      <CheckIcon size={13} />
+                      <span>Done</span>
+                    </button>
+                    <button
+                      onClick={handleRetry}
+                      disabled={loading}
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
+                    >
+                      <RefreshCwIcon size={12} className={loading ? 'animate-spin' : ''} />
+                      <span>Request Another SMS</span>
+                    </button>
+                  </>
+                )}
+                {isExpired && (
+                  <button
+                    onClick={() => {
+                      setStep('service');
+                      setOrder(null);
+                      setOtpData(null);
+                    }}
+                    className="btn btn-primary btn-sm"
+                    style={{ fontSize: '0.78rem', fontWeight: 600 }}
+                  >
+                    Buy Another Number
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* All Received Messages & History Table */}
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>All Received Messages &amp; Orders</h3>
+              <span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>
+                {recentOrders.length}
+              </span>
+            </div>
+            <button
+              onClick={loadRecentOrders}
+              className="btn btn-ghost btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
+            >
+              <RefreshCwIcon size={12} />
+              <span>Refresh List</span>
+            </button>
           </div>
 
-          {otpData?.smsText && (
-            <div style={{ background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              "{otpData.smsText}"
+          {recentOrders.length === 0 ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              No messages received yet. Buy a number above to start receiving codes!
+            </div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Country</th>
+                    <th>Number</th>
+                    <th>OTP Code</th>
+                    <th>Status</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((ro) => (
+                    <tr key={ro.id}>
+                      <td style={{ fontWeight: 600 }}>{ro.service_name}</td>
+                      <td>{ro.country_name}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{ro.phone_number}</td>
+                      <td>
+                        {ro.sms_code ? (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981', fontSize: '0.95rem', background: 'rgba(16, 185, 129, 0.15)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                              {ro.sms_code}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(ro.sms_code)}
+                              className="btn btn-ghost btn-sm"
+                              style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }}
+                              title="Copy OTP"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        ) : ro.status === 'waiting' ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontSize: '0.78rem', fontWeight: 600 }}>
+                            <RefreshCwIcon size={12} className="animate-spin" />
+                            <span>Waiting for OTP...</span>
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`badge badge-${ro.status === 'code_received' || ro.status === 'completed' ? 'success' : ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
+                          {ro.status === 'code_received' ? 'Received' : ro.status}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 600 }}>₹{parseFloat(ro.sell_price_inr || 0).toFixed(2)}</td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        {new Date(ro.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={handleComplete} className="btn btn-success btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <CheckIcon size={13} />
-              <span>Done</span>
-            </button>
-            <button onClick={handleRetry} className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <RefreshCwIcon size={13} />
-              <span>Get Another SMS</span>
-            </button>
-            <button onClick={() => { setStep('service'); setOrder(null); setOtpData(null); }} className="btn btn-ghost btn-sm">
-              Buy Another
-            </button>
-          </div>
         </div>
       </div>
     );

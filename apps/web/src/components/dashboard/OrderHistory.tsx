@@ -15,6 +15,23 @@ export default function OrderHistory() {
     loadOrders();
   }, [page, statusFilter]);
 
+  // Background check every 3s if any order is waiting for SMS
+  useEffect(() => {
+    const hasWaiting = orders.some((o) => o.status === 'waiting');
+    if (!hasWaiting) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await getOrders(limit, page * limit, statusFilter || undefined);
+        if (data?.orders) {
+          setOrders(data.orders);
+        }
+      } catch {}
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [orders, page, statusFilter]);
+
   async function loadOrders() {
     setLoading(true);
     try {
@@ -97,8 +114,23 @@ export default function OrderHistory() {
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{order.phone_number}</td>
                     <td>
                       {order.sms_code ? (
-                        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--success)' }}>
-                          {order.sms_code}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981', fontSize: '0.95rem', background: 'rgba(16, 185, 129, 0.15)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                            {order.sms_code}
+                          </span>
+                          <button
+                            onClick={() => navigator.clipboard?.writeText(order.sms_code)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }}
+                            title="Copy OTP"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      ) : order.status === 'waiting' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontSize: '0.78rem', fontWeight: 600 }}>
+                          <RefreshCwIcon size={12} className="animate-spin" />
+                          <span>Waiting for OTP...</span>
                         </span>
                       ) : (
                         <span style={{ color: 'var(--text-muted)' }}>—</span>

@@ -267,9 +267,11 @@ export const onRequest = async (context: any) => {
       return jsonResponse({ success: true, data: countries });
     }
 
-    if (path === '/api/prices' && method === 'GET') {
-      const service = url.searchParams.get('service');
-      const country = parseInt(url.searchParams.get('country') || '', 10);
+    const pricesMatch = path.match(/^\/api\/prices\/([^\/]+)\/([^\/]+)$/);
+    if ((pricesMatch || path === '/api/prices') && method === 'GET') {
+      const service = pricesMatch ? pricesMatch[1] : url.searchParams.get('service');
+      const countryRaw = pricesMatch ? pricesMatch[2] : url.searchParams.get('country');
+      const country = parseInt(countryRaw || '', 10);
       if (!service || isNaN(country)) {
         return jsonResponse({ success: false, error: 'service and country required' }, 400);
       }
