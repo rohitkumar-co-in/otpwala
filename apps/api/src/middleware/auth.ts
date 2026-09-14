@@ -45,13 +45,37 @@ export async function authMiddleware(
       .maybeSingle();
 
     if (!profile) {
-      // Check if user account was deleted or if new registrations are closed
-      res.status(401).json({
-        success: false,
-        error: 'account_deleted',
-        code: 'account_deleted',
-        message: 'Your account has been deleted or no longer exists.'
-      });
+      // Auto-create missing profile (handles Google OAuth users whose profile wasn't provisioned yet)
+      const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+      const { data: newProfile, error: createErr } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: displayName,
+          role: 'user',
+          balance: 0,
+          is_banned: false,
+        })
+        .select('role, is_banned')
+        .single();
+
+      if (createErr || !newProfile) {
+        // Still can't create - account truly doesn't exist or DB error
+        res.status(401).json({
+          success: false,
+          error: 'account_deleted',
+          code: 'account_deleted',
+          message: 'Your account has been deleted or no longer exists. Please contact support if you believe this is an error.'
+        });
+        return;
+      }
+
+      // Use the newly created profile
+      req.userId = user.id;
+      req.userEmail = user.email;
+      req.userRole = newProfile.role || 'user';
+      next();
       return;
     }
 
