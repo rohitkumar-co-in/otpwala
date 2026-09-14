@@ -1,5 +1,4 @@
 import serviceIcons from '../data/tigerServiceIcons.json';
-import countryFlags from '../data/countryFlags.json';
 import { TigerSmsClient } from './tiger';
 import { calculateSellPrice } from './pricing';
 import { getSupabaseAdmin } from './supabase';
@@ -18,7 +17,6 @@ function unwrapJsonRecord<T>(value: unknown): Record<string, T> {
 }
 
 const _icons = unwrapJsonRecord<string>(serviceIcons);
-const _flags = unwrapJsonRecord<{ id: number; name: string; iso: string; flagUrl: string }>(countryFlags);
 const _iconLookup: Record<string, string> = {};
 for (const [key, val] of Object.entries(_icons)) {
   _iconLookup[normalizeName(key)] = val;
@@ -60,6 +58,56 @@ function stripHtml(value: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+function normalizeCountryName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Provider country IDs have changed over time, so resolving flags by a saved
+// numeric ID can pair a country with the wrong flag. Build the lookup from the
+// current country name instead and keep aliases for provider-specific labels.
+const COUNTRY_ISO_ALIASES: Record<string, string> = {
+  myanmar: 'mm',
+  unitedstatesvirt: 'us',
+  hongkong: 'hk',
+  drcongo: 'cd',
+  macau: 'mo',
+  laopeoples: 'la',
+  cotedivoireivorycoast: 'ci',
+  argentinas: 'ar',
+  turkey: 'tr',
+  czechrepublic: 'cz',
+  trinidadandtobago: 'tt',
+  swaziland: 'sz',
+  bosniaandherzegovina: 'ba',
+  syrianarabrepublic: 'sy',
+  bruneidarussalam: 'bn',
+  saintkittsandnevis: 'kn',
+  reunion: 're',
+  congo: 'cg',
+  saintlucia: 'lc',
+  saintvincent: 'vc',
+  antiguaandbarbuda: 'ag',
+  saotomeandprincipe: 'st',
+  macedonia: 'mk',
+  palestine: 'ps',
+  korea: 'kr',
+  unitedstatesvip: 'us',
+};
+
+const countryIsoByName = new Map<string, string>(Object.entries(COUNTRY_ISO_ALIASES));
+try {
+  const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
+  for (let first = 65; first <= 90; first += 1) {
+    for (let second = 65; second <= 90; second += 1) {
+      const iso = String.fromCharCode(first, second);
+      const name = displayNames.of(iso);
+      if (name && name !== iso && name !== 'Unknown Region') {
+        countryIsoByName.set(normalizeCountryName(name), iso.toLowerCase());
+      }
+    }
+  }
+} catch {}
 
 async function fetchTigerPage(url: string): Promise<string> {
   const controller = new AbortController();
@@ -234,16 +282,11 @@ export async function getCountries(env?: any) {
     tiger.getCountries(),
   ]);
 
-  const flags = _flags;
-
   const countries = tigerCountries
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
-      const meta = flags[String(c.id)];
-      const iso = meta?.iso || '';
-      // Normalize ISO codes before building the public flag URL.
-      const isoUpper = iso.toUpperCase();
-      const flagUrl = isoUpper ? `https://flagcdn.com/${isoUpper.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
+      const iso = countryIsoByName.get(normalizeCountryName(c.eng)) || '';
+      const flagUrl = iso ? `https://flagcdn.com/${iso}.svg` : 'https://flagcdn.com/un.svg';
 
       return {
         id: c.id,
