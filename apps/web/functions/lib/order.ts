@@ -4,6 +4,27 @@ import { calculateSellPrice } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 
+import countryFlags from '../data/countryFlags.json';
+
+const POPULAR_SERVICE_NAMES: Record<string, string> = {
+  wa: 'WhatsApp',
+  tg: 'Telegram',
+  go: 'Google / YouTube',
+  ig: 'Instagram',
+  fb: 'Facebook',
+  tw: 'Twitter / X',
+  vi: 'Viber',
+  oi: 'Tinder',
+  mb: 'Yahoo',
+  ds: 'Discord',
+  nf: 'Netflix',
+  am: 'Amazon',
+  tk: 'TikTok',
+  dr: 'OpenAI / ChatGPT',
+  mm: 'Microsoft',
+  ap: 'Apple',
+};
+
 export async function buyNumber(
   userId: string,
   serviceCode: string,
@@ -62,6 +83,9 @@ export async function buyNumber(
 
   // 6. Save order in Supabase
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString(); // 20 min TTL
+  const flagMeta = (countryFlags as any)[String(countryCode)];
+  const countryName = flagMeta?.name || `Country ${countryCode}`;
+  const serviceName = POPULAR_SERVICE_NAMES[serviceCode.toLowerCase()] || serviceCode.toUpperCase();
 
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -69,14 +93,15 @@ export async function buyNumber(
       user_id: userId,
       activation_id: activationId,
       service_code: serviceCode,
-      service_name: serviceCode.toUpperCase(),
+      service_name: serviceName,
       country_code: countryCode,
-      country_name: `Country ${countryCode}`,
+      country_name: countryName,
       phone_number: phoneNumber,
       cost_price_usd: costPriceUsd,
       sell_price_inr: sellPriceInr,
+      price_inr: sellPriceInr,
       status: 'waiting',
-      expires_at: expiresAt,
+      tiger_status: 'STATUS_WAIT_CODE',
     })
     .select()
     .single();
@@ -85,29 +110,48 @@ export async function buyNumber(
     console.error('Failed to create order record:', orderError);
   }
 
+  // 7. Update user stats in profiles
+  try {
+    const { data: prof } = await supabase.from('profiles').select('total_orders, total_spent').eq('id', userId).single();
+    if (prof) {
+      await supabase.from('profiles').update({
+        total_orders: (prof.total_orders || 0) + 1,
+        total_spent: parseFloat(((prof.total_spent || 0) + sellPriceInr).toFixed(2)),
+        updated_at: new Date().toISOString(),
+      }).eq('id', userId);
+    }
+  } catch (statErr) {
+    console.warn('Failed to increment user order stats:', statErr);
+  }
+
   return {
     orderId: order?.id || activationId,
     activationId,
     phoneNumber,
     serviceCode,
+    serviceName,
     countryCode,
+    countryName,
     sellPriceInr,
     expiresAt,
   };
+}
+
+async function findOrder(supabase: any, orderId: string, userId: string) {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+  let query = supabase.from('orders').select('*').eq('user_id', userId);
+  query = isUuid ? query.eq('id', orderId) : query.eq('activation_id', orderId);
+  const { data } = await query.maybeSingle();
+  return data;
 }
 
 export async function checkOrderStatus(orderId: string, userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
 
-  const { data: order, error } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', orderId)
-    .eq('user_id', userId)
-    .single();
+  const order = await findOrder(supabase, orderId, userId);
 
-  if (error || !order) {
+  if (!order) {
     throw new Error('Order not found');
   }
 
@@ -132,7 +176,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
         sms_text: statusResult.text || '',
         updated_at: new Date().toISOString(),
       })
-      .eq('id', orderId);
+      .eq('id', order.id);
 
     return {
       status: 'code_received',
@@ -146,7 +190,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
     await supabase
       .from('orders')
       .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .eq('id', orderId);
+      .eq('id', order.id);
 
     return { status: 'cancelled' };
   }
@@ -158,12 +202,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
 
-  const { data: order } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', orderId)
-    .eq('user_id', userId)
-    .single();
+  const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
   if (['completed', 'cancelled', 'refunded'].includes(order.status)) {
@@ -181,7 +220,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   await supabase
     .from('orders')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('id', orderId);
+    .eq('id', order.id);
 
   return { success: true };
 }
@@ -190,12 +229,7 @@ export async function completeOrder(orderId: string, userId: string, env?: any) 
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
 
-  const { data: order } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', orderId)
-    .eq('user_id', userId)
-    .single();
+  const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
 
@@ -206,7 +240,7 @@ export async function completeOrder(orderId: string, userId: string, env?: any) 
   await supabase
     .from('orders')
     .update({ status: 'completed', updated_at: new Date().toISOString() })
-    .eq('id', orderId);
+    .eq('id', order.id);
 
   return { success: true };
 }
@@ -215,12 +249,7 @@ export async function retryOrder(orderId: string, userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
 
-  const { data: order } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('id', orderId)
-    .eq('user_id', userId)
-    .single();
+  const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
 
