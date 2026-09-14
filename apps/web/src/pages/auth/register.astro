@@ -1,4 +1,4 @@
-﻿---
+---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
@@ -202,6 +202,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   let currentReferralCode = '';
   let resendCooldown = 0;
   let resendInterval = null;
+  let pendingPasswordSetup = false; // Blocks auto-redirect while user is setting password
   let authConfig = { allowEmailSignup: true, allowGoogleLogin: true, allowRegistration: true };
 
   const stepEmail    = document.getElementById('step-email');
@@ -243,6 +244,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   async function checkSessionAndRedirect() {
+    if (pendingPasswordSetup) return; // Don't redirect while user is setting up password
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
       const card = document.querySelector('.auth-card');
@@ -256,6 +258,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   checkSessionAndRedirect();
   supabase.auth.onAuthStateChange(function(_event, session) {
+    if (pendingPasswordSetup) return; // Suppress redirect — user is setting up password
     if (session && session.user) checkSessionAndRedirect();
   });
 
@@ -344,9 +347,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     if (token.length !== 6) { showErr(step2Error, 'Please enter the full 6-digit code.'); return; }
     otpSubmitBtn.disabled = true;
     otpSubmitBtn.textContent = 'Verifying...';
+    // Set flag BEFORE verifyOtp so the auth state change handler doesn't redirect
+    pendingPasswordSetup = true;
     try {
       const { error } = await supabase.auth.verifyOtp({ email: currentEmail, token: token, type: 'email' });
-      if (error) { showErr(step2Error, error.message || 'Invalid or expired code. Please try again.'); return; }
+      if (error) {
+        pendingPasswordSetup = false; // Reset on error so normal redirect behaviour resumes
+        showErr(step2Error, error.message || 'Invalid or expired code. Please try again.');
+        return;
+      }
       showStep('password');
       setTimeout(function() { newPwInput.focus(); }, 100);
     } catch(err) {
@@ -424,8 +433,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     pwSubmitBtn.textContent = 'Creating account...';
     try {
       const { error } = await supabase.auth.updateUser({ password: pw, data: { full_name: currentName, referral_code: currentReferralCode || null } });
-      if (error) { showErr(step3Error, error.message || 'Failed to set password.'); return; }
+      if (error) {
+        showErr(step3Error, error.message || 'Failed to set password.');
+        return;
+      }
       if (currentReferralCode) { try { localStorage.setItem('otpwala_ref_code', currentReferralCode); } catch(ex) {} }
+      // Password set — allow normal redirect
+      pendingPasswordSetup = false;
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         try {
@@ -435,6 +449,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
       window.location.href = '/dashboard';
     } catch(err) {
+      pendingPasswordSetup = false;
       showErr(step3Error, err.message || 'Account creation failed.');
     } finally {
       pwSubmitBtn.disabled = false;
