@@ -168,26 +168,65 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {stats && parseFloat(stats.tigerBalance || 0) < 1.0 && (
+        <div style={{
+          padding: '0.85rem 1.15rem',
+          background: 'rgba(245, 158, 11, 0.1)',
+          border: '1px solid rgba(245, 158, 11, 0.35)',
+          borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 600, color: '#f59e0b', fontSize: '0.875rem' }}>
+                Tiger SMS Provider Balance is Low (${parseFloat(stats.tigerBalance || 0).toFixed(2)})
+              </div>
+              <div style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                Carrier orders costing above ${parseFloat(stats.tigerBalance || 0).toFixed(2)} will fail with "Carrier numbers unavailable". Please top up your Tiger SMS account.
+              </div>
+            </div>
+          </div>
+          <a
+            href="https://tiger-sms.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-sm"
+            style={{ background: '#f59e0b', color: '#000', fontWeight: 600, whiteSpace: 'nowrap' }}
+          >
+            Top Up on Tiger SMS ↗
+          </a>
+        </div>
+      )}
+
       {/* Stats Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {/* Tiger SMS Balance & Status */}
-        <div className="card glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--accent-primary)' }}>
+        <div className="card glass-card" style={{ padding: '1.25rem', borderLeft: `4px solid ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? '#10b981' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : '#ef4444'}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Tiger SMS API
             </span>
-            <span className="badge badge-success" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
-              <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px' }}></span>
-              <span>Up &amp; Operational</span>
+            <span className={`badge ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
+              <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px', background: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : '#f59e0b' }}></span>
+              <span>{parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'Up & Operational' : 'Low Balance'}</span>
             </span>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)' }}>
+          <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--text-primary)' : '#f59e0b' }}>
             {loading && !stats ? '...' : `$${parseFloat(stats?.tigerBalance || 0).toFixed(2)}`}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', fontSize: '0.75rem' }}>
-            <span className={`status-dot ${parseFloat(stats?.tigerBalance || 0) > 0 ? 'active' : ''}`} style={{ background: parseFloat(stats?.tigerBalance || 0) > 0 ? 'var(--success)' : 'var(--error)' }}></span>
-            <span style={{ color: parseFloat(stats?.tigerBalance || 0) > 0 ? 'var(--success)' : 'var(--error)', fontWeight: 600 }}>
-              {parseFloat(stats?.tigerBalance || 0) > 0 ? 'Upstream Provider Connected & Healthy' : 'Provider Connected • Balance $0.00'}
+            <span className={`status-dot ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'active' : ''}`} style={{ background: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)' }}></span>
+            <span style={{ color: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)', fontWeight: 600 }}>
+              {parseFloat(stats?.tigerBalance || 0) >= 1.0
+                ? 'Upstream Provider Connected & Healthy'
+                : parseFloat(stats?.tigerBalance || 0) > 0
+                ? 'Low Balance — Top Up Tiger SMS'
+                : 'Provider Connected • Balance $0.00'}
             </span>
           </div>
         </div>

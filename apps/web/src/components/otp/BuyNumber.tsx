@@ -982,7 +982,8 @@ export default function BuyNumber() {
             No countries found matching "{countrySearch}".
           </div>
         ) : (
-          <div className="table-container">
+          <>
+            <div className="table-container">
             <table>
               <thead>
                 <tr>
@@ -1139,7 +1140,8 @@ export default function BuyNumber() {
               </button>
             </div>
           )}
-        )}
+        </>
+      )}
       </div>
     );
   }

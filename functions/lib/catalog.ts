@@ -98,17 +98,19 @@ export async function getDisabledCatalog(env?: any): Promise<{ disabledServices:
   }
 }
 
-export async function getServices(env?: any) {
+export async function getServices(popularOnly = false, env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledServices }, tigerServices] = await Promise.all([
     getDisabledCatalog(env),
     tiger.getServicesList(),
   ]);
 
-
+  const candidateServices = popularOnly
+    ? tigerServices.filter((s) => POPULAR_SERVICES[s.code.toLowerCase()])
+    : tigerServices;
 
   const services = await Promise.all(
-    tigerServices
+    candidateServices
       .filter((s) => !disabledServices.includes(s.code.toLowerCase()))
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
@@ -256,7 +258,7 @@ export async function setDisabledCatalog(services?: string[], countries?: number
   return getDisabledCatalog(env);
 }
 
-export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
+export async function getServiceCountries(serviceCode: string, userId?: string, popularOnly = false, env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledCountries }, allCountries, livePrices] = await Promise.all([
     getDisabledCatalog(env),
@@ -272,6 +274,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   for (const [countryIdStr, serviceObj] of Object.entries(livePrices)) {
     const countryId = parseInt(countryIdStr, 10);
     if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
+    if (popularOnly && !POPULAR_COUNTRIES[countryId]) continue;
 
     const sData = (serviceObj as any)?.[serviceCode];
     if (!sData) continue;
@@ -306,7 +309,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
 
   results.sort((a, b) => {
     if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
-    return a.rank - b.rank || b.available - a.available;
+    return a.rank - b.rank || a.priceInr - b.priceInr || a.priceUsd - b.priceUsd || b.available - a.available;
   });
   return results;
 }

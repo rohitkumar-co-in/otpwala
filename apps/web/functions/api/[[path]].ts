@@ -264,7 +264,8 @@ export const onRequest = async (context: any) => {
 
     // ─── Catalog ───
     if (path === '/api/services' && method === 'GET') {
-      const services = await getServices(env);
+      const popularOnly = url.searchParams.get('popular') === 'true';
+      const services = await getServices(popularOnly, env);
       return jsonResponse({ success: true, data: services });
     }
 
@@ -276,8 +277,9 @@ export const onRequest = async (context: any) => {
     const serviceCountriesMatch = path.match(/^\/api\/services\/([^\/]+)\/countries$/);
     if (serviceCountriesMatch && method === 'GET') {
       const serviceCode = serviceCountriesMatch[1];
+      const popularOnly = url.searchParams.get('popular') === 'true';
       const auth = await authenticateUser(request, env);
-      const countries = await getServiceCountries(serviceCode, auth?.userId, env);
+      const countries = await getServiceCountries(serviceCode, auth?.userId, popularOnly, env);
       return jsonResponse({ success: true, data: countries });
     }
 
