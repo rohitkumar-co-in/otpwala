@@ -357,6 +357,8 @@ const formattedTitle = formatPageTitle(title);
       margin-left: var(--sidebar-width);
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      width: calc(100% - var(--sidebar-width));
     }
 
     .dashboard-header {
@@ -494,6 +496,9 @@ const formattedTitle = formatPageTitle(title);
       flex: 1;
       padding: var(--space-xl);
       max-width: 1100px;
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
     }
 
     /* Responsive */
@@ -508,6 +513,7 @@ const formattedTitle = formatPageTitle(title);
 
       .dashboard-main {
         margin-left: 0;
+        width: 100%;
       }
 
       .mobile-menu-btn {
@@ -516,10 +522,11 @@ const formattedTitle = formatPageTitle(title);
 
       .dashboard-header {
         justify-content: space-between;
+        padding: 0 1rem;
       }
 
       .dashboard-content {
-        padding: var(--space-md);
+        padding: 1rem;
       }
     }
   </style>
