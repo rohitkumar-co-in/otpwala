@@ -147,13 +147,11 @@ const pricingFaqSchema = {
             <thead>
               <tr>
                 <th>Service</th>
-                <th>Pricing</th>
-                <th>Cancellation Credit</th>
-                <th style="text-align: right;">Action</th>
+                <th style="text-align: right;">Pricing</th>
               </tr>
             </thead>
             <tbody id="pricing-services-body">
-              <tr><td colspan="4" class="text-secondary">Loading live services…</td></tr>
+              <tr><td colspan="2" class="text-secondary">Loading live services…</td></tr>
             </tbody>
           </table>
           <div id="no-pricing-found" style="display:none; text-align:center; padding:3rem; color:#64748b;">
@@ -689,16 +687,17 @@ const pricingFaqSchema = {
   function createPricingRow(service: any) {
     const row = document.createElement('tr');
     row.className = 'rate-row';
+    row.style.borderBottom = '1px solid var(--border-subtle)';
     row.dataset.code = String(service.code || '');
     row.dataset.name = String(service.name || '').toLowerCase();
 
     const serviceCell = document.createElement('td');
-    serviceCell.className = 'service-cell';
+    serviceCell.style.display = 'flex';
+    serviceCell.style.alignItems = 'center';
+    serviceCell.style.gap = 'var(--space-sm)';
     const icon = document.createElement('img');
-    icon.src = String(service.iconUrl || '/icons/services/default.svg');
-    icon.alt = String(service.name || 'Service');
-    icon.width = 28;
-    icon.height = 28;
+    icon.src = `/icons/services/${service.code}.svg`;
+    icon.alt = service.name || service.code;
     icon.className = 'srv-img';
     icon.loading = 'lazy';
     icon.addEventListener('error', () => {
@@ -710,27 +709,98 @@ const pricingFaqSchema = {
     serviceCell.append(icon, name);
 
     const pricingCell = document.createElement('td');
-    const pricing = document.createElement('span');
-    pricing.className = 'price-pill';
-    pricing.textContent = 'Live by country';
-    pricingCell.append(pricing);
+    pricingCell.style.textAlign = 'right';
+    const checkBtn = document.createElement('button');
+    checkBtn.className = 'btn btn-outline btn-sm';
+    checkBtn.textContent = 'Check Live Rate';
+    pricingCell.append(checkBtn);
 
-    const refundCell = document.createElement('td');
-    const refund = document.createElement('span');
-    refund.className = 'refund-badge';
-    refund.textContent = 'After cancellation confirmation';
-    refundCell.append(refund);
+    row.append(serviceCell, pricingCell);
 
-    const actionCell = document.createElement('td');
-    actionCell.style.textAlign = 'right';
-    const action = document.createElement('a');
-    action.className = 'btn-login-to-buy';
-    const destination = `/dashboard/buy?service=${encodeURIComponent(String(service.code || ''))}`;
-    action.href = `/auth/login?redirect=${encodeURIComponent(destination)}`;
-    action.textContent = 'Log In to View →';
-    actionCell.append(action);
-    row.append(serviceCell, pricingCell, refundCell, actionCell);
-    return row;
+    const detailRow = document.createElement('tr');
+    detailRow.style.display = 'none';
+    const detailCell = document.createElement('td');
+    detailCell.colSpan = 2;
+    detailCell.style.padding = '1.5rem';
+    detailCell.style.background = 'var(--bg-glass-strong)';
+    detailCell.style.borderBottom = '1px solid var(--border-subtle)';
+    detailRow.append(detailCell);
+
+    let isExpanded = false;
+    let dataLoaded = false;
+
+    checkBtn.addEventListener('click', async () => {
+      if (isExpanded) {
+        detailRow.style.display = 'none';
+        checkBtn.textContent = 'Check Live Rate';
+        isExpanded = false;
+        return;
+      }
+
+      detailRow.style.display = 'table-row';
+      checkBtn.textContent = 'Close';
+      isExpanded = true;
+
+      if (!dataLoaded) {
+        detailCell.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-secondary);">Loading country rates...</div>';
+        try {
+          const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const response = await fetch(`${API_URL}/api/services/${service.code}/countries`);
+          const result = await response.json();
+          
+          if (!result.success || !Array.isArray(result.data)) throw new Error('Failed to load countries');
+          if (result.data.length === 0) {
+            detailCell.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-secondary);">No active stock available right now.</div>';
+            dataLoaded = true;
+            return;
+          }
+
+          let html = `
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 1.5rem; background: var(--bg-main); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-subtle);">
+              <thead>
+                <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-subtle);">
+                  <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Country</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Pricing (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          
+          result.data.forEach((c: any) => {
+            const price = c.sellPriceInr ? parseFloat(c.sellPriceInr).toFixed(2) : '-';
+            html += `
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <img src="/icons/flags/${c.id}.svg" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="this.src='/icons/flags/default.svg'">
+                  <span style="font-weight: 500;">${c.name_en || c.country}</span>
+                </td>
+                <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">₹${price}</td>
+              </tr>
+            `;
+          });
+          html += '</tbody></table>';
+
+          const destination = `/dashboard/buy?service=${encodeURIComponent(String(service.code || ''))}`;
+          html += `
+            <div style="text-align: right;">
+              <a href="/auth/login?redirect=${encodeURIComponent(destination)}" class="btn btn-primary" style="display: inline-block;">
+                Buy Number →
+              </a>
+            </div>
+          `;
+
+          detailCell.innerHTML = html;
+          dataLoaded = true;
+        } catch (e) {
+          detailCell.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--danger);">Error loading rates. Please try again.</div>';
+        }
+      }
+    });
+
+    // We return a document fragment containing both rows
+    const fragment = document.createDocumentFragment();
+    fragment.append(row, detailRow);
+    return fragment;
   }
 
   const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined
@@ -744,7 +814,7 @@ const pricingFaqSchema = {
       filterRows();
     })
     .catch(() => {
-      tableBody.innerHTML = '<tr><td colspan="4">Live service catalog is temporarily unavailable. Please try again shortly.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="2">Live service catalog is temporarily unavailable. Please try again shortly.</td></tr>';
     });
 
   // If user is already logged in, update CTA buttons to redirect straight to buy page
