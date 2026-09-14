@@ -227,6 +227,7 @@ export default function BuyNumber() {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [allServicesLoaded, setAllServicesLoaded] = useState(false);
   const [totalServicesCount, setTotalServicesCount] = useState(0);
+  const [servicesLoading, setServicesLoading] = useState(true);
   const [showAllCountries, setShowAllCountries] = useState(false);
   const [allCountries, setAllCountries] = useState<any[]>([]);
   const [loadingAllCountries, setLoadingAllCountries] = useState(false);
@@ -335,6 +336,7 @@ export default function BuyNumber() {
   }
 
   async function loadServices() {
+    setServicesLoading(true);
     try {
       const allData = await getServices(false);
       if (Array.isArray(allData)) {
@@ -356,6 +358,8 @@ export default function BuyNumber() {
         console.warn('Fallback error loading services:', fallbackErr);
       }
       setLoading(false);
+    } finally {
+      setServicesLoading(false);
     }
   }
 
@@ -610,7 +614,12 @@ export default function BuyNumber() {
           </div>
         )}
 
-        {loading ? (
+        {servicesLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', gap: '1rem', color: 'var(--text-muted)' }}>
+            <div className="spinner spinner-lg"></div>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Loading services…</span>
+          </div>
+        ) : loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
             <div className="spinner spinner-lg"></div>
           </div>
