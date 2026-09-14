@@ -282,6 +282,25 @@ export const onRequest = async (context: any) => {
       });
     }
 
+    const countryFlagMatch = path.match(/^\/api\/catalog\/country-flag\/([a-zA-Z]{2})$/);
+    if (countryFlagMatch && method === 'GET') {
+      const iso = countryFlagMatch[1].toLowerCase();
+      const flagResponse = await fetch(`https://flagcdn.com/${iso}.svg`, {
+        headers: { Accept: 'image/svg+xml' },
+      });
+      if (!flagResponse.ok) {
+        return new Response(null, { status: 404 });
+      }
+      return new Response(flagResponse.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    }
+
     if (path === '/api/services' && method === 'GET') {
       const featuredOnly = url.searchParams.get('featured') === 'true';
       if (featuredOnly && url.searchParams.get('summary') === 'true') {

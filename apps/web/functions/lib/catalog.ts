@@ -296,7 +296,7 @@ export async function getCountries(env?: any) {
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
       const iso = countryIsoByName.get(normalizeCountryName(c.eng)) || '';
-      const flagUrl = iso ? `https://flagcdn.com/${iso}.svg` : 'https://flagcdn.com/un.svg';
+      const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
 
       return {
         id: c.id,
@@ -417,7 +417,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     const priceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryId, userId, env);
     const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
     const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
-    const flagUrl = iso ? `https://flagcdn.com/${iso}.svg` : 'https://flagcdn.com/un.svg';
+    const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
 
     results.push({
       countryId,
