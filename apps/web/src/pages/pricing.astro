@@ -784,7 +784,7 @@ const pricingFaqSchema = {
             html += `
               <tr style="border-bottom: 1px solid var(--border-subtle);">
                 <td style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                  <img src="/icons/flags/${c.id}.svg" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="this.src='/icons/flags/default.svg'">
+                  <img src="${c.flagUrl || '/icons/services/default.svg'}" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="if(!this.src.endsWith('/icons/services/default.svg')) this.src='/icons/services/default.svg'">
                   <span style="font-weight: 500;">${c.name}</span>
                 </td>
                 <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">₹${price}</td>
