@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import {
   getAdminUsers,
   getAdminUserDetails,
@@ -8,6 +9,8 @@ import {
   deleteUser,
   bulkBanUsers,
   bulkDeleteUsers,
+  promoteAdmin,
+  demoteAdmin,
 } from '../../lib/api';
 import {
   SearchIcon,
@@ -21,6 +24,7 @@ import {
 } from '../ui/Icons';
 
 export default function UserManager() {
+  const [currentUserRole, setCurrentUserRole] = useState<string>('admin');
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -88,6 +92,16 @@ export default function UserManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle().then(({ data }) => {
+          if (data) setCurrentUserRole(data.role);
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -175,6 +189,43 @@ export default function UserManager() {
         setInspectTarget((prev: any) => prev ? { ...prev, has_zero_markup: !newStatus } : prev);
       }
       setError(err.message || 'Failed to update markup status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // ─── Single Role Toggle ───
+  const handleToggleRole = async (user: any) => {
+    const isPromoting = user.role !== 'admin' && user.role !== 'superadmin';
+    const action = isPromoting ? 'promote' : 'demote';
+    if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return;
+
+    setActionLoading(`role-${user.id}`);
+    setError(null);
+    setSuccess(null);
+
+    const newRole = isPromoting ? 'admin' : 'user';
+
+    // Optimistically update UI immediately
+    setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, role: newRole } : u));
+    if (inspectTarget?.id === user.id) {
+      setInspectTarget((prev: any) => prev ? { ...prev, role: newRole } : prev);
+    }
+    try {
+      if (isPromoting) {
+        await promoteAdmin(user.id);
+        setSuccess(`User ${user.email} promoted to admin.`);
+      } else {
+        await demoteAdmin(user.id);
+        setSuccess(`User ${user.email} demoted to standard user.`);
+      }
+    } catch (err: any) {
+      // Revert on failure
+      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, role: user.role } : u));
+      if (inspectTarget?.id === user.id) {
+        setInspectTarget((prev: any) => prev ? { ...prev, role: user.role } : prev);
+      }
+      setError(err.message || `Failed to ${action} user`);
     } finally {
       setActionLoading(null);
     }
@@ -471,7 +522,7 @@ export default function UserManager() {
               <tbody>
                 {users.map((u) => {
                   const isSelected = selectedUserIds.includes(u.id);
-                  const isAdmin = u.role === 'admin';
+                  const isAdmin = u.role === 'admin' || u.role === 'superadmin';
 
                   return (
                     <tr
@@ -522,11 +573,15 @@ export default function UserManager() {
                           <div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
                               <span>{u.name || u.full_name || 'Anonymous User'}</span>
-                              {isAdmin && (
+                              {u.role === 'superadmin' ? (
+                                <span className="badge badge-error" style={{ fontSize: '0.62rem', padding: '0.05rem 0.35rem' }}>
+                                  Super Admin
+                                </span>
+                              ) : u.role === 'admin' ? (
                                 <span className="badge badge-primary" style={{ fontSize: '0.62rem', padding: '0.05rem 0.35rem' }}>
                                   Admin
                                 </span>
-                              )}
+                              ) : null}
                             </div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{u.email}</div>
                             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
@@ -554,12 +609,12 @@ export default function UserManager() {
                         </div>
                       </td>
                       <td style={{ padding: '0.75rem' }}>
-                        <span className={`badge ${isAdmin ? 'badge-primary' : 'badge-ghost'}`}>
-                          {u.role || 'user'}
+                        <span className={`badge ${u.role === 'superadmin' ? 'badge-error' : isAdmin ? 'badge-primary' : 'badge-ghost'}`}>
+                          {u.role === 'superadmin' ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'User'}
                         </span>
                       </td>
                       <td style={{ padding: '0.75rem' }}>
-                        {isAdmin ? (
+                        {isAdmin || u.role === 'superadmin' ? (
                           <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.35)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
                             <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }}></span>
                             0% Markup (Tiger)
@@ -646,8 +701,20 @@ export default function UserManager() {
                             <span>Add Funds</span>
                           </button>
 
+                          {/* Promote/Demote Button */}
+                          {(currentUserRole === 'superadmin' || (currentUserRole === 'admin' && u.role !== 'admin')) && u.role !== 'superadmin' && (
+                             <button
+                               className="btn btn-sm btn-ghost"
+                               onClick={() => handleToggleRole(u)}
+                               disabled={actionLoading === `role-${u.id}`}
+                               style={{ color: u.role === 'admin' ? 'var(--warning)' : 'var(--primary)', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                             >
+                               {actionLoading === `role-${u.id}` ? '...' : u.role === 'admin' ? 'Demote' : 'Make Admin'}
+                             </button>
+                          )}
+
                           {/* Ban / Unban button */}
-                          {!isAdmin && (
+                          {u.role !== 'admin' && u.role !== 'superadmin' && (
                             <button
                               className={`btn btn-sm ${u.is_banned ? 'btn-secondary' : 'btn-ghost'}`}
                               style={{ color: u.is_banned ? 'var(--success)' : 'var(--error)' }}
@@ -659,7 +726,7 @@ export default function UserManager() {
                           )}
 
                           {/* Delete button: Only enabled if user is banned! */}
-                          {!isAdmin && (
+                          {currentUserRole === 'superadmin' && u.role !== 'admin' && u.role !== 'superadmin' && (
                             <button
                               className="btn btn-sm"
                               disabled={!u.is_banned || actionLoading === u.id}

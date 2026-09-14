@@ -826,7 +826,7 @@ export const onRequest = async (context: any) => {
     // ─── Admin Routes ───
     if (path.startsWith('/api/admin/')) {
       const auth = await authenticateUser(request, env);
-      if (!auth || auth.role !== 'admin') {
+      if (!auth || (auth.role !== 'admin' && auth.role !== 'superadmin')) {
         return jsonResponse({ success: false, error: 'Admin access required' }, 403);
       }
 
@@ -917,13 +917,14 @@ export const onRequest = async (context: any) => {
       // DELETE /api/admin/users/:id
       const userDeleteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)$/);
       if (userDeleteMatch && method === 'DELETE') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can delete users.' }, 403);
         const targetUserId = userDeleteMatch[1];
         const supabase = getSupabaseAdmin(env);
         if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'You cannot delete your own account.' }, 400);
 
         const { data: profile } = await supabase.from('profiles').select('id,email,role,is_banned').eq('id', targetUserId).maybeSingle();
         if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
-        if (profile.role === 'admin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
+        if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
         if (!profile.is_banned) return jsonResponse({ success: false, error: 'User must be banned before they can be deleted. Please ban the user first.' }, 400);
 
         await supabase.from('payment_requests').delete().eq('user_id', targetUserId);
@@ -942,13 +943,14 @@ export const onRequest = async (context: any) => {
         const targets = userIds.filter((uid: string) => uid !== auth.userId);
         if (targets.length === 0) return jsonResponse({ success: false, error: 'Cannot ban your own account.' }, 400);
         const supabase = getSupabaseAdmin(env);
-        const { error } = await supabase.from('profiles').update({ is_banned: !!banned, updated_at: new Date().toISOString() }).in('id', targets).neq('role', 'admin');
+        const { error } = await supabase.from('profiles').update({ is_banned: !!banned, updated_at: new Date().toISOString() }).in('id', targets).neq('role', 'admin').neq('role', 'superadmin');
         if (error) throw error;
         return jsonResponse({ success: true, message: `${targets.length} user(s) ${banned ? 'banned' : 'unbanned'} successfully.` });
       }
 
       // POST /api/admin/users/bulk-delete
       if (path === '/api/admin/users/bulk-delete' && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can delete users.' }, 403);
         const body = await request.json().catch(() => ({}));
         const { userIds } = body;
         if (!Array.isArray(userIds) || userIds.length === 0) return jsonResponse({ success: false, error: 'No users selected.' }, 400);
@@ -958,7 +960,7 @@ export const onRequest = async (context: any) => {
         if (!profiles || profiles.length === 0) return jsonResponse({ success: false, error: 'No matching users found.' }, 404);
         const unbanned = profiles.filter((p: any) => !p.is_banned);
         if (unbanned.length > 0) return jsonResponse({ success: false, error: `Cannot delete unbanned users (${unbanned.length} unbanned). All selected users must be banned first.` }, 400);
-        const eligible = profiles.filter((p: any) => p.role !== 'admin' && p.is_banned).map((p: any) => p.id);
+        const eligible = profiles.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin' && p.is_banned).map((p: any) => p.id);
         if (eligible.length === 0) return jsonResponse({ success: false, error: 'No eligible banned users to delete.' }, 400);
         await supabase.from('payment_requests').delete().in('user_id', eligible);
         await supabase.from('orders').delete().in('user_id', eligible);
@@ -966,6 +968,33 @@ export const onRequest = async (context: any) => {
         await supabase.from('profiles').delete().in('id', eligible);
         await Promise.allSettled(eligible.map((uid: string) => supabase.auth.admin.deleteUser(uid)));
         return jsonResponse({ success: true, message: `${eligible.length} banned user(s) permanently deleted.` });
+      }
+
+      // POST /api/admin/users/:id/promote
+      const userPromoteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/promote$/);
+      if (userPromoteMatch && method === 'POST') {
+        const targetUserId = userPromoteMatch[1];
+        const supabase = getSupabaseAdmin(env);
+        const { data: profile } = await supabase.from('profiles').select('id,role').eq('id', targetUserId).maybeSingle();
+        if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+        
+        await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
+        return jsonResponse({ success: true, message: 'User promoted to admin' });
+      }
+
+      // POST /api/admin/users/:id/demote
+      const userDemoteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/demote$/);
+      if (userDemoteMatch && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can demote admins.' }, 403);
+        const targetUserId = userDemoteMatch[1];
+        if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'Cannot demote yourself.' }, 400);
+        const supabase = getSupabaseAdmin(env);
+        const { data: profile } = await supabase.from('profiles').select('id,role').eq('id', targetUserId).maybeSingle();
+        if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+        if (profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot demote a superadmin.' }, 400);
+
+        await supabase.from('profiles').update({ role: 'user' }).eq('id', targetUserId);
+        return jsonResponse({ success: true, message: 'User demoted to standard user' });
       }
 
       if (path === '/api/admin/orders' && method === 'GET') {

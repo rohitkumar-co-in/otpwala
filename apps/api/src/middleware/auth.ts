@@ -104,7 +104,7 @@ export async function authMiddleware(
     }
 
     // Full-Site Maintenance Mode Check (admins bypass)
-    if (profile.role !== 'admin') {
+    if (profile.role !== 'admin' && profile.role !== 'superadmin') {
       const { data: setting } = await supabase
         .from('settings')
         .select('value')

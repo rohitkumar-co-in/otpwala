@@ -6,7 +6,7 @@ export function adminMiddleware(
   res: Response,
   next: NextFunction
 ): void {
-  if (req.userRole !== 'admin') {
+  if (req.userRole !== 'admin' && req.userRole !== 'superadmin') {
     res.status(403).json({ success: false, error: 'Admin access required' });
     return;
   }

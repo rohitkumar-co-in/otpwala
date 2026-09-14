@@ -62,7 +62,7 @@ export interface TigerNumberV2Response {
 
 // ─── App Types ───
 
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'admin' | 'superadmin';
 export type OrderStatus = 'waiting' | 'code_received' | 'completed' | 'cancelled' | 'refunded' | 'expired';
 export type WalletTransactionType = 'topup' | 'deduction' | 'refund' | 'admin_credit';
 export type MarkupType = 'percentage' | 'flat' | 'fixed_price';

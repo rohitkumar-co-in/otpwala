@@ -41,6 +41,7 @@ export default function WalletPage() {
 
   const [topUpAmount, setTopUpAmount] = useState('100');
   const [utrNumber, setUtrNumber] = useState('');
+  const [agreeNote, setAgreeNote] = useState(false);
   const [topUpLoading, setTopUpLoading] = useState(false);
   const [topUpError, setTopUpError] = useState<string | null>(null);
   const [topUpSuccess, setTopUpSuccess] = useState<string | null>(null);
@@ -141,7 +142,7 @@ export default function WalletPage() {
     }
 
     if (!utrNumber.trim()) {
-      setTopUpError('Please enter the 12-digit UPI UTR / Reference ID from your payment receipt');
+      setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
       return;
     }
 
@@ -494,7 +495,7 @@ export default function WalletPage() {
         {/* Step 3: Enter UTR & Submit */}
         <form onSubmit={handleSubmitUpiDeposit}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
-            3. Enter 12-Digit UTR / Transaction Reference ID:
+            3. Enter 12-Digit UTR / UPI Ref ID / Transaction ID / Reference No:
           </label>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -511,14 +512,36 @@ export default function WalletPage() {
                 required
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem' }}
               />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.35rem' }}>
-                Open your UPI app payment receipt and copy the 12-digit UTR/UPI Ref ID.
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.35rem', lineHeight: 1.4 }}>
+                Open your payment app receipt and look for: <strong>UTR</strong>, <strong>UPI Ref ID</strong>, <strong>Transaction ID</strong>, <strong>Txn ID</strong>, or <strong>Reference No</strong>.
               </span>
             </div>
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.08)', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+            <span style={{ fontSize: '1.1rem', marginTop: '0.05rem' }}>ℹ️</span>
+            <span style={{ lineHeight: 1.45 }}>
+              <strong>Note:</strong> Your balance will be added in <strong>under 5 minutes to 2 hours</strong> after payment verification. If it takes longer than that, please message <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>@OTPWalaSupport</a> on Telegram with your Transaction ID and screenshot for faster payment approval.
+            </span>
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '0.6rem', display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
+            <span style={{ marginTop: '0.05rem' }}>⚠️</span>
+            <span style={{ lineHeight: 1.4 }}>By depositing, you confirm you understand no refund requests will be entertained. Balance can only be used on the platform.</span>
+          </div>
 
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <input 
+              type="checkbox" 
+              checked={agreeNote}
+              onChange={(e) => setAgreeNote(e.target.checked)}
+              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
+            />
+            I agree to the above written note
+          </label>
+
+          <div style={{ marginTop: '1rem' }}>
             <button
               type="submit"
-              disabled={topUpLoading}
+              disabled={topUpLoading || !agreeNote}
               className="btn btn-primary"
               style={{
                 height: '46px',
@@ -533,10 +556,6 @@ export default function WalletPage() {
               <CheckIcon size={16} />
               <span>{topUpLoading ? 'Submitting...' : `Submit Deposit (₹${numericAmount})`}</span>
             </button>
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span>⚠️</span>
-            <span>By depositing, you confirm you understand no refund requests will be entertained. Balance can only be used on the platform.</span>
           </div>
         </form>
 

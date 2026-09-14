@@ -347,7 +347,12 @@ router.delete('/users/:id', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    if (profile.role === 'admin') {
+    if (req.userRole !== 'superadmin') {
+      res.status(403).json({ success: false, error: 'Only Super Admin can delete users.' });
+      return;
+    }
+
+    if (profile.role === 'admin' || profile.role === 'superadmin') {
       res.status(400).json({ success: false, error: 'Cannot delete an administrator account.' });
       return;
     }
@@ -405,7 +410,8 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
       .from('profiles')
       .update({ is_banned: !!banned, updated_at: new Date().toISOString() })
       .in('id', targets)
-      .neq('role', 'admin'); // Cannot ban admins
+      .neq('role', 'admin') // Cannot ban admins
+      .neq('role', 'superadmin'); // Cannot ban superadmins
 
     if (error) throw error;
 
@@ -427,6 +433,10 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
 router.post('/users/bulk-delete', async (req: AuthenticatedRequest, res) => {
   try {
     const { userIds } = req.body;
+    if (req.userRole !== 'superadmin') {
+      res.status(403).json({ success: false, error: 'Only Super Admin can delete users.' });
+      return;
+    }
     if (!Array.isArray(userIds) || userIds.length === 0) {
       res.status(400).json({ success: false, error: 'No users selected.' });
       return;
@@ -457,7 +467,7 @@ router.post('/users/bulk-delete', async (req: AuthenticatedRequest, res) => {
     }
 
     // Filter out any admin profiles
-    const eligibleToDelete = profiles.filter((p) => p.role !== 'admin' && p.is_banned);
+    const eligibleToDelete = profiles.filter((p) => p.role !== 'admin' && p.role !== 'superadmin' && p.is_banned);
     const eligibleIds = eligibleToDelete.map((p) => p.id);
 
     if (eligibleIds.length === 0) {

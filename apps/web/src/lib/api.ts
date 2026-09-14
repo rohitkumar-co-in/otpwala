@@ -204,6 +204,10 @@ export const bulkDeleteUsers = (userIds: string[]) =>
     method: 'POST',
     body: JSON.stringify({ userIds }),
   });
+export const promoteAdmin = (userId: string) =>
+  apiFetch<any>(`/api/admin/users/${userId}/promote`, { method: 'POST' });
+export const demoteAdmin = (userId: string) =>
+  apiFetch<any>(`/api/admin/users/${userId}/demote`, { method: 'POST' });
 export const getAdminPricing = () => apiFetch<any[]>('/api/admin/pricing');
 export const saveAdminPricing = (rule: any) =>
   apiFetch<any>('/api/admin/pricing', { method: 'POST', body: JSON.stringify(rule) });
