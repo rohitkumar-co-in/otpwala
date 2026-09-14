@@ -104,7 +104,12 @@ try {
       const iso = String.fromCharCode(first, second);
       const name = displayNames.of(iso);
       if (name && name !== iso && name !== 'Unknown Region') {
-        countryIsoByName.set(normalizeCountryName(name), iso.toLowerCase());
+        const normalizedName = normalizeCountryName(name);
+        // Intl also recognizes a few retired aliases (for example DY for
+        // Benin). The canonical ISO code sorts first, so never overwrite it.
+        if (!countryIsoByName.has(normalizedName)) {
+          countryIsoByName.set(normalizedName, iso.toLowerCase());
+        }
       }
     }
   }
