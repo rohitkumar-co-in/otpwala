@@ -388,7 +388,6 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
   const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeName(name), index + 1]));
 
-  const flags = _flags;
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));
 
   const results: any[] = [];
@@ -406,15 +405,14 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) continue;
 
     const priceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryId, userId, env);
-    const meta = flags[countryIdStr];
-    const iso = meta?.iso || '';
-    const isoUpper = iso.toUpperCase();
-    const flagUrl = isoUpper ? `https://flagcdn.com/${isoUpper.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
+    const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
+    const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
+    const flagUrl = iso ? `https://flagcdn.com/${iso}.svg` : 'https://flagcdn.com/un.svg';
 
     results.push({
       countryId,
       id: countryId,
-      name: countryMap.get(countryIdStr) || `Country ${countryId}`,
+      name: countryName,
       iso,
       flagUrl,
       count: stock,
