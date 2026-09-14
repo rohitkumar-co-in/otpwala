@@ -7,10 +7,9 @@ export function getApiBaseUrl(): string {
     if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
       return 'http://localhost:3001';
     }
+    return (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : '';
   }
-  return (typeof window !== 'undefined' && (window as any).__PUBLIC_API_URL__)
-    || import.meta.env.PUBLIC_API_URL
-    || 'https://api.otpwala.me';
+  return import.meta.env.PUBLIC_API_URL || '';
 }
 
 const API_URL = getApiBaseUrl();

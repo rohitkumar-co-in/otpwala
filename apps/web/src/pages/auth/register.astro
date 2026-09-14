@@ -567,7 +567,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     try {
       const targetEmail = emailVal.cleanedEmail || email;
-      const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+      const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
 
       // 1. Pre-check if email already exists before triggering Supabase signUp
       // This completely prevents duplicate accounts and prevents Supabase from sending unnecessary verification emails

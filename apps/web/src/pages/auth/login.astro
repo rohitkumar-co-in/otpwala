@@ -704,7 +704,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     try {
       const targetEmail = emailVal.cleanedEmail || email;
-      const apiUrl = (window as any).__PUBLIC_API_URL__ || import.meta.env.PUBLIC_API_URL || 'https://api.otpwala.me';
+      const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
 
       // 1. Verify user actually exists before sending login OTP
       try {
