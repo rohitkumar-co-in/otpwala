@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   ServerIcon,
   DollarIcon,
@@ -485,7 +486,7 @@ export default function AdminDashboard() {
                       {o.service_code.toUpperCase()}
                     </td>
                     <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                      {o.phone_number || '—'}
+                      {o.phone_number ? formatPhoneNumber(o.phone_number, o.country_id).display : '—'}
                     </td>
                     <td style={{ padding: '0.75rem' }}>
                       {o.sms_code ? (

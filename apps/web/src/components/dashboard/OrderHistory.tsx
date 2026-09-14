@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon } from '../ui/Icons';
 
 export default function OrderHistory() {
@@ -111,7 +112,17 @@ export default function OrderHistory() {
                   <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td>{order.country_name}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{order.phone_number}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      {order.phone_number ? (
+                        <span
+                          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                          onClick={() => navigator.clipboard?.writeText(formatPhoneNumber(order.phone_number, order.country_id).copyValue)}
+                          title={`Copy ${formatPhoneNumber(order.phone_number, order.country_id).copyValue}`}
+                        >
+                          {formatPhoneNumber(order.phone_number, order.country_id).display}
+                        </span>
+                      ) : '—'}
+                    </td>
                     <td>
                       {order.sms_code ? (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getWallet, getOrders } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   DollarIcon,
   ClipboardListIcon,
@@ -129,7 +130,9 @@ export default function UserDashboard() {
                   <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td>{order.country_name}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{order.phone_number}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      {formatPhoneNumber(order.phone_number, order.country_id).display}
+                    </td>
                     <td><StatusBadge status={order.status} /></td>
                     <td>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -169,7 +172,9 @@ function ActiveOrderCard({ order }: { order: any }) {
         </div>
         <div>
           <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.service_name} — {order.country_name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{order.phone_number}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            {formatPhoneNumber(order.phone_number, order.country_id).display}
+          </div>
         </div>
       </div>
       <StatusBadge status={order.status} />

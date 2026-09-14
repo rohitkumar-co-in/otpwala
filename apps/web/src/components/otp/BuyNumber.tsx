@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -1245,25 +1246,44 @@ export default function BuyNumber() {
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.4rem', fontWeight: 600 }}>
                   Virtual Phone Number
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(1.25rem, 4vw, 1.6rem)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.02em', wordBreak: 'break-all' }}>
-                    {order?.phoneNumber || 'Generating...'}
-                  </span>
-                  {order?.phoneNumber && (
-                    <button
-                      onClick={() => copyToClipboard(order.phoneNumber)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                      title="Copy Phone Number"
-                    >
-                      {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
-                      <span>{copied ? 'Copied!' : 'Copy Number'}</span>
-                    </button>
-                  )}
-                </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
-                  Copy &amp; paste this number into <b>{order?.serviceName || 'your app'}</b> to trigger SMS.
-                </p>
+                {(() => {
+                  const phoneInfo = formatPhoneNumber(order?.phoneNumber, order?.countryIso || order?.countryId);
+                  return (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <span
+                          onClick={() => order?.phoneNumber && copyToClipboard(phoneInfo.copyValue)}
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 'clamp(1.25rem, 4vw, 1.6rem)',
+                            fontWeight: 800,
+                            color: 'var(--text-primary)',
+                            letterSpacing: '0.02em',
+                            wordBreak: 'break-all',
+                            cursor: order?.phoneNumber ? 'pointer' : 'default',
+                          }}
+                          title={order?.phoneNumber ? `Click to copy ${phoneInfo.copyValue}` : undefined}
+                        >
+                          {order?.phoneNumber ? phoneInfo.display : 'Generating...'}
+                        </span>
+                        {order?.phoneNumber && (
+                          <button
+                            onClick={() => copyToClipboard(phoneInfo.copyValue)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
+                            title={`Copy ${phoneInfo.copyValue}`}
+                          >
+                            {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
+                            <span>{copied ? 'Copied!' : 'Copy Number'}</span>
+                          </button>
+                        )}
+                      </div>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
+                        Copy &amp; paste this number into <b>{order?.serviceName || 'your app'}</b> to trigger SMS. Country code is included.
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Right Column: OTP Code / Live Loader on the RIGHT */}
@@ -1457,7 +1477,9 @@ export default function BuyNumber() {
                     <tr key={ro.id}>
                       <td style={{ fontWeight: 600 }}>{ro.service_name}</td>
                       <td>{ro.country_name}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{ro.phone_number}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                        {formatPhoneNumber(ro.phone_number, ro.country_id).display}
+                      </td>
                       <td>
                         {ro.sms_code ? (
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAdminOrders } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   RefreshCwIcon,
   CopyIcon,
@@ -157,12 +158,12 @@ export default function OrderManager() {
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                            {o.phone_number}
+                            {formatPhoneNumber(o.phone_number, o.country_id).display}
                           </span>
                           <button
                             className="btn btn-ghost btn-sm"
                             style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                            onClick={() => copyToClipboard(o.phone_number, o.id)}
+                            onClick={() => copyToClipboard(formatPhoneNumber(o.phone_number, o.country_id).copyValue, o.id)}
                             title="Copy number"
                           >
                             {copiedId === o.id ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
