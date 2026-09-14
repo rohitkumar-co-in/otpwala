@@ -248,6 +248,20 @@ export const onRequest = async (context: any) => {
       return jsonResponse(check, check.valid ? 200 : 401);
     }
 
+    if (path === '/api/auth/ensure-profile' && method === 'POST') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+
+      const supabase = getSupabaseAdmin(env);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', auth.userId)
+        .maybeSingle();
+
+      return jsonResponse({ success: true, profile });
+    }
+
     // ─── Catalog ───
     if (path === '/api/services' && method === 'GET') {
       const services = await getServices(env);

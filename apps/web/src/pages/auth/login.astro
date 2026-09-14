@@ -440,21 +440,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         return;
       }
 
-      // Check if this is a newly created user while registration is closed
-      const { data: profile } = await supabase
+      // Check profile role and ensure profile exists
+      let { data: profile } = await supabase
         .from('profiles')
         .select('id, role')
         .eq('id', session.user.id)
         .maybeSingle();
 
-      const isBrandNew = (Date.now() - new Date(session.user.created_at).getTime()) < 120000;
-      if (!profile || isBrandNew) {
+      if (!profile) {
         try {
-          const cfg = await getAuthConfig();
-          if (cfg?.allowRegistration === false && !profile) {
-            await supabase.auth.signOut();
-            showError('Registrations are currently closed by administrator. New accounts cannot be created with Google.');
-            return;
+          const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+          if (ensureRes.ok) {
+            const ensureData = await ensureRes.json();
+            if (ensureData?.profile) {
+              profile = ensureData.profile;
+            }
           }
         } catch {}
       }
@@ -866,7 +873,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     try {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + '/dashboard' },
+        options: { redirectTo: window.location.origin + '/auth/login' },
       });
     } catch (err: any) {
       showError(err.message || 'Google login failed.');

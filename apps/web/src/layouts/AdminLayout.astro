@@ -319,28 +319,44 @@ const formattedTitle = formatPageTitle(title);
 
       // 2. Verify profile role and ban status
       try {
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('role, is_banned')
           .eq('id', session.user.id)
           .maybeSingle();
 
         if (!profile) {
-          await handleSessionTermination('account_deleted');
-          return;
+          // Attempt to auto-ensure profile exists via API before deciding
+          try {
+            const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+            const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+            });
+            if (ensureRes.ok) {
+              const ensureData = await ensureRes.json();
+              if (ensureData?.profile) {
+                profile = ensureData.profile;
+              }
+            }
+          } catch {}
         }
 
-        if (profile.is_banned) {
+        if (profile?.is_banned) {
           await handleSessionTermination('account_banned');
           return;
         }
 
-        if (profile.role !== 'admin') {
+        // Non-admin authenticated users should simply go to customer dashboard
+        if (profile?.role !== 'admin') {
           window.location.href = '/dashboard';
           return;
         }
       } catch {
-        window.location.href = '/auth/login';
+        window.location.href = '/dashboard';
         return;
       }
 

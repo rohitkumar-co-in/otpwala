@@ -34,11 +34,35 @@ export async function authenticateUser(request: Request, env?: any): Promise<{ u
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return null;
 
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('profiles')
       .select('id, email, role, is_banned')
       .eq('id', user.id)
       .maybeSingle();
+
+    if (!profile) {
+      const email = user.email || '';
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      const { data: newProfile } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email,
+          full_name: fullName,
+          role: 'user',
+          referral_code: code,
+          wallet_balance: 0,
+          total_spent: 0,
+          total_orders: 0,
+          is_banned: false,
+        })
+        .select('id, email, role, is_banned')
+        .maybeSingle();
+
+      profile = newProfile;
+    }
 
     if (profile?.is_banned) return null;
 

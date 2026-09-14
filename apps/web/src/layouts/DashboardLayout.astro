@@ -206,6 +206,12 @@ const formattedTitle = formatPageTitle(title);
                 <span class="user-menu-role" id="dropdown-user-role">Customer</span>
               </div>
               <div class="user-menu-divider"></div>
+              <a href="/admin" class="user-menu-item" id="dropdown-admin-link" style="display: none; color: var(--accent-primary, #6366f1); font-weight: 600;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Admin Panel</span>
+              </a>
               <a href="/dashboard/settings" class="user-menu-item">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -609,32 +615,35 @@ const formattedTitle = formatPageTitle(title);
       }
 
       // 3. Check profile existence and ban status
-      const { data: existingProfile } = await supabase
+      let { data: existingProfile } = await supabase
         .from('profiles')
         .select('id, role, is_banned')
         .eq('id', session.user.id)
         .maybeSingle();
 
       if (!existingProfile) {
-        const isBrandNew = (Date.now() - new Date(session.user.created_at).getTime()) < 120000;
-        if (!isBrandNew) {
-          // Profile was deleted by admin
-          await handleSessionTermination('account_deleted');
-          return;
-        }
-
+        // Auto-heal missing profile via API
         try {
           const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
-          const cfgRes = await fetch(apiUrl + '/api/auth/config');
-          const cfgData = await cfgRes.json();
-          if (cfgData?.data?.allowRegistration === false) {
-            clearLocalSessionId();
-            await supabase.auth.signOut();
-            window.location.href = '/auth/login?error=registration_closed';
-            return;
+          const ensureRes = await fetch(apiUrl + '/api/auth/ensure-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+          if (ensureRes.ok) {
+            const ensureData = await ensureRes.json();
+            if (ensureData?.profile) {
+              existingProfile = ensureData.profile;
+            }
           }
-        } catch {}
-      } else if (existingProfile.is_banned) {
+        } catch (e) {
+          console.warn('Could not auto-ensure profile:', e);
+        }
+      }
+
+      if (existingProfile?.is_banned) {
         await handleSessionTermination('account_banned');
         return;
       }
@@ -675,6 +684,10 @@ const formattedTitle = formatPageTitle(title);
       }
       if (dropdownRole) {
         dropdownRole.textContent = existingProfile?.role === 'admin' ? 'Administrator' : 'Customer';
+      }
+      if (existingProfile?.role === 'admin') {
+        const adminLink = document.getElementById('dropdown-admin-link');
+        if (adminLink) adminLink.style.display = 'flex';
       }
 
       // User dropdown menu interaction
