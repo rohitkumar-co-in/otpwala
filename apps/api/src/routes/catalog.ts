@@ -125,11 +125,18 @@ router.get('/services', async (req: AuthenticatedRequest, res) => {
     }
 
     const sortOption = (req.query.sort as string) || 'popular';
+    const popularOnly = req.query.popular === 'true';
     const { disabledServices } = await getCatalogFilterConfig();
 
+    let filteredServices = (servicesCache || [])
+      .filter((s) => !disabledServices.includes(s.code.toLowerCase()));
+
+    // If popular=true, only return the ~14 popular services for fast initial load
+    if (popularOnly) {
+      filteredServices = filteredServices.filter((s) => !!POPULAR_SERVICES[s.code.toLowerCase()]);
+    }
     const mappedServices = await Promise.all(
-      (servicesCache || [])
-        .filter((s) => !disabledServices.includes(s.code.toLowerCase()))
+      filteredServices
         .map(async (s) => {
           const lowerCode = s.code.toLowerCase();
           const pop = POPULAR_SERVICES[lowerCode];
@@ -281,6 +288,7 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
   try {
     const { code } = req.params;
     const sortOption = (req.query.sort as string) || 'popular';
+    const popularOnly = req.query.popular === 'true';
 
     // Verify service is active
     const serviceActive = await isServiceActive(code);
@@ -308,6 +316,8 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
     for (const [cIdStr, serviceObj] of Object.entries(livePrices)) {
       const countryId = parseInt(cIdStr, 10);
       if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
+      // If popular=true, only include well-known countries for fast initial load
+      if (popularOnly && !POPULAR_COUNTRIES[countryId]) continue;
 
       const sData = (serviceObj as any)?.[code];
       if (!sData) continue;

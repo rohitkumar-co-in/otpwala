@@ -217,6 +217,11 @@ export default function BuyNumber() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copied, setCopied] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [allServicesLoaded, setAllServicesLoaded] = useState(false);
+  const [totalServicesCount, setTotalServicesCount] = useState(0);
+  const [showAllCountries, setShowAllCountries] = useState(false);
+  const [allCountries, setAllCountries] = useState<any[]>([]);
+  const [loadingAllCountries, setLoadingAllCountries] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -324,11 +329,19 @@ export default function BuyNumber() {
 
   async function loadServices() {
     try {
-      const data = await getServices();
-      setServices(data);
+      // Step 1: Load only popular services first for instant render
+      const popularData = await getServices(true);
+      setServices(popularData);
+      setLoading(false);
+
+      // Step 2: Silently load all services in background
+      getServices(false).then((allData) => {
+        setServices(allData);
+        setTotalServicesCount(allData.length);
+        setAllServicesLoaded(true);
+      }).catch(() => {});
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -339,14 +352,22 @@ export default function BuyNumber() {
     setCountrySearch('');
     setCountryFilter('all');
     setCountrySort('popular');
+    setShowAllCountries(false);
+    setAllCountries([]);
     setLoading(true);
     setError('');
     try {
-      const data = await getServiceCountries(service.code);
-      setCountries(data);
+      // Load popular countries first for fast render
+      const popularData = await getServiceCountries(service.code, true);
+      setCountries(popularData);
+      setLoading(false);
+
+      // Background-load all countries silently
+      getServiceCountries(service.code, false).then((allData) => {
+        setAllCountries(allData);
+      }).catch(() => {});
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -772,8 +793,13 @@ export default function BuyNumber() {
     );
   }
 
+  // Use all countries when showAllCountries is active, search is active, or non-default filter
+  const activeCountryList = (showAllCountries || countrySearch || countryFilter !== 'all') && allCountries.length > 0
+    ? allCountries
+    : countries;
+
   // Filter countries in step 2
-  const filteredCountries = countries.filter((c) => {
+  const filteredCountries = activeCountryList.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
       String(c.id).includes(countrySearch);
@@ -898,19 +924,39 @@ export default function BuyNumber() {
         {/* Quick Country Filter Pills */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.65rem' }}>
           {[
-            { id: 'all', label: `All Countries (${countries.length})` },
-            { id: 'popular', label: `Popular Only (${countries.filter(c => c.isPopular).length})` },
-            { id: 'cheap', label: `Budget (< ₹50) (${countries.filter(c => (c.priceInr || 0) <= 50).length})` },
+            { id: 'all', label: `All Countries (${allCountries.length || countries.length})` },
+            { id: 'popular', label: `Popular Only (${(allCountries.length ? allCountries : countries).filter(c => c.isPopular).length})` },
+            { id: 'cheap', label: `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setCountryFilter(tab.id as any)}
+              onClick={() => {
+                setCountryFilter(tab.id as any);
+                // Auto-expand to all countries when using non-default filters
+                if (tab.id !== 'popular' && allCountries.length > 0) setShowAllCountries(true);
+              }}
               className={`btn btn-sm ${countryFilter === tab.id ? 'btn-primary' : 'btn-ghost'}`}
               style={{ borderRadius: 'var(--radius-full)', padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}
             >
               {tab.label}
             </button>
           ))}
+          {/* Load All Countries button shown when not expanded */}
+          {!showAllCountries && allCountries.length > countries.length && (
+            <button
+              onClick={() => setShowAllCountries(true)}
+              className="btn btn-ghost btn-sm"
+              style={{
+                borderRadius: 'var(--radius-full)',
+                padding: '0.25rem 0.75rem',
+                fontSize: '0.8rem',
+                color: 'var(--accent-primary)',
+                border: '1px dashed var(--accent-primary)',
+              }}
+            >
+              + Load All {allCountries.length} Countries
+            </button>
+          )}
         </div>
 
         {error && (
@@ -1062,6 +1108,37 @@ export default function BuyNumber() {
               </tbody>
             </table>
           </div>
+          {/* Load All Countries CTA at bottom of popular list */}
+          {!showAllCountries && allCountries.length > countries.length && !countrySearch && (
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem 1.25rem',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(99,102,241,0.02))',
+              border: '1px dashed rgba(99,102,241,0.3)',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                  Showing {countries.length} popular countries
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                  {allCountries.length} total countries available for this service
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAllCountries(true)}
+                className="btn btn-primary btn-sm"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                Load All {allCountries.length} Countries
+              </button>
+            </div>
+          )}
         )}
       </div>
     );

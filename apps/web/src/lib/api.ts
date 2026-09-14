@@ -74,9 +74,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // ─── Catalog ───
-export const getServices = () => apiFetch<any[]>('/api/services');
+export const getServices = (popularOnly = false) => apiFetch<any[]>(`/api/services${popularOnly ? '?popular=true' : ''}`);
 export const getCountries = () => apiFetch<any[]>('/api/countries');
-export const getServiceCountries = (code: string) => apiFetch<any[]>(`/api/services/${code}/countries`);
+export const getServiceCountries = (code: string, popularOnly = false) => apiFetch<any[]>(`/api/services/${code}/countries${popularOnly ? '?popular=true' : ''}`);
 
 // ─── Prices ───
 export const getPrice = (service: string, country: number) =>
