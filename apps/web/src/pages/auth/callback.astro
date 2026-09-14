@@ -1,0 +1,132 @@
+﻿---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Signing you in… — OTPWala"
+  description="Completing sign-in"
+>
+  <section class="callback-page">
+    <div class="callback-card card-glass">
+      <div class="logo-ring">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </div>
+      <div class="spinner spinner-lg callback-spinner"></div>
+      <h2 id="callback-title">Signing you in&hellip;</h2>
+      <p id="callback-sub" class="text-secondary">Just a moment while we set things up</p>
+      <div id="callback-error" class="callback-error" style="display:none;"></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .callback-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - var(--header-height));
+    padding: var(--space-2xl) var(--space-md);
+  }
+  .callback-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .callback-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-gradient);
+  }
+  .logo-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15));
+    border: 1px solid rgba(99,102,241,0.3);
+    box-shadow: 0 0 32px rgba(99,102,241,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+  }
+  .callback-spinner { margin: 0.25rem 0; }
+  #callback-title { font-size: 1.35rem; font-weight: 700; margin: 0; color: var(--text-primary); }
+  #callback-sub { font-size: 0.9rem; margin: 0; }
+  .callback-error {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    color: var(--error);
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+</style>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const titleEl = document.getElementById('callback-title');
+  const subEl   = document.getElementById('callback-sub');
+  const errEl   = document.getElementById('callback-error');
+
+  async function redirectUser(session) {
+    const isNewUser = session.user && session.user.created_at
+      ? (Date.now() - new Date(session.user.created_at).getTime()) < 30000
+      : false;
+
+    if (isNewUser) {
+      if (titleEl) titleEl.textContent = 'Account Ready!';
+      if (subEl) subEl.textContent = 'Taking you to your dashboard...';
+    } else {
+      if (titleEl) titleEl.textContent = 'Welcome back!';
+      if (subEl) subEl.textContent = 'Taking you to your dashboard...';
+    }
+
+    try {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      if (profile && profile.role === 'admin') { window.location.href = '/admin'; return; }
+    } catch(e) {}
+
+    window.location.href = '/dashboard';
+  }
+
+  async function handleCallback() {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        await new Promise(function(r) { setTimeout(r, 1200); });
+        const { data: { session: s2 }, error: e2 } = await supabase.auth.getSession();
+        if (e2 || !s2) {
+          if (titleEl) titleEl.textContent = 'Sign-in failed';
+          if (subEl) subEl.textContent = 'Redirecting to login...';
+          if (errEl) { errEl.textContent = (e2 || error) ? (e2 || error).message : 'Authentication error. Please try again.'; errEl.style.display = 'block'; }
+          setTimeout(function() { window.location.href = '/auth/login'; }, 3000);
+          return;
+        }
+        redirectUser(s2);
+        return;
+      }
+      redirectUser(session);
+    } catch(err) {
+      if (titleEl) titleEl.textContent = 'Something went wrong';
+      if (subEl) subEl.textContent = 'Redirecting to login...';
+      setTimeout(function() { window.location.href = '/auth/login'; }, 2000);
+    }
+  }
+
+  handleCallback();
+</script>

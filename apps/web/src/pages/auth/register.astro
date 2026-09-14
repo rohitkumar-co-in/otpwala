@@ -468,7 +468,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     googleBtn.addEventListener('click', async function() {
       if (!authConfig.allowRegistration || !authConfig.allowGoogleLogin) { showErr(step1Error, 'Google sign up is currently disabled.'); return; }
       try {
-        await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/dashboard' } });
+        await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/auth/callback' } });
       } catch(err) { showErr(step1Error, err.message || 'Google sign up failed'); }
     });
   }
