@@ -514,13 +514,6 @@ export default function UserManager() {
                 Delete Selected ({selectedBannedUsers.length})
               </button>
             )}
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setSelectedUserIds([])}
-              style={{ fontSize: '0.8rem' }}
-            >
-              Deselect All
-            </button>
           </div>
         </div>
       )}
