@@ -248,7 +248,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
       const card = document.querySelector('.auth-card');
-      if (card) card.innerHTML = '<div style="text-align:center;padding:2rem 1rem;"><div class="spinner spinner-lg" style="margin:0 auto 1.25rem;"></div><h3 style="margin:0 0 0.5rem;font-size:1.25rem;font-weight:700;">Already Signed In</h3><p style="color:var(--text-secondary);font-size:0.9rem;margin:0;">Redirecting to your dashboard...</p></div>';
+      if (card) card.innerHTML = '<div style="text-align:center;padding:2rem 1rem;"><div class="spinner spinner-lg" style="margin:0 auto 1.25rem;"></div><h3 style="margin:0 0 0.5rem;font-size:1.25rem;font-weight:700;">Account Ready! 🎉</h3><p style="color:var(--text-secondary);font-size:0.9rem;margin:0;">Taking you to your dashboard…</p></div>';
       try {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
         if (profile && profile.role === 'admin') { window.location.href = '/admin'; return; }
