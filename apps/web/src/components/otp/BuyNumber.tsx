@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder } from '../../lib/api';
+import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet } from '../../lib/api';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -149,13 +149,24 @@ export default function BuyNumber() {
   const [countryFilter, setCountryFilter] = useState<'all' | 'popular' | 'cheap'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copied, setCopied] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     loadServices();
     checkActiveParam();
+    loadWalletBalance();
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
+
+  async function loadWalletBalance() {
+    try {
+      const data = await getWallet();
+      setWalletBalance(parseFloat(String(data.balance)) || 0);
+    } catch {
+      // Ignore
+    }
+  }
 
   // Timer countdown effect for waiting step
   useEffect(() => {
@@ -255,6 +266,11 @@ export default function BuyNumber() {
   }
 
   async function handleBuy() {
+    if (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) {
+      window.location.href = '/dashboard/wallet?insufficient=1';
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -264,6 +280,11 @@ export default function BuyNumber() {
       setStep('waiting');
       startPolling(data.orderId);
     } catch (err: any) {
+      const msg = (err?.message || err?.code || '').toLowerCase();
+      if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('fund')) {
+        window.location.href = '/dashboard/wallet?insufficient=1';
+        return;
+      }
       setError(err.message);
     } finally {
       setLoading(false);
@@ -934,7 +955,27 @@ export default function BuyNumber() {
                 ₹{priceInfo?.priceInr?.toFixed(2) || '—'}
               </span>
             </div>
+            {walletBalance !== null && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0', borderTop: '1px solid var(--border-subtle)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Wallet Balance</span>
+                <span style={{ fontWeight: 700, color: (priceInfo?.priceInr && walletBalance < priceInfo.priceInr) ? '#ef4444' : 'var(--text-primary)' }}>
+                  ₹{walletBalance.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
+
+          {walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr && (
+            <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 'var(--radius-md)', color: '#dc2626', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircleIcon size={16} />
+                <span>Insufficient balance (Short by ₹{(priceInfo.priceInr - walletBalance).toFixed(2)})</span>
+              </div>
+              <a href="/dashboard/wallet?insufficient=1" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                Recharge
+              </a>
+            </div>
+          )}
 
           {error && (
             <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -943,8 +984,19 @@ export default function BuyNumber() {
             </div>
           )}
 
-          <button onClick={handleBuy} className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Purchasing...' : `Buy for ₹${priceInfo?.priceInr?.toFixed(2) || '—'}`}
+          <button
+            onClick={() => {
+              if (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) {
+                window.location.href = '/dashboard/wallet?insufficient=1';
+              } else {
+                handleBuy();
+              }
+            }}
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%' }}
+            disabled={loading}
+          >
+            {loading ? 'Purchasing...' : (walletBalance !== null && priceInfo?.priceInr && walletBalance < priceInfo.priceInr) ? 'Insufficient Funds — Recharge Wallet' : `Buy for ₹${priceInfo?.priceInr?.toFixed(2) || '—'}`}
           </button>
         </div>
       </div>

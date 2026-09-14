@@ -47,11 +47,18 @@ export default function WalletPage() {
   const [copied, setCopied] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [insufficientAlert, setInsufficientAlert] = useState(false);
 
   const limit = 15;
 
   useEffect(() => {
     loadWallet();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('insufficient') === '1' || params.get('error') === 'insufficient_funds') {
+        setInsufficientAlert(true);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -184,6 +191,41 @@ export default function WalletPage() {
           <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
         </button>
       </div>
+
+      {/* Insufficient Funds Banner */}
+      {insufficientAlert && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem 1.25rem',
+            background: 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            borderRadius: '12px',
+            color: '#b91c1c',
+            gap: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <AlertCircleIcon size={22} color="#dc2626" />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Insufficient Wallet Balance</div>
+              <div style={{ fontSize: '0.85rem', color: '#7f1d1d' }}>
+                You don't have enough balance to purchase this number. Please top up your wallet below to proceed with your order.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setInsufficientAlert(false)}
+            className="btn btn-ghost btn-sm"
+            style={{ padding: '0.35rem', minHeight: 'auto', color: '#991b1b' }}
+            title="Dismiss"
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Balance Card */}
       <div

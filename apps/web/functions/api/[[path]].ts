@@ -194,8 +194,16 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: false, error: 'service and country required' }, 400);
       }
 
-      const result = await buyNumber(auth.userId, service, parseInt(country, 10), env);
-      return jsonResponse({ success: true, data: result });
+      try {
+        const result = await buyNumber(auth.userId, service, parseInt(country, 10), env);
+        return jsonResponse({ success: true, data: result });
+      } catch (buyErr: any) {
+        const msg = (buyErr?.message || '').toLowerCase();
+        if (msg.includes('insufficient')) {
+          return jsonResponse({ success: false, error: 'insufficient_funds', message: 'Insufficient wallet balance' }, 402);
+        }
+        throw buyErr;
+      }
     }
 
     const orderStatusMatch = path.match(/^\/api\/numbers\/([^\/]+)\/status$/);
