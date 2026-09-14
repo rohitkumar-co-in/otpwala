@@ -82,6 +82,71 @@ export async function registerCurrentSession(
   }
 }
 
+/**
+ * Safely get or wait for Supabase Auth session on page load.
+ * Handles OAuth redirects (PKCE code, access_token in hash),
+ * localStorage restoration delays, and navigator.locks concurrency.
+ */
+export async function getOrWaitForSession(maxWaitMs = 6000): Promise<any> {
+  // 1. Check if session is already available in memory / cache
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) return session;
+  } catch {}
+
+  // 2. Check if there are any signs of an active session or incoming OAuth callback
+  const hasUrlToken = typeof window !== 'undefined' && (
+    window.location.hash.includes('access_token') || 
+    window.location.search.includes('code')
+  );
+  const hasLocalToken = typeof localStorage !== 'undefined' && Object.keys(localStorage).some(
+    k => (k.startsWith('sb-') && k.endsWith('-auth-token')) || k === 'otpwala_session_id'
+  );
+
+  // If there are no tokens in URL and no tokens in localStorage, user is definitely not signed in
+  if (!hasUrlToken && !hasLocalToken) {
+    return null;
+  }
+
+  // 3. Wait for onAuthStateChange OR poll getSession
+  return new Promise((resolve) => {
+    let resolved = false;
+    let subscription: any = null;
+
+    try {
+      const sub = supabase.auth.onAuthStateChange((_event, newSession) => {
+        if (newSession?.user && !resolved) {
+          resolved = true;
+          if (subscription) subscription.unsubscribe();
+          resolve(newSession);
+        }
+      });
+      subscription = sub?.data?.subscription;
+    } catch {}
+
+    const startTime = Date.now();
+    const interval = setInterval(async () => {
+      try {
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+        if (retrySession?.user && !resolved) {
+          resolved = true;
+          clearInterval(interval);
+          if (subscription) subscription.unsubscribe();
+          resolve(retrySession);
+          return;
+        }
+      } catch {}
+
+      if (Date.now() - startTime > maxWaitMs && !resolved) {
+        resolved = true;
+        clearInterval(interval);
+        if (subscription) subscription.unsubscribe();
+        resolve(null);
+      }
+    }, 200);
+  });
+}
+
 export interface SessionCheckResult {
   valid: boolean;
   reason?: 'concurrent_session' | 'account_deleted' | 'account_banned' | 'missing_token' | string;

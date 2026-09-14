@@ -533,6 +533,7 @@ const formattedTitle = formatPageTitle(title);
       handleSessionTermination,
       startSessionHeartbeat,
       clearLocalSessionId,
+      getOrWaitForSession,
     } from '../lib/sessionManager';
 
     // Mobile menu toggle & outside-click close
@@ -573,27 +574,9 @@ const formattedTitle = formatPageTitle(title);
 
     // Check auth & load user info
     (async () => {
-      let { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
-          await new Promise<void>((resolve) => {
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-              if (newSession) {
-                session = newSession;
-                subscription.unsubscribe();
-                resolve();
-              }
-            });
-            setTimeout(() => {
-              subscription.unsubscribe();
-              resolve();
-            }, 2500);
-          });
-        }
-      }
+      const session = await getOrWaitForSession();
 
-      if (!session) {
+      if (!session?.user) {
         window.location.href = '/auth/login';
         return;
       }
@@ -646,6 +629,15 @@ const formattedTitle = formatPageTitle(title);
       if (existingProfile?.is_banned) {
         await handleSessionTermination('account_banned');
         return;
+      }
+
+      // If user is an administrator landing on dashboard home, seamlessly navigate to admin panel
+      if (existingProfile?.role === 'admin') {
+        const cleanPath = window.location.pathname.replace(/\/+$/, '');
+        if (cleanPath === '/dashboard' || cleanPath === '') {
+          window.location.href = '/admin';
+          return;
+        }
       }
 
       // 4. Device session registration

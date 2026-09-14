@@ -282,30 +282,14 @@ const formattedTitle = formatPageTitle(title);
       handleSessionTermination,
       startSessionHeartbeat,
       clearLocalSessionId,
+      getOrWaitForSession,
     } from '../lib/sessionManager';
     import { getAdminTigerBalance } from '../lib/api';
 
     (async () => {
-      let { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
-          await new Promise<void>((resolve) => {
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-              if (newSession) {
-                session = newSession;
-                subscription.unsubscribe();
-                resolve();
-              }
-            });
-            setTimeout(() => {
-              subscription.unsubscribe();
-              resolve();
-            }, 2500);
-          });
-        }
-      }
+      const session = await getOrWaitForSession();
 
-      if (!session) {
+      if (!session?.user) {
         window.location.href = '/auth/login';
         return;
       }

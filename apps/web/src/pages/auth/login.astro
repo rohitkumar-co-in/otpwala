@@ -417,20 +417,26 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   import { supabase } from '../../lib/supabase';
   import { validateAllowedEmail } from '../../lib/emailValidation';
   import { getAuthConfig } from '../../lib/api';
-  import { registerCurrentSession, clearLocalSessionId } from '../../lib/sessionManager';
+  import { registerCurrentSession, clearLocalSessionId, getOrWaitForSession } from '../../lib/sessionManager';
 
   // ─── Instant Session Check ───
   async function checkSessionAndRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const errParam = urlParams.get('error');
-    if (errParam) {
+    const isOAuthReturn = window.location.hash.includes('access_token') || window.location.search.includes('code');
+
+    if (errParam && !isOAuthReturn) {
       // If arriving with an error (e.g. concurrent_session or account_deleted), purge session and remain on login
       clearLocalSessionId();
       await supabase.auth.signOut();
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
+    if (isOAuthReturn && errParam) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+
+    const session = await getOrWaitForSession(3000);
     if (session?.user) {
       // Strict Email Validation (Gmail, Yahoo, Hotmail, Outlook; no dots, no + aliases)
       const emailVal = validateAllowedEmail(session.user.email || '');
@@ -568,7 +574,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const errParam = urlParams.get('error');
-    if (errParam) {
+    const isOAuthReturn = window.location.hash.includes('access_token') || window.location.search.includes('code');
+    if (errParam && !isOAuthReturn) {
       if (errParam === 'concurrent_session') {
         showError('You have been logged out because a new device logged in to your account.');
       } else if (errParam === 'account_deleted') {
@@ -873,7 +880,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     try {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + '/auth/login' },
+        options: { redirectTo: window.location.origin + '/dashboard' },
       });
     } catch (err: any) {
       showError(err.message || 'Google login failed.');
