@@ -44,7 +44,12 @@ export async function getTelegramConfig(env?: any): Promise<TelegramConfig> {
 
 export async function sendTelegramMessage(
   text: string,
-  options?: { customBotToken?: string; customChatId?: string; parseMode?: string },
+  options?: {
+    customBotToken?: string;
+    customChatId?: string;
+    parseMode?: string;
+    replyMarkup?: any;
+  },
   env?: any
 ): Promise<{ success: boolean; messageId?: number; error?: string }> {
   try {
@@ -56,15 +61,20 @@ export async function sendTelegramMessage(
     if (!chatId) return { success: false, error: 'Telegram Admin User ID / Chat ID is missing.' };
 
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const payload: any = {
+      chat_id: chatId,
+      text,
+      parse_mode: options?.parseMode || 'HTML',
+      disable_web_page_preview: true,
+    };
+    if (options?.replyMarkup) {
+      payload.reply_markup = options.replyMarkup;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: options?.parseMode || 'HTML',
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const result = (await response.json()) as any;
@@ -76,6 +86,84 @@ export async function sendTelegramMessage(
     return { success: true, messageId: result.result?.message_id };
   } catch (err: any) {
     return { success: false, error: err.message || 'Network error while contacting Telegram API' };
+  }
+}
+
+export function createActionToken(requestId: string, botToken: string): string {
+  let hash = 0;
+  const str = `${requestId}_${botToken}_otpwala_secret`;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+export function verifyActionToken(requestId: string, token: string, botToken: string): boolean {
+  if (!requestId || !token || !botToken) return false;
+  return createActionToken(requestId, botToken) === token;
+}
+
+export async function answerCallbackQuery(
+  callbackQueryId: string,
+  text: string,
+  showAlert = false,
+  botToken: string
+): Promise<void> {
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text,
+        show_alert: showAlert,
+      }),
+    });
+  } catch (e) {
+    console.warn('Failed to answer callback query:', e);
+  }
+}
+
+export async function editTelegramMessageText(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  botToken: string
+): Promise<void> {
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (e) {
+    console.warn('Failed to edit telegram message text:', e);
+  }
+}
+
+export async function ensureTelegramWebhook(origin: string, env?: any): Promise<void> {
+  try {
+    const config = await getTelegramConfig(env);
+    if (!config.botToken || !origin) return;
+    const webhookUrl = `${origin.replace(/\/+$/, '')}/api/telegram/webhook`;
+    await fetch(`https://api.telegram.org/bot${config.botToken}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: webhookUrl,
+        allowed_updates: ['callback_query', 'message'],
+      }),
+    });
+  } catch (err) {
+    console.warn('Failed to ensure telegram webhook:', err);
   }
 }
 
@@ -95,7 +183,7 @@ export async function testTelegramConnection(
     '⚡ <b>Telegram Notification Test Successful!</b>',
     '',
     'Your OTPWala Admin Telegram Alert bot is working properly.',
-    'You will receive instant alerts here whenever a user submits a UPI deposit for your approval.',
+    'You will receive instant alerts here whenever a user submits a UPI deposit, with one-tap <b>Approve</b> and <b>Reject</b> buttons.',
     '',
     `🕒 <i>Tested at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</i>`,
   ].join('\n');
@@ -115,6 +203,7 @@ export async function notifyPaymentApprovalRequest(
     userName?: string;
     userId: string;
     createdAt?: string;
+    origin?: string;
   },
   env?: any
 ): Promise<{ success: boolean; error?: string }> {
@@ -124,6 +213,11 @@ export async function notifyPaymentApprovalRequest(
       console.log('Telegram payment notification skipped: bot not configured or enabled');
       return { success: false, error: 'Telegram bot not configured or enabled' };
     }
+
+    const origin = (details.origin || '').replace(/\/+$/, '') || 'https://otpwala.pages.dev';
+    const token = createActionToken(details.requestId, config.botToken);
+    const approveActionUrl = `${origin}/api/telegram/action?action=approve&id=${details.requestId}&token=${token}`;
+    const rejectActionUrl = `${origin}/api/telegram/action?action=reject&id=${details.requestId}&token=${token}`;
 
     const timeFormatted = new Date().toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
@@ -142,10 +236,27 @@ export async function notifyPaymentApprovalRequest(
       `🆔 <b>Request ID:</b> <code>${details.requestId}</code>`,
       `⏰ <b>Time:</b> ${timeFormatted} (IST)`,
       '',
-      '👉 <i>Please verify the UTR in your UPI statement and approve in Admin Dashboard to credit the user.</i>',
+      '👉 <b>One-Click Approval:</b>',
+      `• <a href="${approveActionUrl}"><b>✅ Click Here to Approve &amp; Credit ₹${details.amount.toFixed(2)}</b></a>`,
+      `• <a href="${rejectActionUrl}"><b>❌ Click Here to Reject</b></a>`,
     ].join('\n');
 
-    return await sendTelegramMessage(message, undefined, env);
+    const replyMarkup = {
+      inline_keyboard: [
+        [
+          { text: `✅ Approve ₹${details.amount.toFixed(2)}`, callback_data: `approve_${details.requestId}` },
+          { text: '❌ Reject', callback_data: `reject_${details.requestId}` },
+        ],
+        [
+          { text: '🌐 Open Admin Dashboard', url: `${origin}/admin` },
+        ],
+      ],
+    };
+
+    // Also ensure webhook is registered
+    ensureTelegramWebhook(origin, env).catch(() => {});
+
+    return await sendTelegramMessage(message, { replyMarkup }, env);
   } catch (err: any) {
     console.error('Error sending payment approval notification to Telegram:', err);
     return { success: false, error: err.message };

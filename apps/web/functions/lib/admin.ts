@@ -138,16 +138,26 @@ export async function getPaymentRequests(env?: any) {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []).map((req: any) => ({
-    ...req,
-    amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
-    amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
-    transaction_id: req.transaction_id || req.gateway_payment_id || '',
-    gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
-    payment_method: req.payment_method || req.gateway || 'upi',
-    gateway: req.gateway || req.payment_method || 'upi',
-    status: req.status === 'created' ? 'pending' : (req.status === 'paid' ? 'approved' : (req.status === 'failed' ? 'rejected' : req.status)),
-  }));
+  return (data || []).map((req: any) => {
+    const s = String(req.status || '').toLowerCase().trim();
+    const normalizedStatus =
+      s === 'paid' || s === 'approved' || s === 'completed' || s === 'success'
+        ? 'approved'
+        : s === 'failed' || s === 'rejected' || s === 'cancelled'
+        ? 'rejected'
+        : 'pending';
+
+    return {
+      ...req,
+      amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
+      amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
+      transaction_id: req.transaction_id || req.gateway_payment_id || '',
+      gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
+      payment_method: req.payment_method || req.gateway || 'upi',
+      gateway: req.gateway || req.payment_method || 'upi',
+      status: normalizedStatus,
+    };
+  });
 }
 
 export async function approvePaymentRequest(id: string, env?: any) {

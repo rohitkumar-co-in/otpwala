@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [paymentTab, setPaymentTab] = useState<'pending' | 'approved' | 'all'>('pending');
 
   const loadData = async () => {
     setLoading(true);
@@ -242,32 +243,106 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Pending Manual Top-up Requests */}
+      {/* Manual Top-up Requests Section with Tabs */}
       {(() => {
-        const pendingRequests = paymentRequests.filter(
-          (r) => r.status === 'pending' || r.status === 'created'
-        );
+        const pendingList = paymentRequests.filter((r) => {
+          const s = String(r.status || '').toLowerCase();
+          return s === 'pending' || s === 'created';
+        });
+        const approvedList = paymentRequests.filter((r) => {
+          const s = String(r.status || '').toLowerCase();
+          return s === 'approved' || s === 'paid';
+        });
+
+        const displayedRequests =
+          paymentTab === 'pending'
+            ? pendingList
+            : paymentTab === 'approved'
+            ? approvedList
+            : paymentRequests;
 
         return (
           <div className="card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Pending Top-up Requests</h2>
-                <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
-                  {pendingRequests.length} Pending
-                </span>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Top-up & Deposit Requests</h2>
+                {pendingList.length > 0 ? (
+                  <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+                    {pendingList.length} Pending
+                  </span>
+                ) : (
+                  <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
+                    All Cleared
+                  </span>
+                )}
+              </div>
+
+              {/* Tab Switcher */}
+              <div style={{ display: 'inline-flex', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '2px', gap: '2px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPaymentTab('pending')}
+                  style={{
+                    border: 'none',
+                    background: paymentTab === 'pending' ? 'var(--primary)' : 'transparent',
+                    color: paymentTab === 'pending' ? '#fff' : 'var(--text-secondary)',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Pending ({pendingList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentTab('approved')}
+                  style={{
+                    border: 'none',
+                    background: paymentTab === 'approved' ? 'var(--primary)' : 'transparent',
+                    color: paymentTab === 'approved' ? '#fff' : 'var(--text-secondary)',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Approved ({approvedList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentTab('all')}
+                  style={{
+                    border: 'none',
+                    background: paymentTab === 'all' ? 'var(--primary)' : 'transparent',
+                    color: paymentTab === 'all' ? '#fff' : 'var(--text-secondary)',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  All ({paymentRequests.length})
+                </button>
               </div>
             </div>
 
-            {loading && pendingRequests.length === 0 ? (
+            {loading && paymentRequests.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <RefreshCwIcon size={16} className="animate-spin" style={{ display: 'inline', marginRight: '6px' }} />
-                Loading pending requests...
+                Loading deposit requests...
               </div>
-            ) : pendingRequests.length === 0 ? (
+            ) : displayedRequests.length === 0 ? (
               <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                 <CheckCircleIcon size={16} color="var(--success)" />
-                <span>All top-up requests are up to date! No manual approvals pending.</span>
+                <span>
+                  {paymentTab === 'pending'
+                    ? 'All top-up requests are up to date! No manual approvals pending.'
+                    : `No ${paymentTab} deposit requests found.`}
+                </span>
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
@@ -278,15 +353,19 @@ export default function AdminDashboard() {
                       <th style={{ padding: '0.65rem 0.75rem' }}>Amount</th>
                       <th style={{ padding: '0.65rem 0.75rem' }}>UTR / Ref ID</th>
                       <th style={{ padding: '0.65rem 0.75rem' }}>Method</th>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>Status</th>
                       <th style={{ padding: '0.65rem 0.75rem' }}>Requested At</th>
                       <th style={{ padding: '0.65rem 0.75rem', textAlign: 'right' }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingRequests.map((req) => {
+                    {displayedRequests.map((req) => {
                       const amt = parseFloat(req.amount ?? req.amount_inr ?? 0);
                       const utr = req.transaction_id || req.gateway_payment_id || '';
                       const method = req.payment_method || req.gateway || 'UPI';
+                      const st = String(req.status || 'pending').toLowerCase();
+                      const isPending = st === 'pending' || st === 'created';
+                      const isApproved = st === 'approved' || st === 'paid';
 
                       return (
                         <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
@@ -296,51 +375,66 @@ export default function AdminDashboard() {
                           <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
                             ₹{amt.toFixed(2)}
                           </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                        {utr ? (
-                          <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
-                            {utr}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)' }}>—</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <span className="badge badge-info">{method.toUpperCase()}</span>
-                      </td>
-                      <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                        {new Date(req.created_at).toLocaleString()}
-                      </td>
-                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            disabled={actionLoading === req.id}
-                            onClick={() => handleApprovePayment(req.id, amt)}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                          >
-                            <CheckIcon size={14} />
-                          <span>{actionLoading === req.id ? 'Approving...' : 'Approve & Credit'}</span>
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          disabled={actionLoading === req.id}
-                          onClick={() => handleRejectPayment(req.id, parseFloat(req.amount_inr))}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
-                          title="Reject deposit request"
-                        >
-                          <XIcon size={14} />
-                          <span>Reject</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                          <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                            {utr ? (
+                              <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
+                                {utr}
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)' }}>—</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '0.75rem' }}>
+                            <span className="badge badge-info">{method.toUpperCase()}</span>
+                          </td>
+                          <td style={{ padding: '0.75rem' }}>
+                            {isApproved ? (
+                              <span className="badge badge-success">Approved</span>
+                            ) : isPending ? (
+                              <span className="badge badge-warning">Pending</span>
+                            ) : (
+                              <span className="badge badge-danger">Rejected</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                            {new Date(req.created_at).toLocaleString()}
+                          </td>
+                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                            {isPending ? (
+                              <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  disabled={actionLoading === req.id}
+                                  onClick={() => handleApprovePayment(req.id, amt)}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                >
+                                  <CheckIcon size={14} />
+                                  <span>{actionLoading === req.id ? 'Approving...' : 'Approve & Credit'}</span>
+                                </button>
+                                <button
+                                  className="btn btn-ghost btn-sm"
+                                  disabled={actionLoading === req.id}
+                                  onClick={() => handleRejectPayment(req.id, amt)}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                                  title="Reject deposit request"
+                                >
+                                  <XIcon size={14} />
+                                  <span>Reject</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: isApproved ? 'var(--success)' : 'var(--text-muted)', fontWeight: 500 }}>
+                                {isApproved ? 'Credited to wallet' : 'Declined'}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
       })()}
