@@ -189,9 +189,9 @@ const formattedTitle = formatPageTitle(title);
           </svg>
         </button>
         <div class="header-right flex items-center gap-md">
-          <div class="system-status-pill" title="Service, country, and pricing data are loaded from the live catalog">
-            <span class="status-dot active pulse-dot"></span>
-            <span class="status-text" style="font-size: 0.72rem;">Live API Catalog</span>
+          <div class="system-status-pill" id="dashboard-health-pill" title="Service, country, and pricing data are loaded from the live catalog">
+            <span class="status-dot active pulse-dot" id="dashboard-health-dot"></span>
+            <span class="status-text" id="dashboard-health-text" style="font-size: 0.72rem;">OTPWala Up & Operational</span>
           </div>
 
           <div class="user-badge-wrapper" style="position: relative;">
@@ -764,6 +764,30 @@ const formattedTitle = formatPageTitle(title);
         } else if (data.error === 'account_deleted') {
           await handleSessionTermination('account_deleted');
           return;
+        }
+      } catch {}
+
+      // Fetch health status
+      try {
+        const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
+        const healthRes = await fetch(apiUrl + '/api/health');
+        const healthData = await healthRes.json();
+        
+        const healthPill = document.getElementById('dashboard-health-pill');
+        const healthDot = document.getElementById('dashboard-health-dot');
+        const healthText = document.getElementById('dashboard-health-text');
+        
+        if (healthData && healthData.status === 'down') {
+          if (healthText) healthText.textContent = 'OTPWala Down';
+          if (healthDot) {
+            healthDot.style.background = '#ef4444';
+            healthDot.className = 'status-dot'; // remove pulse
+          }
+          if (healthPill) {
+            healthPill.style.background = 'rgba(239, 68, 68, 0.1)';
+            healthPill.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+            healthPill.style.color = '#ef4444';
+          }
         }
       } catch {}
 

@@ -393,8 +393,7 @@ const formattedTitle = formatPageTitle(title);
           const dot = document.getElementById('tiger-status-dot');
           const text = document.getElementById('tiger-status-text');
           if (data && data.balance !== undefined) {
-            const bal = parseFloat(data.balance || 0).toFixed(2);
-            if (text) text.textContent = `Tiger SMS: Up & Operational ($${bal})`;
+            if (text) text.textContent = `Tiger SMS: Up & Operational`;
             if (badge) {
               badge.style.background = 'rgba(16, 185, 129, 0.1)';
               badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';

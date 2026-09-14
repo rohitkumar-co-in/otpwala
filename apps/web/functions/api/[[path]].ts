@@ -227,6 +227,20 @@ export const onRequest = async (context: any) => {
       return jsonResponse({ success: true, exists: false });
     }
 
+    if (path === '/api/health' && method === 'GET') {
+      try {
+        const tiger = new TigerSmsClient(env);
+        const bal = await tiger.getBalance();
+        if (bal && bal.balance !== undefined) {
+          return jsonResponse({ success: true, status: 'up' });
+        } else {
+          return jsonResponse({ success: true, status: 'down' });
+        }
+      } catch (err) {
+        return jsonResponse({ success: true, status: 'down' });
+      }
+    }
+
     // ─── Session Management ───
     if (path === '/api/auth/register-session' && method === 'POST') {
       const auth = await authenticateUser(request, env);
