@@ -496,22 +496,24 @@ export default function UserManager() {
                 ? `Unban Selected (${selectedUserIds.length})`
                 : `Ban Selected (${selectedUserIds.length})`}
             </button>
-            <button
-              className="btn btn-sm"
-              disabled={bulkActionLoading || selectedBannedUsers.length === 0}
-              onClick={() => setShowBulkDeleteModal(true)}
-              title={selectedBannedUsers.length === 0 ? 'Only banned users can be deleted' : 'Permanently delete selected banned users'}
-              style={{
-                background: selectedBannedUsers.length > 0 ? '#dc2626' : '#f1f5f9',
-                color: selectedBannedUsers.length > 0 ? '#ffffff' : '#94a3b8',
-                cursor: selectedBannedUsers.length > 0 ? 'pointer' : 'not-allowed',
-                fontSize: '0.8rem',
-                border: 'none',
-              }}
-            >
-              <TrashIcon size={13} style={{ display: 'inline', marginRight: '4px' }} />
-              Delete Selected ({selectedBannedUsers.length})
-            </button>
+            {selectedBannedUsers.length > 0 && (
+              <button
+                className="btn btn-sm"
+                disabled={bulkActionLoading}
+                onClick={() => setShowBulkDeleteModal(true)}
+                title="Permanently delete selected banned users"
+                style={{
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  border: 'none',
+                }}
+              >
+                <TrashIcon size={13} style={{ display: 'inline', marginRight: '4px' }} />
+                Delete Selected ({selectedBannedUsers.length})
+              </button>
+            )}
             <button
               className="btn btn-ghost btn-sm"
               onClick={() => setSelectedUserIds([])}
