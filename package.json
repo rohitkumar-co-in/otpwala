@@ -8,7 +8,7 @@
     "build": "pnpm -r run build",
     "build:web": "pnpm --filter @otpwala/web build",
     "build:api": "pnpm --filter @otpwala/api build",
-    "deploy:web": "pnpm build:web && npx wrangler pages deploy apps/web/dist --project-name=otpwala"
+    "deploy:web": "npm --prefix apps/web run build && npx wrangler pages deploy dist --project-name=otpwala --cwd apps/web --commit-dirty=true"
   },
   "engines": {
     "node": ">=18.0.0"
