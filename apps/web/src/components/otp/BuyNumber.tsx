@@ -101,14 +101,14 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
   if (code === 'ig') return <InstagramIcon size={size} style={{ color: '#E1306C' }} />;
   if (code === 'dr') return <OpenAIIcon size={size} style={{ color: '#10A37F' }} />;
   if (code === 'fb') return <FacebookIcon size={size} style={{ color: '#1877F2' }} />;
-  if (code === 'tw') return <TwitterXIcon size={size} style={{ color: '#FFFFFF' }} />;
+  if (code === 'tw') return <TwitterXIcon size={size} style={{ color: '#0F172A' }} />;
   if (code === 'lf') return <TikTokIcon size={size} style={{ color: '#FE2C55' }} />;
   if (code === 'mm') return <MicrosoftIcon size={size} />;
-  if (code === 'wx') return <AppleIcon size={size} style={{ color: '#E5E7EB' }} />;
+  if (code === 'wx') return <AppleIcon size={size} style={{ color: '#0F172A' }} />;
   if (code === 'am') return <AmazonIcon size={size} style={{ color: '#FF9900' }} />;
   if (code === 'nf') return <NetflixIcon size={size} style={{ color: '#E50914' }} />;
   if (code === 'ds') return <DiscordIcon size={size} style={{ color: '#5865F2' }} />;
-  if (code === 'ub') return <UberIcon size={size} style={{ color: '#FFFFFF' }} />;
+  if (code === 'ub') return <UberIcon size={size} style={{ color: '#0F172A' }} />;
   if (code === 'fu') return <SnapchatIcon size={size} style={{ color: '#FFFC00' }} />;
   if (code === 'oi') return <TinderIcon size={size} style={{ color: '#FE3C72' }} />;
   if (code === 'so' || code === 'spot') return <SpotifyIcon size={size} style={{ color: '#1ED760' }} />;
@@ -145,7 +145,7 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
 export function renderCountryFlag(country: any, width = 22, height = 15) {
   if (!country) return null;
   const iso = (country.iso || 'un').toUpperCase();
-  const fallbackUrl = `https://flagcdn.com/${iso.toLowerCase()}.svg`;
+  const fallbackUrl = `/api/catalog/country-flag/${iso.toLowerCase()}`;
   const flagUrl = country.flagUrl || fallbackUrl;
 
   return (
@@ -180,14 +180,14 @@ function getServiceBg(code: string) {
   if (c === 'ig') return 'rgba(225, 48, 108, 0.15)';
   if (c === 'dr') return 'rgba(16, 163, 127, 0.15)';
   if (c === 'fb') return 'rgba(24, 119, 242, 0.15)';
-  if (c === 'tw') return 'rgba(255, 255, 255, 0.12)';
+  if (c === 'tw') return 'rgba(15, 23, 42, 0.08)';
   if (c === 'lf') return 'rgba(254, 44, 85, 0.15)';
   if (c === 'mm') return 'rgba(0, 164, 239, 0.15)';
-  if (c === 'wx') return 'rgba(255, 255, 255, 0.12)';
+  if (c === 'wx') return 'rgba(15, 23, 42, 0.08)';
   if (c === 'am') return 'rgba(255, 153, 0, 0.15)';
   if (c === 'nf') return 'rgba(229, 9, 20, 0.15)';
   if (c === 'ds') return 'rgba(88, 101, 242, 0.15)';
-  if (c === 'ub') return 'rgba(255, 255, 255, 0.12)';
+  if (c === 'ub') return 'rgba(15, 23, 42, 0.08)';
   if (c === 'fu') return 'rgba(255, 252, 0, 0.15)';
   if (c === 'oi') return 'rgba(254, 60, 114, 0.15)';
   if (c === 'so' || c === 'spot') return 'rgba(30, 215, 96, 0.15)';
