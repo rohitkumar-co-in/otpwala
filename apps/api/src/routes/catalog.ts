@@ -131,12 +131,49 @@ router.get('/services', async (req: AuthenticatedRequest, res) => {
       (servicesCache || [])
         .filter((s) => !disabledServices.includes(s.code.toLowerCase()))
         .map(async (s) => {
-          const pop = POPULAR_SERVICES[s.code.toLowerCase()];
+          const lowerCode = s.code.toLowerCase();
+          const pop = POPULAR_SERVICES[lowerCode];
           const normName = s.name.toLowerCase().trim();
-          const iconId = serviceIcons[normName] || serviceIcons[s.code.toLowerCase()] || null;
-          const iconUrl = iconId
+
+          const LOCAL_SERVICE_ICONS: Record<string, string> = {
+            wa: '/icons/services/wa.svg',
+            wa2: '/icons/services/wa.svg',
+            tg: '/icons/services/tg.svg',
+            eh: '/icons/services/tg.svg',
+            go: '/icons/services/go.svg',
+            gch: '/icons/services/go.svg',
+            gms: '/icons/services/go.svg',
+            gpy: '/icons/services/go.svg',
+            gf: '/icons/services/go.svg',
+            ig: '/icons/services/ig.svg',
+            dr: '/icons/services/dr.svg',
+            fb: '/icons/services/fb.svg',
+            tw: '/icons/services/tw.svg',
+            lf: '/icons/services/lf.svg',
+            mm: '/icons/services/mm.svg',
+            wx: '/icons/services/wx.svg',
+            am: '/icons/services/am.svg',
+            nf: '/icons/services/nf.svg',
+            ds: '/icons/services/ds.svg',
+            ub: '/icons/services/ub.svg',
+            fu: '/icons/services/fu.svg',
+            oi: '/icons/services/oi.svg',
+            so: '/icons/services/so.svg',
+            spot: '/icons/services/so.svg',
+            ln: '/icons/services/ln.svg',
+            rd: '/icons/services/rd.svg',
+            mt: '/icons/services/mt.svg',
+            steam: '/icons/services/mt.svg',
+            ts: '/icons/services/ts.svg',
+            mb: '/icons/services/mb.svg',
+            vi: '/icons/services/vi.svg',
+            me: '/icons/services/me.svg',
+          };
+
+          const iconId = serviceIcons[normName] || serviceIcons[lowerCode] || null;
+          const iconUrl = LOCAL_SERVICE_ICONS[lowerCode] || (iconId
             ? `https://tiger-sms.com/img/service/${iconId}.svg`
-            : `https://tiger-sms.com/img/service/unknown.svg`;
+            : `https://tiger-sms.com/img/service/unknown.svg`);
 
           const deliveryRate = getServiceDeliveryRate(s.code);
           const minUsd = serviceMinPricesUsd[s.code.toLowerCase()] || pop?.baseMinUsd || 0.12;

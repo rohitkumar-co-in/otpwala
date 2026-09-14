@@ -113,10 +113,47 @@ export async function getServices(env?: any) {
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
         const pop = POPULAR_SERVICES[lowerCode];
+        
+        // Consistent local SVG icons for popular services
+        const LOCAL_SERVICE_ICONS: Record<string, string> = {
+          wa: '/icons/services/wa.svg',
+          wa2: '/icons/services/wa.svg',
+          tg: '/icons/services/tg.svg',
+          eh: '/icons/services/tg.svg',
+          go: '/icons/services/go.svg',
+          gch: '/icons/services/go.svg',
+          gms: '/icons/services/go.svg',
+          gpy: '/icons/services/go.svg',
+          gf: '/icons/services/go.svg',
+          ig: '/icons/services/ig.svg',
+          dr: '/icons/services/dr.svg',
+          fb: '/icons/services/fb.svg',
+          tw: '/icons/services/tw.svg',
+          lf: '/icons/services/lf.svg',
+          mm: '/icons/services/mm.svg',
+          wx: '/icons/services/wx.svg',
+          am: '/icons/services/am.svg',
+          nf: '/icons/services/nf.svg',
+          ds: '/icons/services/ds.svg',
+          ub: '/icons/services/ub.svg',
+          fu: '/icons/services/fu.svg',
+          oi: '/icons/services/oi.svg',
+          so: '/icons/services/so.svg',
+          spot: '/icons/services/so.svg',
+          ln: '/icons/services/ln.svg',
+          rd: '/icons/services/rd.svg',
+          mt: '/icons/services/mt.svg',
+          steam: '/icons/services/mt.svg',
+          ts: '/icons/services/ts.svg',
+          mb: '/icons/services/mb.svg',
+          vi: '/icons/services/vi.svg',
+          me: '/icons/services/me.svg',
+        };
+
         const iconId = lookupServiceIcon(s.code, s.name);
-        const iconUrl = (iconId && iconId !== 'unknown')
+        const iconUrl = LOCAL_SERVICE_ICONS[lowerCode] || ((iconId && iconId !== 'unknown')
           ? `https://tiger-sms.com/img/service/${iconId}.svg`
-          : 'https://tiger-sms.com/img/service/unknown.svg';
+          : 'https://tiger-sms.com/img/service/unknown.svg');
 
         const baseUsd = pop?.baseMinUsd || 0.15;
         const minPriceInr = await calculateSellPrice(baseUsd, s.code, 22, undefined, env);

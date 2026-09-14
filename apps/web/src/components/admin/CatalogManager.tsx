@@ -16,6 +16,7 @@ import {
   AlertCircleIcon,
   CheckCircleIcon,
 } from '../ui/Icons';
+import { renderServiceIcon } from '../otp/BuyNumber';
 
 export default function CatalogManager() {
   const [activeTab, setActiveTab] = useState<'services' | 'countries'>('services');
@@ -477,18 +478,7 @@ const POPULAR_COUNTRY_IDS = [
                         padding: '6px',
                       }}
                     >
-                      <img
-                        src={s.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg'}
-                        alt={s.name}
-                        width="24"
-                        height="24"
-                        style={{ objectFit: 'contain', display: 'block' }}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = 'https://tiger-sms.com/img/service/unknown.svg';
-                        }}
-                      />
+                      {renderServiceIcon(s, 22)}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <div

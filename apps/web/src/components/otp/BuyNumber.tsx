@@ -27,6 +27,20 @@ import {
   OpenAIIcon,
   MicrosoftIcon,
   AppleIcon,
+  AmazonIcon,
+  NetflixIcon,
+  DiscordIcon,
+  UberIcon,
+  SnapchatIcon,
+  TinderIcon,
+  SpotifyIcon,
+  LinkedInIcon,
+  RedditIcon,
+  SteamIcon,
+  PayPalIcon,
+  YahooIcon,
+  ViberIcon,
+  LineIcon,
 } from '../ui/BrandIcons';
 
 type Step = 'service' | 'country' | 'confirm' | 'waiting' | 'received' | 'expired' | 'messages';
@@ -52,10 +66,38 @@ function playNotificationSound() {
 
 export function renderServiceIcon(serviceOrCode: any, size = 26) {
   const isObj = typeof serviceOrCode === 'object' && serviceOrCode !== null;
-  const iconUrl = isObj ? serviceOrCode.iconUrl : null;
-  const code = (isObj ? serviceOrCode.code : serviceOrCode || '').toLowerCase();
+  const code = (isObj ? serviceOrCode.code : serviceOrCode || '').toLowerCase().trim();
   const name = isObj ? serviceOrCode.name : code;
+  const iconUrl = isObj ? serviceOrCode.iconUrl : null;
 
+  // PRIORITY 1: Consistently render crisp local brand icons for all popular services.
+  // This guarantees icons NEVER change, flicker, or get replaced when services finish loading.
+  if (code === 'wa' || code === 'wa2') return <WhatsAppIcon size={size} style={{ color: '#25D366' }} />;
+  if (code === 'tg' || code === 'eh') return <TelegramIcon size={size} style={{ color: '#229ED9' }} />;
+  if (code === 'go' || code === 'gch' || code === 'gms' || code === 'gpy' || code === 'gf') return <GoogleIcon size={size} />;
+  if (code === 'ig') return <InstagramIcon size={size} style={{ color: '#E1306C' }} />;
+  if (code === 'dr') return <OpenAIIcon size={size} style={{ color: '#10A37F' }} />;
+  if (code === 'fb') return <FacebookIcon size={size} style={{ color: '#1877F2' }} />;
+  if (code === 'tw') return <TwitterXIcon size={size} style={{ color: '#FFFFFF' }} />;
+  if (code === 'lf') return <TikTokIcon size={size} style={{ color: '#FE2C55' }} />;
+  if (code === 'mm') return <MicrosoftIcon size={size} />;
+  if (code === 'wx') return <AppleIcon size={size} style={{ color: '#E5E7EB' }} />;
+  if (code === 'am') return <AmazonIcon size={size} style={{ color: '#FF9900' }} />;
+  if (code === 'nf') return <NetflixIcon size={size} style={{ color: '#E50914' }} />;
+  if (code === 'ds') return <DiscordIcon size={size} style={{ color: '#5865F2' }} />;
+  if (code === 'ub') return <UberIcon size={size} style={{ color: '#FFFFFF' }} />;
+  if (code === 'fu') return <SnapchatIcon size={size} style={{ color: '#FFFC00' }} />;
+  if (code === 'oi') return <TinderIcon size={size} style={{ color: '#FE3C72' }} />;
+  if (code === 'so' || code === 'spot') return <SpotifyIcon size={size} style={{ color: '#1ED760' }} />;
+  if (code === 'ln') return <LinkedInIcon size={size} style={{ color: '#0A66C2' }} />;
+  if (code === 'rd') return <RedditIcon size={size} style={{ color: '#FF4500' }} />;
+  if (code === 'mt' || code === 'steam') return <SteamIcon size={size} style={{ color: '#66C0F4' }} />;
+  if (code === 'ts') return <PayPalIcon size={size} style={{ color: '#0079C1' }} />;
+  if (code === 'mb') return <YahooIcon size={size} style={{ color: '#6001D2' }} />;
+  if (code === 'vi') return <ViberIcon size={size} style={{ color: '#7360F2' }} />;
+  if (code === 'me') return <LineIcon size={size} style={{ color: '#00C300' }} />;
+
+  // PRIORITY 2: Remote iconUrl fallback for niche third-party catalog items without a dedicated local SVG
   if (iconUrl) {
     return (
       <img
@@ -73,18 +115,7 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
     );
   }
 
-  // Fallback brand vector SVGs if iconUrl not present yet
-  if (code === 'wa' || code === 'wa2') return <WhatsAppIcon size={size} style={{ color: '#25D366' }} />;
-  if (code === 'tg' || code === 'eh') return <TelegramIcon size={size} style={{ color: '#229ED9' }} />;
-  if (code === 'go' || code === 'gch' || code === 'gms' || code === 'gpy' || code === 'gf') return <GoogleIcon size={size} style={{ color: '#EA4335' }} />;
-  if (code === 'ig') return <InstagramIcon size={size} style={{ color: '#E1306C' }} />;
-  if (code === 'dr') return <OpenAIIcon size={size} style={{ color: '#10A37F' }} />;
-  if (code === 'fb') return <FacebookIcon size={size} style={{ color: '#1877F2' }} />;
-  if (code === 'tw') return <TwitterXIcon size={size} style={{ color: '#FFFFFF' }} />;
-  if (code === 'lf') return <TikTokIcon size={size} style={{ color: '#FE2C55' }} />;
-  if (code === 'mm') return <MicrosoftIcon size={size} style={{ color: '#00A4EF' }} />;
-  if (code === 'wx') return <AppleIcon size={size} style={{ color: '#E5E7EB' }} />;
-
+  // PRIORITY 3: Default smartphone icon
   return <SmartphoneIcon size={Math.max(16, size - 4)} color="var(--accent-primary)" />;
 }
 
@@ -119,7 +150,7 @@ export function renderCountryFlag(country: any, width = 22, height = 15) {
 }
 
 function getServiceBg(code: string) {
-  const c = code.toLowerCase();
+  const c = (code || '').toLowerCase().trim();
   if (c === 'wa' || c === 'wa2') return 'rgba(37, 211, 102, 0.15)';
   if (c === 'tg' || c === 'eh') return 'rgba(34, 158, 217, 0.15)';
   if (c === 'go' || c === 'gch' || c === 'gms' || c === 'gpy' || c === 'gf') return 'rgba(234, 67, 53, 0.15)';
@@ -130,6 +161,20 @@ function getServiceBg(code: string) {
   if (c === 'lf') return 'rgba(254, 44, 85, 0.15)';
   if (c === 'mm') return 'rgba(0, 164, 239, 0.15)';
   if (c === 'wx') return 'rgba(255, 255, 255, 0.12)';
+  if (c === 'am') return 'rgba(255, 153, 0, 0.15)';
+  if (c === 'nf') return 'rgba(229, 9, 20, 0.15)';
+  if (c === 'ds') return 'rgba(88, 101, 242, 0.15)';
+  if (c === 'ub') return 'rgba(255, 255, 255, 0.12)';
+  if (c === 'fu') return 'rgba(255, 252, 0, 0.15)';
+  if (c === 'oi') return 'rgba(254, 60, 114, 0.15)';
+  if (c === 'so' || c === 'spot') return 'rgba(30, 215, 96, 0.15)';
+  if (c === 'ln') return 'rgba(10, 102, 194, 0.15)';
+  if (c === 'rd') return 'rgba(255, 69, 0, 0.15)';
+  if (c === 'mt' || c === 'steam') return 'rgba(102, 192, 244, 0.15)';
+  if (c === 'ts') return 'rgba(0, 121, 193, 0.15)';
+  if (c === 'mb') return 'rgba(96, 1, 210, 0.15)';
+  if (c === 'vi') return 'rgba(115, 96, 242, 0.15)';
+  if (c === 'me') return 'rgba(0, 195, 0, 0.15)';
   return 'var(--accent-glow)';
 }
 

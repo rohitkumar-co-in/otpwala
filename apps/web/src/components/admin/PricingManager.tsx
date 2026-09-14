@@ -14,6 +14,7 @@ import {
   TagIcon,
   SaveIcon,
 } from '../ui/Icons';
+import { renderServiceIcon } from '../otp/BuyNumber';
 
 interface PricingRule {
   id?: string;
@@ -513,17 +514,7 @@ export default function PricingManager() {
                         const matchedService = services.find((s) => s.code.toLowerCase() === rule.service_code?.toLowerCase());
                         return (
                           <span className="badge badge-info" style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.25rem 0.55rem' }}>
-                            <img
-                              src={matchedService?.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg'}
-                              alt={matchedService?.name || rule.service_code}
-                              width="16"
-                              height="16"
-                              style={{ objectFit: 'contain' }}
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = 'https://tiger-sms.com/img/service/unknown.svg';
-                              }}
-                            />
+                            {renderServiceIcon(matchedService || rule.service_code, 16)}
                             <span>{matchedService ? matchedService.name : rule.service_code.toUpperCase()}</span>
                           </span>
                         );
