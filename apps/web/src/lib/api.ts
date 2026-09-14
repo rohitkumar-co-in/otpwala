@@ -136,7 +136,13 @@ export const getTransactions = (limit = 20, offset = 0) =>
 export const topUp = (amount: number, method = 'upi', utr?: string) =>
   apiFetch<any>('/api/wallet/topup', {
     method: 'POST',
-    body: JSON.stringify({ amount, method, utr }),
+    body: JSON.stringify({
+      amount,
+      method,
+      paymentMethod: method,
+      utr,
+      transactionId: utr,
+    }),
   });
 
 // ─── Orders ───

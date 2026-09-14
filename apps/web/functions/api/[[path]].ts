@@ -5,7 +5,7 @@ import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
 import { calculateSellPrice, getZeroMarkupUsers, setZeroMarkupUser } from '../lib/pricing';
-import { testTelegramConnection } from '../lib/telegram';
+import { testTelegramConnection, notifyPaymentApprovalRequest } from '../lib/telegram';
 import {
   getAdminDashboard,
   getAdminUsers,
@@ -21,7 +21,6 @@ import {
   approvePaymentRequest,
   rejectPaymentRequest,
 } from '../lib/admin';
-import { calculateSellPrice } from '../lib/pricing';
 import { TigerSmsClient } from '../lib/tiger';
 
 function jsonResponse(data: any, status = 200) {
@@ -305,24 +304,91 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const body = await request.json().catch(() => ({}));
-      const { amount, transactionId, paymentMethod, screenshotUrl } = body;
+      const amount = parseFloat(body.amount ?? body.amount_inr ?? 0);
+      const utr = String(body.utr || body.transactionId || body.gateway_payment_id || '').trim();
+      const paymentMethod = String(body.method || body.paymentMethod || body.gateway || 'upi').trim();
+      const screenshotUrl = body.screenshotUrl || body.screenshot_url || null;
+
+      if (!amount || isNaN(amount) || amount <= 0) {
+        return jsonResponse({ success: false, error: 'Invalid deposit amount' }, 400);
+      }
 
       const supabase = getSupabaseAdmin(env);
-      const { data, error } = await supabase
+      let data: any = null;
+
+      // Try inserting with modern column names
+      const modernInsert = await supabase
         .from('payment_requests')
         .insert({
           user_id: auth.userId,
-          amount: parseFloat(amount),
-          transaction_id: transactionId || null,
+          amount,
+          transaction_id: utr || null,
           payment_method: paymentMethod || 'upi',
-          screenshot_url: screenshotUrl || null,
+          screenshot_url: screenshotUrl,
           status: 'pending',
         })
         .select()
         .single();
 
-      if (error) throw error;
-      return jsonResponse({ success: true, data });
+      if (modernInsert.error) {
+        // Fallback for legacy database schema with amount_inr and gateway_payment_id
+        const legacyInsert = await supabase
+          .from('payment_requests')
+          .insert({
+            user_id: auth.userId,
+            amount_inr: amount,
+            gateway_payment_id: utr || null,
+            gateway: paymentMethod || 'upi',
+            status: 'created',
+          })
+          .select()
+          .single();
+
+        if (legacyInsert.error) {
+          console.error('Payment request insert error:', modernInsert.error, legacyInsert.error);
+          throw modernInsert.error || legacyInsert.error;
+        }
+        data = legacyInsert.data;
+      } else {
+        data = modernInsert.data;
+      }
+
+      // Asynchronously send Telegram notification to Admin
+      if (utr) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', auth.userId)
+            .maybeSingle();
+
+          await notifyPaymentApprovalRequest({
+            requestId: data?.id || 'N/A',
+            amount,
+            utr,
+            userId: auth.userId,
+            userEmail: profile?.email || auth.email || 'Unknown',
+            userName: profile?.full_name || undefined,
+            createdAt: data?.created_at,
+          }, env);
+        } catch (tgErr) {
+          console.error('Failed to dispatch telegram payment notification:', tgErr);
+        }
+      }
+
+      const normalized = {
+        ...data,
+        amount,
+        amount_inr: amount,
+        transaction_id: utr,
+        gateway_payment_id: utr,
+        payment_method: paymentMethod,
+        gateway: paymentMethod,
+        status: data?.status === 'created' ? 'pending' : (data?.status || 'pending'),
+        message: `UPI deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`,
+      };
+
+      return jsonResponse({ success: true, data: normalized });
     }
 
     if (path === '/api/wallet/payment-requests' && method === 'GET') {
@@ -330,13 +396,26 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const supabase = getSupabaseAdmin(env);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('payment_requests')
         .select('*')
         .eq('user_id', auth.userId)
         .order('created_at', { ascending: false });
 
-      return jsonResponse({ success: true, data: data || [] });
+      if (error) throw error;
+
+      const normalized = (data || []).map((req: any) => ({
+        ...req,
+        amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
+        amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
+        transaction_id: req.transaction_id || req.gateway_payment_id || '',
+        gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
+        payment_method: req.payment_method || req.gateway || 'upi',
+        gateway: req.gateway || req.payment_method || 'upi',
+        status: req.status === 'created' ? 'pending' : (req.status === 'paid' ? 'approved' : (req.status === 'failed' ? 'rejected' : req.status)),
+      }));
+
+      return jsonResponse({ success: true, data: normalized });
     }
 
     // ─── Orders List ───

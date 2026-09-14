@@ -271,38 +271,43 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {paymentRequests.map((req) => (
-                  <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', fontWeight: 500 }}>
-                      {req.profiles?.email || req.user_id}
-                    </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
-                      ₹{parseFloat(req.amount_inr || 0).toFixed(2)}
-                    </td>
-                    <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      {req.gateway_payment_id ? (
-                        <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
-                          {req.gateway_payment_id}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
-                      <span className="badge badge-info">{req.gateway?.toUpperCase() || 'UPI'}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                      {new Date(req.created_at).toLocaleString()}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          disabled={actionLoading === req.id}
-                          onClick={() => handleApprovePayment(req.id, parseFloat(req.amount_inr))}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        >
-                          <CheckIcon size={14} />
+                {paymentRequests.map((req) => {
+                  const amt = parseFloat(req.amount ?? req.amount_inr ?? 0);
+                  const utr = req.transaction_id || req.gateway_payment_id || '';
+                  const method = req.payment_method || req.gateway || 'UPI';
+
+                  return (
+                    <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '0.75rem', fontWeight: 500 }}>
+                        {req.profiles?.email || req.user_id}
+                      </td>
+                      <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
+                        ₹{amt.toFixed(2)}
+                      </td>
+                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                        {utr ? (
+                          <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
+                            {utr}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.75rem' }}>
+                        <span className="badge badge-info">{method.toUpperCase()}</span>
+                      </td>
+                      <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                        {new Date(req.created_at).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={actionLoading === req.id}
+                            onClick={() => handleApprovePayment(req.id, amt)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                          >
+                            <CheckIcon size={14} />
                           <span>{actionLoading === req.id ? 'Approving...' : 'Approve & Credit'}</span>
                         </button>
                         <button
@@ -318,7 +323,8 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

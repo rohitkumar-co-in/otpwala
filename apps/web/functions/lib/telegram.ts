@@ -6,6 +6,22 @@ export interface TelegramConfig {
   enabled: boolean;
 }
 
+function cleanJsonVal(v: any): string {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return s.slice(1, -1).trim();
+      }
+    }
+    return s;
+  }
+  return String(v).trim();
+}
+
 export async function getTelegramConfig(env?: any): Promise<TelegramConfig> {
   try {
     const supabase = getSupabaseAdmin(env);
@@ -15,10 +31,10 @@ export async function getTelegramConfig(env?: any): Promise<TelegramConfig> {
       .in('key', ['telegram_bot_token', 'telegram_admin_chat_id', 'telegram_notifications_enabled']);
 
     const map = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
-    const botToken = (map['telegram_bot_token'] || '').trim();
-    const adminChatId = (map['telegram_admin_chat_id'] || '').trim();
-    const enabledStr = map['telegram_notifications_enabled'];
-    const enabled = enabledStr === 'false' ? false : Boolean(botToken && adminChatId);
+    const botToken = cleanJsonVal(map['telegram_bot_token']);
+    const adminChatId = cleanJsonVal(map['telegram_admin_chat_id']);
+    const enabledRaw = cleanJsonVal(map['telegram_notifications_enabled']);
+    const enabled = enabledRaw === 'false' ? false : Boolean(botToken && adminChatId);
 
     return { botToken, adminChatId, enabled };
   } catch {
@@ -88,4 +104,50 @@ export async function testTelegramConnection(
 
   if (!res.success) throw new Error(res.error || 'Failed to send test message via Telegram');
   return { success: true, message: 'Test message sent to your Telegram chat successfully!' };
+}
+
+export async function notifyPaymentApprovalRequest(
+  details: {
+    requestId: string;
+    amount: number;
+    utr: string;
+    userEmail: string;
+    userName?: string;
+    userId: string;
+    createdAt?: string;
+  },
+  env?: any
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const config = await getTelegramConfig(env);
+    if (!config.enabled || !config.botToken || !config.adminChatId) {
+      console.log('Telegram payment notification skipped: bot not configured or enabled');
+      return { success: false, error: 'Telegram bot not configured or enabled' };
+    }
+
+    const timeFormatted = new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    const userLabel = details.userName ? `${details.userName} (${details.userEmail})` : details.userEmail;
+
+    const message = [
+      '🔔 <b>NEW UPI DEPOSIT FOR APPROVAL</b>',
+      '',
+      `💰 <b>Amount:</b> ₹${details.amount.toFixed(2)}`,
+      `🧾 <b>UTR / Ref ID:</b> <code>${details.utr}</code>`,
+      `👤 <b>User:</b> ${userLabel}`,
+      `🆔 <b>Request ID:</b> <code>${details.requestId}</code>`,
+      `⏰ <b>Time:</b> ${timeFormatted} (IST)`,
+      '',
+      '👉 <i>Please verify the UTR in your UPI statement and approve in Admin Dashboard to credit the user.</i>',
+    ].join('\n');
+
+    return await sendTelegramMessage(message, undefined, env);
+  } catch (err: any) {
+    console.error('Error sending payment approval notification to Telegram:', err);
+    return { success: false, error: err.message };
+  }
 }

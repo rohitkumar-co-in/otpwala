@@ -138,7 +138,16 @@ export async function getPaymentRequests(env?: any) {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map((req: any) => ({
+    ...req,
+    amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
+    amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
+    transaction_id: req.transaction_id || req.gateway_payment_id || '',
+    gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
+    payment_method: req.payment_method || req.gateway || 'upi',
+    gateway: req.gateway || req.payment_method || 'upi',
+    status: req.status === 'created' ? 'pending' : (req.status === 'paid' ? 'approved' : (req.status === 'failed' ? 'rejected' : req.status)),
+  }));
 }
 
 export async function approvePaymentRequest(id: string, env?: any) {
@@ -150,24 +159,42 @@ export async function approvePaymentRequest(id: string, env?: any) {
     .single();
 
   if (fetchErr || !request) throw new Error('Payment request not found');
-  if (request.status !== 'pending') throw new Error('Payment already processed');
+  const st = request.status;
+  if (st !== 'pending' && st !== 'created') throw new Error('Payment already processed');
 
-  await creditBalance(request.user_id, parseFloat(request.amount), `Deposit approved (UTR: ${request.transaction_id || id})`, 'topup', env);
+  const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
+  const utr = request.transaction_id || request.gateway_payment_id || id;
 
-  await supabase
+  await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup', env);
+
+  const updateRes = await supabase
     .from('payment_requests')
     .update({ status: 'approved', updated_at: new Date().toISOString() })
     .eq('id', id);
+
+  if (updateRes.error) {
+    await supabase
+      .from('payment_requests')
+      .update({ status: 'paid', updated_at: new Date().toISOString() })
+      .eq('id', id);
+  }
 
   return { success: true };
 }
 
 export async function rejectPaymentRequest(id: string, reason = '', env?: any) {
   const supabase = getSupabaseAdmin(env);
-  await supabase
+  const updateRes = await supabase
     .from('payment_requests')
     .update({ status: 'rejected', admin_notes: reason, updated_at: new Date().toISOString() })
     .eq('id', id);
+
+  if (updateRes.error) {
+    await supabase
+      .from('payment_requests')
+      .update({ status: 'failed', updated_at: new Date().toISOString() })
+      .eq('id', id);
+  }
 
   return { success: true };
 }

@@ -572,48 +572,58 @@ export default function WalletPage() {
                 </tr>
               </thead>
               <tbody>
-                {userRequests.map((req) => (
-                  <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#34d399', fontFamily: 'var(--font-mono)' }}>
-                      ₹{parseFloat(req.amount_inr || 0).toFixed(2)}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      {req.gateway_payment_id ? (
-                        <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)' }}>
-                          {req.gateway_payment_id}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      {req.status === 'created' && (
-                        <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <ClockIcon size={12} />
-                          <span>Pending Verification</span>
-                        </span>
-                      )}
-                      {req.status === 'paid' && (
-                        <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <CheckIcon size={12} />
-                          <span>Approved &amp; Credited</span>
-                        </span>
-                      )}
-                      {req.status === 'failed' && (
-                        <span className="badge badge-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <XIcon size={12} />
-                          <span>Rejected</span>
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <span className="badge badge-info">{req.gateway?.toUpperCase() || 'UPI'}</span>
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {new Date(req.created_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {userRequests.map((req) => {
+                  const amt = parseFloat(req.amount ?? req.amount_inr ?? 0);
+                  const utrId = req.transaction_id || req.gateway_payment_id || '';
+                  const st = req.status;
+                  const isPending = st === 'pending' || st === 'created';
+                  const isApproved = st === 'approved' || st === 'paid';
+                  const isRejected = st === 'rejected' || st === 'failed';
+                  const method = req.payment_method || req.gateway || 'UPI';
+
+                  return (
+                    <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#10b981', fontFamily: 'var(--font-mono)' }}>
+                        ₹{amt.toFixed(2)}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                        {utrId ? (
+                          <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)' }}>
+                            {utrId}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem' }}>
+                        {isPending && (
+                          <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <ClockIcon size={12} />
+                            <span>Pending Verification</span>
+                          </span>
+                        )}
+                        {isApproved && (
+                          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <CheckIcon size={12} />
+                            <span>Approved &amp; Credited</span>
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="badge badge-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <XIcon size={12} />
+                            <span>Rejected</span>
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem' }}>
+                        <span className="badge badge-info">{method.toUpperCase()}</span>
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        {new Date(req.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
