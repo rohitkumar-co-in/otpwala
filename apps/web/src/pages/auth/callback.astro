@@ -1,4 +1,4 @@
-﻿---
+---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
@@ -83,17 +83,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const subEl   = document.getElementById('callback-sub');
   const errEl   = document.getElementById('callback-error');
 
-  async function redirectUser(session) {
-    const isNewUser = session.user && session.user.created_at
-      ? (Date.now() - new Date(session.user.created_at).getTime()) < 30000
-      : false;
-
-    if (isNewUser) {
-      if (titleEl) titleEl.textContent = 'Account Ready!';
-      if (subEl) subEl.textContent = 'Taking you to your dashboard...';
+  async function redirectUser(session, isNew) {
+    if (isNew) {
+      if (titleEl) titleEl.textContent = 'Welcome to OTPWala! 🎉';
+      if (subEl)   subEl.textContent   = 'Your account is all set. Taking you in...';
     } else {
-      if (titleEl) titleEl.textContent = 'Welcome back!';
-      if (subEl) subEl.textContent = 'Taking you to your dashboard...';
+      if (titleEl) titleEl.textContent = 'Welcome back! 👋';
+      if (subEl)   subEl.textContent   = 'Good to see you. Taking you to your dashboard...';
     }
 
     try {
@@ -104,29 +100,26 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     window.location.href = '/dashboard';
   }
 
-  async function handleCallback() {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        await new Promise(function(r) { setTimeout(r, 1200); });
-        const { data: { session: s2 }, error: e2 } = await supabase.auth.getSession();
-        if (e2 || !s2) {
-          if (titleEl) titleEl.textContent = 'Sign-in failed';
-          if (subEl) subEl.textContent = 'Redirecting to login...';
-          if (errEl) { errEl.textContent = (e2 || error) ? (e2 || error).message : 'Authentication error. Please try again.'; errEl.style.display = 'block'; }
-          setTimeout(function() { window.location.href = '/auth/login'; }, 3000);
-          return;
-        }
-        redirectUser(s2);
-        return;
-      }
-      redirectUser(session);
-    } catch(err) {
-      if (titleEl) titleEl.textContent = 'Something went wrong';
-      if (subEl) subEl.textContent = 'Redirecting to login...';
-      setTimeout(function() { window.location.href = '/auth/login'; }, 2000);
-    }
-  }
+  // onAuthStateChange gives us the exact event:
+  // SIGNED_UP  = brand new user (first Google login ever)
+  // SIGNED_IN  = returning user
+  supabase.auth.onAuthStateChange(function(event, session) {
+    if (!session) return;
+    const isNew = event === 'SIGNED_UP';
+    redirectUser(session, isNew);
+  });
 
-  handleCallback();
+  // Fallback: if session already exists when the page loads (e.g. PKCE already exchanged)
+  supabase.auth.getSession().then(function(result) {
+    const session = result.data && result.data.session;
+    const error   = result.error;
+    if (error || !session) return; // wait for onAuthStateChange
+    // If onAuthStateChange already ran it will redirect; this is a safety net
+    setTimeout(function() {
+      if (document.visibilityState !== 'hidden') {
+        redirectUser(session, false);
+      }
+    }, 2000);
+  });
 </script>
+
