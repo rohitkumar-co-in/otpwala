@@ -127,14 +127,26 @@ export default function UserManager() {
     const action = user.is_banned ? 'unban' : 'ban';
     if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return;
 
+    const newBanned = !user.is_banned;
     setActionLoading(user.id);
     setError(null);
     setSuccess(null);
+
+    // Optimistic update — instant UI response
+    setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, is_banned: newBanned } : u));
+    if (inspectTarget?.id === user.id) {
+      setInspectTarget((prev: any) => prev ? { ...prev, is_banned: newBanned } : prev);
+    }
+
     try {
-      await banUser(user.id, !user.is_banned);
-      setSuccess(`User ${user.email} ${user.is_banned ? 'unbanned' : 'banned'} successfully.`);
-      await loadUsers();
+      await banUser(user.id, newBanned);
+      setSuccess(`User ${user.email} ${newBanned ? 'banned' : 'unbanned'} successfully.`);
     } catch (err: any) {
+      // Revert on failure
+      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, is_banned: !newBanned } : u));
+      if (inspectTarget?.id === user.id) {
+        setInspectTarget((prev: any) => prev ? { ...prev, is_banned: !newBanned } : prev);
+      }
       setError(err.message || `Failed to ${action} user`);
     } finally {
       setActionLoading(null);
@@ -221,11 +233,17 @@ export default function UserManager() {
     setBulkActionLoading(true);
     setError(null);
     setSuccess(null);
+
+    // Optimistic update — flip all selected users instantly
+    const ids = new Set(selectedUserIds);
+    setUsers((prev) => prev.map((u) => ids.has(u.id) ? { ...u, is_banned: banned } : u));
+
     try {
       const res = await bulkBanUsers(selectedUserIds, banned);
       setSuccess(res.message || `${selectedUserIds.length} user(s) ${banned ? 'banned' : 'unbanned'} successfully.`);
-      await loadUsers();
     } catch (err: any) {
+      // Revert on failure
+      setUsers((prev) => prev.map((u) => ids.has(u.id) ? { ...u, is_banned: !banned } : u));
       setError(err.message || `Failed to bulk ${actionLabel} users`);
     } finally {
       setBulkActionLoading(false);
