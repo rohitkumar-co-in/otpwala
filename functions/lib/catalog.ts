@@ -69,6 +69,7 @@ function normalizeCountryName(name: string): string {
 const COUNTRY_ISO_ALIASES: Record<string, string> = {
   myanmar: 'mm',
   unitedstatesvirt: 'us',
+  unitedkingdom: 'gb',
   hongkong: 'hk',
   drcongo: 'cd',
   macau: 'mo',
@@ -95,7 +96,7 @@ const COUNTRY_ISO_ALIASES: Record<string, string> = {
   unitedstatesvip: 'us',
 };
 
-const countryIsoByName = new Map<string, string>(Object.entries(COUNTRY_ISO_ALIASES));
+const countryIsoByName = new Map<string, string>();
 try {
   const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
   for (let first = 65; first <= 90; first += 1) {
@@ -108,6 +109,9 @@ try {
     }
   }
 } catch {}
+for (const [name, iso] of Object.entries(COUNTRY_ISO_ALIASES)) {
+  countryIsoByName.set(name, iso);
+}
 
 async function fetchTigerPage(url: string): Promise<string> {
   const controller = new AbortController();
