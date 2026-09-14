@@ -55,15 +55,17 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
       await handleSessionTermination(data.error);
     }
     if (
-      data.error === 'insufficient_funds' ||
-      (typeof data.error === 'string' && data.error.toLowerCase().includes('insufficient')) ||
-      (typeof data.message === 'string' && data.message.toLowerCase().includes('insufficient'))
+      data.error === 'user_insufficient_funds' ||
+      data.code === 'USER_INSUFFICIENT_FUNDS' ||
+      (typeof data.message === 'string' && data.message.toLowerCase().includes('insufficient wallet balance'))
     ) {
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/wallet')) {
         window.location.href = '/dashboard/wallet?insufficient=1';
       }
     }
-    throw new Error(data.message || data.error || 'Request failed');
+    const errObj = new Error(data.message || data.error || 'Request failed');
+    (errObj as any).code = data.error || data.code;
+    throw errObj;
   }
 
   return data.data as T;

@@ -243,7 +243,7 @@ class TigerSmsClient {
   private getErrorMessage(code: string): string {
     const messages: Record<string, string> = {
       'NO_NUMBERS': 'No numbers available for this service/country',
-      'NO_BALANCE': 'Insufficient Tiger SMS balance',
+      'NO_BALANCE': 'Carrier inventory temporarily exhausted for this service/country',
       'BAD_SERVICE': 'Invalid or unavailable service',
       'BAD_COUNTRY': 'Invalid or unavailable country',
       'BAD_VALUES': 'Invalid request parameters',

@@ -84,7 +84,7 @@ export class TigerSmsClient {
       return { activationId: match[1], phoneNumber: match[2] };
     }
     if (text === 'NO_NUMBERS') throw new TigerSmsError('NO_NUMBERS', 'No numbers available right now');
-    if (text === 'NO_BALANCE') throw new TigerSmsError('NO_BALANCE', 'Provider balance exhausted');
+    if (text === 'NO_BALANCE') throw new TigerSmsError('PROVIDER_OUT_OF_STOCK', 'Carrier numbers temporarily unavailable for this service/country. Please choose another country.');
     throw new TigerSmsError(text, `Failed to get number: ${text}`);
   }
 

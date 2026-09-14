@@ -34,7 +34,13 @@ export async function buyNumber(
   const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env);
 
   // 4. Deduct balance from user wallet
-  await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceCode.toUpperCase()}`, env);
+  try {
+    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceCode.toUpperCase()}`, env);
+  } catch (err: any) {
+    const error = new Error('Insufficient wallet balance');
+    (error as any).code = 'USER_INSUFFICIENT_FUNDS';
+    throw error;
+  }
 
   // 5. Purchase from Tiger SMS
   let activationId: string;

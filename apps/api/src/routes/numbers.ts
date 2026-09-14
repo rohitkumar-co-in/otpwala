@@ -23,8 +23,8 @@ router.post('/buy', async (req: AuthenticatedRequest, res) => {
     res.json({ success: true, data: result });
   } catch (e) {
     if (e instanceof OrderError) {
-      const statusCode = e.code === 'INSUFFICIENT_BALANCE' ? 402 : 400;
-      res.status(statusCode).json({ success: false, error: e.message, code: e.code });
+      const statusCode = (e.code === 'USER_INSUFFICIENT_FUNDS' || e.code === 'INSUFFICIENT_BALANCE') ? 402 : 400;
+      res.status(statusCode).json({ success: false, error: e.code, message: e.message, code: e.code });
       return;
     }
     console.error('Buy number error:', e);

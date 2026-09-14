@@ -355,7 +355,7 @@ export default function BuyNumber() {
 
     // Instant wallet check
     if (walletBalance !== null && country.priceInr && walletBalance < country.priceInr) {
-      window.location.href = '/dashboard/wallet?insufficient=1';
+      setError(`Insufficient wallet balance. This number costs ₹${country.priceInr.toFixed(2)}, but your current balance is ₹${walletBalance.toFixed(2)}.`);
       return;
     }
 
@@ -384,12 +384,13 @@ export default function BuyNumber() {
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
-      const msg = (err?.message || err?.code || '').toLowerCase();
-      if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('fund')) {
-        window.location.href = '/dashboard/wallet?insufficient=1';
+      const code = err?.code || '';
+      const msg = (err?.message || '').toLowerCase();
+      if (code === 'user_insufficient_funds' || msg.includes('insufficient wallet balance')) {
+        setError(`Insufficient wallet balance. This number costs ₹${country.priceInr?.toFixed(2) || ''}, but your current wallet balance is insufficient.`);
         return;
       }
-      setError(err.message || 'Failed to buy number. Please choose another country or retry.');
+      setError(err.message || 'Carrier numbers are temporarily unavailable for this country. Please choose another country or retry.');
     } finally {
       setBuyingCountryId(null);
     }
@@ -910,9 +911,16 @@ export default function BuyNumber() {
         </div>
 
         {error && (
-          <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircleIcon size={16} />
-            <span>{error}</span>
+          <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircleIcon size={16} />
+              <span>{error}</span>
+            </div>
+            {error.toLowerCase().includes('wallet') && (
+              <a href="/dashboard/wallet" className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                Recharge Wallet →
+              </a>
+            )}
           </div>
         )}
 

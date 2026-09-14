@@ -86,7 +86,7 @@ export async function buyNumber(
   try {
     await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceName} (${countryName})`);
   } catch (e: any) {
-    throw new OrderError('INSUFFICIENT_BALANCE', e.message || 'Insufficient balance');
+    throw new OrderError('USER_INSUFFICIENT_FUNDS', e.message || 'Insufficient wallet balance');
   }
 
   // 5. Purchase number from Tiger SMS
@@ -107,7 +107,8 @@ export async function buyNumber(
     );
 
     if (e instanceof TigerSmsError) {
-      throw new OrderError(e.code, e.message);
+      const code = e.code === 'NO_BALANCE' ? 'PROVIDER_OUT_OF_STOCK' : e.code;
+      throw new OrderError(code, e.message);
     }
     throw new OrderError('PURCHASE_FAILED', 'Failed to purchase number');
   }

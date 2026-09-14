@@ -314,11 +314,14 @@ export const onRequest = async (context: any) => {
         const result = await buyNumber(auth.userId, service, parseInt(country, 10), env);
         return jsonResponse({ success: true, data: result });
       } catch (buyErr: any) {
-        const msg = (buyErr?.message || '').toLowerCase();
-        if (msg.includes('insufficient')) {
-          return jsonResponse({ success: false, error: 'insufficient_funds', message: 'Insufficient wallet balance' }, 402);
+        if (buyErr?.code === 'USER_INSUFFICIENT_FUNDS' || (buyErr?.message || '').toLowerCase().includes('insufficient wallet balance')) {
+          return jsonResponse({ success: false, error: 'user_insufficient_funds', message: 'Insufficient wallet balance' }, 402);
         }
-        throw buyErr;
+        return jsonResponse({
+          success: false,
+          error: buyErr?.code || 'purchase_failed',
+          message: buyErr?.message || 'Failed to order number. Please try another country or retry.'
+        }, 400);
       }
     }
 
