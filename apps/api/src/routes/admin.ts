@@ -949,4 +949,123 @@ router.post('/telegram/test', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+/**
+ * GET /api/admin/payment-requests
+ * List all manual deposit / payment requests.
+ */
+router.get('/payment-requests', async (_req: AuthenticatedRequest, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('payment_requests')
+      .select('*, profiles:user_id(email, full_name)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const normalized = (data || []).map((req: any) => {
+      const s = String(req.status || '').toLowerCase().trim();
+      const normalizedStatus =
+        s === 'paid' || s === 'approved' || s === 'completed' || s === 'success'
+          ? 'approved'
+          : s === 'failed' || s === 'rejected' || s === 'cancelled'
+          ? 'rejected'
+          : 'pending';
+
+      return {
+        ...req,
+        amount: parseFloat(req.amount ?? req.amount_inr ?? 0),
+        amount_inr: parseFloat(req.amount_inr ?? req.amount ?? 0),
+        transaction_id: req.transaction_id || req.gateway_payment_id || '',
+        gateway_payment_id: req.gateway_payment_id || req.transaction_id || '',
+        payment_method: req.payment_method || req.gateway || 'upi',
+        gateway: req.gateway || req.payment_method || 'upi',
+        status: normalizedStatus,
+      };
+    });
+
+    res.json({ success: true, data: normalized });
+  } catch (e: any) {
+    console.error('Error fetching admin payment requests:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to fetch payment requests' });
+  }
+});
+
+/**
+ * POST /api/admin/payment-requests/:id/approve
+ * Approve deposit and credit user wallet balance.
+ */
+router.post('/payment-requests/:id/approve', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { data: request, error: fetchErr } = await supabaseAdmin
+      .from('payment_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !request) {
+      res.status(404).json({ success: false, error: 'Payment request not found' });
+      return;
+    }
+
+    const st = request.status;
+    if (st === 'approved' || st === 'paid') {
+      res.status(400).json({ success: false, error: 'This payment request has already been approved and credited.' });
+      return;
+    }
+
+    const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
+    const utr = request.transaction_id || request.gateway_payment_id || id;
+
+    // Credit user balance
+    await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup');
+
+    // Update status in payment_requests
+    const res1 = await supabaseAdmin
+      .from('payment_requests')
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (res1.error) {
+      await supabaseAdmin
+        .from('payment_requests')
+        .update({ status: 'paid', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    }
+
+    res.json({ success: true, message: 'Deposit approved and credited successfully' });
+  } catch (e: any) {
+    console.error('Error approving payment request:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to approve payment request' });
+  }
+});
+
+/**
+ * POST /api/admin/payment-requests/:id/reject
+ * Reject a deposit request.
+ */
+router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body || {};
+
+    const updateRes = await supabaseAdmin
+      .from('payment_requests')
+      .update({ status: 'rejected', admin_notes: reason || null, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (updateRes.error) {
+      await supabaseAdmin
+        .from('payment_requests')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('id', id);
+    }
+
+    res.json({ success: true, message: 'Deposit request rejected' });
+  } catch (e: any) {
+    console.error('Error rejecting payment request:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to reject payment request' });
+  }
+});
+
 export default router;

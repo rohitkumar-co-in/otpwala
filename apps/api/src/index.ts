@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import catalogRoutes from './routes/catalog.js';
 import priceRoutes from './routes/prices.js';
@@ -12,6 +12,7 @@ import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
 import sessionRoutes from './routes/session.js';
 import referralRoutes from './routes/referrals.js';
+import telegramRoutes from './routes/telegram.js';
 
 const app = express();
 
@@ -152,7 +153,7 @@ app.get('/api/auth/config', async (_req, res) => {
 app.use('/api/auth', sessionRoutes);
 
 // ─── Authenticated Routes ───
-app.use('/api/prices', authMiddleware, priceRoutes);
+app.use('/api/prices', optionalAuthMiddleware, priceRoutes);
 app.use('/api/numbers', authMiddleware, buyLimiter, numberRoutes);
 app.use('/api/wallet', authMiddleware, walletRoutes);
 app.use('/api/orders', authMiddleware, orderRoutes);
@@ -160,6 +161,9 @@ app.use('/api/referrals', authMiddleware, referralRoutes);
 
 // ─── Admin Routes ───
 app.use('/api/admin', authMiddleware, adminRoutes);
+
+// ─── Telegram Webhook & Action Routes (Public) ───
+app.use('/api/telegram', telegramRoutes);
 
 // ─── Error Handler ───
 app.use(errorHandler);

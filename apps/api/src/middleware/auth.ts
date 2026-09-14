@@ -107,3 +107,26 @@ export async function authMiddleware(
     res.status(401).json({ success: false, error: 'Authentication failed' });
   }
 }
+
+export async function optionalAuthMiddleware(
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (user) {
+      req.userId = user.id;
+      req.userEmail = user.email;
+    }
+  } catch {}
+  next();
+}
+

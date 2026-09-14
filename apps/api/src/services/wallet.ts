@@ -114,10 +114,22 @@ export async function deductBalance(
 export async function creditBalance(
   userId: string,
   amount: number,
-  type: 'topup' | 'refund' | 'admin_credit',
-  description: string,
+  typeOrDesc: 'topup' | 'refund' | 'admin_credit' | string,
+  descOrType?: string,
   paymentInfo?: { paymentId?: string; method?: string }
 ): Promise<number> {
+  const validTypes = ['topup', 'refund', 'admin_credit', 'referral_bonus'];
+  let type: 'topup' | 'refund' | 'admin_credit' = 'topup';
+  let description = '';
+
+  if (validTypes.includes(typeOrDesc)) {
+    type = typeOrDesc as any;
+    description = descOrType || '';
+  } else {
+    description = typeOrDesc;
+    type = (descOrType && validTypes.includes(descOrType)) ? (descOrType as any) : 'topup';
+  }
+
   const { data: profile, error: fetchError } = await supabaseAdmin
     .from('profiles')
     .select('wallet_balance')

@@ -122,7 +122,19 @@ router.get('/payment-requests', async (req: AuthenticatedRequest, res) => {
       .limit(20);
 
     if (error) throw error;
-    res.json({ success: true, data: data || [] });
+
+    const normalized = (data || []).map((r: any) => ({
+      ...r,
+      amount: parseFloat(r.amount ?? r.amount_inr ?? 0),
+      amount_inr: parseFloat(r.amount_inr ?? r.amount ?? 0),
+      transaction_id: r.transaction_id || r.gateway_payment_id || '',
+      gateway_payment_id: r.gateway_payment_id || r.transaction_id || '',
+      payment_method: r.payment_method || r.gateway || 'upi',
+      gateway: r.gateway || r.payment_method || 'upi',
+      status: r.status === 'created' ? 'pending' : (r.status === 'paid' ? 'approved' : (r.status === 'failed' ? 'rejected' : r.status)),
+    }));
+
+    res.json({ success: true, data: normalized });
   } catch (e) {
     console.error('User payment requests error:', e);
     res.status(500).json({ success: false, error: 'Failed to fetch deposit requests' });
@@ -158,19 +170,40 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    const { data: request, error: insertError } = await supabaseAdmin
+    let request: any = null;
+
+    // Try modern column insert
+    const modernInsert = await supabaseAdmin
       .from('payment_requests')
       .insert({
         user_id: req.userId,
-        amount_inr: amountNum,
-        gateway: 'upi',
-        gateway_payment_id: utr ? String(utr).trim() : null,
-        status: 'created',
+        amount: amountNum,
+        transaction_id: utr ? String(utr).trim() : null,
+        payment_method: 'upi',
+        status: 'pending',
       })
       .select()
       .single();
 
-    if (insertError) throw insertError;
+    if (modernInsert.error) {
+      // Fallback for legacy columns
+      const legacyInsert = await supabaseAdmin
+        .from('payment_requests')
+        .insert({
+          user_id: req.userId,
+          amount_inr: amountNum,
+          gateway: 'upi',
+          gateway_payment_id: utr ? String(utr).trim() : null,
+          status: 'created',
+        })
+        .select()
+        .single();
+
+      if (legacyInsert.error) throw modernInsert.error || legacyInsert.error;
+      request = legacyInsert.data;
+    } else {
+      request = modernInsert.data;
+    }
 
     // Asynchronously notify admin on Telegram if UTR is provided
     if (utr) {

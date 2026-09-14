@@ -6,21 +6,22 @@ import { AuthenticatedRequest } from '../middleware/auth.js';
 const router = Router();
 
 /**
- * GET /api/prices/:service/:country
+ * GET /api/prices/:service/:country or /api/prices?service=wa&country=187
  * Returns pricing + availability for a service/country pair.
  */
-router.get('/:service/:country', async (req: AuthenticatedRequest, res) => {
+router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) => {
   try {
-    const { service, country } = req.params;
-    const countryCode = parseInt(country);
+    const service = req.params.service || (req.query.service as string);
+    const countryRaw = req.params.country || (req.query.country as string);
+    const countryCode = parseInt(countryRaw || '', 10);
 
-    if (isNaN(countryCode)) {
-      res.status(400).json({ success: false, error: 'Invalid country code' });
+    if (!service || isNaN(countryCode)) {
+      res.status(400).json({ success: false, error: 'service and country required' });
       return;
     }
 
     const priceData = await tigerSms.getPricesV3(service, countryCode);
-    const countryPrices = priceData[country];
+    const countryPrices = priceData[String(countryCode)];
 
     if (!countryPrices || !countryPrices[service]) {
       res.json({

@@ -166,3 +166,64 @@ export async function testTelegramConnection(
 
   return { success: true, message: 'Test message sent to your Telegram chat successfully!' };
 }
+
+export function createActionToken(requestId: string, botToken: string): string {
+  let hash = 0;
+  const str = `${requestId}_${botToken}_otpwala_secret`;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+export function verifyActionToken(requestId: string, token: string, botToken: string): boolean {
+  if (!requestId || !token || !botToken) return false;
+  return createActionToken(requestId, botToken) === token;
+}
+
+export async function answerCallbackQuery(
+  callbackQueryId: string,
+  text: string,
+  showAlert = false,
+  botToken: string
+): Promise<void> {
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text,
+        show_alert: showAlert,
+      }),
+    });
+  } catch (e) {
+    console.warn('Failed to answer callback query:', e);
+  }
+}
+
+export async function editTelegramMessageText(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  botToken: string
+): Promise<void> {
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (e) {
+    console.warn('Failed to edit telegram message text:', e);
+  }
+}
+
