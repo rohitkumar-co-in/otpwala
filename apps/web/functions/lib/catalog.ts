@@ -140,6 +140,52 @@ export async function getCountries(env?: any) {
   return countries;
 }
 
+export async function setServiceActiveStatus(code: string, enabled: boolean, env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const { disabledServices, disabledCountries } = await getDisabledCatalog(env);
+  const lowerCode = code.toLowerCase();
+  let updatedServices = [...disabledServices];
+
+  if (enabled) {
+    updatedServices = updatedServices.filter((c) => c !== lowerCode);
+  } else {
+    if (!updatedServices.includes(lowerCode)) updatedServices.push(lowerCode);
+  }
+
+  await supabase.from('settings').upsert({ key: 'disabled_services', value: JSON.stringify(updatedServices), updated_at: new Date().toISOString() });
+  return { disabledServices: updatedServices, disabledCountries };
+}
+
+export async function setCountryActiveStatus(countryId: number, enabled: boolean, env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const { disabledServices, disabledCountries } = await getDisabledCatalog(env);
+  const idNum = Number(countryId);
+  let updatedCountries = [...disabledCountries];
+
+  if (enabled) {
+    updatedCountries = updatedCountries.filter((id) => id !== idNum);
+  } else {
+    if (!updatedCountries.includes(idNum)) updatedCountries.push(idNum);
+  }
+
+  await supabase.from('settings').upsert({ key: 'disabled_countries', value: JSON.stringify(updatedCountries), updated_at: new Date().toISOString() });
+  return { disabledServices, disabledCountries: updatedCountries };
+}
+
+export async function setDisabledCatalog(services?: string[], countries?: number[], env?: any) {
+  const supabase = getSupabaseAdmin(env);
+
+  if (services !== undefined) {
+    await supabase.from('settings').upsert({ key: 'disabled_services', value: JSON.stringify(services.map((s) => s.toLowerCase())), updated_at: new Date().toISOString() });
+  }
+
+  if (countries !== undefined) {
+    await supabase.from('settings').upsert({ key: 'disabled_countries', value: JSON.stringify(countries.map((c) => Number(c))), updated_at: new Date().toISOString() });
+  }
+
+  return getDisabledCatalog(env);
+}
+
 export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledCountries }, allCountries, freePrices] = await Promise.all([

@@ -1,5 +1,5 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
-import { getServices, getCountries, getServiceCountries } from '../lib/catalog';
+import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog } from '../lib/catalog';
 import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder } from '../lib/order';
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
@@ -468,6 +468,99 @@ export const onRequest = async (context: any) => {
         const body = await request.json().catch(() => ({}));
         await rejectPaymentRequest(paymentRejectMatch[1], body.reason, env);
         return jsonResponse({ success: true });
+      }
+
+      // ─── Admin Catalog ───
+      if (path === '/api/admin/catalog' && method === 'GET') {
+        const tiger = new TigerSmsClient(env);
+        const [servicesList, countriesList, { disabledServices, disabledCountries }] = await Promise.all([
+          tiger.getServicesList().catch(() => []),
+          tiger.getCountries().catch(() => []),
+          getDisabledCatalog(env),
+        ]);
+
+        const disabledServicesSet = new Set(disabledServices);
+        const disabledCountriesSet = new Set(disabledCountries);
+
+        const services = servicesList.map((s: any) => ({
+          code: s.code,
+          name: s.name,
+          enabled: !disabledServicesSet.has(s.code.toLowerCase()),
+        }));
+
+        const countries = countriesList.map((c: any) => ({
+          id: c.id,
+          name: c.eng,
+          enabled: !disabledCountriesSet.has(Number(c.id)),
+        }));
+
+        return jsonResponse({
+          success: true,
+          data: {
+            services,
+            countries,
+            stats: {
+              totalServices: services.length,
+              enabledServices: services.filter((s: any) => s.enabled).length,
+              totalCountries: countries.length,
+              enabledCountries: countries.filter((c: any) => c.enabled).length,
+            },
+          },
+        });
+      }
+
+      if (path === '/api/admin/catalog/service' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { code, enabled } = body;
+        if (!code || typeof enabled !== 'boolean') {
+          return jsonResponse({ success: false, error: 'Invalid code or enabled status' }, 400);
+        }
+        const updated = await setServiceActiveStatus(code, enabled, env);
+        return jsonResponse({ success: true, message: `Service ${code.toUpperCase()} is now ${enabled ? 'enabled' : 'disabled'}`, data: updated });
+      }
+
+      if (path === '/api/admin/catalog/country' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { id, enabled } = body;
+        if (id === undefined || typeof enabled !== 'boolean') {
+          return jsonResponse({ success: false, error: 'Invalid id or enabled status' }, 400);
+        }
+        const updated = await setCountryActiveStatus(Number(id), enabled, env);
+        return jsonResponse({ success: true, message: `Country ID ${id} is now ${enabled ? 'enabled' : 'disabled'}`, data: updated });
+      }
+
+      if (path === '/api/admin/catalog/batch' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { action } = body;
+
+        const POPULAR_SVCS = ['wa', 'tg', 'go', 'ig', 'fb', 'lf', 'mm', 'dr', 'tw', 'nf'];
+        const POPULAR_CTRS = [0, 1, 2, 4, 5, 6, 7, 10, 16, 22, 187];
+
+        const tiger = new TigerSmsClient(env);
+        const [allServices, allCountries] = await Promise.all([
+          tiger.getServicesList().catch(() => []),
+          tiger.getCountries().catch(() => []),
+        ]);
+
+        if (action === 'enable_all_services') {
+          await setDisabledCatalog([], undefined, env);
+        } else if (action === 'disable_all_services') {
+          await setDisabledCatalog((allServices as any[]).map((s) => s.code), undefined, env);
+        } else if (action === 'enable_popular_services') {
+          const disabled = (allServices as any[]).filter((s) => !POPULAR_SVCS.includes(s.code.toLowerCase())).map((s) => s.code);
+          await setDisabledCatalog(disabled, undefined, env);
+        } else if (action === 'enable_all_countries') {
+          await setDisabledCatalog(undefined, [], env);
+        } else if (action === 'disable_all_countries') {
+          await setDisabledCatalog(undefined, (allCountries as any[]).map((c) => c.id), env);
+        } else if (action === 'enable_popular_countries') {
+          const disabled = (allCountries as any[]).filter((c) => !POPULAR_CTRS.includes(Number(c.id))).map((c) => c.id);
+          await setDisabledCatalog(undefined, disabled, env);
+        } else {
+          return jsonResponse({ success: false, error: 'Unknown batch action' }, 400);
+        }
+
+        return jsonResponse({ success: true, message: `Batch action "${action}" executed successfully` });
       }
     }
 
