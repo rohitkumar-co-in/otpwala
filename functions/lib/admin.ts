@@ -56,7 +56,51 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return { users: data || [], total: count || 0 };
+
+  const authMap: Record<string, { name?: string | null; avatar_url?: string | null; last_sign_in_at?: string | null; created_at?: string | null }> = {};
+  try {
+    const { data: authData } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (authData?.users) {
+      authData.users.forEach((au) => {
+        authMap[au.id] = {
+          name: au.user_metadata?.full_name || au.user_metadata?.name || null,
+          avatar_url: au.user_metadata?.avatar_url || au.user_metadata?.picture || null,
+          last_sign_in_at: au.last_sign_in_at || null,
+          created_at: au.created_at || null,
+        };
+      });
+    }
+  } catch (authErr) {}
+
+  let zeroMarkupSet = new Set<string>();
+  try {
+    const { getZeroMarkupUsers } = await import('./pricing');
+    const ids = await getZeroMarkupUsers(env);
+    zeroMarkupSet = new Set(ids);
+  } catch {}
+
+  const enrichedUsers = (data || []).map((u: any) => {
+    const authInfo = authMap[u.id] || {};
+    const resolvedName = (u.full_name && u.full_name.trim()) || authInfo.name || null;
+    const lastLogin = authInfo.last_sign_in_at || null;
+    const registeredAt = u.created_at || authInfo.created_at || new Date().toISOString();
+    
+    return {
+      ...u,
+      wallet_balance: parseFloat(u.balance || 0) || 0,
+      full_name: resolvedName,
+      name: resolvedName,
+      avatar_url: authInfo.avatar_url || null,
+      last_sign_in_at: lastLogin,
+      created_at: registeredAt,
+      has_zero_markup: zeroMarkupSet.has(u.id),
+    };
+  });
+
+  return { users: enrichedUsers, total: count || 0 };
 }
 
 export async function creditUserBalance(userId: string, amount: number, note: string, env?: any) {
