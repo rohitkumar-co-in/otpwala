@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { getLocalSessionId, handleSessionTermination } from './sessionManager';
+import { getLocalSessionId, handleSessionTermination, getOrWaitForSession } from './sessionManager';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -16,7 +16,9 @@ const API_URL = getApiBaseUrl();
 
 async function getAuthToken(): Promise<string | null> {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    // Use getOrWaitForSession to avoid race condition where session isn't
+    // restored from storage yet (would return null and cause 401 errors)
+    const session = await getOrWaitForSession();
     return session?.access_token || null;
   } catch {
     return null;
