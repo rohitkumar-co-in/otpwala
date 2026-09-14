@@ -406,6 +406,7 @@ const formattedTitle = formatPageTitle(title);
     .user-badge {
       cursor: pointer;
       user-select: none;
+      border-radius: 50%;
       transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     }
 
@@ -688,7 +689,14 @@ const formattedTitle = formatPageTitle(title);
       const dropdownEmail = document.getElementById('dropdown-user-email');
       const dropdownRole = document.getElementById('dropdown-user-role');
       if (session.user.email) {
-        if (avatar) avatar.textContent = session.user.email[0].toUpperCase();
+        if (avatar) {
+          const avatarUrl = session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture;
+          if (avatarUrl) {
+            avatar.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+          } else {
+            avatar.textContent = session.user.email[0].toUpperCase();
+          }
+        }
         if (dropdownEmail) dropdownEmail.textContent = session.user.email;
       }
       if (dropdownRole) {
