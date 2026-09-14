@@ -42,20 +42,16 @@ export async function authenticateUser(request: Request, env?: any): Promise<{ u
 
     if (!profile) {
       const email = user.email || '';
-      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0] || 'User';
 
       const { data: newProfile } = await supabase
         .from('profiles')
-        .upsert({
+        .insert({
           id: user.id,
           email,
           full_name: fullName,
           role: 'user',
-          referral_code: code,
-          wallet_balance: 0,
-          total_spent: 0,
-          total_orders: 0,
+          balance: 0,
           is_banned: false,
         })
         .select('id, email, role, is_banned')

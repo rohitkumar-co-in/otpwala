@@ -40,22 +40,91 @@ export async function getReferralStats(userId: string, env?: any) {
     }
   } catch {}
 
-  const myReferrals = allReferrals.filter((r: any) => r.referrerId === userId);
-  const totalEarned = myReferrals.reduce((sum: number, r: any) => sum + (r.totalBonusEarned || 0), 0);
+  const userReferrals = allReferrals.filter((r: any) => r.referrerId === userId);
+  
+  const referredUsers = userReferrals.map((r: any) => ({
+    name: r.referredName || 'User',
+    joinedAt: r.joinedAt,
+  }));
+
+  const { data: bonusTxs } = await supabase
+    .from('wallet_transactions')
+    .select('id, description, amount, created_at')
+    .eq('user_id', userId)
+    .ilike('description', '%refer bonus%')
+    .order('created_at', { ascending: false });
+
+  const bonusLogs = (bonusTxs || []).map((tx: any) => ({
+    id: tx.id,
+    description: tx.description,
+    amount: parseFloat(tx.amount || 0),
+    createdAt: tx.created_at,
+  }));
+
+  const totalEarned = bonusLogs.reduce((sum, item) => sum + item.amount, 0);
+
+  const myReferralRecord = allReferrals.find((r: any) => r.referredUserId === userId);
+  const isReferred = !!myReferralRecord;
+  let myReferrerCode: string | null = null;
+  if (myReferralRecord) {
+    for (const [code, uid] of Object.entries(codesMap)) {
+      if (uid === myReferralRecord.referrerId) {
+        myReferrerCode = code;
+        break;
+      }
+    }
+  }
+
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('created_at')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const userCreatedAt = profileData?.created_at || new Date().toISOString();
+  const elapsedHours = (Date.now() - new Date(userCreatedAt).getTime()) / (1000 * 60 * 60);
+  const isWithin24Hours = elapsedHours <= 24;
+  const hoursRemaining = Math.max(0, 24 - elapsedHours);
+  const canClaimReferral = !isReferred && isWithin24Hours;
+
+  const { data: settingsData } = await supabase
+    .from('settings')
+    .select('key, value')
+    .in('key', [
+      'referral_bonus_tier1_percent',
+      'referral_bonus_tier2_percent',
+      'referral_bonus_tier3_percent',
+      'referral_bonus_window_days',
+    ]);
+  const sMap = Object.fromEntries((settingsData || []).map((r: any) => [r.key, r.value]));
+  const tier1 = parseFloat(sMap.referral_bonus_tier1_percent || '20');
+  const tier2 = parseFloat(sMap.referral_bonus_tier2_percent || '5');
+  const tier3 = parseFloat(sMap.referral_bonus_tier3_percent || '5');
+  const windowDays = parseFloat(sMap.referral_bonus_window_days || '30');
+
+  const bonusConfig = {
+    tier1: isNaN(tier1) ? 20 : tier1,
+    tier2: isNaN(tier2) ? 5 : tier2,
+    tier3: isNaN(tier3) ? 5 : tier3,
+    windowDays: isNaN(windowDays) || windowDays < 1 ? 30 : windowDays,
+  };
 
   return {
     referralCode,
-    referralLink: `https://otpwala.me/?ref=${referralCode}`,
-    totalReferrals: myReferrals.length,
-    activeReferrals: myReferrals.length,
-    totalCommissionEarned: totalEarned,
-    pendingCommission: 0,
-    commissionRate: 20,
-    recentReferrals: myReferrals.slice(-10).map((r: any) => ({
-      name: r.referredName || 'User',
-      date: r.joinedAt,
-      earned: r.totalBonusEarned || 0,
-    })),
+    totalEarned: Math.round(totalEarned * 100) / 100,
+    totalReferrals: userReferrals.length,
+    bonusConfig,
+    referredUsers,
+    bonusLogs,
+    claimStatus: {
+      isReferred,
+      referrerCode: myReferrerCode,
+      userCreatedAt,
+      isWithin24Hours,
+      isWithin48Hours: isWithin24Hours,
+      hoursRemaining: Math.round(hoursRemaining * 10) / 10,
+      canClaimReferral,
+    },
   };
 }
 
