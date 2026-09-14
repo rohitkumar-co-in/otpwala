@@ -30,7 +30,7 @@ const pricingFaqSchema = {
       "name": "Do I have to pay a monthly subscription?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. OTPWala has zero monthly subscriptions, zero sign-up fees, and zero hidden charges. You only pay for the individual virtual numbers you use."
+        "text": "No monthly subscription is required. The live price for the selected service and country is shown before each number purchase."
       }
     },
     {
@@ -38,7 +38,7 @@ const pricingFaqSchema = {
       "name": "What is the minimum wallet deposit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The minimum wallet deposit is only ₹50 via instant Indian UPI (Google Pay, PhonePe, Paytm, BHIM). Your balance never expires."
+        "text": "The wallet page shows the current minimum top-up and supported UPI payment instructions."
       }
     },
     {
@@ -110,17 +110,17 @@ const pricingFaqSchema = {
         <div class="value-card">
           <div class="v-icon">💳</div>
           <h3>UPI Deposits From ₹50</h3>
-          <p>Instant balance top-up with Google Pay, PhonePe, Paytm, or BHIM. Zero payment gateway markup.</p>
+          <p>Submit a balance top-up using Google Pay, PhonePe, Paytm, or BHIM. The credited amount is shown in your wallet.</p>
         </div>
         <div class="value-card">
           <div class="v-icon">⚡</div>
           <h3>Pay Per SMS Only</h3>
-          <p>No recurring monthly plans or lock-ins. Unused balance stays in your wallet indefinitely.</p>
+          <p>No recurring monthly plan is required. Each number is charged at the price shown before purchase.</p>
         </div>
         <div class="value-card">
           <div class="v-icon">🛡️</div>
-          <h3>100% Automated Refund</h3>
-          <p>If your SMS code doesn't arrive before the countdown finishes, your funds return automatically.</p>
+          <h3>Tiger-Confirmed Cancellation Credits</h3>
+          <p>Eligible cancellations are credited only after Tiger SMS confirms them. Wallet credit can take 2–5 minutes.</p>
         </div>
       </div>
 
@@ -175,22 +175,21 @@ const pricingFaqSchema = {
             <div class="tier-badge">Starter</div>
             <div class="tier-amount">₹50</div>
             <div class="tier-features">
-              <p>✓ Ideal for 25–35+ OTP verifications</p>
-              <p>✓ Instant UPI activation</p>
-              <p>✓ Balance never expires</p>
+              <p>✓ Top up ₹50</p>
+              <p>✓ Use credited balance for number purchases</p>
+              <p>✓ Review every transaction in your wallet</p>
             </div>
             <a href="/auth/login?redirect=/dashboard/wallet" class="btn btn-secondary" style="width: 100%;">Log In to Deposit</a>
           </div>
 
-          <div class="tier-card featured">
-            <div class="featured-ribbon">Most Popular</div>
+          <div class="tier-card">
             <div class="tier-badge">Standard</div>
             <div class="tier-amount">₹200</div>
             <div class="tier-features">
               <p>✓ Spend only on the numbers you purchase</p>
-              <p>✓ Instant UPI activation</p>
+              <p>✓ Use balance after the top-up is credited</p>
               <p>✓ Access to currently available countries</p>
-              <p>✓ Priority support</p>
+              <p>✓ Review every transaction in your wallet</p>
             </div>
             <a href="/auth/login?redirect=/dashboard/wallet" class="btn btn-primary" style="width: 100%;">Log In to Deposit</a>
           </div>
@@ -200,9 +199,9 @@ const pricingFaqSchema = {
             <div class="tier-amount">₹500</div>
             <div class="tier-features">
               <p>✓ Flexible balance for multiple purchases</p>
-              <p>✓ Instant UPI activation</p>
-              <p>✓ Perfect for agency & marketing teams</p>
-              <p>✓ Dedicated Telegram assistance</p>
+              <p>✓ Use balance after the top-up is credited</p>
+              <p>✓ Access to currently available countries</p>
+              <p>✓ Contact Telegram support when assistance is needed</p>
             </div>
             <a href="/auth/login?redirect=/dashboard/wallet" class="btn btn-secondary" style="width: 100%;">Log In to Deposit</a>
           </div>
@@ -229,8 +228,8 @@ const pricingFaqSchema = {
           <div class="comp-col highlight">
             <h3 class="good-title">OTPWala Private Numbers</h3>
             <ul class="comp-list">
-              <li>✅ 100% Private — visible strictly inside your account</li>
-              <li>✅ Fresh, high-trust carrier SIM pools</li>
+              <li>✅ Order details visible inside your authenticated account</li>
+              <li>✅ Temporary numbers supplied by Tiger SMS</li>
               <li>✅ Live Tiger SMS service and country availability</li>
               <li>✅ Eligible refunds after Tiger cancellation confirmation</li>
             </ul>
@@ -249,14 +248,14 @@ const pricingFaqSchema = {
           <details class="faq-item" open>
             <summary class="faq-question">Do I have to pay a monthly subscription?</summary>
             <div class="faq-answer">
-              <p>No. OTPWala has zero monthly subscriptions, zero sign-up fees, and zero hidden charges. You only pay for the individual virtual numbers you use.</p>
+              <p>No monthly subscription is required. The live price for the selected service and country is shown before each number purchase.</p>
             </div>
           </details>
 
           <details class="faq-item">
             <summary class="faq-question">What is the minimum wallet deposit?</summary>
             <div class="faq-answer">
-              <p>The minimum wallet deposit is only ₹50 via instant Indian UPI (Google Pay, PhonePe, Paytm, BHIM). Your balance never expires.</p>
+              <p>The wallet page shows the current minimum top-up and supported UPI payment instructions.</p>
             </div>
           </details>
 

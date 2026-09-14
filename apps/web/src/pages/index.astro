@@ -660,7 +660,7 @@ const faqSchema = {
             <span class="faq-toggle-icon"></span>
           </summary>
           <div class="faq-answer">
-            <p>Yes. Each virtual number is allocated exclusively to you for the duration of that activation session. Your personal SIM card and real identity remain 100% private, keeping you completely shielded from telemarketing spam, tracking, and data breaches.</p>
+            <p>Your personal SIM number is not used for the activation. The temporary number and received message remain visible inside your authenticated OTPWala order view.</p>
           </div>
         </details>
       </div>
@@ -1760,10 +1760,11 @@ const faqSchema = {
     rows.forEach((r, i) => {
       const span = r.querySelector('.ps-status');
       if (!span) return;
-      span.className = 'ps-status ' + statuses[i][0];
-      span.textContent = statuses[i][1];
+      const status = statuses[(i + serviceIdx) % statuses.length];
+      span.className = 'ps-status ' + status[0];
+      span.textContent = status[1];
     });
-    serviceIdx++;
+    serviceIdx = (serviceIdx + 1) % statuses.length;
   }, 3500);
 
 </script>

@@ -561,7 +561,7 @@ export default function BuyNumber() {
             <input
               type="text"
               className="input"
-              placeholder="Search 900+ services (WhatsApp, Telegram, Google, ChatGPT...)"
+              placeholder="Search services (WhatsApp, Telegram, Google, ChatGPT...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ width: '100%', paddingLeft: '2.5rem', height: '46px', fontSize: '0.95rem' }}

@@ -83,10 +83,19 @@ export default function WalletPage() {
       setBalance(parseFloat(String(walletData.balance)) || 0);
       setUserRequests(requestsData || []);
       if (walletData.config) {
-        setWalletConfig(walletData.config);
-        if (walletData.config.suggestions && walletData.config.suggestions.length > 0) {
-          setTopUpAmount(String(walletData.config.suggestions[0]));
-        }
+        const minDeposit = Number(walletData.config.minDeposit) || 1;
+        const maxDeposit = Math.max(minDeposit, Number(walletData.config.maxDeposit) || minDeposit);
+        const suggestions = (walletData.config.suggestions || [])
+          .map(Number)
+          .filter((amount: number) => Number.isFinite(amount) && amount >= minDeposit && amount <= maxDeposit);
+        const safeConfig = {
+          ...walletData.config,
+          minDeposit,
+          maxDeposit,
+          suggestions: suggestions.length > 0 ? suggestions : [minDeposit],
+        };
+        setWalletConfig(safeConfig);
+        setTopUpAmount(String(safeConfig.suggestions[0]));
       }
     } catch (err) {
       console.error('Wallet error:', err);
@@ -178,7 +187,7 @@ export default function WalletPage() {
             Wallet & <span className="text-gradient">UPI Deposits</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Top up your balance instantly using any UPI App (PhonePe, Google Pay, Paytm, BHIM)
+            Submit a wallet top-up using a supported UPI app and use it after approval
           </p>
         </div>
         <button
@@ -282,7 +291,7 @@ export default function WalletPage() {
             fontWeight: 500,
           }}
         >
-          Can be used instantly for temporary virtual numbers &amp; SMS OTPs
+          Available for temporary virtual-number purchases
         </div>
       </div>
 
@@ -319,7 +328,7 @@ export default function WalletPage() {
             <div>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Deposit via UPI</h2>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                No convenience fees. 100% secure direct UPI transfer.
+                Follow the payment details below, then submit your UTR for review.
               </span>
             </div>
           </div>

@@ -25,14 +25,13 @@ const howToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "How to Receive SMS OTP Verification on OTPWala",
-  "description": "A 3-step guide to generating disposable virtual phone numbers and receiving instant SMS verification codes.",
-  "totalTime": "PT1M",
+  "description": "A 3-step guide to ordering a temporary virtual phone number and following its SMS status.",
   "step": [
     {
       "@type": "HowToStep",
       "position": 1,
       "name": "Top Up Wallet via UPI",
-      "text": "Deposit funds into your wallet starting from just ₹50 using any Indian UPI app like Google Pay, PhonePe, Paytm, or BHIM with instant credit.",
+      "text": "Submit a wallet top-up using a supported UPI app and use the balance after it is credited.",
       "url": "https://otpwala.me/how-it-works#step-1"
     },
     {
@@ -135,12 +134,12 @@ const howItWorksFaqSchema = {
           </div>
           <h2>Top Up Your Wallet</h2>
           <p class="step-summary">
-            Add balance to your OTPWala account instantly via UPI (Google Pay, PhonePe, Paytm, BHIM) or net banking.
+            Submit a wallet top-up via a supported UPI app and use the balance after it is credited.
           </p>
           <ul class="step-highlights">
             <li>✓ Minimum deposit starting from just <strong>₹50</strong></li>
-            <li>✓ 0% transaction fees on UPI deposits</li>
-            <li>✓ Balance never expires — use anytime</li>
+            <li>✓ Review the credited balance in your wallet</li>
+            <li>✓ View wallet transactions from your dashboard</li>
           </ul>
         </div>
 
@@ -159,7 +158,7 @@ const howItWorksFaqSchema = {
           <ul class="step-highlights">
             <li>✓ Real-time stock and prices displayed upfront</li>
             <li>✓ Live country-specific pricing displayed before purchase</li>
-            <li>✓ Immediate number generation in 1 click</li>
+            <li>✓ Number details appear after Tiger SMS accepts the order</li>
           </ul>
         </div>
 
@@ -187,8 +186,8 @@ const howItWorksFaqSchema = {
       <div class="simulator-wrapper">
         <div class="sim-header">
           <span class="badge-pill">Interactive Demonstration</span>
-          <h2>See How Fast OTPs Arrive</h2>
-          <p>Experience how instant number provisioning and live code delivery work in practice:</p>
+          <h2>See the Order Status Flow</h2>
+          <p>This illustration shows how a number and received code appear in an active order. Actual delivery time varies.</p>
         </div>
 
         <div class="sim-card card-glass">
@@ -231,10 +230,10 @@ const howItWorksFaqSchema = {
       <div class="refund-section">
         <div class="refund-grid">
           <div class="refund-info">
-            <span class="badge-pill" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0">Risk-Free Guarantee</span>
+            <span class="badge-pill" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0">Cancellation Process</span>
             <h2>How Cancellation Refunds Work</h2>
             <p>
-              We believe you should only pay for results. If an SMS code is delayed by the carrier or fails to reach our server, our automated system protects your wallet with zero hassle:
+              Cancellation eligibility and errors follow Tiger SMS. Here is the status flow shown in OTPWala:
             </p>
             <div class="refund-steps">
               <div class="rf-step">
@@ -263,15 +262,15 @@ const howItWorksFaqSchema = {
 
           <div class="refund-card-visual card-glass">
             <div class="shield-badge">🛡️</div>
-            <h3>Zero Risk SMS Verification</h3>
-            <p>Unlike other platforms that charge upfront fees regardless of delivery, OTPWala guarantees:</p>
+            <h3>Cancellation Status You Can Follow</h3>
+            <p>OTPWala shows the upstream cancellation result and credits eligible orders after confirmation:</p>
             <ul class="guarantee-list">
               <li>✓ Refunds follow Tiger SMS cancellation confirmation</li>
-              <li>✓ No cancellation penalties or hidden processing fees</li>
+              <li>✓ Tiger SMS rejection errors are shown on OTPWala</li>
               <li>✓ Wallet credit normally appears within 2–5 minutes</li>
-              <li>✓ 24/7 dedicated Telegram support assistance</li>
+              <li>✓ Telegram support link is available from the website</li>
             </ul>
-            <a href="/auth/register" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Try Without Risk →</a>
+            <a href="/auth/register" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Create Account →</a>
           </div>
         </div>
       </div>
@@ -297,7 +296,7 @@ const howItWorksFaqSchema = {
               <tr>
                 <td><strong>Privacy & Exclusivity</strong></td>
                 <td class="text-danger">❌ Public inbox — anyone can read your messages</td>
-                <td class="text-success">✅ 100% Private — visible only in your account</td>
+                <td class="text-success">✅ Order details shown in your authenticated account</td>
               </tr>
               <tr>
                 <td><strong>Delivery Speed</strong></td>
@@ -307,7 +306,7 @@ const howItWorksFaqSchema = {
               <tr>
                 <td><strong>Account Safety</strong></td>
                 <td class="text-danger">❌ High risk of account hijacking or ban</td>
-                <td class="text-success">✅ Clean, unused disposable numbers</td>
+                <td class="text-success">✅ Temporary numbers supplied by Tiger SMS</td>
               </tr>
               <tr>
                 <td><strong>Country Coverage</strong></td>
@@ -364,8 +363,8 @@ const howItWorksFaqSchema = {
 
       <!-- Bottom Conversion -->
       <div class="bottom-cta card-glass">
-        <h2>Start Receiving OTPs in Minutes</h2>
-        <p>Join thousands of users verifying accounts securely without sharing personal numbers.</p>
+        <h2>Start With the Live Catalog</h2>
+        <p>Create an account to view current service, country, stock, and pricing data.</p>
         <div class="cta-actions">
           <a href="/auth/register" class="btn btn-primary btn-lg">Create Free Account</a>
           <a href="/services" class="btn btn-secondary btn-lg">Browse Supported Services</a>

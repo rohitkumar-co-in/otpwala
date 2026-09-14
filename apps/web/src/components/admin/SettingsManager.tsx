@@ -174,9 +174,17 @@ export default function SettingsManager() {
     setError(null);
     setSuccess(null);
 
+    const parsedMinDeposit = Number(minDeposit);
+    const parsedMaxDeposit = Number(maxDeposit);
+    if (!Number.isFinite(parsedMinDeposit) || !Number.isFinite(parsedMaxDeposit) || parsedMinDeposit < 1 || parsedMaxDeposit < parsedMinDeposit) {
+      setError('Wallet limits are invalid. The maximum deposit must be greater than or equal to the minimum deposit.');
+      setSavingKey(null);
+      return;
+    }
+
     const validSuggestions = [suggestion1, suggestion2, suggestion3, suggestion4, suggestion5]
       .map((s) => s.trim())
-      .filter((s) => s !== '' && !isNaN(Number(s)) && Number(s) > 0)
+      .filter((s) => s !== '' && !isNaN(Number(s)) && Number(s) >= parsedMinDeposit && Number(s) <= parsedMaxDeposit)
       .slice(0, 5)
       .join(',');
 
@@ -196,7 +204,7 @@ export default function SettingsManager() {
         min_deposit_inr: minDeposit,
         min_topup_amount: minDeposit,
         max_deposit_inr: maxDeposit,
-        deposit_suggestions: validSuggestions || '50,100,200,500,1000',
+        deposit_suggestions: validSuggestions || String(parsedMinDeposit),
         upi_id: upiId,
         upi_merchant_name: upiName,
         support_telegram: supportTelegram,
@@ -709,7 +717,8 @@ export default function SettingsManager() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>Slot 1 (₹)</span>
                 <input
                   type="number"
-                  min="1"
+                  min={minDeposit || '1'}
+                  max={maxDeposit || undefined}
                   value={suggestion1}
                   onChange={(e) => setSuggestion1(e.target.value)}
                   className="input input-sm"
@@ -721,7 +730,8 @@ export default function SettingsManager() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>Slot 2 (₹)</span>
                 <input
                   type="number"
-                  min="1"
+                  min={minDeposit || '1'}
+                  max={maxDeposit || undefined}
                   value={suggestion2}
                   onChange={(e) => setSuggestion2(e.target.value)}
                   className="input input-sm"
@@ -733,7 +743,8 @@ export default function SettingsManager() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>Slot 3 (₹)</span>
                 <input
                   type="number"
-                  min="1"
+                  min={minDeposit || '1'}
+                  max={maxDeposit || undefined}
                   value={suggestion3}
                   onChange={(e) => setSuggestion3(e.target.value)}
                   className="input input-sm"
@@ -745,7 +756,8 @@ export default function SettingsManager() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>Slot 4 (₹)</span>
                 <input
                   type="number"
-                  min="1"
+                  min={minDeposit || '1'}
+                  max={maxDeposit || undefined}
                   value={suggestion4}
                   onChange={(e) => setSuggestion4(e.target.value)}
                   className="input input-sm"
@@ -757,7 +769,8 @@ export default function SettingsManager() {
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>Slot 5 (₹)</span>
                 <input
                   type="number"
-                  min="1"
+                  min={minDeposit || '1'}
+                  max={maxDeposit || undefined}
                   value={suggestion5}
                   onChange={(e) => setSuggestion5(e.target.value)}
                   className="input input-sm"
@@ -771,7 +784,7 @@ export default function SettingsManager() {
             <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pill Preview:</span>
               {[suggestion1, suggestion2, suggestion3, suggestion4, suggestion5]
-                .filter((s) => s && !isNaN(Number(s)) && Number(s) > 0)
+                .filter((s) => s && !isNaN(Number(s)) && Number(s) >= Number(minDeposit) && Number(s) <= Number(maxDeposit))
                 .slice(0, 5)
                 .map((amt, idx) => (
                   <span
