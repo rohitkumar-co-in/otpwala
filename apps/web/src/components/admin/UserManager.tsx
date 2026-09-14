@@ -196,9 +196,11 @@ export default function UserManager() {
     try {
       await deleteUser(deleteTarget.id);
       setSuccess(`User ${deleteTarget.email} has been permanently deleted.`);
-      setDeleteTarget(null);
+      
+      // Optimistic update: instantly remove from UI
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deleteTarget.id));
-      await loadUsers();
+      setDeleteTarget(null);
     } catch (err: any) {
       setError(err.message || 'Failed to delete user');
     } finally {
@@ -263,11 +265,15 @@ export default function UserManager() {
     setSuccess(null);
     try {
       const idsToDelete = selectedBannedUsers.map((u) => u.id);
-      const res = await bulkDeleteUsers(idsToDelete);
-      setSuccess(res.message || `${idsToDelete.length} banned user(s) permanently deleted.`);
+      await bulkDeleteUsers(idsToDelete);
+      
+      // Optimistic update: instantly remove from UI
+      const idSet = new Set(idsToDelete);
+      setUsers((prev) => prev.filter((u) => !idSet.has(u.id)));
+      
+      setSuccess(`${idsToDelete.length} banned user(s) permanently deleted.`);
       setSelectedUserIds([]);
       setShowBulkDeleteModal(false);
-      await loadUsers();
     } catch (err: any) {
       setError(err.message || 'Failed to bulk delete users');
     } finally {
