@@ -105,10 +105,11 @@ try {
       const name = displayNames.of(iso);
       if (name && name !== iso && name !== 'Unknown Region') {
         const normalizedName = normalizeCountryName(name);
-        // Intl also recognizes a few retired aliases (for example DY for
-        // Benin). The canonical ISO code sorts first, so never overwrite it.
+        // Intl recognizes retired aliases too (for example DY for Benin and
+        // VD for Vietnam). Canonicalize them before creating the flag URL.
+        const canonicalIso = new Intl.Locale(`und-${iso}`).maximize().region || iso;
         if (!countryIsoByName.has(normalizedName)) {
-          countryIsoByName.set(normalizedName, iso.toLowerCase());
+          countryIsoByName.set(normalizedName, canonicalIso.toLowerCase());
         }
       }
     }
