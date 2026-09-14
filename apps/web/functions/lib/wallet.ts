@@ -69,18 +69,48 @@ export async function creditBalance(
   env?: any
 ): Promise<number> {
   const supabase = getSupabaseAdmin(env);
-  const { data: profile, error } = await supabase
+  let { data: profile } = await supabase
     .from('profiles')
-    .select('wallet_balance')
+    .select('id, wallet_balance')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
-  if (error || !profile) throw new Error('User profile not found');
+  if (!profile) {
+    let email = '';
+    let fullName = '';
+    try {
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+      email = authUser?.user?.email || '';
+      fullName = authUser?.user?.user_metadata?.full_name || authUser?.user?.user_metadata?.name || '';
+    } catch (e) {
+      console.warn('Could not fetch auth user by id:', e);
+    }
+
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    const { data: newProfile, error: createErr } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        email: email || `user_${userId.slice(0, 8)}@otpwala.com`,
+        full_name: fullName,
+        wallet_balance: 0,
+        referral_code: code,
+      })
+      .select('id, wallet_balance')
+      .single();
+
+    if (createErr || !newProfile) {
+      console.error('Failed to auto-create profile in creditBalance:', createErr);
+      throw new Error(createErr?.message || 'User profile not found');
+    }
+    profile = newProfile;
+  }
 
   const currentBalance = parseFloat(profile.wallet_balance) || 0;
   const newBalance = Math.round((currentBalance + amount) * 10000) / 10000;
 
-  await supabase
+  const { error: updateErr } = await supabase
     .from('profiles')
     .update({
       wallet_balance: newBalance,
@@ -88,14 +118,23 @@ export async function creditBalance(
     })
     .eq('id', userId);
 
-  await supabase.from('wallet_transactions').insert({
-    user_id: userId,
-    type,
-    amount,
-    balance_after: newBalance,
-    description,
-    status: 'completed',
-  });
+  if (updateErr) {
+    console.error('Failed to update wallet balance in profiles:', updateErr);
+    throw new Error(updateErr.message || 'Failed to update balance');
+  }
+
+  try {
+    await supabase.from('wallet_transactions').insert({
+      user_id: userId,
+      type,
+      amount,
+      balance_after: newBalance,
+      description,
+      status: 'completed',
+    });
+  } catch (txErr) {
+    console.warn('Failed to insert wallet_transactions record:', txErr);
+  }
 
   return newBalance;
 }

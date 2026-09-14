@@ -71,13 +71,16 @@ export default function AdminDashboard() {
     setSuccessMsg(null);
     try {
       await approvePaymentRequest(requestId);
-      setSuccessMsg(`Approved top-up of ₹${amount} successfully!`);
+      setSuccessMsg(`Approved top-up of ₹${amount.toFixed(2)} successfully!`);
+      setPaymentRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'approved' } : r))
+      );
       const [newStats, newRequests] = await Promise.all([
         getAdminDashboard().catch(() => null),
         getAdminPaymentRequests().catch(() => []),
       ]);
       if (newStats) setStats(newStats);
-      setPaymentRequests(newRequests || []);
+      if (newRequests && newRequests.length > 0) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to approve payment');
     } finally {
@@ -94,12 +97,15 @@ export default function AdminDashboard() {
     try {
       await rejectPaymentRequest(requestId);
       setSuccessMsg(`Deposit request of ₹${amount.toFixed(2)} was rejected.`);
+      setPaymentRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'rejected' } : r))
+      );
       const [newStats, newRequests] = await Promise.all([
         getAdminDashboard().catch(() => null),
         getAdminPaymentRequests().catch(() => []),
       ]);
       if (newStats) setStats(newStats);
-      setPaymentRequests(newRequests || []);
+      if (newRequests && newRequests.length > 0) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to reject payment');
     } finally {
@@ -237,53 +243,59 @@ export default function AdminDashboard() {
       </div>
 
       {/* Pending Manual Top-up Requests */}
-      <div className="card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Pending Top-up Requests</h2>
-            <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
-              {paymentRequests.length} Pending
-            </span>
-          </div>
-        </div>
+      {(() => {
+        const pendingRequests = paymentRequests.filter(
+          (r) => r.status === 'pending' || r.status === 'created'
+        );
 
-        {loading && paymentRequests.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <RefreshCwIcon size={16} className="animate-spin" style={{ display: 'inline', marginRight: '6px' }} />
-            Loading pending requests...
-          </div>
-        ) : paymentRequests.length === 0 ? (
-          <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <CheckCircleIcon size={16} color="var(--success)" />
-            <span>All top-up requests are up to date! No manual approvals pending.</span>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>User Email</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Amount</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>UTR / Ref ID</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Method</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Requested At</th>
-                  <th style={{ padding: '0.65rem 0.75rem', textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentRequests.map((req) => {
-                  const amt = parseFloat(req.amount ?? req.amount_inr ?? 0);
-                  const utr = req.transaction_id || req.gateway_payment_id || '';
-                  const method = req.payment_method || req.gateway || 'UPI';
+        return (
+          <div className="card" style={{ padding: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Pending Top-up Requests</h2>
+                <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+                  {pendingRequests.length} Pending
+                </span>
+              </div>
+            </div>
 
-                  return (
-                    <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '0.75rem', fontWeight: 500 }}>
-                        {req.profiles?.email || req.user_id}
-                      </td>
-                      <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
-                        ₹{amt.toFixed(2)}
-                      </td>
+            {loading && pendingRequests.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <RefreshCwIcon size={16} className="animate-spin" style={{ display: 'inline', marginRight: '6px' }} />
+                Loading pending requests...
+              </div>
+            ) : pendingRequests.length === 0 ? (
+              <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <CheckCircleIcon size={16} color="var(--success)" />
+                <span>All top-up requests are up to date! No manual approvals pending.</span>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>User Email</th>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>Amount</th>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>UTR / Ref ID</th>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>Method</th>
+                      <th style={{ padding: '0.65rem 0.75rem' }}>Requested At</th>
+                      <th style={{ padding: '0.65rem 0.75rem', textAlign: 'right' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingRequests.map((req) => {
+                      const amt = parseFloat(req.amount ?? req.amount_inr ?? 0);
+                      const utr = req.transaction_id || req.gateway_payment_id || '';
+                      const method = req.payment_method || req.gateway || 'UPI';
+
+                      return (
+                        <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '0.75rem', fontWeight: 500 }}>
+                            {req.profiles?.email || req.user_id}
+                          </td>
+                          <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
+                            ₹{amt.toFixed(2)}
+                          </td>
                       <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                         {utr ? (
                           <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
@@ -329,7 +341,9 @@ export default function AdminDashboard() {
             </table>
           </div>
         )}
-      </div>
+          </div>
+        );
+      })()}
 
       {/* Recent Orders Overview */}
       <div className="card" style={{ padding: '1.25rem' }}>

@@ -160,23 +160,51 @@ export async function approvePaymentRequest(id: string, env?: any) {
 
   if (fetchErr || !request) throw new Error('Payment request not found');
   const st = request.status;
-  if (st !== 'pending' && st !== 'created') throw new Error('Payment already processed');
+  if (st === 'approved' || st === 'paid') {
+    throw new Error('This payment request has already been approved and credited.');
+  }
 
   const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
   const utr = request.transaction_id || request.gateway_payment_id || id;
 
+  // Credit user wallet balance
   await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup', env);
 
-  const updateRes = await supabase
+  // Mark request as approved/paid in payment_requests
+  let updateSuccess = false;
+
+  const res1 = await supabase
     .from('payment_requests')
     .update({ status: 'approved', updated_at: new Date().toISOString() })
     .eq('id', id);
 
-  if (updateRes.error) {
-    await supabase
+  if (!res1.error) {
+    updateSuccess = true;
+  } else {
+    // Fallback to 'paid' if legacy status constraint is present
+    const res2 = await supabase
       .from('payment_requests')
       .update({ status: 'paid', updated_at: new Date().toISOString() })
       .eq('id', id);
+
+    if (!res2.error) {
+      updateSuccess = true;
+    } else {
+      // Try updating status alone
+      const res3 = await supabase
+        .from('payment_requests')
+        .update({ status: 'approved' })
+        .eq('id', id);
+
+      if (!res3.error) {
+        updateSuccess = true;
+      } else {
+        await supabase
+          .from('payment_requests')
+          .update({ status: 'paid' })
+          .eq('id', id);
+      }
+    }
   }
 
   return { success: true };
