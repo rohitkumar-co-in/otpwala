@@ -794,6 +794,8 @@ export default function BuyNumber() {
       const pA = a.priceInr || 9999;
       const pB = b.priceInr || 9999;
       if (pA !== pB) return pA - pB;
+      // Use raw USD price as tiebreaker when INR prices are equal (avoids rounding distortion)
+      if (a.priceUsd !== b.priceUsd) return (a.priceUsd || 0) - (b.priceUsd || 0);
       return b.available - a.available;
     }
     if (countrySort === 'price_desc') {

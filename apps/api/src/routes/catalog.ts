@@ -344,9 +344,10 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
     } else if (sortOption === 'name_desc') {
       countries.sort((a, b) => b.name.localeCompare(a.name));
     } else if (sortOption === 'price_asc') {
-      countries.sort((a, b) => a.priceInr - b.priceInr || b.available - a.available);
+      // Use raw USD as tiebreaker when INR prices are equal (avoids rounding distortion)
+      countries.sort((a, b) => a.priceInr - b.priceInr || a.priceUsd - b.priceUsd || b.available - a.available);
     } else if (sortOption === 'price_desc') {
-      countries.sort((a, b) => b.priceInr - a.priceInr || b.available - a.available);
+      countries.sort((a, b) => b.priceInr - a.priceInr || b.priceUsd - a.priceUsd || b.available - a.available);
     } else if (sortOption === 'delivery_desc') {
       countries.sort((a, b) => b.deliveryRate - a.deliveryRate || b.available - a.available);
     } else if (sortOption === 'stock_desc') {
