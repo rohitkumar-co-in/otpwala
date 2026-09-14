@@ -20,19 +20,20 @@ router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) =
       return;
     }
 
-    const priceData = await tigerSms.getPricesV3(service, countryCode);
+    const priceData = await tigerSms.getPrices(service, countryCode);
     const countryPrices = priceData[String(countryCode)];
 
     if (!countryPrices || !countryPrices[service]) {
       res.json({
         success: true,
-        data: { available: false, count: 0, priceInr: 0 },
+        data: { available: false, count: 0, priceInr: 0, priceUsd: 0 },
       });
       return;
     }
 
-    const info = countryPrices[service];
-    const priceInr = await calculateSellPrice(info.price, service, countryCode, req.userId);
+    const info = countryPrices[service] as any;
+    const costPriceUsd = parseFloat(String(info.cost ?? info.price ?? '0'));
+    const priceInr = await calculateSellPrice(costPriceUsd, service, countryCode, req.userId);
 
     res.json({
       success: true,
@@ -40,7 +41,7 @@ router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) =
         available: info.count > 0,
         count: info.count,
         priceInr,
-        priceUsd: info.price,
+        priceUsd: costPriceUsd,
       },
     });
   } catch (e) {
