@@ -25,17 +25,8 @@ const serviceListSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "Supported SMS OTP Verification Services",
-  "description": "Comprehensive catalog of 980+ digital services supported by OTPWala virtual numbers.",
-  "itemListElement": [
-    { "@type": "Service", "position": 1, "name": "WhatsApp Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 2, "name": "Telegram Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 3, "name": "Google / Gmail Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 4, "name": "Instagram / Threads Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 5, "name": "OpenAI / ChatGPT Virtual Number", "offers": { "@type": "Offer", "price": "2.00", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 6, "name": "Facebook Virtual Number", "offers": { "@type": "Offer", "price": "1.00", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 7, "name": "X / Twitter Virtual Number", "offers": { "@type": "Offer", "price": "1.00", "priceCurrency": "INR" } },
-    { "@type": "Service", "position": 8, "name": "Amazon Virtual Number", "offers": { "@type": "Offer", "price": "1.50", "priceCurrency": "INR" } }
-  ]
+  "description": "Live catalog of digital services currently supplied by the upstream provider.",
+  "itemListElement": []
 };
 
 const servicesFaqSchema = {
@@ -47,7 +38,7 @@ const servicesFaqSchema = {
       "name": "Which platforms can I verify with OTPWala?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "OTPWala supports over 980+ international and Indian platforms including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI ChatGPT, Apple, Discord, Uber, Amazon, and Netflix."
+        "text": "The catalog is loaded from Tiger SMS and shows the services currently available through the API."
       }
     },
     {
@@ -55,7 +46,7 @@ const servicesFaqSchema = {
       "name": "How quickly does the SMS OTP arrive for these services?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Over 95% of SMS verification codes are delivered in under 30 seconds directly to your OTPWala dashboard."
+        "text": "Delivery time depends on the selected service, country, and upstream number availability. Order status is shown live in your OTPWala dashboard."
       }
     },
     {
@@ -77,29 +68,11 @@ const servicesFaqSchema = {
   ]
 };
 
-const popularServices = [
-  { code: 'wa', name: 'WhatsApp', category: 'social', minPrice: '19.50', rate: '98.8%', icon: 'https://api.iconify.design/logos:whatsapp-icon.svg?width=32&height=32', desc: 'Instant activation for personal & business WhatsApp accounts.' },
-  { code: 'tg', name: 'Telegram', category: 'social', minPrice: '16.00', rate: '98.5%', icon: 'https://api.iconify.design/logos:telegram.svg?width=32&height=32', desc: 'Fast login & registration OTP codes for Telegram messaging.' },
-  { code: 'go', name: 'Google / Gmail', category: 'tech', minPrice: '18.50', rate: '97.9%', icon: 'https://api.iconify.design/logos:google-icon.svg?width=32&height=32', desc: 'Secure phone verification for Gmail, YouTube & Google Cloud.' },
-  { code: 'ig', name: 'Instagram', category: 'social', minPrice: '16.00', rate: '97.4%', icon: 'https://api.iconify.design/logos:instagram-icon.svg?width=32&height=32', desc: 'Create and verify new Instagram & Threads profiles smoothly.' },
-  { code: 'dr', name: 'OpenAI / ChatGPT', category: 'ai', minPrice: '22.00', rate: '98.2%', icon: 'https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=32&height=32', desc: 'Verify ChatGPT Plus, OpenAI API, and Sora accounts.' },
-  { code: 'fb', name: 'Facebook', category: 'social', minPrice: '13.00', rate: '96.8%', icon: 'https://api.iconify.design/logos:facebook.svg?width=32&height=32', desc: 'Receive SMS verification codes for Facebook & Meta accounts.' },
-  { code: 'tw', name: 'X / Twitter', category: 'social', minPrice: '13.00', rate: '96.5%', icon: 'https://api.iconify.design/simple-icons:x.svg?color=black&width=28&height=28', desc: 'Verify Twitter accounts and 2FA authentication instantly.' },
-  { code: 'am', name: 'Amazon', category: 'shopping', minPrice: '18.50', rate: '96.6%', icon: 'https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=30&height=30', desc: 'Verify Amazon shopping and AWS developer accounts.' },
-  { code: 'mm', name: 'Microsoft', category: 'tech', minPrice: '16.00', rate: '97.2%', icon: 'https://api.iconify.design/logos:microsoft-icon.svg?width=30&height=30', desc: 'Unlock Outlook, Office 365, Azure, and Xbox verification.' },
-  { code: 'lf', name: 'TikTok', category: 'social', minPrice: '13.00', rate: '96.4%', icon: 'https://api.iconify.design/logos:tiktok-icon.svg?width=30&height=30', desc: 'Register global TikTok accounts and bypass geo-blocks.' },
-  { code: 'nf', name: 'Netflix', category: 'entertainment', minPrice: '18.50', rate: '96.0%', icon: 'https://api.iconify.design/logos:netflix-icon.svg?width=30&height=30', desc: 'SMS authorization for household streaming subscriptions.' },
-  { code: 'wx', name: 'Apple ID', category: 'tech', minPrice: '22.00', rate: '98.1%', icon: 'https://api.iconify.design/simple-icons:apple.svg?color=black&width=30&height=30', desc: 'Two-factor authentication codes for iCloud and Apple IDs.' },
-  { code: 'ds', name: 'Discord', category: 'social', minPrice: '16.00', rate: '97.0%', icon: 'https://api.iconify.design/logos:discord-icon.svg?width=30&height=30', desc: 'Pass Discord server phone verification requirements.' },
-  { code: 'ub', name: 'Uber', category: 'shopping', minPrice: '18.50', rate: '97.7%', icon: 'https://api.iconify.design/simple-icons:uber.svg?color=black&width=30&height=30', desc: 'Verify Uber rider and driver accounts across all countries.' },
-  { code: 'spot', name: 'Spotify', category: 'entertainment', minPrice: '13.00', rate: '97.5%', icon: 'https://api.iconify.design/logos:spotify-icon.svg?width=30&height=30', desc: 'SMS codes for music streaming subscriptions and artists.' },
-  { code: 'steam', name: 'Steam', category: 'entertainment', minPrice: '18.50', rate: '98.0%', icon: 'https://api.iconify.design/logos:steam.svg?width=30&height=30', desc: 'Steam Guard phone link for game trade safety.' }
-];
 ---
 
 <BaseLayout 
-  title="Virtual Phone Numbers for 980+ Online Services — OTPWala"
-  description="Browse 980+ supported online services for instant SMS OTP verification. WhatsApp, Telegram, Google, Instagram, ChatGPT, and more. Starting from ₹13."
+  title="Live Virtual Phone Number Services — OTPWala"
+  description="Browse the live catalog of online services currently available for SMS OTP verification. Current country availability and prices are shown before purchase."
   canonical="https://otpwala.me/services"
   keywords="virtual number services, whatsapp otp number, telegram virtual number, google gmail sms verification, chatgpt phone number, cheap otp number india, disposable phone number"
 >
@@ -120,7 +93,7 @@ const popularServices = [
 
       <!-- Hero Header -->
       <div class="services-hero">
-        <span class="badge-pill">980+ Supported Platforms</span>
+        <span class="badge-pill">Live API Catalog</span>
         <h1>Virtual Numbers for <span class="text-gradient">Any Service</span></h1>
         <p class="hero-desc">
           Get dedicated virtual phone numbers to receive SMS verification codes instantly. 
@@ -137,68 +110,38 @@ const popularServices = [
               type="text" 
               id="service-search" 
               class="search-input" 
-              placeholder="Search 980+ services (e.g. WhatsApp, Google, ChatGPT)..." 
+              placeholder="Search available services..."
               autocomplete="off"
             />
           </div>
 
-          <div class="category-tabs" id="category-tabs">
-            <button class="tab-btn active" data-cat="all">All Services</button>
-            <button class="tab-btn" data-cat="social">Social & Chat</button>
-            <button class="tab-btn" data-cat="tech">Tech & Email</button>
-            <button class="tab-btn" data-cat="ai">AI & Tools</button>
-            <button class="tab-btn" data-cat="shopping">Shopping & Rides</button>
-            <button class="tab-btn" data-cat="entertainment">Entertainment</button>
-          </div>
         </div>
       </div>
 
       <!-- Quick Stats Bar -->
       <div class="stats-bar">
         <div class="stat-item">
-          <strong class="stat-val">980+</strong>
-          <span class="stat-lbl">Services Available</span>
+          <strong class="stat-val">Live</strong>
+          <span class="stat-lbl">Service Catalog</span>
         </div>
         <div class="stat-item">
-          <strong class="stat-val">&lt;30s</strong>
-          <span class="stat-lbl">Average OTP Speed</span>
+          <strong class="stat-val">API</strong>
+          <span class="stat-lbl">Order Status</span>
         </div>
         <div class="stat-item">
-          <strong class="stat-val">190+</strong>
-          <span class="stat-lbl">Countries Covered</span>
+          <strong class="stat-val">Live</strong>
+          <span class="stat-lbl">Country Stock</span>
         </div>
         <div class="stat-item">
-          <strong class="stat-val">100%</strong>
-          <span class="stat-lbl">Auto-Refund Guarantee</span>
+          <strong class="stat-val">2–5m</strong>
+          <span class="stat-lbl">Refund Credit Window</span>
         </div>
       </div>
 
       <!-- Services Grid -->
       <div class="services-container">
-        <div class="services-grid" id="services-grid">
-          {popularServices.map((srv) => (
-            <div class="service-card" data-code={srv.code} data-name={srv.name.toLowerCase()} data-category={srv.category}>
-              <div class="card-top">
-                <div class="service-icon-box">
-                  <img src={srv.icon} alt={srv.name} width="32" height="32" loading="lazy" />
-                </div>
-                <span class="delivery-rate-badge">✓ {srv.rate} Success</span>
-              </div>
-              <div class="card-body">
-                <h2 class="service-title">{srv.name}</h2>
-                <p class="service-desc">{srv.desc}</p>
-              </div>
-              <div class="card-footer">
-                <div class="price-box">
-                  <span class="price-lbl">Starting from</span>
-                  <span class="price-num">₹{srv.minPrice}</span>
-                </div>
-                <a href={`/dashboard/buy?service=${srv.code}`} class="btn-action">
-                  Get Number →
-                </a>
-              </div>
-            </div>
-          ))}
+        <div class="services-grid" id="services-grid" aria-live="polite">
+          <p class="text-secondary">Loading live services…</p>
         </div>
 
         <div id="no-services-found" style="display: none;" class="empty-state">
@@ -212,7 +155,7 @@ const popularServices = [
         <div class="explore-more-info">
           <span class="badge-pill" style="margin-bottom: 0.5rem; background: #ffffff; border-color: #e2e8f0; color: #2563eb;">Full Catalog Access</span>
           <h3>Looking for More Services or Private Numbers?</h3>
-          <p>We support over 980+ digital services globally with instant OTP delivery starting from <span class="dyn-min-price">₹13</span>.</p>
+          <p>Browse services supplied by Tiger SMS, with live country availability and current pricing shown before purchase.</p>
         </div>
         <a href="/auth/register" class="btn btn-primary btn-lg explore-more-btn" id="explore-more-services-btn">
           Explore More Services (Sign Up) →
@@ -229,12 +172,12 @@ const popularServices = [
           <div class="feat-item">
             <div class="feat-icon blue">⚡</div>
             <h3>Direct Carrier Connections</h3>
-            <p>We work directly with telecom operators across 190+ countries for instant, unthrottled SMS routing.</p>
+            <p>Available countries and stock are loaded from Tiger SMS and updated through the API.</p>
           </div>
           <div class="feat-item">
             <div class="feat-icon green">🛡️</div>
             <h3>100% Automated Refund</h3>
-            <p>If an SMS fails to arrive within the countdown window, your wallet is refunded immediately with zero fees.</p>
+            <p>Eligible cancellations are refunded after Tiger SMS confirms them. Wallet credit can take 2–5 minutes after confirmation.</p>
           </div>
           <div class="feat-item">
             <div class="feat-icon purple">🔒</div>
@@ -255,14 +198,14 @@ const popularServices = [
           <details class="faq-item" open>
             <summary class="faq-question">Which platforms can I verify with OTPWala?</summary>
             <div class="faq-answer">
-              <p>OTPWala supports over 980+ digital platforms globally, including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI ChatGPT, Apple, Discord, Uber, Amazon, and Netflix.</p>
+              <p>OTPWala displays the services currently returned by Tiger SMS. Search the live catalog above for current availability.</p>
             </div>
           </details>
 
           <details class="faq-item">
             <summary class="faq-question">How fast do SMS verification codes arrive?</summary>
             <div class="faq-answer">
-              <p>Over 95% of verification codes arrive in under 30 seconds. Status indicators update in real-time on your dashboard so you never miss an SMS.</p>
+              <p>Delivery time depends on the service, country, and upstream provider. Your dashboard shows the live order status.</p>
             </div>
           </details>
 
@@ -766,82 +709,82 @@ const popularServices = [
 </style>
 
 <script>
-  // Dynamic Catalog Search & Category Filter
   const searchInput = document.getElementById('service-search') as HTMLInputElement;
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const cards = document.querySelectorAll('.service-card') as NodeListOf<HTMLElement>;
+  const servicesGrid = document.getElementById('services-grid') as HTMLElement;
   const emptyState = document.getElementById('no-services-found') as HTMLElement;
 
-  let activeCategory = 'all';
-  let searchQuery = '';
-
   function filterCards() {
-    let visibleCount = 0;
-    cards.forEach((card) => {
-      const name = card.dataset.name || '';
-      const cat = card.dataset.category || '';
-      const matchesSearch = !searchQuery || name.includes(searchQuery);
-      const matchesCat = activeCategory === 'all' || cat === activeCategory;
-
-      if (matchesSearch && matchesCat) {
-        card.style.display = 'flex';
-        visibleCount++;
-      } else {
-        card.style.display = 'none';
-      }
+    const query = searchInput?.value.toLowerCase().trim() || '';
+    let visible = 0;
+    servicesGrid?.querySelectorAll<HTMLElement>('.service-card').forEach((card) => {
+      const matches = !query || (card.dataset.name || '').includes(query);
+      card.style.display = matches ? 'flex' : 'none';
+      if (matches) visible++;
     });
-
-    if (emptyState) {
-      emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
+    if (emptyState) emptyState.style.display = visible === 0 ? 'block' : 'none';
   }
 
-  searchInput?.addEventListener('input', (e) => {
-    searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
-    filterCards();
-  });
+  function createServiceCard(service: any) {
+    const card = document.createElement('div');
+    card.className = 'service-card';
+    card.dataset.code = String(service.code || '');
+    card.dataset.name = String(service.name || '').toLowerCase();
 
-  tabButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCategory = btn.getAttribute('data-cat') || 'all';
+    const top = document.createElement('div');
+    top.className = 'card-top';
+    const iconBox = document.createElement('div');
+    iconBox.className = 'service-icon-box';
+    const icon = document.createElement('img');
+    icon.src = String(service.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg');
+    icon.alt = String(service.name || 'Service');
+    icon.width = 32;
+    icon.height = 32;
+    icon.loading = 'lazy';
+    iconBox.append(icon);
+    top.append(iconBox);
+    if (service.isFeatured) {
+      const badge = document.createElement('span');
+      badge.className = 'delivery-rate-badge';
+      badge.textContent = '★ Featured';
+      top.append(badge);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    const title = document.createElement('h2');
+    title.className = 'service-title';
+    title.textContent = String(service.name || service.code || 'Service');
+    const description = document.createElement('p');
+    description.className = 'service-desc';
+    description.textContent = 'Live countries, stock, and current prices are shown after selection.';
+    body.append(title, description);
+
+    const footer = document.createElement('div');
+    footer.className = 'card-footer';
+    const liveLabel = document.createElement('span');
+    liveLabel.className = 'price-lbl';
+    liveLabel.textContent = 'Live API pricing';
+    const action = document.createElement('a');
+    action.className = 'btn-action';
+    action.href = `/dashboard/buy?service=${encodeURIComponent(String(service.code || ''))}`;
+    action.textContent = 'View countries →';
+    footer.append(liveLabel, action);
+    card.append(top, body, footer);
+    return card;
+  }
+
+  searchInput?.addEventListener('input', filterCards);
+  const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined
+    ? (window as any).__PUBLIC_API_URL__
+    : (import.meta.env.PUBLIC_API_URL || '');
+  fetch(API_URL + '/api/services')
+    .then((response) => response.json())
+    .then((result) => {
+      if (!result.success || !Array.isArray(result.data)) throw new Error(result.error || 'Unable to load services');
+      servicesGrid.replaceChildren(...result.data.map(createServiceCard));
       filterCards();
+    })
+    .catch(() => {
+      servicesGrid.textContent = 'Live service catalog is temporarily unavailable. Please try again shortly.';
     });
-  });
-
-  // Hydrate live rates from API
-  (function hydrateServicesPrices() {
-    const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
-    fetch(API_URL + '/api/services')
-      .then((r) => r.json())
-      .then((res) => {
-        if (!res.success || !Array.isArray(res.data)) return;
-        const prices: Record<string, number> = {};
-        let minOverall = 9999;
-        res.data.forEach((s: any) => {
-          if (s.minPriceInr && s.minPriceInr > 0) {
-            prices[s.code.toLowerCase()] = s.minPriceInr;
-            if (s.minPriceInr < minOverall) minOverall = s.minPriceInr;
-          }
-        });
-
-        if (minOverall < 9999) {
-          document.querySelectorAll('.dyn-min-price').forEach((el) => {
-            el.textContent = '₹' + Math.ceil(minOverall);
-          });
-        }
-
-        document.querySelectorAll('.service-card').forEach((card) => {
-          const code = (card as HTMLElement).dataset.code?.toLowerCase();
-          if (code && prices[code]) {
-            const pNum = card.querySelector('.price-num');
-            if (pNum) {
-              pNum.textContent = '₹' + prices[code].toFixed(2);
-            }
-          }
-        });
-      })
-      .catch(() => {});
-  })();
 </script>

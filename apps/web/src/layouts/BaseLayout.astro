@@ -14,7 +14,7 @@ export interface Props {
 
 const { 
   title,
-  description = 'Get instant virtual phone numbers for WhatsApp, Telegram, Google, Instagram and 980+ services. Cheapest rates in India, fastest OTP delivery with 100% auto refund.',
+  description = 'Browse live Tiger SMS services, countries, stock, and current virtual-number pricing before purchase.',
   canonical,
   keywords = 'virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala',
   ogType = 'website',
@@ -302,7 +302,7 @@ const webAppSchema = {
   <div class="mobile-nav-drawer" id="mobile-nav-drawer">
     <nav class="mobile-nav-links">
       <a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a>
-      <a href="/services" class={currentPath.startsWith('/services') ? 'active' : ''}>Services (980+)</a>
+      <a href="/services" class={currentPath.startsWith('/services') ? 'active' : ''}>Services</a>
       <a href="/how-it-works" class={currentPath.startsWith('/how-it-works') ? 'active' : ''}>How it Works</a>
       <a href="/pricing" class={currentPath.startsWith('/pricing') ? 'active' : ''}>Pricing &amp; Rates</a>
     </nav>
@@ -677,8 +677,11 @@ const webAppSchema = {
 
         const handleSignOut = async (e: Event) => {
           e.preventDefault();
-          await supabase.auth.signOut();
-          window.location.href = '/auth/login';
+          try {
+            await supabase.auth.signOut({ scope: 'local' });
+          } finally {
+            window.location.replace('/auth/login');
+          }
         };
 
         if (registerBtn) {
@@ -848,4 +851,3 @@ const webAppSchema = {
   </div>
 </body>
 </html>
-

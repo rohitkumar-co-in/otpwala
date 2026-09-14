@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   getAdminCatalog,
   toggleAdminService,
+  toggleFeaturedService,
   toggleAdminCountry,
   batchUpdateAdminCatalog,
 } from '../../lib/api';
@@ -26,7 +27,7 @@ export default function CatalogManager() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'enabled' | 'disabled'>('all');
-  const [sortBy, setSortBy] = useState<'popular' | 'name_asc' | 'name_desc'>('popular');
+  const [sortBy, setSortBy] = useState<'featured' | 'name_asc' | 'name_desc'>('featured');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -112,6 +113,22 @@ export default function CatalogManager() {
     }
   };
 
+  const handleToggleFeatured = async (code: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus;
+    setServices((prev) => prev.map((s) => s.code === code ? { ...s, featured: nextStatus } : s));
+    setActionLoading(`featured-${code}`);
+    setError(null);
+    try {
+      await toggleFeaturedService(code, nextStatus);
+      setSuccess(`${code.toUpperCase()} ${nextStatus ? 'added to' : 'removed from'} featured services.`);
+    } catch (err: any) {
+      setServices((prev) => prev.map((s) => s.code === code ? { ...s, featured: currentStatus } : s));
+      setError(err.message || 'Failed to update featured service');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleBatchAction = async (action: string, description: string) => {
     if (!confirm(`Are you sure you want to: ${description}?`)) return;
     setActionLoading(action);
@@ -128,14 +145,6 @@ export default function CatalogManager() {
     }
   };
 
-const POPULAR_SERVICE_CODES = [
-  'wa', 'tg', 'go', 'opt80', 'ig', 'fb', 'tw', 'lf', 'ds', 'ub', 
-  'vk', 'vi', 'nf', 'am', 'mb', 'wb', 'ya', 'qq', 'wx', 'ts', 'ap', 'ms'
-];
-const POPULAR_COUNTRY_IDS = [
-  187, 22, 16, 43, 48, 6, 10, 4, 73, 52, 12, 175, 78
-];
-
   // Filter & sort list
   const filteredServices = services
     .filter((s) => {
@@ -150,14 +159,7 @@ const POPULAR_COUNTRY_IDS = [
     .sort((a, b) => {
       if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
       if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
-      // popular
-      const aPopIndex = POPULAR_SERVICE_CODES.indexOf(a.code.toLowerCase());
-      const bPopIndex = POPULAR_SERVICE_CODES.indexOf(b.code.toLowerCase());
-      const aIsPop = aPopIndex !== -1;
-      const bIsPop = bPopIndex !== -1;
-      if (aIsPop && bIsPop) return aPopIndex - bPopIndex;
-      if (aIsPop) return -1;
-      if (bIsPop) return 1;
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
 
@@ -174,14 +176,6 @@ const POPULAR_COUNTRY_IDS = [
     .sort((a, b) => {
       if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
       if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
-      // popular
-      const aPopIndex = POPULAR_COUNTRY_IDS.indexOf(Number(a.id));
-      const bPopIndex = POPULAR_COUNTRY_IDS.indexOf(Number(b.id));
-      const aIsPop = aPopIndex !== -1;
-      const bIsPop = bPopIndex !== -1;
-      if (aIsPop && bIsPop) return aPopIndex - bPopIndex;
-      if (aIsPop) return -1;
-      if (bIsPop) return 1;
       return a.name.localeCompare(b.name);
     });
 
@@ -338,15 +332,6 @@ const POPULAR_COUNTRY_IDS = [
                 <button
                   className="btn btn-secondary btn-sm"
                   disabled={actionLoading !== null}
-                  onClick={() => handleBatchAction('enable_popular_services', 'Enable Top 10 Popular Services')}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  <StarIcon size={13} color="#f59e0b" />
-                  <span>Top Popular Only</span>
-                </button>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  disabled={actionLoading !== null}
                   onClick={() => handleBatchAction('enable_all_services', 'Enable All Services')}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
@@ -365,15 +350,6 @@ const POPULAR_COUNTRY_IDS = [
               </>
             ) : (
               <>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  disabled={actionLoading !== null}
-                  onClick={() => handleBatchAction('enable_popular_countries', 'Enable Top Popular Countries')}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  <StarIcon size={13} color="#f59e0b" />
-                  <span>Popular Countries Only</span>
-                </button>
                 <button
                   className="btn btn-secondary btn-sm"
                   disabled={actionLoading !== null}
@@ -431,7 +407,7 @@ const POPULAR_COUNTRY_IDS = [
             style={{ width: 'auto', minWidth: '160px' }}
             aria-label="Sort catalog items"
           >
-            <option value="popular">Popular First</option>
+            <option value="featured">Featured First</option>
             <option value="name_asc">Name: A to Z</option>
             <option value="name_desc">Name: Z to A</option>
           </select>
@@ -500,7 +476,19 @@ const POPULAR_COUNTRY_IDS = [
                     </div>
                   </div>
 
-                  {/* Toggle Switch Button */}
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+                  <button
+                    onClick={() => handleToggleFeatured(s.code, !!s.featured)}
+                    disabled={actionLoading === `featured-${s.code}`}
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: s.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
+                    title={s.featured ? 'Remove from featured services' : 'Feature this service at the top'}
+                    aria-label={s.featured ? 'Remove from featured services' : 'Add to featured services'}
+                  >
+                    <StarIcon size={14} color="currentColor" />
+                    <span>{s.featured ? 'Featured' : 'Feature'}</span>
+                  </button>
+
                   <button
                     onClick={() => handleToggleService(s.code, s.enabled)}
                     disabled={actionLoading === `svc-${s.code}`}
@@ -526,6 +514,7 @@ const POPULAR_COUNTRY_IDS = [
                     {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
                     <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
                   </button>
+                  </div>
                 </div>
               ))}
             </div>

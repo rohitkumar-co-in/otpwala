@@ -9,6 +9,7 @@ export default function OrderHistory() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
   const limit = 15;
 
   useEffect(() => {
@@ -46,12 +47,14 @@ export default function OrderHistory() {
   }
 
   async function handleCancelOrder(orderId: string, serviceName: string) {
-    const confirmCancel = window.confirm(`Cancel order for ${serviceName} and receive a 100% refund to your wallet?`);
+    const confirmCancel = window.confirm(`Request cancellation for ${serviceName}? A refund is issued only after Tiger SMS confirms it and may take 2–5 minutes to appear.`);
     if (!confirmCancel) return;
     setActionLoading(orderId);
     try {
       await cancelOrder(orderId);
       await loadOrders();
+      setSuccessMessage('Number cancelled. Your refund will be credited to your wallet within 2–5 minutes.');
+      window.setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err: any) {
       alert(err.message || 'Failed to cancel order');
     } finally {
@@ -82,6 +85,12 @@ export default function OrderHistory() {
         </div>
       </div>
 
+      {successMessage && (
+        <div role="status" className="alert alert-success" style={{ position: 'fixed', right: '1rem', top: '1rem', zIndex: 1000, maxWidth: '420px' }}>
+          {successMessage}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
           <div className="spinner spinner-lg"></div>
@@ -107,7 +116,9 @@ export default function OrderHistory() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map(order => (
+                {orders.map(order => {
+                  const cancelWaitSeconds = Math.max(0, 120 - Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000));
+                  return (
                   <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td>{order.country_name}</td>
@@ -163,12 +174,12 @@ export default function OrderHistory() {
                           </a>
                           <button
                             onClick={() => handleCancelOrder(order.id, order.service_name)}
-                            disabled={actionLoading === order.id}
+                            disabled={actionLoading === order.id || cancelWaitSeconds > 0}
                             className="btn btn-danger btn-sm"
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                            title="Cancel and instant refund"
+                            title={cancelWaitSeconds > 0 ? 'Please wait 2 minutes for the OTP before cancelling this number.' : 'Request cancellation from Tiger SMS'}
                           >
-                            Cancel
+                            {cancelWaitSeconds > 0 ? `Wait ${cancelWaitSeconds}s` : 'Cancel'}
                           </button>
                         </div>
                       )}
@@ -186,7 +197,8 @@ export default function OrderHistory() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

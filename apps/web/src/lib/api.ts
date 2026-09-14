@@ -89,9 +89,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // ─── Catalog ───
-export const getServices = (popularOnly = false) => apiFetch<any[]>(`/api/services${popularOnly ? '?popular=true' : ''}`);
+export const getServices = (featuredOnly = false) => apiFetch<any[]>(`/api/services${featuredOnly ? '?featured=true' : ''}`);
 export const getCountries = () => apiFetch<any[]>('/api/countries');
-export const getServiceCountries = (code: string, popularOnly = false) => apiFetch<any[]>(`/api/services/${code}/countries${popularOnly ? '?popular=true' : ''}`);
+export const getServiceCountries = (code: string) => apiFetch<any[]>(`/api/services/${code}/countries`);
 
 // ─── Prices ───
 export const getPrice = (service: string, country: number) =>
@@ -238,6 +238,11 @@ export const toggleAdminService = (code: string, enabled: boolean) =>
     method: 'POST',
     body: JSON.stringify({ code, enabled }),
   });
+export const toggleFeaturedService = (code: string, featured: boolean) =>
+  apiFetch<any>('/api/admin/catalog/service/featured', {
+    method: 'POST',
+    body: JSON.stringify({ code, featured }),
+  });
 export const toggleAdminCountry = (id: number, enabled: boolean) =>
   apiFetch<any>('/api/admin/catalog/country', {
     method: 'POST',
@@ -284,4 +289,3 @@ export const claimReferralCode = (referralCode: string) =>
     method: 'POST',
     body: JSON.stringify({ referralCode }),
   });
-

@@ -34,50 +34,17 @@ function lookupServiceIcon(code: string, name: string): string | null {
   return null;
 }
 
-const POPULAR_SERVICES: Record<string, { rank: number; category: string; deliveryRate: number; baseMinUsd: number }> = {
-  wa: { rank: 1, category: 'social', deliveryRate: 98.8, baseMinUsd: 0.15 },
-  tg: { rank: 2, category: 'social', deliveryRate: 98.5, baseMinUsd: 0.12 },
-  go: { rank: 3, category: 'tech', deliveryRate: 97.9, baseMinUsd: 0.14 },
-  ig: { rank: 4, category: 'social', deliveryRate: 97.4, baseMinUsd: 0.12 },
-  dr: { rank: 5, category: 'tech', deliveryRate: 98.2, baseMinUsd: 0.18 },
-  fb: { rank: 6, category: 'social', deliveryRate: 96.8, baseMinUsd: 0.10 },
-  tw: { rank: 7, category: 'social', deliveryRate: 96.5, baseMinUsd: 0.10 },
-  am: { rank: 8, category: 'shopping', deliveryRate: 96.6, baseMinUsd: 0.14 },
-  mm: { rank: 9, category: 'tech', deliveryRate: 97.2, baseMinUsd: 0.12 },
-  lf: { rank: 10, category: 'social', deliveryRate: 96.4, baseMinUsd: 0.10 },
-  nf: { rank: 11, category: 'entertainment', deliveryRate: 96.0, baseMinUsd: 0.15 },
-  wx: { rank: 12, category: 'tech', deliveryRate: 98.1, baseMinUsd: 0.18 },
-  ds: { rank: 13, category: 'social', deliveryRate: 97.0, baseMinUsd: 0.12 },
-  ub: { rank: 14, category: 'tech', deliveryRate: 97.7, baseMinUsd: 0.15 },
-};
-
-const POPULAR_COUNTRIES: Record<number, { rank: number; deliveryRate: number }> = {
-  187: { rank: 1, deliveryRate: 99.2 },
-  12: { rank: 2, deliveryRate: 98.9 },
-  22: { rank: 3, deliveryRate: 98.6 },
-  16: { rank: 4, deliveryRate: 98.4 },
-  43: { rank: 5, deliveryRate: 98.3 },
-  48: { rank: 6, deliveryRate: 98.5 },
-  6: { rank: 7, deliveryRate: 97.8 },
-  10: { rank: 8, deliveryRate: 97.5 },
-  4: { rank: 9, deliveryRate: 97.1 },
-  73: { rank: 10, deliveryRate: 96.9 },
-  7: { rank: 11, deliveryRate: 97.0 },
-  36: { rank: 12, deliveryRate: 98.7 },
-  175: { rank: 13, deliveryRate: 98.9 },
-  78: { rank: 14, deliveryRate: 98.2 },
-};
-
-export async function getDisabledCatalog(env?: any): Promise<{ disabledServices: string[]; disabledCountries: number[] }> {
+export async function getDisabledCatalog(env?: any): Promise<{ disabledServices: string[]; disabledCountries: number[]; featuredServices: string[] }> {
   const supabase = getSupabaseAdmin(env);
   try {
     const { data } = await supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['disabled_services', 'disabled_countries']);
+      .in('key', ['disabled_services', 'disabled_countries', 'featured_services']);
 
     let disabledServices: string[] = [];
     let disabledCountries: number[] = [];
+    let featuredServices: string[] = [];
 
     (data || []).forEach((r: any) => {
       let val = r.value;
@@ -90,23 +57,26 @@ export async function getDisabledCatalog(env?: any): Promise<{ disabledServices:
       if (r.key === 'disabled_countries' && Array.isArray(val)) {
         disabledCountries = val.map((c: any) => Number(c));
       }
+      if (r.key === 'featured_services' && Array.isArray(val)) {
+        featuredServices = val.map((s: any) => String(s).toLowerCase());
+      }
     });
 
-    return { disabledServices, disabledCountries };
+    return { disabledServices, disabledCountries, featuredServices };
   } catch {
-    return { disabledServices: [], disabledCountries: [] };
+    return { disabledServices: [], disabledCountries: [], featuredServices: [] };
   }
 }
 
-export async function getServices(popularOnly = false, env?: any) {
+export async function getServices(featuredOnly = false, env?: any) {
   const tiger = new TigerSmsClient(env);
-  const [{ disabledServices }, tigerServices] = await Promise.all([
+  const [{ disabledServices, featuredServices }, tigerServices] = await Promise.all([
     getDisabledCatalog(env),
     tiger.getServicesList(),
   ]);
 
-  const candidateServices = popularOnly
-    ? tigerServices.filter((s) => POPULAR_SERVICES[s.code.toLowerCase()])
+  const candidateServices = featuredOnly
+    ? tigerServices.filter((s) => featuredServices.includes(s.code.toLowerCase()))
     : tigerServices;
 
   const services = await Promise.all(
@@ -114,9 +84,8 @@ export async function getServices(popularOnly = false, env?: any) {
       .filter((s) => !disabledServices.includes(s.code.toLowerCase()))
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
-        const pop = POPULAR_SERVICES[lowerCode];
         
-        // Consistent local SVG icons for popular services
+        // Consistent local SVG icons when a matching brand asset exists
         const LOCAL_SERVICE_ICONS: Record<string, string> = {
           wa: '/icons/services/wa.svg',
           wa2: '/icons/services/wa.svg',
@@ -157,23 +126,16 @@ export async function getServices(popularOnly = false, env?: any) {
           ? `https://tiger-sms.com/img/service/${iconId}.svg`
           : 'https://tiger-sms.com/img/service/unknown.svg');
 
-        const baseUsd = pop?.baseMinUsd || 0.15;
-        const minPriceInr = await calculateSellPrice(baseUsd, s.code, 22, undefined, env);
-
         return {
           code: s.code,
           name: s.name,
           iconUrl,
-          isPopular: !!pop,
-          rank: pop?.rank || 9999,
-          category: pop?.category || 'other',
-          deliveryRate: pop?.deliveryRate || 95.0,
-          minPriceInr,
+          isFeatured: featuredServices.includes(lowerCode),
         };
       })
   );
 
-  services.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+  services.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || a.name.localeCompare(b.name));
   return services;
 }
 
@@ -189,7 +151,6 @@ export async function getCountries(env?: any) {
   const countries = tigerCountries
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
-      const pop = POPULAR_COUNTRIES[c.id];
       const meta = flags[String(c.id)];
       const iso = meta?.iso || '';
       // Tiger uses uppercase ISO codes (e.g. UA.svg, KZ.svg)
@@ -202,13 +163,10 @@ export async function getCountries(env?: any) {
         name: c.eng,
         iso,
         flagUrl,
-        isPopular: !!pop,
-        rank: pop?.rank || 9999,
-        deliveryRate: pop?.deliveryRate || 95.0,
       };
     });
 
-  countries.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+  countries.sort((a, b) => a.name.localeCompare(b.name));
   return countries;
 }
 
@@ -244,6 +202,21 @@ export async function setCountryActiveStatus(countryId: number, enabled: boolean
   return { disabledServices, disabledCountries: updatedCountries };
 }
 
+export async function setFeaturedService(code: string, featured: boolean, env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const { featuredServices } = await getDisabledCatalog(env);
+  const normalizedCode = code.toLowerCase();
+  const updated = featured
+    ? Array.from(new Set([...featuredServices, normalizedCode]))
+    : featuredServices.filter((item) => item !== normalizedCode);
+  await supabase.from('settings').upsert({
+    key: 'featured_services',
+    value: JSON.stringify(updated),
+    updated_at: new Date().toISOString(),
+  });
+  return { featuredServices: updated };
+}
+
 export async function setDisabledCatalog(services?: string[], countries?: number[], env?: any) {
   const supabase = getSupabaseAdmin(env);
 
@@ -258,7 +231,7 @@ export async function setDisabledCatalog(services?: string[], countries?: number
   return getDisabledCatalog(env);
 }
 
-export async function getServiceCountries(serviceCode: string, userId?: string, popularOnly = false, env?: any) {
+export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledCountries }, allCountries, livePrices] = await Promise.all([
     getDisabledCatalog(env),
@@ -274,7 +247,6 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   for (const [countryIdStr, serviceObj] of Object.entries(livePrices)) {
     const countryId = parseInt(countryIdStr, 10);
     if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
-    if (popularOnly && !POPULAR_COUNTRIES[countryId]) continue;
 
     const sData = (serviceObj as any)?.[serviceCode];
     if (!sData) continue;
@@ -289,7 +261,6 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     const iso = meta?.iso || '';
     const isoUpper = iso.toUpperCase();
     const flagUrl = meta?.flagUrl || (isoUpper ? `https://tiger-sms.com/img/country/${isoUpper}.svg` : 'https://flagcdn.com/un.svg');
-    const pop = POPULAR_COUNTRIES[countryId];
 
     results.push({
       countryId,
@@ -301,15 +272,9 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
       available: stock,
       priceInr,
       priceUsd: costPriceUsd,
-      isPopular: !!pop,
-      rank: pop?.rank || 9999,
-      deliveryRate: pop?.deliveryRate || 95.0,
     });
   }
 
-  results.sort((a, b) => {
-    if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
-    return a.rank - b.rank || a.priceInr - b.priceInr || a.priceUsd - b.priceUsd || b.available - a.available;
-  });
+  results.sort((a, b) => a.name.localeCompare(b.name));
   return results;
 }

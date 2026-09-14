@@ -39,14 +39,14 @@ const howToSchema = {
       "@type": "HowToStep",
       "position": 2,
       "name": "Select Service and Country",
-      "text": "Choose your required platform (WhatsApp, Telegram, Google, etc.) and select from 190+ available international countries.",
+      "text": "Choose a service and country from the options currently returned by the live catalog.",
       "url": "https://otpwala.me/how-it-works#step-2"
     },
     {
       "@type": "HowToStep",
       "position": 3,
-      "name": "Receive SMS Code Instantly",
-      "text": "Enter the assigned virtual phone number on your app. Your verification code arrives in under 30 seconds. If no SMS arrives, you get a 100% auto refund.",
+      "name": "Wait for the SMS Code",
+      "text": "Enter the assigned virtual phone number on your app and follow its live order status. Eligible cancellations are refunded after upstream confirmation.",
       "url": "https://otpwala.me/how-it-works#step-3"
     }
   ]
@@ -69,7 +69,7 @@ const howItWorksFaqSchema = {
       "name": "What happens if the SMS verification code does not arrive?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "OTPWala operates on a strict 100% auto-refund guarantee. If the SMS does not arrive before the timer expires, or if you cancel the number, the full amount is instantly refunded back to your wallet."
+        "text": "Eligible cancellations are refunded after Tiger SMS confirms them. Wallet credit can take 2–5 minutes after confirmation."
       }
     },
     {
@@ -94,7 +94,7 @@ const howItWorksFaqSchema = {
 
 <BaseLayout 
   title="How OTPWala Works — 3-Step Guide to Virtual SMS Verification"
-  description="Learn how to get disposable virtual phone numbers and receive SMS OTPs in under 30 seconds. 3 simple steps with 100% automated refund guarantee."
+  description="Learn how to select a live service and country, purchase a virtual number, receive an SMS code, and cancel an eligible order."
   canonical="https://otpwala.me/how-it-works"
   keywords="how to get virtual number, receive otp online, temporary phone number guide, sms verification tutorial, virtual number india upi, auto refund otp"
 >
@@ -118,8 +118,8 @@ const howItWorksFaqSchema = {
         <span class="badge-pill">Simple 3-Step Process</span>
         <h1>How <span class="text-gradient">OTPWala</span> Works</h1>
         <p class="hero-desc">
-          Get private virtual phone numbers for instant SMS verification in under 30 seconds. 
-          No SIM card or hardware required. Pay as you go with 100% automated refunds.
+          Select a service and country from the live catalog, review current stock and pricing, and follow the order status on screen.
+          No SIM card or hardware is required.
         </p>
       </div>
 
@@ -154,11 +154,11 @@ const howItWorksFaqSchema = {
           </div>
           <h2>Select Service & Country</h2>
           <p class="step-summary">
-            Choose from 980+ digital services (WhatsApp, Telegram, Google, etc.) and pick from over 190+ countries.
+            Choose from the services and countries currently available through Tiger SMS.
           </p>
           <ul class="step-highlights">
             <li>✓ Real-time stock and prices displayed upfront</li>
-            <li>✓ Transparent pricing starting from ₹13 per SMS</li>
+            <li>✓ Live country-specific pricing displayed before purchase</li>
             <li>✓ Immediate number generation in 1 click</li>
           </ul>
         </div>
@@ -173,12 +173,12 @@ const howItWorksFaqSchema = {
           </div>
           <h2>Receive OTP & Verify</h2>
           <p class="step-summary">
-            Enter the allocated number on your app. Your verification code arrives live on screen within 30 seconds.
+            Enter the allocated number on your app. The verification code appears when Tiger SMS receives it.
           </p>
           <ul class="step-highlights">
             <li>✓ 1-Click copy code button</li>
             <li>✓ Active countdown timer with live status</li>
-            <li>✓ <strong>100% Auto-Refund</strong> if no SMS arrives</li>
+            <li>✓ Eligible refunds after Tiger cancellation confirmation</li>
           </ul>
         </div>
       </div>
@@ -232,7 +232,7 @@ const howItWorksFaqSchema = {
         <div class="refund-grid">
           <div class="refund-info">
             <span class="badge-pill" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0">Risk-Free Guarantee</span>
-            <h2>How Our 100% Auto-Refund Works</h2>
+            <h2>How Cancellation Refunds Work</h2>
             <p>
               We believe you should only pay for results. If an SMS code is delayed by the carrier or fails to reach our server, our automated system protects your wallet with zero hassle:
             </p>
@@ -247,15 +247,15 @@ const howItWorksFaqSchema = {
               <div class="rf-step">
                 <div class="rf-num">2</div>
                 <div>
-                  <h4>Instant Cancellation</h4>
-                  <p>Don't want to wait? Cancel anytime after 2 minutes with a single click.</p>
+                  <h4>Cancellation After 2 Minutes</h4>
+                  <p>You can request cancellation after waiting at least 2 minutes for the OTP.</p>
                 </div>
               </div>
               <div class="rf-step">
                 <div class="rf-num">3</div>
                 <div>
-                  <h4>Automatic Wallet Return</h4>
-                  <p>If no SMS was received, 100% of the funds are refunded instantly to your balance.</p>
+                  <h4>Refund After Confirmation</h4>
+                  <p>If Tiger SMS accepts the cancellation, allow 2–5 minutes for the wallet credit.</p>
                 </div>
               </div>
             </div>
@@ -266,9 +266,9 @@ const howItWorksFaqSchema = {
             <h3>Zero Risk SMS Verification</h3>
             <p>Unlike other platforms that charge upfront fees regardless of delivery, OTPWala guarantees:</p>
             <ul class="guarantee-list">
-              <li>✓ Zero deductions for undelivered SMS</li>
+              <li>✓ Refunds follow Tiger SMS cancellation confirmation</li>
               <li>✓ No cancellation penalties or hidden processing fees</li>
-              <li>✓ Instant automated credit restoration</li>
+              <li>✓ Wallet credit normally appears within 2–5 minutes</li>
               <li>✓ 24/7 dedicated Telegram support assistance</li>
             </ul>
             <a href="/auth/register" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Try Without Risk →</a>
@@ -302,7 +302,7 @@ const howItWorksFaqSchema = {
               <tr>
                 <td><strong>Delivery Speed</strong></td>
                 <td class="text-danger">❌ Slow or congested (minutes to hours)</td>
-                <td class="text-success">✅ Direct carrier routes (&lt;30 seconds)</td>
+                <td class="text-success">✅ Live order status in your dashboard</td>
               </tr>
               <tr>
                 <td><strong>Account Safety</strong></td>
@@ -312,12 +312,12 @@ const howItWorksFaqSchema = {
               <tr>
                 <td><strong>Country Coverage</strong></td>
                 <td class="text-danger">❌ Few recycled European/US numbers</td>
-                <td class="text-success">✅ 190+ countries with fresh SIM pools</td>
+                <td class="text-success">✅ Countries currently available from Tiger SMS</td>
               </tr>
               <tr>
                 <td><strong>Refund Policy</strong></td>
                 <td class="text-danger">❌ No support or guarantees</td>
-                <td class="text-success">✅ 100% automatic wallet refund</td>
+                <td class="text-success">✅ Eligible refund after Tiger confirmation</td>
               </tr>
             </tbody>
           </table>
@@ -342,7 +342,7 @@ const howItWorksFaqSchema = {
           <details class="faq-item">
             <summary class="faq-question">What happens if the SMS verification code does not arrive?</summary>
             <div class="faq-answer">
-              <p>OTPWala operates on a strict 100% auto-refund guarantee. If the SMS does not arrive before the timer expires, or if you cancel the number, the full amount is instantly refunded back to your wallet.</p>
+              <p>Eligible cancellations are refunded after Tiger SMS confirms them. Allow 2–5 minutes for the credit to appear in your wallet.</p>
             </div>
           </details>
 

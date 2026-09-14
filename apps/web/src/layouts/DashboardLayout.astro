@@ -568,8 +568,11 @@ const formattedTitle = formatPageTitle(title);
     // Logout
     document.getElementById('logout-btn')?.addEventListener('click', async () => {
       clearLocalSessionId();
-      await supabase.auth.signOut();
-      window.location.href = '/auth/login';
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } finally {
+        window.location.replace('/auth/login');
+      }
     });
 
     // Check auth & load user info
@@ -719,8 +722,11 @@ const formattedTitle = formatPageTitle(title);
 
       dropdownLogoutBtn?.addEventListener('click', async () => {
         clearLocalSessionId();
-        await supabase.auth.signOut();
-        window.location.href = '/auth/login';
+        try {
+          await supabase.auth.signOut({ scope: 'local' });
+        } finally {
+          window.location.replace('/auth/login');
+        }
       });
 
       // Fetch wallet balance — concurrent_session is now non-fatal (re-registers instead of kicking)

@@ -18,7 +18,7 @@ const faqSchema = {
       "name": "How fast do I receive SMS verification codes on OTPWala?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most verification codes arrive in under 30 seconds through our high-speed direct carrier connections with live real-time status updates."
+        "text": "Delivery time depends on the selected service, country, and Tiger SMS availability. Your dashboard shows live order status updates."
       }
     },
     {
@@ -26,7 +26,7 @@ const faqSchema = {
       "name": "What happens if I do not receive an SMS code? Do I get a refund?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, 100% automatically. If an SMS code does not arrive within the activation countdown window, or if you cancel the order before receiving an SMS, your wallet is instantly refunded in full with zero fees."
+        "text": "Eligible cancelled orders are refunded only after Tiger SMS confirms the cancellation. Wallet credit can take 2–5 minutes after confirmation."
       }
     },
     {
@@ -34,7 +34,7 @@ const faqSchema = {
       "name": "Can I use OTPWala numbers for WhatsApp, Telegram, and Google?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. OTPWala supports over 980+ digital services and apps including WhatsApp, Telegram, Google, Gmail, Instagram, Facebook, X (Twitter), OpenAI (ChatGPT), and 190+ countries worldwide."
+        "text": "OTPWala displays the services and countries currently returned by the Tiger SMS API."
       }
     },
     {
@@ -42,7 +42,7 @@ const faqSchema = {
       "name": "How do I top up my wallet on OTPWala?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "You can add balance instantly using Indian UPI (PhonePe, Google Pay, Paytm, BHIM) starting from just ₹50. Individual OTP numbers start from just ₹13."
+        "text": "You can add balance using supported Indian UPI payment apps. The current number price is shown after you select a service and country."
       }
     },
     {
@@ -59,7 +59,7 @@ const faqSchema = {
 
 <BaseLayout 
   title="OTPWala — Instant Virtual Numbers for SMS Verification" 
-  description="Get instant virtual phone numbers for WhatsApp, Telegram, Google, Instagram and 980+ services. Cheapest rates in India, fastest OTP delivery with 100% auto refund guarantee."
+  description="Get virtual phone numbers for SMS verification. Browse live Tiger SMS services, country stock, and current pricing before purchase."
   keywords="virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala"
 >
 
@@ -85,7 +85,7 @@ const faqSchema = {
       <div class="hero-text">
         <div class="hero-pill" id="hero-pill">
           <span class="pill-dot"></span>
-          <span>Live delivery in &lt;30 seconds</span>
+          <span>Live Tiger SMS availability</span>
         </div>
 
         <h1 class="hero-title">
@@ -95,8 +95,8 @@ const faqSchema = {
 
         <p class="hero-subtitle">
           Receive OTP verification codes for WhatsApp, Telegram, Google,
-          Instagram and <strong>980+ services</strong> in India &amp; globally.<br/>
-          Starting from just <strong class="dyn-min-price">₹13</strong>. 100% automated refund guarantee.
+          Select from the services and countries currently available through Tiger SMS.<br/>
+          View live country availability and current API-based pricing before every purchase.
         </p>
 
         <div class="hero-btns">
@@ -121,7 +121,7 @@ const faqSchema = {
           </div>
           <div class="trust-item">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            190+ countries
+            Live country stock
           </div>
         </div>
       </div>
@@ -204,18 +204,18 @@ const faqSchema = {
           </div>
           <div class="float-badge fb-bottom">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            &lt;30 seconds
+            Live status
           </div>
         </div>
 
         <!-- Stats floating cards -->
         <div class="stat-float stat-float-1">
-          <div class="sf-value">980+</div>
-          <div class="sf-label">Services</div>
+          <div class="sf-value">API</div>
+          <div class="sf-label">Live catalog</div>
         </div>
         <div class="stat-float stat-float-2">
-          <div class="sf-value dyn-min-price">₹13</div>
-          <div class="sf-label">Starting price</div>
+          <div class="sf-value">Live</div>
+          <div class="sf-label">API pricing</div>
         </div>
       </div>
     </div>
@@ -227,144 +227,144 @@ const faqSchema = {
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">WhatsApp</span>
-          <span class="tp-price">from ₹19.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Telegram</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Google</span>
-          <span class="tp-price">from ₹18.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Instagram</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Facebook</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">ChatGPT</span>
-          <span class="tp-price">from ₹22</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
           <span class="tp-name">X / Twitter</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">TikTok</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Netflix</span>
-          <span class="tp-price">from ₹18.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Discord</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Amazon</span>
-          <span class="tp-price">from ₹18.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Spotify</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Steam</span>
-          <span class="tp-price">from ₹18.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Microsoft</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
 
         <!-- Set 2 (duplicate for seamless loop) -->
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">WhatsApp</span>
-          <span class="tp-price">from ₹19.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Telegram</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Google</span>
-          <span class="tp-price">from ₹18.50</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Instagram</span>
-          <span class="tp-price">from ₹16</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Facebook</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">ChatGPT</span>
-          <span class="tp-price">from ₹22</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
           <span class="tp-name">X / Twitter</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">TikTok</span>
-          <span class="tp-price">from ₹13</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Netflix</span>
-          <span class="tp-price">from ₹15</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Discord</span>
-          <span class="tp-price">from ₹6</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Amazon</span>
-          <span class="tp-price">from ₹14</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Spotify</span>
-          <span class="tp-price">from ₹8</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Steam</span>
-          <span class="tp-price">from ₹10</span>
+          <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
           <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
           <span class="tp-name">Microsoft</span>
-          <span class="tp-price">from ₹11</span>
+          <span class="tp-price">Live pricing</span>
         </div>
       </div>
     </div>
@@ -374,7 +374,7 @@ const faqSchema = {
   <section class="section" id="services">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-tag">Popular Services</span>
+        <span class="section-tag">Supported Services</span>
         <h2>Get Numbers for <span class="text-gradient">Any Platform</span></h2>
         <p class="text-secondary">Receive OTP codes from all major services instantly</p>
       </div>
@@ -386,7 +386,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>WhatsApp</h3>
-            <p class="text-secondary">from ₹19.50</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -397,7 +397,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>Telegram</h3>
-            <p class="text-secondary">from ₹16</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -408,7 +408,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>Google</h3>
-            <p class="text-secondary">from ₹18.50</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -419,7 +419,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>Instagram</h3>
-            <p class="text-secondary">from ₹16</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -430,7 +430,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>Facebook</h3>
-            <p class="text-secondary">from ₹13</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -441,7 +441,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>X / Twitter</h3>
-            <p class="text-secondary">from ₹13</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -452,7 +452,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>TikTok</h3>
-            <p class="text-secondary">from ₹13</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -463,7 +463,7 @@ const faqSchema = {
           </div>
           <div class="sc-info">
             <h3>ChatGPT</h3>
-            <p class="text-secondary">from ₹22</p>
+            <p class="text-secondary">Live pricing</p>
           </div>
           <div class="sc-arrow">→</div>
         </div>
@@ -547,7 +547,7 @@ const faqSchema = {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <h4>Cheapest Rates</h4>
-          <p class="text-secondary">Starting from <span class="dyn-min-price">₹13</span>. No hidden fees.</p>
+          <p class="text-secondary">Current service and country price shown before purchase. No hidden fees.</p>
         </div>
 
         <div class="feat-card feat-small reveal" id="feature-global">
@@ -563,7 +563,7 @@ const faqSchema = {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           </div>
           <h4>Auto Refund</h4>
-          <p class="text-secondary">No SMS? Instant wallet refund, zero risk.</p>
+          <p class="text-secondary">Eligible cancellations are credited after Tiger SMS confirms them.</p>
         </div>
 
         <div class="feat-card feat-small reveal" id="feature-services">
@@ -630,7 +630,7 @@ const faqSchema = {
             <span class="faq-toggle-icon"></span>
           </summary>
           <div class="faq-answer">
-            <p>Yes, 100% automatically! We operate on a strict <strong>"No SMS, No Charge"</strong> guarantee. If a verification code is not received within the activation window, or if you cancel the order before receiving a code, your wallet is instantly and automatically refunded in full.</p>
+            <p>Eligible cancellations are refunded only after Tiger SMS confirms the cancellation. Once confirmed, allow 2–5 minutes for the credit to appear in your wallet.</p>
           </div>
         </details>
 
@@ -650,7 +650,7 @@ const faqSchema = {
             <span class="faq-toggle-icon"></span>
           </summary>
           <div class="faq-answer">
-            <p>Prices start from as low as <span class="dyn-min-price">₹13</span> per verification code depending on the service and country selected. You can top up your wallet instantly using any Indian UPI payment app (PhonePe, Google Pay, Paytm, BHIM, or QR code) with wallet recharges starting at just ₹50.</p>
+            <p>The current price depends on the service and country selected and is displayed from live API data before purchase. You can top up your wallet using supported Indian UPI payment apps.</p>
           </div>
         </details>
 
@@ -1155,12 +1155,7 @@ const faqSchema = {
   color: #0f172a;
 }
 .tp-price {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #2563eb;
-  background: rgba(37,99,235,0.08);
-  padding: 2px 7px;
-  border-radius: 9999px;
+  display: none;
 }
 .ticker-pill:hover {
   border-color: #2563eb;
@@ -1771,78 +1766,4 @@ const faqSchema = {
     serviceIdx++;
   }, 3500);
 
-  // Live markup price hydration from API
-  (function hydratePrices() {
-    const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
-    fetch(API_URL + '/api/services')
-      .then((r) => r.json())
-      .then((res) => {
-        if (!res.success || !Array.isArray(res.data)) return;
-        const prices: Record<string, number> = {};
-        let minOverall = 9999;
-        res.data.forEach((s: any) => {
-          if (s.minPriceInr && s.minPriceInr > 0) {
-            prices[s.code.toLowerCase()] = s.minPriceInr;
-            if (s.minPriceInr < minOverall) minOverall = s.minPriceInr;
-          }
-        });
-
-        // Update hero starting price stat and all dynamic starting price elements
-        if (minOverall < 9999) {
-          const formatted = '₹' + Math.ceil(minOverall);
-          document.querySelectorAll('.dyn-min-price').forEach((el) => {
-            el.textContent = formatted;
-          });
-        }
-
-        // Map service code to card IDs
-        const cardMap: Record<string, string> = {
-          'service-whatsapp': 'wa',
-          'service-telegram': 'tg',
-          'service-google': 'go',
-          'service-instagram': 'ig',
-          'service-facebook': 'fb',
-          'service-twitter': 'tw',
-          'service-tiktok': 'lf',
-          'service-openai': 'dr',
-        };
-
-        Object.entries(cardMap).forEach(([id, code]) => {
-          const card = document.getElementById(id);
-          const p = prices[code];
-          if (card && p) {
-            const pEl = card.querySelector('.sc-info p');
-            if (pEl) pEl.textContent = 'from ₹' + p.toFixed(2);
-          }
-        });
-
-        // Update ticker pills
-        const nameMap: Record<string, string> = {
-          'whatsapp': 'wa',
-          'telegram': 'tg',
-          'google': 'go',
-          'instagram': 'ig',
-          'facebook': 'fb',
-          'chatgpt': 'dr',
-          'x / twitter': 'tw',
-          'tiktok': 'lf',
-          'netflix': 'nf',
-          'discord': 'ds',
-          'amazon': 'am',
-          'microsoft': 'mm',
-        };
-
-        document.querySelectorAll('.ticker-pill').forEach((pill) => {
-          const nameEl = pill.querySelector('.tp-name');
-          const priceEl = pill.querySelector('.tp-price');
-          if (!nameEl || !priceEl) return;
-          const name = nameEl.textContent?.trim().toLowerCase() || '';
-          const code = nameMap[name];
-          if (code && prices[code]) {
-            priceEl.textContent = 'from ₹' + prices[code].toFixed(2);
-          }
-        });
-      })
-      .catch(() => {});
-  })();
 </script>

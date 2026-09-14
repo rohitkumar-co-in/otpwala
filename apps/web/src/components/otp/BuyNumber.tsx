@@ -13,7 +13,6 @@ import {
   AlertCircleIcon,
   StarIcon,
   XIcon,
-  ZapIcon,
   ArrowUpDownIcon,
 } from '../ui/Icons';
 import {
@@ -94,7 +93,7 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
   const name = isObj ? serviceOrCode.name : code;
   const iconUrl = isObj ? serviceOrCode.iconUrl : null;
 
-  // PRIORITY 1: Consistently render crisp local brand icons for all popular services.
+  // Prefer a crisp local brand icon whenever one exists.
   // This guarantees icons NEVER change, flicker, or get replaced when services finish loading.
   if (code === 'wa' || code === 'wa2') return <WhatsAppIcon size={size} style={{ color: '#25D366' }} />;
   if (code === 'tg' || code === 'eh') return <TelegramIcon size={size} style={{ color: '#229ED9' }} />;
@@ -202,42 +201,12 @@ function getServiceBg(code: string) {
   return 'var(--accent-glow)';
 }
 
-const QUICK_CHIPS = [
-  { code: 'wa', label: 'WhatsApp' },
-  { code: 'tg', label: 'Telegram' },
-  { code: 'go', label: 'Google' },
-  { code: 'ig', label: 'Instagram' },
-  { code: 'dr', label: 'ChatGPT' },
-  { code: 'fb', label: 'Facebook' },
-  { code: 'tw', label: 'Twitter / X' },
-  { code: 'am', label: 'Amazon' },
-  { code: 'mm', label: 'Microsoft' },
-  { code: 'nf', label: 'Netflix' },
-];
-
-const DEFAULT_POPULAR_SERVICES = [
-  { code: 'wa', name: 'WhatsApp', iconUrl: '/icons/services/wa.svg', isPopular: true, rank: 1, category: 'social', deliveryRate: 98.8, minPriceInr: 25 },
-  { code: 'tg', name: 'Telegram', iconUrl: '/icons/services/tg.svg', isPopular: true, rank: 2, category: 'social', deliveryRate: 98.5, minPriceInr: 20 },
-  { code: 'go', name: 'Google / YouTube', iconUrl: '/icons/services/go.svg', isPopular: true, rank: 3, category: 'tech', deliveryRate: 97.9, minPriceInr: 5 },
-  { code: 'ig', name: 'Instagram', iconUrl: '/icons/services/ig.svg', isPopular: true, rank: 4, category: 'social', deliveryRate: 97.4, minPriceInr: 15 },
-  { code: 'dr', name: 'OpenAI / ChatGPT', iconUrl: '/icons/services/dr.svg', isPopular: true, rank: 5, category: 'tech', deliveryRate: 98.2, minPriceInr: 20 },
-  { code: 'fb', name: 'Facebook', iconUrl: '/icons/services/fb.svg', isPopular: true, rank: 6, category: 'social', deliveryRate: 96.8, minPriceInr: 12 },
-  { code: 'tw', name: 'Twitter / X', iconUrl: '/icons/services/tw.svg', isPopular: true, rank: 7, category: 'social', deliveryRate: 96.5, minPriceInr: 12 },
-  { code: 'am', name: 'Amazon', iconUrl: '/icons/services/am.svg', isPopular: true, rank: 8, category: 'shopping', deliveryRate: 96.6, minPriceInr: 18 },
-  { code: 'mm', name: 'Microsoft', iconUrl: '/icons/services/mm.svg', isPopular: true, rank: 9, category: 'tech', deliveryRate: 97.2, minPriceInr: 15 },
-  { code: 'lf', name: 'TikTok', iconUrl: '/icons/services/lf.svg', isPopular: true, rank: 10, category: 'social', deliveryRate: 96.4, minPriceInr: 12 },
-  { code: 'nf', name: 'Netflix', iconUrl: '/icons/services/nf.svg', isPopular: true, rank: 11, category: 'shopping', deliveryRate: 96.0, minPriceInr: 20 },
-  { code: 'wx', name: 'Apple', iconUrl: '/icons/services/wx.svg', isPopular: true, rank: 12, category: 'tech', deliveryRate: 98.1, minPriceInr: 22 },
-  { code: 'ds', name: 'Discord', iconUrl: '/icons/services/ds.svg', isPopular: true, rank: 13, category: 'social', deliveryRate: 97.0, minPriceInr: 15 },
-  { code: 'ub', name: 'Uber', iconUrl: '/icons/services/ub.svg', isPopular: true, rank: 14, category: 'tech', deliveryRate: 97.7, minPriceInr: 18 },
-];
-
-export type ServiceSortOption = 'popular' | 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'delivery_desc';
-export type CountrySortOption = 'popular' | 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'delivery_desc' | 'stock_desc';
+export type ServiceSortOption = 'featured' | 'name_asc' | 'name_desc';
+export type CountrySortOption = 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'stock_desc';
 
 export default function BuyNumber() {
   const [step, setStep] = useState<Step>('service');
-  const [services, setServices] = useState<any[]>(DEFAULT_POPULAR_SERVICES);
+  const [services, setServices] = useState<any[]>([]);
   const [countries, setCountries] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedCountry, setSelectedCountry] = useState<any>(null);
@@ -251,10 +220,9 @@ export default function BuyNumber() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [countrySearch, setCountrySearch] = useState('');
-  const [serviceSort, setServiceSort] = useState<ServiceSortOption>('popular');
-  const [countrySort, setCountrySort] = useState<CountrySortOption>('popular');
-  const [countryFilter, setCountryFilter] = useState<'all' | 'popular' | 'cheap'>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [serviceSort, setServiceSort] = useState<ServiceSortOption>('featured');
+  const [countrySort, setCountrySort] = useState<CountrySortOption>('name_asc');
+  const [countryFilter, setCountryFilter] = useState<'all' | 'cheap'>('all');
   const [copied, setCopied] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [allServicesLoaded, setAllServicesLoaded] = useState(false);
@@ -368,23 +336,15 @@ export default function BuyNumber() {
 
   async function loadServices() {
     try {
-      // Step 1: Load live popular services first
-      const popularData = await getServices(true);
-      if (Array.isArray(popularData) && popularData.length > 0) {
-        setServices(popularData);
+      const allData = await getServices(false);
+      if (Array.isArray(allData)) {
+        setServices(allData);
+        setTotalServicesCount(allData.length);
+        setAllServicesLoaded(true);
       }
       setLoading(false);
-
-      // Step 2: Silently load all services in background
-      getServices(false).then((allData) => {
-        if (Array.isArray(allData) && allData.length > 0) {
-          setServices(allData);
-          setTotalServicesCount(allData.length);
-          setAllServicesLoaded(true);
-        }
-      }).catch(() => {});
     } catch (err: any) {
-      console.warn('Failed to load popular services, falling back:', err);
+      console.warn('Failed to load services:', err);
       try {
         const allData = await getServices(false);
         if (Array.isArray(allData) && allData.length > 0) {
@@ -404,21 +364,17 @@ export default function BuyNumber() {
     setStep('country');
     setCountrySearch('');
     setCountryFilter('all');
-    setCountrySort('popular');
+    setCountrySort('name_asc');
     setShowAllCountries(false);
     setAllCountries([]);
     setLoading(true);
     setError('');
     try {
-      // Load popular countries first for fast render
-      const popularData = await getServiceCountries(service.code, true);
-      setCountries(popularData);
+      const apiCountries = await getServiceCountries(service.code);
+      setCountries(apiCountries);
+      setAllCountries(apiCountries);
+      setShowAllCountries(true);
       setLoading(false);
-
-      // Background-load all countries silently
-      getServiceCountries(service.code, false).then((allData) => {
-        setAllCountries(allData);
-      }).catch(() => {});
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -567,10 +523,6 @@ export default function BuyNumber() {
       s.code.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesQuery) return false;
 
-    if (selectedCategory === 'popular') return s.isPopular;
-    if (selectedCategory === 'social') return s.category === 'social';
-    if (selectedCategory === 'tech') return s.category === 'tech';
-    if (selectedCategory === 'shopping') return s.category === 'shopping' || s.category === 'entertainment';
     return true;
   });
 
@@ -581,27 +533,7 @@ export default function BuyNumber() {
     if (serviceSort === 'name_desc') {
       return b.name.localeCompare(a.name);
     }
-    if (serviceSort === 'price_asc') {
-      const pA = a.minPriceInr ?? 9999;
-      const pB = b.minPriceInr ?? 9999;
-      if (pA !== pB) return pA - pB;
-      return a.name.localeCompare(b.name);
-    }
-    if (serviceSort === 'price_desc') {
-      const pA = a.minPriceInr ?? 0;
-      const pB = b.minPriceInr ?? 0;
-      if (pA !== pB) return pB - pA;
-      return a.name.localeCompare(b.name);
-    }
-    if (serviceSort === 'delivery_desc') {
-      const dA = a.deliveryRate ?? 90;
-      const dB = b.deliveryRate ?? 90;
-      if (dA !== dB) return dB - dA;
-      return a.name.localeCompare(b.name);
-    }
-    // 'popular' default:
-    if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
-    if (a.rank !== b.rank) return a.rank - b.rank;
+    if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
 
@@ -664,71 +596,11 @@ export default function BuyNumber() {
                 color: '#0f172a',
               }}
             >
-              <option value="popular" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Popular Services</option>
+              <option value="featured" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Featured First</option>
               <option value="name_asc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Name (A to Z)</option>
               <option value="name_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Name (Z to A)</option>
-              <option value="price_asc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Price: Low to High</option>
-              <option value="price_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Price: High to Low</option>
-              <option value="delivery_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Highest Delivery Rate</option>
             </select>
           </div>
-        </div>
-
-        {/* Quick Selection Chips */}
-        <div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Popular Services:
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {QUICK_CHIPS.map((chip) => {
-              const matched = services.find((s) => s.code.toLowerCase() === chip.code);
-              return (
-                <button
-                  key={chip.code}
-                  onClick={() => {
-                    if (matched) selectService(matched);
-                    else setSearchQuery(chip.label);
-                  }}
-                  className="btn btn-ghost btn-sm"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-subtle)',
-                    padding: '0.35rem 0.75rem',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.825rem',
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    {renderServiceIcon(matched || chip.code, 18)}
-                  </span>
-                  <span>{chip.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Category Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
-          {[
-            { id: 'all', label: `All (${services.length})` },
-            { id: 'popular', label: 'Popular Only' },
-            { id: 'social', label: 'Social & Chat' },
-            { id: 'tech', label: 'Tech & AI' },
-            { id: 'shopping', label: 'Shopping & Media' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => { setSelectedCategory(tab.id); setSearchQuery(''); }}
-              className={`btn btn-sm ${selectedCategory === tab.id ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ borderRadius: 'var(--radius-full)', padding: '0.35rem 0.85rem' }}
-            >
-              {tab.label}
-            </button>
-          ))}
         </div>
 
         {error && (
@@ -757,7 +629,7 @@ export default function BuyNumber() {
                   cursor: 'pointer',
                   textAlign: 'center',
                   padding: '1.25rem 0.9rem',
-                  border: service.isPopular ? '1px solid var(--border-glow)' : '1px solid var(--border-subtle)',
+                  border: service.isFeatured ? '1px solid var(--border-glow)' : '1px solid var(--border-subtle)',
                   background: 'var(--bg-card)',
                   position: 'relative',
                   display: 'flex',
@@ -766,7 +638,7 @@ export default function BuyNumber() {
                   transition: 'all var(--transition-fast)',
                 }}
               >
-                {service.isPopular && (
+                {service.isFeatured && (
                   <span
                     style={{
                       position: 'absolute',
@@ -785,7 +657,7 @@ export default function BuyNumber() {
                     }}
                   >
                     <StarIcon size={10} color="#f59e0b" />
-                    Top
+                    Featured
                   </span>
                 )}
 
@@ -810,39 +682,6 @@ export default function BuyNumber() {
                   {service.name}
                 </div>
 
-                {/* Delivery Rate & Starting Price Pills */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      color: '#10b981',
-                      background: 'rgba(16, 185, 129, 0.12)',
-                      padding: '0.12rem 0.45rem',
-                      borderRadius: 'var(--radius-full)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.2rem',
-                    }}
-                    title="SMS Delivery Rate"
-                  >
-                    <ZapIcon size={10} color="#10b981" />
-                    {service.deliveryRate || 98}%
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      color: 'var(--text-secondary)',
-                      background: 'var(--bg-glass)',
-                      padding: '0.12rem 0.45rem',
-                      borderRadius: 'var(--radius-full)',
-                      border: '1px solid var(--border-subtle)',
-                    }}
-                  >
-                    From ₹{service.minPriceInr ? service.minPriceInr.toFixed(2) : '—'}
-                  </span>
-                </div>
               </button>
             ))}
           </div>
@@ -862,7 +701,6 @@ export default function BuyNumber() {
       c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
       String(c.id).includes(countrySearch);
     if (!matchesSearch) return false;
-    if (countryFilter === 'popular') return c.isPopular;
     if (countryFilter === 'cheap') return (c.priceInr || 0) <= 50;
     return true;
   });
@@ -888,19 +726,10 @@ export default function BuyNumber() {
       if (pA !== pB) return pB - pA;
       return b.available - a.available;
     }
-    if (countrySort === 'delivery_desc') {
-      const dA = a.deliveryRate ?? 90;
-      const dB = b.deliveryRate ?? 90;
-      if (dA !== dB) return dB - dA;
-      return b.available - a.available;
-    }
     if (countrySort === 'stock_desc') {
       return b.available - a.available;
     }
-    // 'popular' default:
-    if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
-    if (a.rank && b.rank && a.rank !== b.rank) return a.rank - b.rank;
-    return b.available - a.available;
+    return a.name.localeCompare(b.name);
   });
 
   // ─── Step: Select Country ───
@@ -968,12 +797,10 @@ export default function BuyNumber() {
                 color: '#0f172a',
               }}
             >
-              <option value="popular" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Popular Countries</option>
               <option value="name_asc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Name (A to Z)</option>
               <option value="name_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Name (Z to A)</option>
               <option value="price_asc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Price: Low to High</option>
               <option value="price_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Price: High to Low</option>
-              <option value="delivery_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Highest Delivery Rate</option>
               <option value="stock_desc" style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>Most Available Stock</option>
             </select>
           </div>
@@ -983,7 +810,6 @@ export default function BuyNumber() {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.65rem' }}>
           {[
             { id: 'all', label: `All Countries (${allCountries.length || countries.length})` },
-            { id: 'popular', label: `Popular Only (${(allCountries.length ? allCountries : countries).filter(c => c.isPopular).length})` },
             { id: 'cheap', label: `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
           ].map((tab) => (
             <button
@@ -991,7 +817,7 @@ export default function BuyNumber() {
               onClick={() => {
                 setCountryFilter(tab.id as any);
                 // Auto-expand to all countries when using non-default filters
-                if (tab.id !== 'popular' && allCountries.length > 0) setShowAllCountries(true);
+                if (allCountries.length > 0) setShowAllCountries(true);
               }}
               className={`btn btn-sm ${countryFilter === tab.id ? 'btn-primary' : 'btn-ghost'}`}
               style={{ borderRadius: 'var(--radius-full)', padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}
@@ -1059,17 +885,7 @@ export default function BuyNumber() {
                   </th>
                   <th
                     style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setCountrySort(countrySort === 'delivery_desc' ? 'popular' : 'delivery_desc')}
-                    title="Click to sort by Highest Delivery Rate"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span>Delivery Rate</span>
-                      <ArrowUpDownIcon size={13} color={countrySort === 'delivery_desc' ? 'var(--accent-primary)' : 'var(--text-muted)'} />
-                    </div>
-                  </th>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setCountrySort(countrySort === 'stock_desc' ? 'popular' : 'stock_desc')}
+                    onClick={() => setCountrySort(countrySort === 'stock_desc' ? 'name_asc' : 'stock_desc')}
                     title="Click to sort by Available Stock"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -1099,44 +915,7 @@ export default function BuyNumber() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         {renderCountryFlag(country, 24, 16)}
                         <span>{country.name}</span>
-                        {country.isPopular && (
-                          <span
-                            style={{
-                              fontSize: '0.65rem',
-                              fontWeight: 700,
-                              padding: '0.1rem 0.35rem',
-                              borderRadius: 'var(--radius-full)',
-                              background: 'rgba(245, 158, 11, 0.15)',
-                              color: '#f59e0b',
-                              border: '1px solid rgba(245, 158, 11, 0.3)',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.15rem',
-                            }}
-                          >
-                            <StarIcon size={9} color="#f59e0b" />
-                            Top
-                          </span>
-                        )}
                       </div>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: (country.deliveryRate || 95) >= 95 ? '#10b981' : '#f59e0b',
-                          background: (country.deliveryRate || 95) >= 95 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: 'var(--radius-sm)',
-                        }}
-                      >
-                        <ZapIcon size={12} color={(country.deliveryRate || 95) >= 95 ? '#10b981' : '#f59e0b'} />
-                        {country.deliveryRate ? `${country.deliveryRate.toFixed(1)}%` : '95.0%'}
-                      </span>
                     </td>
                     <td><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
                     <td style={{ fontWeight: 700, color: 'var(--success)' }}>
@@ -1167,7 +946,7 @@ export default function BuyNumber() {
               </tbody>
             </table>
           </div>
-          {/* Load All Countries CTA at bottom of popular list */}
+          {/* Load All Countries CTA */}
           {!showAllCountries && allCountries.length > countries.length && !countrySearch && (
             <div style={{
               marginTop: '1rem',
@@ -1183,7 +962,7 @@ export default function BuyNumber() {
             }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                  Showing {countries.length} popular countries
+                  Showing {countries.length} countries
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                   {allCountries.length} total countries available for this service
@@ -1513,7 +1292,7 @@ export default function BuyNumber() {
                       No SMS code arrived within 20 minutes.
                     </p>
                     <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
-                      100% of ₹{parseFloat(order?.priceInr || 0).toFixed(2)} was refunded to your wallet.
+                      Refund status is reflected in your wallet after Tiger SMS confirms it.
                     </p>
                   </div>
                 )}
@@ -1523,7 +1302,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                🛡️ 100% Instant Refund if no SMS is received. You only pay when you get your code.
+                🛡️ Eligible refunds are credited after Tiger SMS confirms cancellation (normally within 2–5 minutes).
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

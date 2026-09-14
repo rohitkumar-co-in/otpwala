@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../config/supabase.js';
 interface CatalogFilterConfig {
   disabledServices: string[];
   disabledCountries: number[];
+  featuredServices: string[];
 }
 
 let cachedConfig: CatalogFilterConfig | null = null;
@@ -22,12 +23,13 @@ export async function getCatalogFilterConfig(): Promise<CatalogFilterConfig> {
     const { data, error } = await supabaseAdmin
       .from('settings')
       .select('key, value')
-      .in('key', ['disabled_services', 'disabled_countries']);
+      .in('key', ['disabled_services', 'disabled_countries', 'featured_services']);
 
     if (error) throw error;
 
     let disabledServices: string[] = [];
     let disabledCountries: number[] = [];
+    let featuredServices: string[] = [];
 
     (data || []).forEach((row) => {
       let parsed = row.value;
@@ -43,14 +45,17 @@ export async function getCatalogFilterConfig(): Promise<CatalogFilterConfig> {
       if (row.key === 'disabled_countries' && Array.isArray(parsed)) {
         disabledCountries = parsed.map((c: any) => Number(c));
       }
+      if (row.key === 'featured_services' && Array.isArray(parsed)) {
+        featuredServices = parsed.map((s: any) => String(s).toLowerCase());
+      }
     });
 
-    cachedConfig = { disabledServices, disabledCountries };
+    cachedConfig = { disabledServices, disabledCountries, featuredServices };
     lastFetchTime = now;
     return cachedConfig;
   } catch (err) {
     console.error('Error fetching catalog filter config:', err);
-    return cachedConfig || { disabledServices: [], disabledCountries: [] };
+    return cachedConfig || { disabledServices: [], disabledCountries: [], featuredServices: [] };
   }
 }
 
@@ -131,6 +136,21 @@ export async function setCountryActiveStatus(countryId: number, enabled: boolean
       updated_at: new Date().toISOString(),
     });
 
+  invalidateCatalogFilterCache();
+  return getCatalogFilterConfig();
+}
+
+export async function setFeaturedService(code: string, featured: boolean): Promise<CatalogFilterConfig> {
+  const config = await getCatalogFilterConfig();
+  const normalizedCode = code.toLowerCase();
+  const featuredServices = featured
+    ? Array.from(new Set([...config.featuredServices, normalizedCode]))
+    : config.featuredServices.filter((item) => item !== normalizedCode);
+  await supabaseAdmin.from('settings').upsert({
+    key: 'featured_services',
+    value: JSON.stringify(featuredServices),
+    updated_at: new Date().toISOString(),
+  });
   invalidateCatalogFilterCache();
   return getCatalogFilterConfig();
 }

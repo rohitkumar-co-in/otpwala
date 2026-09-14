@@ -430,8 +430,11 @@ const formattedTitle = formatPageTitle(title);
 
     document.getElementById('admin-logout-btn')?.addEventListener('click', async () => {
       clearLocalSessionId();
-      await supabase.auth.signOut();
-      window.location.href = '/auth/login';
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } finally {
+        window.location.replace('/auth/login');
+      }
     });
 
     // Dynamic Branding Sync

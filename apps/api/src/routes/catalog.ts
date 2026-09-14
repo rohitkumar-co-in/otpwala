@@ -8,270 +8,98 @@ const serviceIcons: Record<string, string> = require('../data/tigerServiceIcons.
 const countryFlags: Record<string, { id: number; name: string; iso: string; flagUrl: string }> = require('../data/countryFlags.json');
 
 const router = Router();
-
-// Cache for catalog data
 let servicesCache: any[] | null = null;
 let countriesCache: any[] | null = null;
 let servicesCacheTime = 0;
 let countriesCacheTime = 0;
-const CATALOG_TTL = 3600_000; // 1 hour
+const CATALOG_TTL = 3600_000;
 
-const POPULAR_SERVICES: Record<string, { rank: number; category: string; deliveryRate: number; baseMinUsd: number }> = {
-  wa: { rank: 1, category: 'social', deliveryRate: 98.8, baseMinUsd: 0.15 },
-  tg: { rank: 2, category: 'social', deliveryRate: 98.5, baseMinUsd: 0.12 },
-  go: { rank: 3, category: 'tech', deliveryRate: 97.9, baseMinUsd: 0.14 },
-  ig: { rank: 4, category: 'social', deliveryRate: 97.4, baseMinUsd: 0.12 },
-  dr: { rank: 5, category: 'tech', deliveryRate: 98.2, baseMinUsd: 0.18 }, // ChatGPT
-  fb: { rank: 6, category: 'social', deliveryRate: 96.8, baseMinUsd: 0.10 },
-  tw: { rank: 7, category: 'social', deliveryRate: 96.5, baseMinUsd: 0.10 },
-  am: { rank: 8, category: 'shopping', deliveryRate: 96.6, baseMinUsd: 0.14 },
-  mm: { rank: 9, category: 'tech', deliveryRate: 97.2, baseMinUsd: 0.12 },
-  lf: { rank: 10, category: 'social', deliveryRate: 96.4, baseMinUsd: 0.10 }, // TikTok
-  nf: { rank: 11, category: 'entertainment', deliveryRate: 96.0, baseMinUsd: 0.15 },
-  wx: { rank: 12, category: 'tech', deliveryRate: 98.1, baseMinUsd: 0.18 }, // Apple
-  ds: { rank: 13, category: 'social', deliveryRate: 97.0, baseMinUsd: 0.12 }, // Discord
-  ub: { rank: 14, category: 'tech', deliveryRate: 97.7, baseMinUsd: 0.15 }, // Uber
+const LOCAL_SERVICE_ICONS: Record<string, string> = {
+  wa: '/icons/services/wa.svg', wa2: '/icons/services/wa.svg', tg: '/icons/services/tg.svg',
+  eh: '/icons/services/tg.svg', go: '/icons/services/go.svg', gch: '/icons/services/go.svg',
+  gms: '/icons/services/go.svg', gpy: '/icons/services/go.svg', gf: '/icons/services/go.svg',
+  ig: '/icons/services/ig.svg', dr: '/icons/services/dr.svg', fb: '/icons/services/fb.svg',
+  tw: '/icons/services/tw.svg', lf: '/icons/services/lf.svg', mm: '/icons/services/mm.svg',
+  wx: '/icons/services/wx.svg', am: '/icons/services/am.svg', nf: '/icons/services/nf.svg',
+  ds: '/icons/services/ds.svg', ub: '/icons/services/ub.svg', fu: '/icons/services/fu.svg',
+  oi: '/icons/services/oi.svg', so: '/icons/services/so.svg', spot: '/icons/services/so.svg',
+  ln: '/icons/services/ln.svg', rd: '/icons/services/rd.svg', mt: '/icons/services/mt.svg',
+  steam: '/icons/services/mt.svg', ts: '/icons/services/ts.svg', mb: '/icons/services/mb.svg',
+  vi: '/icons/services/vi.svg', me: '/icons/services/me.svg',
 };
 
-const POPULAR_COUNTRIES: Record<number, { rank: number; deliveryRate: number }> = {
-  187: { rank: 1, deliveryRate: 99.2 }, // USA
-  12: { rank: 2, deliveryRate: 98.9 },  // USA Virtual
-  22: { rank: 3, deliveryRate: 98.6 },  // India
-  16: { rank: 4, deliveryRate: 98.4 },  // UK
-  43: { rank: 5, deliveryRate: 98.3 },  // Germany
-  48: { rank: 6, deliveryRate: 98.5 },  // Netherlands
-  6: { rank: 7, deliveryRate: 97.8 },   // Indonesia
-  10: { rank: 8, deliveryRate: 97.5 },  // Vietnam
-  4: { rank: 9, deliveryRate: 97.1 },   // Philippines
-  73: { rank: 10, deliveryRate: 96.9 }, // Brazil
-  7: { rank: 11, deliveryRate: 97.0 },  // Malaysia
-  36: { rank: 12, deliveryRate: 98.7 }, // Canada
-  175: { rank: 13, deliveryRate: 98.9 },// Australia
-  78: { rank: 14, deliveryRate: 98.2 }, // France
-};
-
-function getServiceDeliveryRate(code: string): number {
-  const pop = POPULAR_SERVICES[code.toLowerCase()];
-  if (pop) return pop.deliveryRate;
-  let hash = 0;
-  for (let i = 0; i < code.length; i++) hash = (hash * 31 + code.charCodeAt(i)) % 1000;
-  return Math.round((90.0 + (hash % 70) / 10) * 10) / 10;
+function getServiceIcon(code: string, name: string): string {
+  const lowerCode = code.toLowerCase();
+  const iconId = serviceIcons[name.toLowerCase().trim()] || serviceIcons[lowerCode] || null;
+  return LOCAL_SERVICE_ICONS[lowerCode]
+    || (iconId ? `https://tiger-sms.com/img/service/${iconId}.svg` : 'https://tiger-sms.com/img/service/unknown.svg');
 }
 
-function getCountryDeliveryRate(countryId: number, stock: number): number {
-  const pop = POPULAR_COUNTRIES[countryId];
-  if (pop) return pop.deliveryRate;
-  const stockBonus = Math.min(3.5, Math.log10(Math.max(10, stock)));
-  const hashVal = ((countryId * 37) % 25) / 10;
-  return Math.round(Math.min(97.5, Math.max(88.0, 90.0 + stockBonus + hashVal)) * 10) / 10;
-}
-
-// Background cache for service minimum prices
-let serviceMinPricesUsd: Record<string, number> = {};
-let serviceMinPricesTime = 0;
-const PRICES_CACHE_TTL = 30 * 60_000; // 30 minutes
-
-async function refreshMinPrices() {
+async function getCachedServices() {
   const now = Date.now();
-  if (now - serviceMinPricesTime < PRICES_CACHE_TTL && Object.keys(serviceMinPricesUsd).length > 0) {
-    return;
+  if (!servicesCache || now - servicesCacheTime > CATALOG_TTL) {
+    servicesCache = await tigerSms.getServicesList('en');
+    servicesCacheTime = now;
   }
-  try {
-    const [data, { disabledCountries }] = await Promise.all([
-      tigerSms.getFreePrices(),
-      getCatalogFilterConfig(),
-    ]);
-    const stats: Record<string, number> = {};
-    for (const [cIdStr, servicesObj] of Object.entries(data)) {
-      const cId = parseInt(cIdStr, 10);
-      if (isNaN(cId) || disabledCountries.includes(cId)) continue;
-      for (const [svcCode, svcData] of Object.entries(servicesObj)) {
-        if (svcData.prices) {
-          const availablePrices = Object.entries(svcData.prices)
-            .filter(([_, stock]) => Number(stock) > 0)
-            .map(([p]) => Number(p));
-          if (availablePrices.length > 0) {
-            const minP = Math.min(...availablePrices);
-            if (!stats[svcCode] || minP < stats[svcCode]) {
-              stats[svcCode] = minP;
-            }
-          }
-        }
-      }
-    }
-    if (Object.keys(stats).length > 0) {
-      serviceMinPricesUsd = stats;
-      serviceMinPricesTime = now;
-    }
-  } catch (e) {
-    console.error('Failed to refresh service min prices:', e);
-  }
+  return servicesCache || [];
 }
 
-// Trigger background refresh on launch
-refreshMinPrices().catch(() => {});
+async function getCachedCountries() {
+  const now = Date.now();
+  if (!countriesCache || now - countriesCacheTime > CATALOG_TTL) {
+    countriesCache = await tigerSms.getCountries();
+    countriesCacheTime = now;
+  }
+  return countriesCache || [];
+}
 
-/**
- * GET /api/services
- * Returns all enabled services with icons, delivery rates, minimum prices, and sorting.
- * Query params: ?sort=popular|name_asc|name_desc|price_asc|price_desc|delivery_desc
- */
+/** Returns Tiger services. Featured ordering is controlled only by the admin setting. */
 router.get('/services', async (req: AuthenticatedRequest, res) => {
   try {
-    const now = Date.now();
-    if (!servicesCache || now - servicesCacheTime > CATALOG_TTL) {
-      servicesCache = await tigerSms.getServicesList('en');
-      servicesCacheTime = now;
-    }
+    const [tigerServices, config] = await Promise.all([getCachedServices(), getCatalogFilterConfig()]);
+    const featured = new Set(config.featuredServices.map((code) => code.toLowerCase()));
+    const featuredOnly = req.query.featured === 'true';
+    const sortOption = (req.query.sort as string) || 'featured';
+    const services = tigerServices
+      .filter((service) => !config.disabledServices.includes(service.code.toLowerCase()))
+      .filter((service) => !featuredOnly || featured.has(service.code.toLowerCase()))
+      .map((service) => ({
+        code: service.code,
+        name: service.name,
+        iconUrl: getServiceIcon(service.code, service.name),
+        isFeatured: featured.has(service.code.toLowerCase()),
+      }));
 
-    const sortOption = (req.query.sort as string) || 'popular';
-    const popularOnly = req.query.popular === 'true';
-    const { disabledServices } = await getCatalogFilterConfig();
-
-    let filteredServices = (servicesCache || [])
-      .filter((s) => !disabledServices.includes(s.code.toLowerCase()));
-
-    // If popular=true, only return the ~14 popular services for fast initial load
-    if (popularOnly) {
-      filteredServices = filteredServices.filter((s) => !!POPULAR_SERVICES[s.code.toLowerCase()]);
-    }
-    const mappedServices = await Promise.all(
-      filteredServices
-        .map(async (s) => {
-          const lowerCode = s.code.toLowerCase();
-          const pop = POPULAR_SERVICES[lowerCode];
-          const normName = s.name.toLowerCase().trim();
-
-          const LOCAL_SERVICE_ICONS: Record<string, string> = {
-            wa: '/icons/services/wa.svg',
-            wa2: '/icons/services/wa.svg',
-            tg: '/icons/services/tg.svg',
-            eh: '/icons/services/tg.svg',
-            go: '/icons/services/go.svg',
-            gch: '/icons/services/go.svg',
-            gms: '/icons/services/go.svg',
-            gpy: '/icons/services/go.svg',
-            gf: '/icons/services/go.svg',
-            ig: '/icons/services/ig.svg',
-            dr: '/icons/services/dr.svg',
-            fb: '/icons/services/fb.svg',
-            tw: '/icons/services/tw.svg',
-            lf: '/icons/services/lf.svg',
-            mm: '/icons/services/mm.svg',
-            wx: '/icons/services/wx.svg',
-            am: '/icons/services/am.svg',
-            nf: '/icons/services/nf.svg',
-            ds: '/icons/services/ds.svg',
-            ub: '/icons/services/ub.svg',
-            fu: '/icons/services/fu.svg',
-            oi: '/icons/services/oi.svg',
-            so: '/icons/services/so.svg',
-            spot: '/icons/services/so.svg',
-            ln: '/icons/services/ln.svg',
-            rd: '/icons/services/rd.svg',
-            mt: '/icons/services/mt.svg',
-            steam: '/icons/services/mt.svg',
-            ts: '/icons/services/ts.svg',
-            mb: '/icons/services/mb.svg',
-            vi: '/icons/services/vi.svg',
-            me: '/icons/services/me.svg',
-          };
-
-          const iconId = serviceIcons[normName] || serviceIcons[lowerCode] || null;
-          const iconUrl = LOCAL_SERVICE_ICONS[lowerCode] || (iconId
-            ? `https://tiger-sms.com/img/service/${iconId}.svg`
-            : `https://tiger-sms.com/img/service/unknown.svg`);
-
-          const deliveryRate = getServiceDeliveryRate(s.code);
-          const minUsd = serviceMinPricesUsd[s.code.toLowerCase()] || pop?.baseMinUsd || 0.12;
-          // Calculate sell price using active exchange rate and admin markup
-          const minPriceInr = await calculateSellPrice(minUsd, s.code, 0);
-
-          return {
-            code: s.code,
-            name: s.name,
-            iconUrl,
-            isPopular: !!pop,
-            rank: pop ? pop.rank : 9999,
-            category: pop ? pop.category : 'other',
-            deliveryRate,
-            minPriceInr,
-          };
-        })
-    );
-
-    // Apply sorting
-    if (sortOption === 'name_asc') {
-      mappedServices.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortOption === 'name_desc') {
-      mappedServices.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortOption === 'price_asc') {
-      mappedServices.sort((a, b) => a.minPriceInr - b.minPriceInr || a.name.localeCompare(b.name));
-    } else if (sortOption === 'price_desc') {
-      mappedServices.sort((a, b) => b.minPriceInr - a.minPriceInr || a.name.localeCompare(b.name));
-    } else if (sortOption === 'delivery_desc') {
-      mappedServices.sort((a, b) => b.deliveryRate - a.deliveryRate || a.name.localeCompare(b.name));
-    } else {
-      // Popular first, then alphabetically
-      mappedServices.sort((a, b) => {
-        if (a.rank !== b.rank) return a.rank - b.rank;
-        return a.name.localeCompare(b.name);
-      });
-    }
-
-    res.json({ success: true, data: mappedServices });
+    services.sort((a, b) => {
+      if (sortOption === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortOption === 'name_asc') return a.name.localeCompare(b.name);
+      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    res.json({ success: true, data: services });
   } catch (e) {
     console.error('Error fetching services:', e);
     res.status(500).json({ success: false, error: 'Failed to fetch services' });
   }
 });
 
-/**
- * GET /api/countries
- * Returns all enabled countries with SVG flag URLs, popularity, and delivery rates.
- * Query params: ?sort=popular|name_asc|name_desc|delivery_desc
- */
+/** Returns countries supplied by Tiger, excluding only those disabled by the admin. */
 router.get('/countries', async (req: AuthenticatedRequest, res) => {
   try {
-    const now = Date.now();
-    if (!countriesCache || now - countriesCacheTime > CATALOG_TTL) {
-      countriesCache = await tigerSms.getCountries();
-      countriesCacheTime = now;
-    }
-
-    const sortOption = (req.query.sort as string) || 'popular';
-    const { disabledCountries } = await getCatalogFilterConfig();
-
-    const countries = (countriesCache || [])
-      .filter((c) => !disabledCountries.includes(Number(c.id)))
-      .map((c) => {
-        const flag = countryFlags[String(c.id)];
-        const pop = POPULAR_COUNTRIES[Number(c.id)];
-        const deliveryRate = pop ? pop.deliveryRate : getCountryDeliveryRate(Number(c.id), 1000);
+    const [tigerCountries, { disabledCountries }] = await Promise.all([getCachedCountries(), getCatalogFilterConfig()]);
+    const sortOption = (req.query.sort as string) || 'name_asc';
+    const countries = tigerCountries
+      .filter((country) => !disabledCountries.includes(Number(country.id)))
+      .map((country) => {
+        const flag = countryFlags[String(country.id)];
         return {
-          id: c.id,
-          name: c.eng,
-          iso: flag ? flag.iso : 'un',
-          flagUrl: flag ? flag.flagUrl : 'https://flagcdn.com/un.svg',
-          isPopular: !!pop,
-          rank: pop ? pop.rank : 9999,
-          deliveryRate,
+          id: country.id,
+          name: country.eng,
+          iso: flag?.iso || 'un',
+          flagUrl: flag?.flagUrl || 'https://flagcdn.com/un.svg',
         };
       });
-
-    if (sortOption === 'name_asc') {
-      countries.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortOption === 'name_desc') {
-      countries.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortOption === 'delivery_desc') {
-      countries.sort((a, b) => b.deliveryRate - a.deliveryRate || a.name.localeCompare(b.name));
-    } else {
-      countries.sort((a, b) => {
-        if (a.rank !== b.rank) return a.rank - b.rank;
-        return a.name.localeCompare(b.name);
-      });
-    }
-
+    countries.sort((a, b) => sortOption === 'name_desc' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name));
     res.json({ success: true, data: countries });
   } catch (e) {
     console.error('Error fetching countries:', e);
@@ -279,98 +107,50 @@ router.get('/countries', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-/**
- * GET /api/services/:code/countries
- * Returns enabled countries with availability, sell price, SVG flag, popularity, and delivery rates.
- * Query params: ?sort=popular|name_asc|name_desc|price_asc|price_desc|delivery_desc|stock_desc
- */
+/** Returns Tiger's live stock/cost, converted with the configured pricing rules. */
 router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) => {
   try {
     const { code } = req.params;
-    const sortOption = (req.query.sort as string) || 'popular';
-    const popularOnly = req.query.popular === 'true';
-
-    // Verify service is active
-    const serviceActive = await isServiceActive(code);
-    if (!serviceActive) {
+    const sortOption = (req.query.sort as string) || 'name_asc';
+    if (!(await isServiceActive(code))) {
       res.status(404).json({ success: false, error: 'Service is currently unavailable' });
       return;
     }
 
-    // Fetch all country prices and stock in a single upstream call
-    const [livePrices, { disabledCountries }] = await Promise.all([
-      tigerSms.getPrices(code),
-      getCatalogFilterConfig(),
+    const [livePrices, config, tigerCountries] = await Promise.all([
+      tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(),
     ]);
-
-    // Ensure countries cache is loaded
-    const now = Date.now();
-    if (!countriesCache || now - countriesCacheTime > CATALOG_TTL) {
-      countriesCache = await tigerSms.getCountries();
-      countriesCacheTime = now;
-    }
-
-    const countryMap = new Map((countriesCache || []).map((c) => [String(c.id), c.eng]));
-
+    const countryMap = new Map(tigerCountries.map((country) => [String(country.id), country.eng]));
     const countries: any[] = [];
-    for (const [cIdStr, serviceObj] of Object.entries(livePrices)) {
-      const countryId = parseInt(cIdStr, 10);
-      if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
-      // If popular=true, only include well-known countries for fast initial load
-      if (popularOnly && !POPULAR_COUNTRIES[countryId]) continue;
-
-      const sData = (serviceObj as any)?.[code];
-      if (!sData) continue;
-
-      const costPriceUsd = parseFloat(String(sData.cost ?? '0'));
-      const stock = parseInt(String(sData.count ?? '0'), 10);
-
-      if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) continue;
-
-      const priceInr = await calculateSellPrice(costPriceUsd, code, countryId, req.userId);
+    for (const [countryKey, serviceData] of Object.entries(livePrices)) {
+      const countryId = Number.parseInt(countryKey, 10);
+      if (!Number.isFinite(countryId) || config.disabledCountries.includes(countryId)) continue;
+      const tigerOffer = (serviceData as any)?.[code];
+      if (!tigerOffer) continue;
+      const priceUsd = Number.parseFloat(String(tigerOffer.cost ?? '0'));
+      const available = Number.parseInt(String(tigerOffer.count ?? '0'), 10);
+      if (available <= 0 || !Number.isFinite(priceUsd) || priceUsd <= 0) continue;
       const flag = countryFlags[String(countryId)];
-      const pop = POPULAR_COUNTRIES[countryId];
-      const deliveryRate = getCountryDeliveryRate(countryId, stock);
-
       countries.push({
         id: countryId,
         countryId,
         name: countryMap.get(String(countryId)) || `Country ${countryId}`,
-        iso: flag ? flag.iso : 'un',
-        flagUrl: flag ? flag.flagUrl : 'https://flagcdn.com/un.svg',
-        available: stock,
-        count: stock,
-        priceInr,
-        priceUsd: costPriceUsd,
-        deliveryRate,
-        isPopular: !!pop,
-        rank: pop ? pop.rank : 9999,
+        iso: flag?.iso || 'un',
+        flagUrl: flag?.flagUrl || 'https://flagcdn.com/un.svg',
+        available,
+        count: available,
+        priceInr: await calculateSellPrice(priceUsd, code, countryId, req.userId),
+        priceUsd,
       });
     }
 
-    // Apply sorting
-    if (sortOption === 'name_asc') {
-      countries.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortOption === 'name_desc') {
-      countries.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortOption === 'price_asc') {
-      // Use raw USD as tiebreaker when INR prices are equal (avoids rounding distortion)
-      countries.sort((a, b) => a.priceInr - b.priceInr || a.priceUsd - b.priceUsd || b.available - a.available);
-    } else if (sortOption === 'price_desc') {
-      countries.sort((a, b) => b.priceInr - a.priceInr || b.priceUsd - a.priceUsd || b.available - a.available);
-    } else if (sortOption === 'delivery_desc') {
-      countries.sort((a, b) => b.deliveryRate - a.deliveryRate || b.available - a.available);
-    } else if (sortOption === 'stock_desc') {
-      countries.sort((a, b) => b.available - a.available);
-    } else {
-      // Popular countries first, then by availability
-      countries.sort((a, b) => {
-        if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
-        if (a.rank !== b.rank) return a.rank - b.rank;
-        return b.available - a.available;
-      });
-    }
-
+    countries.sort((a, b) => {
+      if (sortOption === 'name_desc') return b.name.localeCompare(a.name);
+      if (sortOption === 'price_asc') return a.priceInr - b.priceInr || a.priceUsd - b.priceUsd;
+      if (sortOption === 'price_desc') return b.priceInr - a.priceInr || b.priceUsd - a.priceUsd;
+      if (sortOption === 'stock_desc') return b.available - a.available || a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    });
     res.json({ success: true, data: countries });
   } catch (e) {
     if (e instanceof TigerSmsError) {
@@ -383,4 +163,3 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
 });
 
 export default router;
-

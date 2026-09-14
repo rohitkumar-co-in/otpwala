@@ -21,21 +21,6 @@ const breadcrumbSchema = {
   ]
 };
 
-const priceSpecificationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "OTPWala Virtual SMS Numbers",
-  "description": "Pay-as-you-go disposable virtual phone numbers for instant SMS OTP verification across 980+ platforms.",
-  "offers": {
-    "@type": "AggregateOffer",
-    "priceCurrency": "INR",
-    "lowPrice": "1.00",
-    "highPrice": "25.00",
-    "offerCount": "980",
-    "price": "1.50"
-  }
-};
-
 const pricingFaqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -69,41 +54,22 @@ const pricingFaqSchema = {
       "name": "What is the refund policy if no SMS arrives?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "We operate a 100% automated refund guarantee. If the verification code does not arrive within the countdown window, your wallet is refunded immediately in full."
+        "text": "Eligible cancellations are refunded after Tiger SMS confirms the cancellation. Wallet credit can take 2–5 minutes after confirmation."
       }
     }
   ]
 };
 
-const pricingServices = [
-  { code: 'wa', name: 'WhatsApp', icon: 'https://api.iconify.design/logos:whatsapp-icon.svg?width=28&height=28', price: '₹19.50', speed: '< 25s', rate: '98.8%', category: 'popular' },
-  { code: 'tg', name: 'Telegram', icon: 'https://api.iconify.design/logos:telegram.svg?width=28&height=28', price: '₹16.00', speed: '< 20s', rate: '98.5%', category: 'popular' },
-  { code: 'go', name: 'Google / Gmail / YouTube', icon: 'https://api.iconify.design/logos:google-icon.svg?width=28&height=28', price: '₹18.50', speed: '< 30s', rate: '97.9%', category: 'popular' },
-  { code: 'ig', name: 'Instagram & Threads', icon: 'https://api.iconify.design/logos:instagram-icon.svg?width=28&height=28', price: '₹16.00', speed: '< 25s', rate: '97.4%', category: 'popular' },
-  { code: 'dr', name: 'OpenAI (ChatGPT & API)', icon: 'https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=28&height=28', price: '₹22.00', speed: '< 25s', rate: '98.2%', category: 'popular' },
-  { code: 'fb', name: 'Facebook', icon: 'https://api.iconify.design/logos:facebook.svg?width=28&height=28', price: '₹13.00', speed: '< 35s', rate: '96.8%', category: 'social' },
-  { code: 'tw', name: 'X / Twitter', icon: 'https://api.iconify.design/simple-icons:x.svg?color=black&width=24&height=24', price: '₹13.00', speed: '< 30s', rate: '96.5%', category: 'social' },
-  { code: 'am', name: 'Amazon', icon: 'https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=26&height=26', price: '₹18.50', speed: '< 30s', rate: '96.6%', category: 'shopping' },
-  { code: 'mm', name: 'Microsoft / Outlook', icon: 'https://api.iconify.design/logos:microsoft-icon.svg?width=26&height=26', price: '₹16.00', speed: '< 30s', rate: '97.2%', category: 'tech' },
-  { code: 'lf', name: 'TikTok', icon: 'https://api.iconify.design/logos:tiktok-icon.svg?width=26&height=26', price: '₹13.00', speed: '< 30s', rate: '96.4%', category: 'social' },
-  { code: 'nf', name: 'Netflix', icon: 'https://api.iconify.design/logos:netflix-icon.svg?width=26&height=26', price: '₹18.50', speed: '< 35s', rate: '96.0%', category: 'entertainment' },
-  { code: 'wx', name: 'Apple ID & iCloud', icon: 'https://api.iconify.design/simple-icons:apple.svg?color=black&width=26&height=26', price: '₹22.00', speed: '< 25s', rate: '98.1%', category: 'tech' },
-  { code: 'ds', name: 'Discord', icon: 'https://api.iconify.design/logos:discord-icon.svg?width=26&height=26', price: '₹16.00', speed: '< 25s', rate: '97.0%', category: 'social' },
-  { code: 'ub', name: 'Uber / Uber Eats', icon: 'https://api.iconify.design/simple-icons:uber.svg?color=black&width=26&height=26', price: '₹18.50', speed: '< 30s', rate: '97.7%', category: 'shopping' },
-  { code: 'spot', name: 'Spotify', icon: 'https://api.iconify.design/logos:spotify-icon.svg?width=26&height=26', price: '₹13.00', speed: '< 25s', rate: '97.5%', category: 'entertainment' },
-  { code: 'steam', name: 'Steam Guard', icon: 'https://api.iconify.design/logos:steam.svg?width=26&height=26', price: '₹18.50', speed: '< 20s', rate: '98.0%', category: 'entertainment' }
-];
 ---
 
 <BaseLayout 
-  title="Virtual Number Pricing & Rates (Starting ₹13) — OTPWala"
-  description="Transparent pricing for virtual phone numbers across 980+ services and 190+ countries. Starting from just ₹13. Pay-as-you-go with 100% automatic refund guarantee."
+  title="Live Virtual Number Pricing & Rates — OTPWala"
+  description="Browse services with live country availability and current virtual-number prices shown before purchase. Pay as you go with automatic refunds for eligible cancelled orders."
   canonical="https://otpwala.me/pricing"
   keywords="virtual number price, cheap otp service india, buy virtual number upi, whatsapp otp rate, receive sms price, temporary number rates"
 >
   <!-- SEO Schemas -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
-  <script type="application/ld+json" set:html={JSON.stringify(priceSpecificationSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(pricingFaqSchema)} />
 
   <section class="pricing-page">
@@ -121,8 +87,8 @@ const pricingServices = [
         <span class="badge-pill">Pay As You Go &bull; Zero Subscriptions</span>
         <h1>Transparent Rates. <span class="text-gradient">No Hidden Fees.</span></h1>
         <p class="hero-desc">
-          Deposit via UPI starting from ₹50. Individual OTP verification numbers start from just <span class="dyn-min-price">₹13</span>. 
-          If no SMS arrives, you are automatically refunded 100%.
+          Deposit via UPI starting from ₹50. Number prices depend on the service and country and are loaded live before purchase.
+          Eligible cancelled orders are refunded after Tiger SMS confirms the cancellation.
         </p>
 
         <!-- Mandatory Login Notice Banner -->
@@ -130,7 +96,7 @@ const pricingServices = [
           <div class="banner-icon">ℹ️</div>
           <div class="banner-text">
             <strong>Account Required for Number Purchasing:</strong> 
-            Prices are publicly visible below. To order and view your private SMS verification codes, please log in or create a free account.
+            Select a service and country to see its current price. To order and view private SMS verification codes, log in or create a free account.
           </div>
           <div class="banner-actions">
             <a href="/auth/login" class="btn btn-primary btn-sm">Log In</a>
@@ -162,8 +128,8 @@ const pricingServices = [
       <div class="pricing-table-section">
         <div class="section-top-bar">
           <div>
-            <h2>Service Rates & Delivery Speed</h2>
-            <p class="text-secondary">Explore starting rates for popular platforms across 190+ countries</p>
+            <h2>Live Service Catalog</h2>
+            <p class="text-secondary">Services come from Tiger SMS. Country-specific stock and pricing are shown on selection.</p>
           </div>
           <div class="table-search">
             <input 
@@ -181,41 +147,13 @@ const pricingServices = [
             <thead>
               <tr>
                 <th>Service</th>
-                <th>Starting Price</th>
-                <th>Avg. Delivery</th>
-                <th>Success Rate</th>
+                <th>Pricing</th>
                 <th>Refund Guarantee</th>
                 <th style="text-align: right;">Action</th>
               </tr>
             </thead>
-            <tbody>
-              {pricingServices.map((srv) => (
-                <tr class="rate-row" data-code={srv.code} data-name={srv.name.toLowerCase()}>
-                  <td class="service-cell">
-                    <img src={srv.icon} alt={srv.name} width="28" height="28" class="srv-img" loading="lazy" />
-                    <div>
-                      <strong class="srv-name">{srv.name}</strong>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="price-pill">{srv.price}</span>
-                  </td>
-                  <td>
-                    <span class="speed-text">{srv.speed}</span>
-                  </td>
-                  <td>
-                    <span class="rate-badge">✓ {srv.rate}</span>
-                  </td>
-                  <td>
-                    <span class="refund-badge">100% Auto-Refund</span>
-                  </td>
-                  <td style="text-align: right;">
-                    <a href={`/auth/login?redirect=/dashboard/buy?service=${srv.code}`} class="btn-login-to-buy">
-                      Log In to Buy →
-                    </a>
-                  </td>
-                </tr>
-              ))}
+            <tbody id="pricing-services-body">
+              <tr><td colspan="4" class="text-secondary">Loading live services…</td></tr>
             </tbody>
           </table>
           <div id="no-pricing-found" style="display:none; text-align:center; padding:3rem; color:#64748b;">
@@ -249,9 +187,9 @@ const pricingServices = [
             <div class="tier-badge">Standard</div>
             <div class="tier-amount">₹200</div>
             <div class="tier-features">
-              <p>✓ Over 130+ OTP verifications</p>
+              <p>✓ Spend only on the numbers you purchase</p>
               <p>✓ Instant UPI activation</p>
-              <p>✓ Full access to 190+ countries</p>
+              <p>✓ Access to currently available countries</p>
               <p>✓ Priority support</p>
             </div>
             <a href="/auth/login?redirect=/dashboard/wallet" class="btn btn-primary" style="width: 100%;">Log In to Deposit</a>
@@ -261,7 +199,7 @@ const pricingServices = [
             <div class="tier-badge">Pro / Bulk</div>
             <div class="tier-amount">₹500</div>
             <div class="tier-features">
-              <p>✓ 330+ OTP verifications</p>
+              <p>✓ Flexible balance for multiple purchases</p>
               <p>✓ Instant UPI activation</p>
               <p>✓ Perfect for agency & marketing teams</p>
               <p>✓ Dedicated Telegram assistance</p>
@@ -293,8 +231,8 @@ const pricingServices = [
             <ul class="comp-list">
               <li>✅ 100% Private — visible strictly inside your account</li>
               <li>✅ Fresh, high-trust carrier SIM pools</li>
-              <li>✅ High delivery rate across 980+ major services</li>
-              <li>✅ 100% automated refund guarantee if SMS is missed</li>
+              <li>✅ Live Tiger SMS service and country availability</li>
+              <li>✅ Eligible refunds after Tiger cancellation confirmation</li>
             </ul>
           </div>
         </div>
@@ -332,7 +270,7 @@ const pricingServices = [
           <details class="faq-item">
             <summary class="faq-question">What is the refund policy if no SMS arrives?</summary>
             <div class="faq-answer">
-              <p>We operate a 100% automated refund guarantee. If the verification code does not arrive within the countdown window, your wallet is refunded immediately in full.</p>
+              <p>Eligible cancellations are refunded after Tiger SMS confirms the cancellation. Allow 2–5 minutes for the credit to appear in your wallet.</p>
             </div>
           </details>
         </div>
@@ -679,15 +617,14 @@ const pricingServices = [
 </style>
 
 <script>
-  // Simple table filter
   const searchInput = document.getElementById('pricing-search') as HTMLInputElement;
-  const rows = document.querySelectorAll('.rate-row') as NodeListOf<HTMLElement>;
+  const tableBody = document.getElementById('pricing-services-body') as HTMLTableSectionElement;
   const noFound = document.getElementById('no-pricing-found') as HTMLElement;
 
-  searchInput?.addEventListener('input', (e) => {
-    const q = (e.target as HTMLInputElement).value.toLowerCase().trim();
+  function filterRows() {
+    const q = searchInput?.value.toLowerCase().trim() || '';
     let visible = 0;
-    rows.forEach((row) => {
+    tableBody?.querySelectorAll<HTMLElement>('.rate-row').forEach((row) => {
       const name = row.dataset.name || '';
       if (!q || name.includes(q)) {
         row.style.display = '';
@@ -699,46 +636,71 @@ const pricingServices = [
     if (noFound) {
       noFound.style.display = visible === 0 ? 'block' : 'none';
     }
-  });
+  }
+  searchInput?.addEventListener('input', filterRows);
 
-  // Hydrate live rates from API
-  (function hydratePricingTable() {
-    const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
-    fetch(API_URL + '/api/services')
-      .then((r) => r.json())
-      .then((res) => {
-        if (!res.success || !Array.isArray(res.data)) return;
-        const prices: Record<string, number> = {};
-        let minOverall = 9999;
-        res.data.forEach((s: any) => {
-          if (s.minPriceInr && s.minPriceInr > 0) {
-            prices[s.code.toLowerCase()] = s.minPriceInr;
-            if (s.minPriceInr < minOverall) minOverall = s.minPriceInr;
-          }
-        });
+  function createPricingRow(service: any) {
+    const row = document.createElement('tr');
+    row.className = 'rate-row';
+    row.dataset.code = String(service.code || '');
+    row.dataset.name = String(service.name || '').toLowerCase();
 
-        if (minOverall < 9999) {
-          document.querySelectorAll('.dyn-min-price').forEach((el) => {
-            el.textContent = '₹' + Math.ceil(minOverall);
-          });
-        }
+    const serviceCell = document.createElement('td');
+    serviceCell.className = 'service-cell';
+    const icon = document.createElement('img');
+    icon.src = String(service.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg');
+    icon.alt = String(service.name || 'Service');
+    icon.width = 28;
+    icon.height = 28;
+    icon.className = 'srv-img';
+    icon.loading = 'lazy';
+    const name = document.createElement('strong');
+    name.className = 'srv-name';
+    name.textContent = String(service.name || service.code || 'Service');
+    serviceCell.append(icon, name);
 
-        document.querySelectorAll('.rate-row').forEach((row) => {
-          const code = (row as HTMLElement).dataset.code?.toLowerCase();
-          if (code && prices[code]) {
-            const pill = row.querySelector('.price-pill');
-            if (pill) {
-              pill.textContent = '₹' + prices[code].toFixed(2);
-            }
-          }
-        });
-      })
-      .catch(() => {});
-  })();
+    const pricingCell = document.createElement('td');
+    const pricing = document.createElement('span');
+    pricing.className = 'price-pill';
+    pricing.textContent = 'Live by country';
+    pricingCell.append(pricing);
+
+    const refundCell = document.createElement('td');
+    const refund = document.createElement('span');
+    refund.className = 'refund-badge';
+    refund.textContent = 'After Tiger confirmation';
+    refundCell.append(refund);
+
+    const actionCell = document.createElement('td');
+    actionCell.style.textAlign = 'right';
+    const action = document.createElement('a');
+    action.className = 'btn-login-to-buy';
+    const destination = `/dashboard/buy?service=${encodeURIComponent(String(service.code || ''))}`;
+    action.href = `/auth/login?redirect=${encodeURIComponent(destination)}`;
+    action.textContent = 'Log In to View →';
+    actionCell.append(action);
+    row.append(serviceCell, pricingCell, refundCell, actionCell);
+    return row;
+  }
+
+  const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined
+    ? (window as any).__PUBLIC_API_URL__
+    : (import.meta.env.PUBLIC_API_URL || '');
+  fetch(API_URL + '/api/services')
+    .then((response) => response.json())
+    .then((result) => {
+      if (!result.success || !Array.isArray(result.data)) throw new Error(result.error || 'Unable to load services');
+      tableBody.replaceChildren(...result.data.map(createPricingRow));
+      filterRows();
+      updateAuthenticatedActions();
+    })
+    .catch(() => {
+      tableBody.innerHTML = '<tr><td colspan="4">Live service catalog is temporarily unavailable. Please try again shortly.</td></tr>';
+    });
 
   // If user is already logged in, update CTA buttons to redirect straight to buy page
   import { supabase } from '../lib/supabase';
-  (async () => {
+  async function updateAuthenticatedActions() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -753,5 +715,6 @@ const pricingServices = [
         });
       }
     } catch {}
-  })();
+  }
+  updateAuthenticatedActions();
 </script>

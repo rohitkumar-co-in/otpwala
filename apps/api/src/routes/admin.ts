@@ -12,6 +12,7 @@ import {
   setServiceActiveStatus,
   setCountryActiveStatus,
   setDisabledCatalog,
+  setFeaturedService,
 } from '../services/catalogFilter.js';
 import { testTelegramConnection } from '../services/telegram.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
@@ -801,6 +802,7 @@ router.get('/catalog', async (_req: AuthenticatedRequest, res) => {
         name: s.name,
         iconUrl: iconId ? `https://tiger-sms.com/img/service/${iconId}.svg` : 'https://tiger-sms.com/img/service/unknown.svg',
         enabled: !disabledServicesSet.has(s.code.toLowerCase()),
+        featured: filterConfig.featuredServices.includes(s.code.toLowerCase()),
       };
     });
 
@@ -859,6 +861,21 @@ router.post('/catalog/service', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+router.post('/catalog/service/featured', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { code, featured } = req.body;
+    if (!code || typeof featured !== 'boolean') {
+      res.status(400).json({ success: false, error: 'Invalid code or featured status' });
+      return;
+    }
+    const updated = await setFeaturedService(code, featured);
+    res.json({ success: true, data: updated });
+  } catch (e) {
+    console.error('Toggle featured service error:', e);
+    res.status(500).json({ success: false, error: 'Failed to update featured service' });
+  }
+});
+
 /**
  * POST /api/admin/catalog/country
  * Toggle or set a specific country enabled/disabled.
@@ -893,11 +910,6 @@ router.post('/catalog/batch', async (req: AuthenticatedRequest, res) => {
   try {
     const { action } = req.body;
 
-    // Popular service codes: WhatsApp (wa), Telegram (tg), Google (go), Instagram (ig), Facebook (fb), TikTok (lf), Microsoft (mm), OpenAI (dr), Twitter/X (tw), Netflix (nf)
-    const POPULAR_SERVICES = ['wa', 'tg', 'go', 'ig', 'fb', 'lf', 'mm', 'dr', 'tw', 'nf'];
-    // Popular country IDs: Russia (0), Ukraine (1), Kazakhstan (2), Philippines (4), Myanmar (5), Indonesia (6), Malaysia (7), Vietnam (10), India (22), USA (187), UK (16)
-    const POPULAR_COUNTRIES = [0, 1, 2, 4, 5, 6, 7, 10, 16, 22, 187];
-
     const [allServices, allCountries] = await Promise.all([
       tigerSms.getServicesList('en').catch(() => []),
       tigerSms.getCountries().catch(() => []),
@@ -907,20 +919,10 @@ router.post('/catalog/batch', async (req: AuthenticatedRequest, res) => {
       await setDisabledCatalog([]);
     } else if (action === 'disable_all_services') {
       await setDisabledCatalog(allServices.map((s) => s.code));
-    } else if (action === 'enable_popular_services') {
-      const disabled = allServices
-        .filter((s) => !POPULAR_SERVICES.includes(s.code.toLowerCase()))
-        .map((s) => s.code);
-      await setDisabledCatalog(disabled);
     } else if (action === 'enable_all_countries') {
       await setDisabledCatalog(undefined, []);
     } else if (action === 'disable_all_countries') {
       await setDisabledCatalog(undefined, allCountries.map((c) => c.id));
-    } else if (action === 'enable_popular_countries') {
-      const disabled = allCountries
-        .filter((c) => !POPULAR_COUNTRIES.includes(Number(c.id)))
-        .map((c) => c.id);
-      await setDisabledCatalog(undefined, disabled);
     } else {
       res.status(400).json({ success: false, error: 'Unknown batch action' });
       return;
