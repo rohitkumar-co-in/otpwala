@@ -13,6 +13,7 @@ import {
   setCountryActiveStatus,
   setDisabledCatalog,
   setFeaturedService,
+  setFeaturedCountry,
 } from '../services/catalogFilter.js';
 import { testTelegramConnection } from '../services/telegram.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
@@ -814,6 +815,7 @@ router.get('/catalog', async (_req: AuthenticatedRequest, res) => {
         iso: flag ? flag.iso : 'un',
         flagUrl: flag ? flag.flagUrl : 'https://flagcdn.com/un.svg',
         enabled: !disabledCountriesSet.has(Number(c.id)),
+        featured: filterConfig.featuredCountries.includes(Number(c.id)),
       };
     });
 
@@ -873,6 +875,21 @@ router.post('/catalog/service/featured', async (req: AuthenticatedRequest, res) 
   } catch (e) {
     console.error('Toggle featured service error:', e);
     res.status(500).json({ success: false, error: 'Failed to update featured service' });
+  }
+});
+
+router.post('/catalog/country/featured', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id, featured } = req.body;
+    if (!Number.isFinite(Number(id)) || typeof featured !== 'boolean') {
+      res.status(400).json({ success: false, error: 'Invalid id or featured status' });
+      return;
+    }
+    const updated = await setFeaturedCountry(Number(id), featured);
+    res.json({ success: true, data: updated });
+  } catch (e) {
+    console.error('Toggle featured country error:', e);
+    res.status(500).json({ success: false, error: 'Failed to update featured country' });
   }
 });
 

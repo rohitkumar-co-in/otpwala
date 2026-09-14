@@ -248,6 +248,11 @@ export const toggleAdminCountry = (id: number, enabled: boolean) =>
     method: 'POST',
     body: JSON.stringify({ id, enabled }),
   });
+export const toggleFeaturedCountry = (id: number, featured: boolean) =>
+  apiFetch<any>('/api/admin/catalog/country/featured', {
+    method: 'POST',
+    body: JSON.stringify({ id, featured }),
+  });
 export const batchUpdateAdminCatalog = (action: string) =>
   apiFetch<any>('/api/admin/catalog/batch', {
     method: 'POST',

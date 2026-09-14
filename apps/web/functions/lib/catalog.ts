@@ -34,17 +34,95 @@ function lookupServiceIcon(code: string, name: string): string | null {
   return null;
 }
 
-export async function getDisabledCatalog(env?: any): Promise<{ disabledServices: string[]; disabledCountries: number[]; featuredServices: string[] }> {
+type CatalogConfig = {
+  disabledServices: string[];
+  disabledCountries: number[];
+  featuredServices: string[];
+  featuredCountries: number[];
+};
+
+const tigerServiceSlugCache = new Map<string, string>();
+const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
+
+function stripHtml(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchTigerPage(url: string): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'text/html', 'User-Agent': 'OTPWala/1.0' },
+      signal: controller.signal,
+    });
+    if (!response.ok) return '';
+    return await response.text();
+  } catch {
+    return '';
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function getTigerServiceSlug(serviceName: string): Promise<string> {
+  const normalizedName = normalizeName(serviceName);
+  const cached = tigerServiceSlugCache.get(normalizedName);
+  if (cached) return cached;
+
+  const directoryHtml = await fetchTigerPage('https://tiger-sms.com/services');
+  const linkPattern = /<a[^>]+href=["'](?:https:\/\/tiger-sms\.com)?\/services\/([^"'?#]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of directoryHtml.matchAll(linkPattern)) {
+    const slug = match[1].replace(/^\/+|\/+$/g, '');
+    const label = stripHtml(match[2]);
+    if (label) tigerServiceSlugCache.set(normalizeName(label), slug);
+  }
+
+  return tigerServiceSlugCache.get(normalizedName) || normalizedName;
+}
+
+async function getTigerHighDeliveryCountries(serviceName: string): Promise<string[]> {
+  const slug = await getTigerServiceSlug(serviceName);
+  const cached = tigerDeliveryCache.get(slug);
+  if (cached && cached.expiresAt > Date.now()) return cached.names;
+
+  const pageHtml = await fetchTigerPage(`https://tiger-sms.com/services/${encodeURIComponent(slug)}`);
+  const scriptPattern = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let names: string[] = [];
+  for (const match of pageHtml.matchAll(scriptPattern)) {
+    try {
+      const value = JSON.parse(match[1]);
+      if (value?.['@type'] !== 'ItemList' || !/countries for/i.test(String(value.name || ''))) continue;
+      names = (value.itemListElement || [])
+        .sort((a: any, b: any) => Number(a.position || 0) - Number(b.position || 0))
+        .map((item: any) => String(item.name || '').trim())
+        .filter(Boolean);
+      break;
+    } catch {}
+  }
+
+  tigerDeliveryCache.set(slug, { names, expiresAt: Date.now() + 15 * 60_000 });
+  return names;
+}
+
+export async function getDisabledCatalog(env?: any): Promise<CatalogConfig> {
   const supabase = getSupabaseAdmin(env);
   try {
     const { data } = await supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['disabled_services', 'disabled_countries', 'featured_services']);
+      .in('key', ['disabled_services', 'disabled_countries', 'featured_services', 'featured_countries']);
 
     let disabledServices: string[] = [];
     let disabledCountries: number[] = [];
     let featuredServices: string[] = [];
+    let featuredCountries: number[] = [];
 
     (data || []).forEach((r: any) => {
       let val = r.value;
@@ -60,11 +138,14 @@ export async function getDisabledCatalog(env?: any): Promise<{ disabledServices:
       if (r.key === 'featured_services' && Array.isArray(val)) {
         featuredServices = val.map((s: any) => String(s).toLowerCase());
       }
+      if (r.key === 'featured_countries' && Array.isArray(val)) {
+        featuredCountries = val.map((c: any) => Number(c)).filter(Number.isFinite);
+      }
     });
 
-    return { disabledServices, disabledCountries, featuredServices };
+    return { disabledServices, disabledCountries, featuredServices, featuredCountries };
   } catch {
-    return { disabledServices: [], disabledCountries: [], featuredServices: [] };
+    return { disabledServices: [], disabledCountries: [], featuredServices: [], featuredCountries: [] };
   }
 }
 
@@ -217,6 +298,21 @@ export async function setFeaturedService(code: string, featured: boolean, env?: 
   return { featuredServices: updated };
 }
 
+export async function setFeaturedCountry(countryId: number, featured: boolean, env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const { featuredCountries } = await getDisabledCatalog(env);
+  const normalizedId = Number(countryId);
+  const updated = featured
+    ? Array.from(new Set([...featuredCountries, normalizedId]))
+    : featuredCountries.filter((item) => item !== normalizedId);
+  await supabase.from('settings').upsert({
+    key: 'featured_countries',
+    value: JSON.stringify(updated),
+    updated_at: new Date().toISOString(),
+  });
+  return { featuredCountries: updated };
+}
+
 export async function setDisabledCatalog(services?: string[], countries?: number[], env?: any) {
   const supabase = getSupabaseAdmin(env);
 
@@ -233,11 +329,15 @@ export async function setDisabledCatalog(services?: string[], countries?: number
 
 export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
-  const [{ disabledCountries }, allCountries, livePrices] = await Promise.all([
+  const [{ disabledCountries, featuredCountries }, allCountries, livePrices, allServices] = await Promise.all([
     getDisabledCatalog(env),
     tiger.getCountries(),
     tiger.getPrices(serviceCode),
+    tiger.getServicesList(),
   ]);
+  const serviceName = allServices.find((service: any) => service.code.toLowerCase() === serviceCode.toLowerCase())?.name || serviceCode;
+  const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
+  const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeName(name), index + 1]));
 
   const flags = countryFlags as Record<string, { id: number; name: string; iso: string; flagUrl: string }>;
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));
@@ -272,9 +372,17 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
       available: stock,
       priceInr,
       priceUsd: costPriceUsd,
+      isHighDelivery: deliveryRanks.has(normalizeName(countryMap.get(countryIdStr) || '')),
+      deliveryRank: deliveryRanks.get(normalizeName(countryMap.get(countryIdStr) || '')) || null,
+      isPopular: featuredCountries.includes(countryId),
     });
   }
 
-  results.sort((a, b) => a.name.localeCompare(b.name));
+  results.sort((a, b) => {
+    if (a.isHighDelivery !== b.isHighDelivery) return a.isHighDelivery ? -1 : 1;
+    if (a.isHighDelivery && b.isHighDelivery) return a.deliveryRank - b.deliveryRank;
+    if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
   return results;
 }

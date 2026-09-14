@@ -13,6 +13,71 @@ let countriesCache: any[] | null = null;
 let servicesCacheTime = 0;
 let countriesCacheTime = 0;
 const CATALOG_TTL = 3600_000;
+const tigerServiceSlugCache = new Map<string, string>();
+const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
+
+function normalizeCatalogName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]/g, '').trim();
+}
+
+function stripHtml(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&#039;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchTigerPage(url: string): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'text/html', 'User-Agent': 'OTPWala/1.0' },
+      signal: controller.signal,
+    });
+    return response.ok ? await response.text() : '';
+  } catch {
+    return '';
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function getTigerHighDeliveryCountries(serviceName: string): Promise<string[]> {
+  const normalizedName = normalizeCatalogName(serviceName);
+  if (!tigerServiceSlugCache.has(normalizedName)) {
+    const directoryHtml = await fetchTigerPage('https://tiger-sms.com/services');
+    const linkPattern = /<a[^>]+href=["'](?:https:\/\/tiger-sms\.com)?\/services\/([^"'?#]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+    for (const match of directoryHtml.matchAll(linkPattern)) {
+      const label = stripHtml(match[2]);
+      if (label) tigerServiceSlugCache.set(normalizeCatalogName(label), match[1].replace(/^\/+|\/+$/g, ''));
+    }
+  }
+
+  const slug = tigerServiceSlugCache.get(normalizedName) || normalizedName;
+  const cached = tigerDeliveryCache.get(slug);
+  if (cached && cached.expiresAt > Date.now()) return cached.names;
+
+  const pageHtml = await fetchTigerPage(`https://tiger-sms.com/services/${encodeURIComponent(slug)}`);
+  const scriptPattern = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let names: string[] = [];
+  for (const match of pageHtml.matchAll(scriptPattern)) {
+    try {
+      const value = JSON.parse(match[1]);
+      if (value?.['@type'] !== 'ItemList' || !/countries for/i.test(String(value.name || ''))) continue;
+      names = (value.itemListElement || [])
+        .sort((a: any, b: any) => Number(a.position || 0) - Number(b.position || 0))
+        .map((item: any) => String(item.name || '').trim())
+        .filter(Boolean);
+      break;
+    } catch {}
+  }
+  tigerDeliveryCache.set(slug, { names, expiresAt: Date.now() + 15 * 60_000 });
+  return names;
+}
 
 const LOCAL_SERVICE_ICONS: Record<string, string> = {
   wa: '/icons/services/wa.svg', wa2: '/icons/services/wa.svg', tg: '/icons/services/tg.svg',
@@ -117,9 +182,12 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
       return;
     }
 
-    const [livePrices, config, tigerCountries] = await Promise.all([
-      tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(),
+    const [livePrices, config, tigerCountries, tigerServices] = await Promise.all([
+      tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(), getCachedServices(),
     ]);
+    const serviceName = tigerServices.find((service) => service.code.toLowerCase() === code.toLowerCase())?.name || code;
+    const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
+    const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeCatalogName(name), index + 1]));
     const countryMap = new Map(tigerCountries.map((country) => [String(country.id), country.eng]));
     const countries: any[] = [];
     for (const [countryKey, serviceData] of Object.entries(livePrices)) {
@@ -141,10 +209,16 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
         count: available,
         priceInr: await calculateSellPrice(priceUsd, code, countryId, req.userId),
         priceUsd,
+        isHighDelivery: deliveryRanks.has(normalizeCatalogName(countryMap.get(String(countryId)) || '')),
+        deliveryRank: deliveryRanks.get(normalizeCatalogName(countryMap.get(String(countryId)) || '')) || null,
+        isPopular: config.featuredCountries.includes(countryId),
       });
     }
 
     countries.sort((a, b) => {
+      if (a.isHighDelivery !== b.isHighDelivery) return a.isHighDelivery ? -1 : 1;
+      if (a.isHighDelivery && b.isHighDelivery) return a.deliveryRank - b.deliveryRank;
+      if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
       if (sortOption === 'name_desc') return b.name.localeCompare(a.name);
       if (sortOption === 'price_asc') return a.priceInr - b.priceInr || a.priceUsd - b.priceUsd;
       if (sortOption === 'price_desc') return b.priceInr - a.priceInr || b.priceUsd - a.priceUsd;

@@ -3,6 +3,7 @@ import {
   getAdminCatalog,
   toggleAdminService,
   toggleFeaturedService,
+  toggleFeaturedCountry,
   toggleAdminCountry,
   batchUpdateAdminCatalog,
 } from '../../lib/api';
@@ -129,6 +130,22 @@ export default function CatalogManager() {
     }
   };
 
+  const handleToggleFeaturedCountry = async (id: number, name: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus;
+    setCountries((prev) => prev.map((country) => country.id === id ? { ...country, featured: nextStatus } : country));
+    setActionLoading(`featured-country-${id}`);
+    setError(null);
+    try {
+      await toggleFeaturedCountry(id, nextStatus);
+      setSuccess(`${name} ${nextStatus ? 'added to' : 'removed from'} popular countries.`);
+    } catch (err: any) {
+      setCountries((prev) => prev.map((country) => country.id === id ? { ...country, featured: currentStatus } : country));
+      setError(err.message || 'Failed to update popular country');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleBatchAction = async (action: string, description: string) => {
     if (!confirm(`Are you sure you want to: ${description}?`)) return;
     setActionLoading(action);
@@ -176,6 +193,7 @@ export default function CatalogManager() {
     .sort((a, b) => {
       if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
       if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
 
@@ -593,6 +611,19 @@ export default function CatalogManager() {
                     </div>
                   </div>
 
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+                  <button
+                    onClick={() => handleToggleFeaturedCountry(c.id, c.name, !!c.featured)}
+                    disabled={actionLoading === `featured-country-${c.id}`}
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: c.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
+                    title={c.featured ? 'Remove from popular countries' : 'Show in the Popular countries section'}
+                    aria-label={c.featured ? 'Remove from popular countries' : 'Add to popular countries'}
+                  >
+                    <StarIcon size={14} color="currentColor" />
+                    <span>{c.featured ? 'Popular' : 'Star'}</span>
+                  </button>
+
                   {/* Toggle Switch Button */}
                   <button
                     onClick={() => handleToggleCountry(c.id, c.enabled)}
@@ -619,6 +650,7 @@ export default function CatalogManager() {
                     {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
                     <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
                   </button>
+                  </div>
                 </div>
               ))}
             </div>

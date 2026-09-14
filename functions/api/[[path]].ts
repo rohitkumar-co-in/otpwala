@@ -1,5 +1,5 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
-import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService } from '../lib/catalog';
+import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry } from '../lib/catalog';
 import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder } from '../lib/order';
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
@@ -959,7 +959,7 @@ export const onRequest = async (context: any) => {
       // ─── Admin Catalog ───
       if (path === '/api/admin/catalog' && method === 'GET') {
         const tiger = new TigerSmsClient(env);
-        const [servicesList, countriesList, { disabledServices, disabledCountries, featuredServices }] = await Promise.all([
+        const [servicesList, countriesList, { disabledServices, disabledCountries, featuredServices, featuredCountries }] = await Promise.all([
           tiger.getServicesList().catch(() => []),
           tiger.getCountries().catch(() => []),
           getDisabledCatalog(env),
@@ -979,6 +979,7 @@ export const onRequest = async (context: any) => {
           id: c.id,
           name: c.eng,
           enabled: !disabledCountriesSet.has(Number(c.id)),
+          featured: featuredCountries.includes(Number(c.id)),
         }));
 
         return jsonResponse({
@@ -1024,6 +1025,16 @@ export const onRequest = async (context: any) => {
         }
         const updated = await setCountryActiveStatus(Number(id), enabled, env);
         return jsonResponse({ success: true, message: `Country ID ${id} is now ${enabled ? 'enabled' : 'disabled'}`, data: updated });
+      }
+
+      if (path === '/api/admin/catalog/country/featured' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { id, featured } = body;
+        if (!Number.isFinite(Number(id)) || typeof featured !== 'boolean') {
+          return jsonResponse({ success: false, error: 'Invalid id or featured status' }, 400);
+        }
+        const updated = await setFeaturedCountry(Number(id), featured, env);
+        return jsonResponse({ success: true, data: updated });
       }
 
       if (path === '/api/admin/catalog/batch' && method === 'POST') {

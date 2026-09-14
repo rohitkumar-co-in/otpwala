@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { Fragment, useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import {
   ShoppingCartIcon,
@@ -705,7 +705,16 @@ export default function BuyNumber() {
     return true;
   });
 
-  const sortedCountries = [...filteredCountries].sort((a, b) => {
+  const highDeliveryCountries = filteredCountries
+    .filter((country) => country.isHighDelivery)
+    .sort((a, b) => (a.deliveryRank || 999) - (b.deliveryRank || 999));
+
+  const popularCountries = filteredCountries
+    .filter((country) => !country.isHighDelivery && country.isPopular)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Only the regular A-Z group responds to the customer's sort choice.
+  const sortedCountries = filteredCountries.filter((country) => !country.isHighDelivery && !country.isPopular).sort((a, b) => {
     if (countrySort === 'name_asc') {
       return a.name.localeCompare(b.name);
     }
@@ -731,6 +740,13 @@ export default function BuyNumber() {
     }
     return a.name.localeCompare(b.name);
   });
+
+  const countryGroups = [
+    { id: 'delivery', label: 'Highest delivery rate', note: 'Ranked by Tiger SMS', countries: highDeliveryCountries, color: 'var(--success)' },
+    { id: 'popular', label: 'Popular countries', note: 'Starred by OTPWala admin', countries: popularCountries, color: '#f59e0b' },
+    { id: 'all', label: 'All countries', note: 'Your selected sorting applies only here', countries: sortedCountries, color: 'var(--accent-primary)' },
+  ].filter((group) => group.countries.length > 0);
+  const visibleCountryCount = highDeliveryCountries.length + popularCountries.length + sortedCountries.length;
 
   // ─── Step: Select Country ───
   if (step === 'country') {
@@ -861,7 +877,7 @@ export default function BuyNumber() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
             <div className="spinner spinner-lg"></div>
           </div>
-        ) : sortedCountries.length === 0 ? (
+        ) : visibleCountryCount === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
             No countries found matching "{countrySearch}".
           </div>
@@ -909,12 +925,27 @@ export default function BuyNumber() {
                 </tr>
               </thead>
               <tbody>
-                {sortedCountries.map(country => (
+                {countryGroups.map((group) => (
+                  <Fragment key={group.id}>
+                    <tr>
+                      <td colSpan={4} style={{ padding: '0.7rem 1rem', background: 'var(--bg-tertiary)', borderTop: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap' }}>
+                          {group.id === 'popular' ? <StarIcon size={14} color={group.color} /> : <CheckCircleIcon size={14} color={group.color} />}
+                          <span style={{ fontWeight: 800, color: group.color }}>{group.label}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{group.note}</span>
+                        </div>
+                      </td>
+                    </tr>
+                    {group.countries.map(country => (
                   <tr key={country.id}>
                     <td style={{ fontWeight: 600 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         {renderCountryFlag(country, 24, 16)}
                         <span>{country.name}</span>
+                        {group.id === 'delivery' && (
+                          <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>#{country.deliveryRank}</span>
+                        )}
+                        {group.id === 'popular' && <StarIcon size={13} color="#f59e0b" />}
                       </div>
                     </td>
                     <td><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
@@ -942,6 +973,8 @@ export default function BuyNumber() {
                       </button>
                     </td>
                   </tr>
+                    ))}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
