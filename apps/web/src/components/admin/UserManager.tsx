@@ -303,9 +303,39 @@ export default function UserManager() {
     }
   };
 
+  // ─── Bulk Role Toggle ───
+  const handleBulkRole = async (isPromoting: boolean) => {
+    if (selectedUserIds.length === 0) return;
+    const actionLabel = isPromoting ? 'promote to admin' : 'demote to standard user';
+    if (!confirm(`Are you sure you want to ${actionLabel} ${selectedUserIds.length} selected user(s)?`)) return;
+
+    setBulkActionLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    const newRole = isPromoting ? 'admin' : 'user';
+    const ids = new Set(selectedUserIds);
+
+    // Optimistic update
+    setUsers((prev) => prev.map((u) => ids.has(u.id) ? { ...u, role: newRole } : u));
+
+    try {
+      await Promise.all(
+        selectedUserIds.map((id) => (isPromoting ? promoteAdmin(id) : demoteAdmin(id)))
+      );
+      setSuccess(`${selectedUserIds.length} user(s) successfully ${isPromoting ? 'promoted' : 'demoted'}.`);
+    } catch (err: any) {
+      await loadUsers();
+      setError(err.message || `Failed to bulk ${actionLabel} users`);
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
   // ─── Bulk Delete (Prerequisite: Users must be banned first!) ───
   const selectedUsersList = users.filter((u) => selectedUserIds.includes(u.id));
   const selectedBannedUsers = selectedUsersList.filter((u) => u.is_banned);
+  const selectedAdminUsers = selectedUsersList.filter((u) => u.role === 'admin');
   const selectedUnbannedCount = selectedUsersList.length - selectedBannedUsers.length;
 
   const handleConfirmBulkDelete = async () => {
@@ -441,6 +471,20 @@ export default function UserManager() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {/* Smart Promote / Demote button */}
+            {currentUserRole === 'superadmin' && (
+              <button
+                className="btn btn-secondary btn-sm"
+                disabled={bulkActionLoading}
+                onClick={() => handleBulkRole(selectedUserIds.length === selectedAdminUsers.length ? false : true)}
+                style={{ fontSize: '0.8rem', color: selectedUserIds.length === selectedAdminUsers.length ? '#b45309' : '#1d4ed8' }}
+              >
+                {selectedUserIds.length === selectedAdminUsers.length
+                  ? `Demote Selected (${selectedUserIds.length})`
+                  : `Make Admin (${selectedUserIds.length})`}
+              </button>
+            )}
+
             {/* Smart single ban/unban button: unban if all selected are already banned, else ban */}
             <button
               className="btn btn-secondary btn-sm"
@@ -701,51 +745,7 @@ export default function UserManager() {
                             <span>Add Funds</span>
                           </button>
 
-                          {/* Promote/Demote Button */}
-                          {(currentUserRole === 'superadmin' || (currentUserRole === 'admin' && u.role !== 'admin')) && u.role !== 'superadmin' && (
-                             <button
-                               className="btn btn-sm btn-ghost"
-                               onClick={() => handleToggleRole(u)}
-                               disabled={actionLoading === `role-${u.id}`}
-                               style={{ color: u.role === 'admin' ? 'var(--warning)' : 'var(--primary)', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                             >
-                               {actionLoading === `role-${u.id}` ? '...' : u.role === 'admin' ? 'Demote' : 'Make Admin'}
-                             </button>
-                          )}
 
-                          {/* Ban / Unban button */}
-                          {u.role !== 'admin' && u.role !== 'superadmin' && (
-                            <button
-                              className={`btn btn-sm ${u.is_banned ? 'btn-secondary' : 'btn-ghost'}`}
-                              style={{ color: u.is_banned ? 'var(--success)' : 'var(--error)' }}
-                              disabled={actionLoading === u.id}
-                              onClick={() => handleToggleBan(u)}
-                            >
-                              {actionLoading === u.id ? '...' : u.is_banned ? 'Unban' : 'Ban'}
-                            </button>
-                          )}
-
-                          {/* Delete button: Only enabled if user is banned! */}
-                          {currentUserRole === 'superadmin' && u.role !== 'admin' && u.role !== 'superadmin' && (
-                            <button
-                              className="btn btn-sm"
-                              disabled={!u.is_banned || actionLoading === u.id}
-                              onClick={() => setDeleteTarget(u)}
-                              title={u.is_banned ? 'Permanently delete user' : 'User must be banned first before deletion'}
-                              style={{
-                                background: u.is_banned ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
-                                color: u.is_banned ? '#ef4444' : '#cbd5e1',
-                                border: u.is_banned ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid transparent',
-                                cursor: u.is_banned ? 'pointer' : 'not-allowed',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                              }}
-                            >
-                              <TrashIcon size={13} />
-                              <span>Delete</span>
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
