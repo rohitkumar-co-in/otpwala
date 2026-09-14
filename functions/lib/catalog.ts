@@ -11,7 +11,14 @@ function normalizeName(name: string): string {
 }
 
 // Build a lookup map: normalizedKey -> iconId
-const _icons = serviceIcons as Record<string, string>;
+function unwrapJsonRecord<T>(value: unknown): Record<string, T> {
+  const imported = value as any;
+  const record = imported?.default && typeof imported.default === 'object' ? imported.default : imported;
+  return record && typeof record === 'object' ? record as Record<string, T> : {};
+}
+
+const _icons = unwrapJsonRecord<string>(serviceIcons);
+const _flags = unwrapJsonRecord<{ id: number; name: string; iso: string; flagUrl: string }>(countryFlags);
 const _iconLookup: Record<string, string> = {};
 for (const [key, val] of Object.entries(_icons)) {
   _iconLookup[normalizeName(key)] = val;
@@ -204,8 +211,8 @@ export async function getServices(featuredOnly = false, env?: any) {
 
         const iconId = lookupServiceIcon(s.code, s.name);
         const iconUrl = LOCAL_SERVICE_ICONS[lowerCode] || ((iconId && iconId !== 'unknown')
-          ? `https://tiger-sms.com/img/service/${iconId}.svg`
-          : 'https://tiger-sms.com/img/service/unknown.svg');
+          ? `/api/catalog/service-icon/${encodeURIComponent(iconId)}`
+          : '/icons/services/default.svg');
 
         return {
           code: s.code,
@@ -227,17 +234,16 @@ export async function getCountries(env?: any) {
     tiger.getCountries(),
   ]);
 
-  const flags = countryFlags as Record<string, { id: number; name: string; iso: string; flagUrl: string }>;
+  const flags = _flags;
 
   const countries = tigerCountries
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
       const meta = flags[String(c.id)];
       const iso = meta?.iso || '';
-      // Tiger uses uppercase ISO codes (e.g. UA.svg, KZ.svg)
+      // Normalize ISO codes before building the public flag URL.
       const isoUpper = iso.toUpperCase();
-      const flagUrl = meta?.flagUrl ||
-        (isoUpper ? `https://tiger-sms.com/img/country/${isoUpper}.svg` : 'https://flagcdn.com/un.svg');
+      const flagUrl = isoUpper ? `https://flagcdn.com/${isoUpper.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
 
       return {
         id: c.id,
@@ -339,7 +345,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
   const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeName(name), index + 1]));
 
-  const flags = countryFlags as Record<string, { id: number; name: string; iso: string; flagUrl: string }>;
+  const flags = _flags;
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));
 
   const results: any[] = [];
@@ -360,7 +366,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     const meta = flags[countryIdStr];
     const iso = meta?.iso || '';
     const isoUpper = iso.toUpperCase();
-    const flagUrl = meta?.flagUrl || (isoUpper ? `https://tiger-sms.com/img/country/${isoUpper}.svg` : 'https://flagcdn.com/un.svg');
+    const flagUrl = isoUpper ? `https://flagcdn.com/${isoUpper.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
 
     results.push({
       countryId,

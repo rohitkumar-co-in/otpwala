@@ -181,9 +181,9 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
             <h2>4. How We Use Information</h2>
             <p>The information we collect is processed for the following lawful business purposes:</p>
             <ul class="styled-list">
-              <li><strong>Core Service Provision:</strong> Allocating temporary virtual numbers from upstream carriers and delivering the incoming verification SMS code to your private dashboard.</li>
+              <li><strong>Core Service Provision:</strong> Allocating temporary virtual numbers and delivering the incoming verification SMS code to your private dashboard.</li>
               <li><strong>Account Security:</strong> Verifying user identity, preventing automated brute-force attempts, and preventing unauthorized account takeover.</li>
-              <li><strong>Billing & Wallet Management:</strong> Crediting deposited funds, deducting purchases according to live pricing, and crediting eligible cancelled orders after Tiger SMS confirms the cancellation.</li>
+              <li><strong>Billing & Wallet Management:</strong> Crediting deposited funds, deducting purchases according to live pricing, and crediting eligible cancelled orders after cancellation is confirmed.</li>
               <li><strong>Customer Support:</strong> Investigating failed orders, resolving payment inquiries, and assisting users via our official support channels.</li>
               <li><strong>Legal Compliance & Abuse Prevention:</strong> Detecting and mitigating malicious activities such as spam, fraud, automated bot exploitation, or violations of our Terms of Service.</li>
             </ul>
@@ -207,7 +207,7 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
             <h2>6. Information Sharing & Third Parties</h2>
             <p>We do not sell, license, or trade your personal information. Information is only shared under strict circumstances:</p>
             <ul>
-              <li><strong>Upstream Telecommunication Providers:</strong> We communicate with verified upstream carrier gateways (such as Tiger SMS) to query availability and request telephone numbers. We only transmit the required service code and country ID; we <strong>never</strong> transmit your personal identity, email, or Google account information to upstream carriers.</li>
+              <li><strong>Telecommunications Infrastructure:</strong> OTPWala processes the service and country selection required to allocate a number. Your personal identity, email, and Google account information are not attached to number-allocation requests.</li>
               <li><strong>Payment Gateways & Banking Partners:</strong> When processing deposits, transaction details are handled securely by authorized banking and UPI infrastructure providers.</li>
               <li><strong>Legal & Regulatory Authorities:</strong> We may disclose data if required by a court order, applicable law, subpoena, or governmental regulatory authority to comply with legal obligations or prevent unlawful conduct.</li>
             </ul>

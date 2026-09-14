@@ -28,7 +28,7 @@ export class TigerSmsClient {
     const text = (await response.text()).trim();
 
     if (text === 'BAD_KEY') {
-      throw new TigerSmsError('BAD_KEY', 'Invalid Tiger SMS API key');
+      throw new TigerSmsError('SERVICE_CONFIGURATION_ERROR', 'Service configuration error');
     }
     if (text === 'BAD_ACTION') {
       throw new TigerSmsError('BAD_ACTION', `Unknown action: ${action}`);

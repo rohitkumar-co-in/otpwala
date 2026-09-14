@@ -132,7 +132,7 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
         loading="lazy"
         onError={(e) => {
           e.currentTarget.onerror = null;
-          e.currentTarget.src = 'https://tiger-sms.com/img/service/unknown.svg';
+          e.currentTarget.src = '/icons/services/default.svg';
         }}
       />
     );
@@ -145,12 +145,12 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
 export function renderCountryFlag(country: any, width = 22, height = 15) {
   if (!country) return null;
   const iso = (country.iso || 'un').toUpperCase();
-  const tigerFlagUrl = country.flagUrl || `https://tiger-sms.com/img/country/${iso}.svg`;
   const fallbackUrl = `https://flagcdn.com/${iso.toLowerCase()}.svg`;
+  const flagUrl = country.flagUrl || fallbackUrl;
 
   return (
     <img
-      src={tigerFlagUrl}
+      src={flagUrl}
       alt={country.name || iso}
       width={width}
       height={height}
@@ -742,7 +742,7 @@ export default function BuyNumber() {
   });
 
   const countryGroups = [
-    { id: 'delivery', label: 'Highest delivery rate', note: 'Ranked by Tiger SMS', countries: highDeliveryCountries, color: 'var(--success)' },
+    { id: 'delivery', label: 'Highest delivery rate', note: 'Based on live availability', countries: highDeliveryCountries, color: 'var(--success)' },
     { id: 'popular', label: 'Popular countries', note: 'Starred by OTPWala admin', countries: popularCountries, color: '#f59e0b' },
     { id: 'all', label: 'All countries', note: 'Your selected sorting applies only here', countries: sortedCountries, color: 'var(--accent-primary)' },
   ].filter((group) => group.countries.length > 0);
@@ -1233,7 +1233,7 @@ export default function BuyNumber() {
                         )}
                       </div>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
-                        Use this Tiger SMS number exactly as provided in <b>{order?.serviceName || 'your app'}</b>.
+                        Use this OTPWala number exactly as provided in <b>{order?.serviceName || 'your app'}</b>.
                       </p>
                     </>
                   );
@@ -1325,7 +1325,7 @@ export default function BuyNumber() {
                       No SMS code arrived within 20 minutes.
                     </p>
                     <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
-                      Refund status is reflected in your wallet after Tiger SMS confirms it.
+                      Refund status is reflected in your wallet after cancellation is confirmed.
                     </p>
                   </div>
                 )}
@@ -1335,7 +1335,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                🛡️ Eligible refunds are credited after Tiger SMS confirms cancellation (normally within 2–5 minutes).
+                🛡️ Eligible refunds are credited after cancellation is confirmed (normally within 2–5 minutes).
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

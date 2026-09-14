@@ -31,8 +31,8 @@ export const ISO_TO_DIAL_CODE: Record<string, string> = {
   az: '994', ge: '995', kg: '996', uz: '998',
 };
 
-// Common Tiger SMS Country IDs to ISO
-export const TIGER_ID_TO_ISO: Record<number, string> = {
+// Common catalog country IDs to ISO
+export const PROVIDER_COUNTRY_ID_TO_ISO: Record<number, string> = {
   0: 'ru', 1: 'ua', 2: 'kz', 3: 'cn', 4: 'ph', 5: 'mm', 6: 'id', 7: 'my', 8: 'ke',
   9: 'tz', 10: 'vn', 11: 'kg', 12: 'us', 13: 'il', 14: 'hk', 15: 'pl', 16: 'gb',
   17: 'mg', 18: 'cg', 19: 'ng', 20: 'mo', 21: 'eg', 22: 'in', 23: 'ie', 24: 'kh',
@@ -89,10 +89,10 @@ export function formatPhoneNumber(
 
   let expectedDialCode = '';
 
-  // 1. Check country hint (ISO string or Tiger country ID)
+  // 1. Check country hint (ISO string or catalog country ID)
   if (countryHint !== undefined && countryHint !== null) {
     if (typeof countryHint === 'number') {
-      const iso = TIGER_ID_TO_ISO[countryHint];
+      const iso = PROVIDER_COUNTRY_ID_TO_ISO[countryHint];
       if (iso && ISO_TO_DIAL_CODE[iso]) {
         expectedDialCode = ISO_TO_DIAL_CODE[iso];
       }
@@ -102,8 +102,8 @@ export function formatPhoneNumber(
         expectedDialCode = ISO_TO_DIAL_CODE[hintClean];
       } else {
         const num = parseInt(hintClean, 10);
-        if (!isNaN(num) && TIGER_ID_TO_ISO[num]) {
-          expectedDialCode = ISO_TO_DIAL_CODE[TIGER_ID_TO_ISO[num]] || '';
+        if (!isNaN(num) && PROVIDER_COUNTRY_ID_TO_ISO[num]) {
+          expectedDialCode = ISO_TO_DIAL_CODE[PROVIDER_COUNTRY_ID_TO_ISO[num]] || '';
         }
       }
     }
@@ -121,7 +121,7 @@ export function formatPhoneNumber(
     };
   }
 
-  // 3. If known dial code does NOT match start (e.g. Tiger-SMS returned local digits without country code)
+  // 3. If known dial code does NOT match start (for example, local digits without a country code)
   if (expectedDialCode && !digits.startsWith(expectedDialCode)) {
     return {
       raw: rawStr,

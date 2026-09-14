@@ -47,7 +47,7 @@ export default function OrderHistory() {
   }
 
   async function handleCancelOrder(orderId: string, serviceName: string) {
-    const confirmCancel = window.confirm(`Request cancellation for ${serviceName}? A refund is issued only after Tiger SMS confirms it and may take 2–5 minutes to appear.`);
+    const confirmCancel = window.confirm(`Request cancellation for ${serviceName}? An eligible refund is issued after cancellation is confirmed and may take 2–5 minutes to appear.`);
     if (!confirmCancel) return;
     setActionLoading(orderId);
     try {
@@ -177,7 +177,7 @@ export default function OrderHistory() {
                             disabled={actionLoading === order.id || cancelWaitSeconds > 0}
                             className="btn btn-danger btn-sm"
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                            title={cancelWaitSeconds > 0 ? 'Please wait 2 minutes for the OTP before cancelling this number.' : 'Request cancellation from Tiger SMS'}
+                            title={cancelWaitSeconds > 0 ? 'Please wait 2 minutes for the OTP before cancelling this number.' : 'Request cancellation'}
                           >
                             {cancelWaitSeconds > 0 ? `Wait ${cancelWaitSeconds}s` : 'Cancel'}
                           </button>

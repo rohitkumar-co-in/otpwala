@@ -54,7 +54,7 @@ const pricingFaqSchema = {
       "name": "What is the refund policy if no SMS arrives?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Eligible cancellations are refunded after Tiger SMS confirms the cancellation. Wallet credit can take 2–5 minutes after confirmation."
+        "text": "Eligible cancellations are refunded after cancellation is confirmed. Wallet credit can take 2–5 minutes to appear."
       }
     }
   ]
@@ -88,7 +88,7 @@ const pricingFaqSchema = {
         <h1>Transparent Rates. <span class="text-gradient">No Hidden Fees.</span></h1>
         <p class="hero-desc">
           Deposit via UPI starting from ₹50. Number prices depend on the service and country and are loaded live before purchase.
-          Eligible cancelled orders are refunded after Tiger SMS confirms the cancellation.
+          Eligible cancelled orders are refunded after cancellation is confirmed.
         </p>
 
         <!-- Mandatory Login Notice Banner -->
@@ -119,8 +119,8 @@ const pricingFaqSchema = {
         </div>
         <div class="value-card">
           <div class="v-icon">🛡️</div>
-          <h3>Tiger-Confirmed Cancellation Credits</h3>
-          <p>Eligible cancellations are credited only after Tiger SMS confirms them. Wallet credit can take 2–5 minutes.</p>
+          <h3>Confirmed Cancellation Credits</h3>
+          <p>Eligible cancellations are credited after confirmation. Wallet credit can take 2–5 minutes.</p>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ const pricingFaqSchema = {
         <div class="section-top-bar">
           <div>
             <h2>Live Service Catalog</h2>
-            <p class="text-secondary">Services come from Tiger SMS. Country-specific stock and pricing are shown on selection.</p>
+            <p class="text-secondary">Services come from OTPWala's live catalog. Country-specific stock and pricing are shown on selection.</p>
           </div>
           <div class="table-search">
             <input 
@@ -229,9 +229,9 @@ const pricingFaqSchema = {
             <h3 class="good-title">OTPWala Private Numbers</h3>
             <ul class="comp-list">
               <li>✅ Order details visible inside your authenticated account</li>
-              <li>✅ Temporary numbers supplied by Tiger SMS</li>
-              <li>✅ Live Tiger SMS service and country availability</li>
-              <li>✅ Eligible refunds after Tiger cancellation confirmation</li>
+              <li>✅ Temporary numbers supplied by OTPWala</li>
+              <li>✅ Live OTPWala service and country availability</li>
+              <li>✅ Eligible refunds after cancellation confirmation</li>
             </ul>
           </div>
         </div>
@@ -269,7 +269,7 @@ const pricingFaqSchema = {
           <details class="faq-item">
             <summary class="faq-question">What is the refund policy if no SMS arrives?</summary>
             <div class="faq-answer">
-              <p>Eligible cancellations are refunded after Tiger SMS confirms the cancellation. Allow 2–5 minutes for the credit to appear in your wallet.</p>
+              <p>Eligible cancellations are refunded after cancellation is confirmed. Allow 2–5 minutes for the credit to appear in your wallet.</p>
             </div>
           </details>
         </div>
@@ -615,6 +615,18 @@ const pricingFaqSchema = {
   }
 </style>
 
+<!-- Catalog rows are inserted by client-side JavaScript, so their styles must be global. -->
+<style is:global>
+  #pricing-services-body .rate-row td { padding: 1.1rem 1.5rem; border-bottom: 1px solid #f1f5f9; }
+  #pricing-services-body .service-cell { display: flex; align-items: center; gap: 1rem; }
+  #pricing-services-body .srv-img { width: 30px; height: 30px; display: block; object-fit: contain; border-radius: 6px; }
+  #pricing-services-body .srv-name { display: block; color: #0f172a; font-size: .98rem; }
+  #pricing-services-body .price-pill { display: inline-block; font-size: .95rem; font-weight: 800; color: #0f172a; }
+  #pricing-services-body .refund-badge { font-size: .78rem; color: #0284c7; background: #f0f9ff; padding: .2rem .55rem; border-radius: 6px; border: 1px solid #bae6fd; font-weight: 600; }
+  #pricing-services-body .btn-login-to-buy { display: inline-flex; align-items: center; padding: .45rem .95rem; border-radius: 8px; background: #eff6ff; color: #2563eb; font-size: .82rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  #pricing-services-body .btn-login-to-buy:hover { background: #2563eb; color: #fff; }
+</style>
+
 <script>
   const searchInput = document.getElementById('pricing-search') as HTMLInputElement;
   const tableBody = document.getElementById('pricing-services-body') as HTMLTableSectionElement;
@@ -647,12 +659,15 @@ const pricingFaqSchema = {
     const serviceCell = document.createElement('td');
     serviceCell.className = 'service-cell';
     const icon = document.createElement('img');
-    icon.src = String(service.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg');
+    icon.src = String(service.iconUrl || '/icons/services/default.svg');
     icon.alt = String(service.name || 'Service');
     icon.width = 28;
     icon.height = 28;
     icon.className = 'srv-img';
     icon.loading = 'lazy';
+    icon.addEventListener('error', () => {
+      if (!icon.src.endsWith('/icons/services/default.svg')) icon.src = '/icons/services/default.svg';
+    });
     const name = document.createElement('strong');
     name.className = 'srv-name';
     name.textContent = String(service.name || service.code || 'Service');
@@ -667,7 +682,7 @@ const pricingFaqSchema = {
     const refundCell = document.createElement('td');
     const refund = document.createElement('span');
     refund.className = 'refund-badge';
-    refund.textContent = 'After Tiger confirmation';
+    refund.textContent = 'After cancellation confirmation';
     refundCell.append(refund);
 
     const actionCell = document.createElement('td');
