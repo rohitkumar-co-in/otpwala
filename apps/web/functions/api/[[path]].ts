@@ -101,13 +101,48 @@ export const onRequest = async (context: any) => {
       if (!email) return jsonResponse({ success: false, error: 'Email required' }, 400);
 
       const supabase = getSupabaseAdmin(env);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('email', email)
-        .maybeSingle();
 
-      return jsonResponse({ success: true, exists: !!profile });
+      // 1. Check profiles table (case-insensitive)
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', email)
+          .maybeSingle();
+
+        if (profile) {
+          return jsonResponse({ success: true, exists: true });
+        }
+      } catch (err) {
+        console.warn('Profiles check error:', err);
+      }
+
+      // 2. Check RPC check_email_exists (queries auth.users and profiles directly)
+      try {
+        const { data: rpcExists, error: rpcErr } = await supabase.rpc('check_email_exists', { p_email: email });
+        if (!rpcErr && rpcExists === true) {
+          return jsonResponse({ success: true, exists: true });
+        }
+      } catch (err) {
+        console.warn('RPC check_email_exists error:', err);
+      }
+
+      // 3. Check Supabase Auth Admin listUsers
+      try {
+        const { data: authData, error: authErr } = await supabase.auth.admin.listUsers();
+        if (!authErr && authData?.users && authData.users.length > 0) {
+          const found = authData.users.some(
+            (u) => (u.email || '').trim().toLowerCase() === email
+          );
+          if (found) {
+            return jsonResponse({ success: true, exists: true });
+          }
+        }
+      } catch (err) {
+        console.warn('Admin listUsers check error:', err);
+      }
+
+      return jsonResponse({ success: true, exists: false });
     }
 
     // ─── Session Management ───

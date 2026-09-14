@@ -285,6 +285,32 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Check if email exists in auth.users or profiles (callable by API with SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION public.check_email_exists(p_email TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM auth.users WHERE lower(email) = lower(trim(p_email))
+    ) OR EXISTS (
+        SELECT 1 FROM public.profiles WHERE lower(email) = lower(trim(p_email))
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.check_email_exists(TEXT) TO anon, authenticated, service_role;
+
+-- Backfill any existing auth.users into profiles if missing
+INSERT INTO public.profiles (id, email, full_name, referral_code)
+SELECT 
+    u.id,
+    u.email,
+    COALESCE(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name', ''),
+    upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8))
+FROM auth.users u
+LEFT JOIN public.profiles p ON p.id = u.id
+WHERE p.id IS NULL
+ON CONFLICT (id) DO NOTHING;
+
 -- Increment total_orders helper
 CREATE OR REPLACE FUNCTION public.increment_total_orders(p_user_id UUID)
 RETURNS void AS $$

@@ -570,7 +570,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
 
       // 1. Pre-check if email already exists before triggering Supabase signUp
-      // This completely prevents duplicate accounts and prevents Supabase from sending unnecessary verification emails
+      let alreadyExists = false;
       try {
         const checkRes = await fetch(`${apiUrl}/api/auth/check-email`, {
           method: 'POST',
@@ -580,13 +580,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (checkRes.ok) {
           const checkData = await checkRes.json();
           if (checkData?.exists) {
-            errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a> or <a href="/auth/forgot-password" style="color: var(--accent-primary, #6366f1); text-decoration: underline;">reset password</a>.';
-            errorEl.style.display = 'block';
-            return;
+            alreadyExists = true;
           }
         }
       } catch (checkErr) {
-        console.warn('Email pre-check error, falling back to direct signup:', checkErr);
+        console.warn('Email pre-check error:', checkErr);
+      }
+
+      if (alreadyExists) {
+        errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a> or <a href="/auth/forgot-password" style="color: var(--accent-primary, #6366f1); text-decoration: underline;">reset password</a>.';
+        errorEl.style.display = 'block';
+        if (submitBtn) {
+          submitBtn.textContent = 'Create Account';
+          submitBtn.removeAttribute('disabled');
+        }
+        return;
       }
 
       if (submitBtn) {
@@ -601,12 +609,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       if (error) {
         const msg = error.message || '';
-        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
-          errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a>.';
+        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('unique')) {
+          errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a> or <a href="/auth/forgot-password" style="color: var(--accent-primary, #6366f1); text-decoration: underline;">reset password</a>.';
         } else {
           errorEl.textContent = msg;
         }
         errorEl.style.display = 'block';
+        if (submitBtn) {
+          submitBtn.textContent = 'Create Account';
+          submitBtn.removeAttribute('disabled');
+        }
         return;
       }
 
@@ -616,7 +628,26 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
         errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a> or <a href="/auth/forgot-password" style="color: var(--accent-primary, #6366f1); text-decoration: underline;">reset password</a>.';
         errorEl.style.display = 'block';
+        if (submitBtn) {
+          submitBtn.textContent = 'Create Account';
+          submitBtn.removeAttribute('disabled');
+        }
         return;
+      }
+
+      // Check if this user was created earlier (re-registration attempt of existing account)
+      if (data?.user?.created_at) {
+        const createdAtTime = new Date(data.user.created_at).getTime();
+        const now = Date.now();
+        if (now - createdAtTime > 15000) {
+          errorEl.innerHTML = 'An account with this email already exists. <a href="/auth/login" style="color: var(--accent-primary, #6366f1); text-decoration: underline; font-weight: 600;">Log in here</a> or <a href="/auth/forgot-password" style="color: var(--accent-primary, #6366f1); text-decoration: underline;">reset password</a>.';
+          errorEl.style.display = 'block';
+          if (submitBtn) {
+            submitBtn.textContent = 'Create Account';
+            submitBtn.removeAttribute('disabled');
+          }
+          return;
+        }
       }
 
       // Successfully created account!
