@@ -71,7 +71,7 @@ pnpm install
 ### 3. Configure Environment Variables
 Copy `.env.example` to `.env` (or customize the existing `.env`):
 ```env
-TIGER_SMS_API_KEY=8M88REBMRFIWqIpesEjxpvbKBCXJ70ws
+TIGER_SMS_API_KEY=your-tiger-sms-api-key
 TIGER_SMS_BASE_URL=https://api.tiger-sms.com
 
 # Your Supabase Project Settings
