@@ -131,17 +131,6 @@ router.get('/session-check', async (req: Request, res: Response): Promise<void> 
 
     const currentServerSessionId = user.user_metadata?.current_session_id;
 
-    // If client provided a session ID and the server has a registered session ID, check for match
-    if (clientSessionId && currentServerSessionId && clientSessionId !== currentServerSessionId) {
-      res.status(401).json({
-        success: false,
-        valid: false,
-        reason: 'concurrent_session',
-        message: 'You have been logged out because a new device logged in to your account.',
-      });
-      return;
-    }
-
     res.json({
       success: true,
       valid: true,

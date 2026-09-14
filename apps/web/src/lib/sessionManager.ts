@@ -108,29 +108,32 @@ export async function verifyActiveSession(accessToken: string): Promise<SessionC
       headers,
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
-    if (res.status === 401 || res.status === 403 || !data.valid) {
+    if (data.reason === 'account_banned' || data.reason === 'account_deleted') {
       return {
         valid: false,
-        reason: data.reason || (data.code as string) || 'concurrent_session',
+        reason: data.reason,
         message: data.message || 'Session invalidated.',
       };
     }
 
     return { valid: true };
   } catch (err) {
-    // On temporary network errors, don't immediately kick user unless confirmed
+    // On temporary network errors, don't kick user
     return { valid: true };
   }
 }
 
 /**
- * Terminate the local session and redirect to login with the appropriate warning message.
+ * Terminate the local session and redirect to login only for banned or deleted accounts.
  */
 export async function handleSessionTermination(
   reason: 'concurrent_session' | 'account_deleted' | 'account_banned' | string
 ): Promise<void> {
+  if (reason !== 'account_banned' && reason !== 'account_deleted') {
+    return;
+  }
   clearLocalSessionId();
   try {
     await supabase.auth.signOut();
@@ -143,14 +146,11 @@ export async function handleSessionTermination(
 }
 
 /**
- * Start a periodic background heartbeat to detect if:
- * 1. A new device logs in (old device gets logged out with warning)
- * 2. An admin deleted the user account
- * 3. An admin banned the user account
+ * Background heartbeat only checking for account banned status
  */
 export function startSessionHeartbeat(
   getAccessToken: () => string | Promise<string | null>,
-  intervalMs = 12000
+  intervalMs = 60000
 ): () => void {
   let isChecking = false;
 
@@ -164,7 +164,7 @@ export function startSessionHeartbeat(
       if (!token) return;
 
       const result = await verifyActiveSession(token);
-      if (!result.valid && result.reason) {
+      if (!result.valid && (result.reason === 'account_banned' || result.reason === 'account_deleted')) {
         await handleSessionTermination(result.reason);
       }
     } finally {
@@ -174,24 +174,7 @@ export function startSessionHeartbeat(
 
   const intervalId = setInterval(check, intervalMs);
 
-  // Also check immediately when tab regains focus or visibility
-  const onFocus = () => { check(); };
-  const onVisibilityChange = () => {
-    if (document.visibilityState === 'visible') {
-      check();
-    }
-  };
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisibilityChange);
-  }
-
   return () => {
     clearInterval(intervalId);
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    }
   };
 }

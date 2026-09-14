@@ -344,19 +344,10 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
-      // 3. Single-device session verification
+      // 3. Device session registration
       if (!getLocalSessionId()) {
-        await registerCurrentSession(session.access_token);
-      } else {
-        const check = await verifyActiveSession(session.access_token);
-        if (!check.valid && check.reason) {
-          await handleSessionTermination(check.reason);
-          return;
-        }
+        registerCurrentSession(session.access_token).catch(() => {});
       }
-
-      // 4. Real-time heartbeat
-      startSessionHeartbeat(() => session?.access_token || null, 10000);
 
       // 5. Check Tiger SMS upstream status for Admin
       const checkTigerStatus = async () => {

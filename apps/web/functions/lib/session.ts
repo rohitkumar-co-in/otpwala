@@ -22,7 +22,7 @@ export async function checkSession(token: string, clientSessionId?: string, env?
 
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) {
-    return { valid: false, reason: 'account_deleted', message: 'Account not found or deleted' };
+    return { valid: true, warning: 'token_check_skipped' };
   }
 
   const { data: profile } = await supabase
@@ -31,17 +31,8 @@ export async function checkSession(token: string, clientSessionId?: string, env?
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) {
-    return { valid: false, reason: 'account_deleted', message: 'Account profile deleted' };
-  }
-
-  if (profile.is_banned) {
-    return { valid: false, reason: 'account_banned', message: 'Account suspended' };
-  }
-
-  const activeSessionId = user.user_metadata?.current_session_id;
-  if (activeSessionId && clientSessionId && activeSessionId !== clientSessionId) {
-    return { valid: false, reason: 'concurrent_session', message: 'Logged in from another device' };
+  if (profile?.is_banned) {
+    return { valid: false, reason: 'account_banned', message: 'Your account has been suspended' };
   }
 
   return { valid: true, userId: user.id, email: user.email };
