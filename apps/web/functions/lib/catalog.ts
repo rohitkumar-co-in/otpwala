@@ -4,6 +4,36 @@ import { TigerSmsClient } from './tiger';
 import { calculateSellPrice } from './pricing';
 import { getSupabaseAdmin } from './supabase';
 
+// Normalize a service name for icon lookup:
+// Strips non-alphanumeric chars, lowercases, collapses spaces
+function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]/g, '').trim();
+}
+
+// Build a lookup map: normalizedKey -> iconId
+const _icons = serviceIcons as Record<string, string>;
+const _iconLookup: Record<string, string> = {};
+for (const [key, val] of Object.entries(_icons)) {
+  _iconLookup[normalizeName(key)] = val;
+  // Also store the raw lowercased key
+  _iconLookup[key.toLowerCase().trim()] = val;
+}
+
+function lookupServiceIcon(code: string, name: string): string | null {
+  // 1. Try code directly (e.g. "wa", "tg")
+  if (_iconLookup[code.toLowerCase()]) return _iconLookup[code.toLowerCase()];
+  // 2. Try exact lowercased name
+  const lowerName = name.toLowerCase().trim();
+  if (_iconLookup[lowerName]) return _iconLookup[lowerName];
+  // 3. Try normalized name (strip special chars)
+  const norm = normalizeName(name);
+  if (_iconLookup[norm]) return _iconLookup[norm];
+  // 4. Try first word of name (e.g. "WhatsApp Business" -> "whatsapp")
+  const firstWord = normalizeName(name.split(/[^a-z0-9]/i)[0]);
+  if (firstWord && _iconLookup[firstWord]) return _iconLookup[firstWord];
+  return null;
+}
+
 const POPULAR_SERVICES: Record<string, { rank: number; category: string; deliveryRate: number; baseMinUsd: number }> = {
   wa: { rank: 1, category: 'social', deliveryRate: 98.8, baseMinUsd: 0.15 },
   tg: { rank: 2, category: 'social', deliveryRate: 98.5, baseMinUsd: 0.12 },
@@ -75,7 +105,7 @@ export async function getServices(env?: any) {
     tiger.getServicesList(),
   ]);
 
-  const icons = serviceIcons as Record<string, string>;
+
 
   const services = await Promise.all(
     tigerServices
@@ -83,8 +113,8 @@ export async function getServices(env?: any) {
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
         const pop = POPULAR_SERVICES[lowerCode];
-        const iconId = icons[lowerCode] || icons[s.name.toLowerCase()];
-        const iconUrl = iconId
+        const iconId = lookupServiceIcon(s.code, s.name);
+        const iconUrl = (iconId && iconId !== 'unknown')
           ? `https://tiger-sms.com/img/service/${iconId}.svg`
           : 'https://tiger-sms.com/img/service/unknown.svg';
 
@@ -123,7 +153,10 @@ export async function getCountries(env?: any) {
       const pop = POPULAR_COUNTRIES[c.id];
       const meta = flags[String(c.id)];
       const iso = meta?.iso || '';
-      const flagUrl = meta?.flagUrl || (iso ? `https://tiger-sms.com/img/country/${iso}.svg` : 'https://flagcdn.com/un.svg');
+      // Tiger uses uppercase ISO codes (e.g. UA.svg, KZ.svg)
+      const isoUpper = iso.toUpperCase();
+      const flagUrl = meta?.flagUrl ||
+        (isoUpper ? `https://tiger-sms.com/img/country/${isoUpper}.svg` : 'https://flagcdn.com/un.svg');
 
       return {
         id: c.id,
