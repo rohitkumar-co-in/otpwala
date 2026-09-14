@@ -96,8 +96,9 @@ BEGIN
   END IF;
 END $$;
 
--- Add price_inr column to existing orders table (safe on re-run)
+-- Add price_inr and expires_at columns to existing orders table (safe on re-run)
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS price_inr DECIMAL(12,4);
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
 -- Backfill price_inr from sell_price_inr for existing rows
 UPDATE public.orders SET price_inr = sell_price_inr WHERE price_inr IS NULL;
 
