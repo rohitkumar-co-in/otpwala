@@ -883,8 +883,9 @@ export default function BuyNumber() {
         )}
 
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', gap: '1rem', color: 'var(--text-muted)' }}>
             <div className="spinner spinner-lg"></div>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Loading countries…</span>
           </div>
         ) : visibleCountryCount === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
