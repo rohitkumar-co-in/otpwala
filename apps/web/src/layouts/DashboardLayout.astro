@@ -631,15 +631,6 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
-      // If user is an administrator landing on dashboard home, seamlessly navigate to admin panel
-      if (existingProfile?.role === 'admin') {
-        const cleanPath = window.location.pathname.replace(/\/+$/, '');
-        if (cleanPath === '/dashboard' || cleanPath === '') {
-          window.location.href = '/admin';
-          return;
-        }
-      }
-
       // 4. Device session registration
       if (!getLocalSessionId()) {
         registerCurrentSession(session.access_token).catch(() => {});
