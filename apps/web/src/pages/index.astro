@@ -811,17 +811,10 @@ const faqSchema = {
   animation: fadeSlideIn 0.7s ease 0.1s both;
 }
 .hero-highlight {
-  color: #2563eb;
-  position: relative;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 60%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: inline-block;
-}
-.hero-highlight::after {
-  content: '';
-  position: absolute;
-  bottom: 2px; left: 0; right: 0;
-  height: 4px;
-  background: rgba(37,99,235,0.2);
-  border-radius: 2px;
 }
 
 .hero-subtitle {
