@@ -541,7 +541,10 @@ export default function UserManager() {
                       </td>
                       <td style={{ padding: '0.75rem' }}>
                         {isAdmin ? (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Default</span>
+                          <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}>
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }}></span>
+                            Standard Rate
+                          </span>
                         ) : (
                           <button
                             type="button"
