@@ -28,7 +28,7 @@ export default function SupportManager() {
   async function reply(t: any) {
     const text = (replies[t.id] || '').trim(); if (!text) return;
     setBusy(t.id); setError('');
-    try { await replyToAdminSupportTicket(t.id, text); setReplies((all) => ({ ...all, [t.id]: '' })); await load(); }
+    try { await replyToAdminSupportTicket(t.id, text); setReplies((all) => ({ ...all, [t.id]: '' })); setFilter('open'); }
     catch (e: any) { setError(e.message || 'Unable to send reply.'); } finally { setBusy(''); }
   }
   return <div style={{ display: 'grid', gap: '1rem' }}>
@@ -54,7 +54,7 @@ export default function SupportManager() {
         <label>Priority <select className="input" value={t.priority} onChange={(e) => edit(t.id,'priority',e.target.value)}>{['low','normal','high','urgent'].map(x=><option key={x}>{x}</option>)}</select></label>
       </div>
       <label>Reply visible to customer<textarea className="input" rows={3} maxLength={4000} value={t.public_reply || ''} onChange={(e) => edit(t.id,'public_reply',e.target.value)} /></label>
-      <label>Reply in thread<textarea className="input" rows={3} maxLength={4000} value={replies[t.id] || ''} onChange={(e) => setReplies((all) => ({ ...all, [t.id]: e.target.value }))} placeholder="Send a new reply without creating another ticket…" /></label>
+      <label>Reply in thread<textarea className="input" rows={3} maxLength={4000} value={replies[t.id] || ''} onChange={(e) => setReplies((all) => ({ ...all, [t.id]: e.target.value }))} placeholder="Send a new reply without creating another ticket…" /><small style={{ color: 'var(--text-muted)' }}>Replying to a closed or resolved ticket will reopen it automatically.</small></label>
       <button className="btn btn-secondary btn-sm" disabled={busy === t.id || !(replies[t.id] || '').trim()} onClick={() => reply(t)} style={{ justifySelf: 'start' }}>{busy === t.id ? 'Sending…' : 'Send Thread Reply'}</button>
       <label>Internal notes<textarea className="input" rows={2} maxLength={4000} value={t.admin_notes || ''} onChange={(e) => edit(t.id,'admin_notes',e.target.value)} /></label>
       <button className="btn btn-primary btn-sm" disabled={busy === t.id} onClick={() => save(t)} style={{ justifySelf: 'start' }}>{busy === t.id ? 'Saving…' : 'Save Ticket'}</button>
