@@ -4,3 +4,6 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+overrides:
+  qs: '>=6.16.0'
