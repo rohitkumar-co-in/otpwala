@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 
 export default function MfaPanel() {
   const [factor, setFactor] = useState<any>(null);
+  const [pendingFactor, setPendingFactor] = useState<any>(null);
   const [enrollment, setEnrollment] = useState<any>(null);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -14,7 +15,9 @@ export default function MfaPanel() {
     const { data, error } = await supabase.auth.mfa.listFactors();
     if (error) return setMessage(error.message);
     const verifiedFactor = data?.totp?.find((item: any) => item.status === 'verified') || null;
+    const unverifiedFactor = data?.totp?.find((item: any) => item.status !== 'verified') || null;
     setFactor(verifiedFactor);
+    setPendingFactor(unverifiedFactor);
     const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     setNeedsElevation(Boolean(verifiedFactor && assurance.data?.currentLevel !== 'aal2'));
   }
@@ -23,7 +26,15 @@ export default function MfaPanel() {
   async function beginEnrollment() {
     setBusy(true); setMessage('');
     const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'OTPWala Authenticator' });
-    if (error) setMessage(error.message); else setEnrollment(data);
+    if (error) { setMessage(error.message); await load(); } else setEnrollment(data);
+    setBusy(false);
+  }
+
+  async function cancelPendingEnrollment() {
+    if (!pendingFactor || !window.confirm('Cancel the incomplete authenticator setup? You can start again afterwards.')) return;
+    setBusy(true); setMessage('');
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: pendingFactor.id });
+    if (error) setMessage(error.message); else { setPendingFactor(null); setMessage('Incomplete authenticator setup was cancelled. You can start again.'); }
     setBusy(false);
   }
 
@@ -75,6 +86,9 @@ export default function MfaPanel() {
       <details><summary>Cannot scan?</summary><code style={{ overflowWrap: 'anywhere' }}>{enrollment.totp?.secret}</code></details>
       <label>Six-digit verification code<input className="input" aria-invalid={Boolean(fieldError)} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setFieldError(''); }} />{fieldError && <span role="alert" style={{ display: 'block', color: 'var(--error, #ef4444)', fontSize: '.78rem', marginTop: '.35rem' }}>{fieldError}</span>}</label>
       <button className="btn btn-primary btn-sm" onClick={verifyEnrollment} disabled={busy || code.length !== 6} style={{ justifySelf: 'start' }}>{busy ? 'Verifying…' : 'Verify and Enable'}</button>
+    </div> : pendingFactor ? <div style={{ display: 'grid', gap: '.7rem' }}>
+      <div className="alert alert-warning">An incomplete authenticator setup is already reserved for this account. Cancel it to start a new setup.</div>
+      <button className="btn btn-secondary btn-sm" onClick={cancelPendingEnrollment} disabled={busy} style={{ justifySelf: 'start' }}>{busy ? 'Cancelling…' : 'Cancel Incomplete Setup'}</button>
     </div> : <button className="btn btn-primary btn-sm" onClick={beginEnrollment} disabled={busy}>{busy ? 'Preparing…' : 'Set Up Authenticator'}</button>}
   </div>;
 }
