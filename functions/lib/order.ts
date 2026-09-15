@@ -314,26 +314,6 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   return { success: true };
 }
 
-export async function completeOrder(orderId: string, userId: string, env?: any) {
-  const supabase = getSupabaseAdmin(env);
-  const tiger = new TigerSmsClient(env);
-
-  const order = await findOrder(supabase, orderId, userId);
-
-  if (!order) throw new Error('Order not found');
-
-  try {
-    await tiger.setStatus(order.activation_id, 6);
-  } catch {}
-
-  await supabase
-    .from('orders')
-    .update({ status: 'completed', updated_at: new Date().toISOString() })
-    .eq('id', order.id);
-
-  return { success: true };
-}
-
 export async function retryOrder(orderId: string, userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);

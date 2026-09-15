@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect, useRef } from 'react';
-import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, completeOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
+import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -492,18 +492,6 @@ export default function BuyNumber() {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleComplete() {
-    if (!order) return;
-    try {
-      await completeOrder(order.orderId);
-      setStep('service');
-      setOrder(null);
-      setOtpData(null);
-      loadWalletBalance();
-      loadRecentOrders();
-    } catch {}
   }
 
   async function handleRetry() {
@@ -1388,14 +1376,6 @@ export default function BuyNumber() {
                 )}
                 {hasOtp && (
                   <>
-                    <button
-                      onClick={handleComplete}
-                      className="btn btn-success btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                    >
-                      <CheckIcon size={13} />
-                      <span>Done</span>
-                    </button>
                     <button
                       onClick={handleRetry}
                       disabled={loading}

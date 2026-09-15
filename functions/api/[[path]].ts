@@ -1,6 +1,6 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
 import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry } from '../lib/catalog';
-import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder, reconcileExpiredOrders } from '../lib/order';
+import { buyNumber, checkOrderStatus, cancelOrder, retryOrder, reconcileExpiredOrders } from '../lib/order';
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
@@ -561,16 +561,6 @@ export const onRequest = async (context: any) => {
         }
         throw err;
       }
-    }
-
-    const orderCompleteMatch = path.match(/^\/api\/numbers\/([^\/]+)\/complete$/);
-    if (orderCompleteMatch && method === 'POST') {
-      const auth = await authenticateUser(request, env);
-      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
-
-      const orderId = orderCompleteMatch[1];
-      await completeOrder(orderId, auth.userId, env);
-      return jsonResponse({ success: true, message: 'Order completed' });
     }
 
     const orderRetryMatch = path.match(/^\/api\/numbers\/([^\/]+)\/retry$/);

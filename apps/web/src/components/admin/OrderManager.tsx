@@ -167,11 +167,11 @@ export default function OrderManager() {
                       )}
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      {o.sms_code ? <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{o.sms_code}</span><button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)} title="Copy OTP">{copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}</button></div> : <span className={`badge ${o.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(o.status) ? 'badge-error' : 'badge-warning'}`}>{o.status === 'completed' || o.status === 'code_received' ? 'OTP Received' : o.status.replace('_', ' ')}</span>}
+                      {o.sms_code ? <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{o.sms_code}</span><button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)} title="Copy OTP">{copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}</button></div> : <span className={`badge ${o.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(o.status) ? 'badge-error' : 'badge-warning'}`}>{o.status === 'code_received' ? 'OTP Received' : o.status.replace('_', ' ')}</span>}
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: '#34d399' }}>
                       <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
-                      {o.cost_price_inr != null && (o.sms_code || ['code_received', 'completed'].includes(o.status)) && (
+                      {o.cost_price_inr != null && (o.sms_code || o.status === 'code_received') && (
                         <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
                           Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
                         </div>
