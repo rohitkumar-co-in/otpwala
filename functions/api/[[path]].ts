@@ -42,6 +42,10 @@ function jsonResponse(data: any, status = 200) {
       'Access-Control-Allow-Origin': 'https://otpwala.me',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-session-id',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer',
     },
   });
 }
