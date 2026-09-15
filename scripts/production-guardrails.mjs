@@ -21,6 +21,7 @@ const files = {
   erasureMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915180000_data_erasure_workflow.sql', import.meta.url), 'utf8'),
   integrityMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915190000_financial_integrity_report.sql', import.meta.url), 'utf8'),
   ledgerBaselineMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql', import.meta.url), 'utf8'),
+  legacyAdminRoutes: readFileSync(new URL('../apps/api/src/routes/admin.ts', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -66,6 +67,7 @@ requireText(files.erasureMigration, 'erase_user_personal_data', 'Reviewed person
 requireText(files.erasureMigration, 'financial_records_retained', 'Data erasure does not preserve financial records');
 requireText(files.routes, "privacy.erasure_completed", 'Completed data erasures are not audited');
 if (/from\('wallet_transactions'\)\.delete\(\)/.test(files.routes)) failures.push('User deletion still destroys the financial ledger');
+if (/from\('wallet_transactions'\)\.delete\(\)/.test(files.legacyAdminRoutes)) failures.push('Legacy API can still destroy the financial ledger');
 requireText(files.integrityMigration, 'financial_integrity_report', 'Financial cross-ledger integrity report is missing');
 requireText(files.ledgerBaselineMigration, 'financial_ledger_baselines', 'Financial ledger baseline is missing');
 requireText(files.ledgerBaselineMigration, 'opening_balance', 'Legacy opening balances are not recorded safely');

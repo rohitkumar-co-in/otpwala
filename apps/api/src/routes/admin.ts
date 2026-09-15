@@ -325,65 +325,12 @@ router.post('/users/:id/ban', async (req: AuthenticatedRequest, res) => {
 
 /**
  * DELETE /api/admin/users/:id
- * Delete a user. Strict Prerequisite: User must be banned first!
+ * Retired: the Pages API runs the reviewed data-erasure workflow, which
+ * pseudonymizes personal data while retaining financial records.
  */
 router.delete('/users/:id', async (req: AuthenticatedRequest, res) => {
-  try {
-    const { id } = req.params;
-
-    if (id === req.userId) {
-      res.status(400).json({ success: false, error: 'You cannot delete your own account.' });
-      return;
-    }
-
-    const { data: profile, error: profileErr } = await supabaseAdmin
-      .from('profiles')
-      .select('id, email, role, is_banned')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (profileErr || !profile) {
-      res.status(404).json({ success: false, error: 'User not found' });
-      return;
-    }
-
-    if (req.userRole !== 'superadmin') {
-      res.status(403).json({ success: false, error: 'Only Super Admin can delete users.' });
-      return;
-    }
-
-    if (profile.role === 'admin' || profile.role === 'superadmin') {
-      res.status(400).json({ success: false, error: 'Cannot delete an administrator account.' });
-      return;
-    }
-
-    // Strict rule: User must be banned first before deletion!
-    if (!profile.is_banned) {
-      res.status(400).json({
-        success: false,
-        error: 'User must be banned before they can be deleted. Please ban the user first.'
-      });
-      return;
-    }
-
-    // Delete related records in sequence to satisfy foreign key constraints:
-    await supabaseAdmin.from('payment_requests').delete().eq('user_id', id);
-    await supabaseAdmin.from('orders').delete().eq('user_id', id);
-    await supabaseAdmin.from('wallet_transactions').delete().eq('user_id', id);
-    await supabaseAdmin.from('profiles').delete().eq('id', id);
-
-    // Purge from Supabase auth.users
-    try {
-      await supabaseAdmin.auth.admin.deleteUser(id);
-    } catch (authErr: any) {
-      console.warn(`Purged user profile but auth.users cleanup notice: ${authErr.message}`);
-    }
-
-    res.json({ success: true, message: `User ${profile.email || id} permanently deleted.` });
-  } catch (e: any) {
-    console.error('Admin delete user error:', e);
-    res.status(500).json({ success: false, error: e.message || 'Failed to delete user' });
-  }
+  void req;
+  res.status(410).json({ success: false, error: 'This legacy endpoint is retired. Use the reviewed data-erasure workflow in the Pages admin application.' });
 });
 
 /**
@@ -427,73 +374,11 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
 
 /**
  * POST /api/admin/users/bulk-delete
- * Bulk delete users. Strict Prerequisite: All selected users must be banned first!
- * Body: { userIds: string[] }
+ * Retired alongside the single-user legacy deletion endpoint.
  */
 router.post('/users/bulk-delete', async (req: AuthenticatedRequest, res) => {
-  try {
-    const { userIds } = req.body;
-    if (req.userRole !== 'superadmin') {
-      res.status(403).json({ success: false, error: 'Only Super Admin can delete users.' });
-      return;
-    }
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      res.status(400).json({ success: false, error: 'No users selected.' });
-      return;
-    }
-
-    // Exclude calling admin
-    const targets = userIds.filter((uid: string) => uid !== req.userId);
-
-    // Fetch target profiles
-    const { data: profiles, error: fetchErr } = await supabaseAdmin
-      .from('profiles')
-      .select('id, email, role, is_banned')
-      .in('id', targets);
-
-    if (fetchErr || !profiles || profiles.length === 0) {
-      res.status(404).json({ success: false, error: 'No matching users found.' });
-      return;
-    }
-
-    // Check strict rule: only banned users can be deleted!
-    const unbanned = profiles.filter((p) => !p.is_banned);
-    if (unbanned.length > 0) {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete unbanned users (${unbanned.length} unbanned in selection). All selected users must be banned first.`
-      });
-      return;
-    }
-
-    // Filter out any admin profiles
-    const eligibleToDelete = profiles.filter((p) => p.role !== 'admin' && p.role !== 'superadmin' && p.is_banned);
-    const eligibleIds = eligibleToDelete.map((p) => p.id);
-
-    if (eligibleIds.length === 0) {
-      res.status(400).json({ success: false, error: 'No eligible banned users to delete.' });
-      return;
-    }
-
-    // Delete in sequence:
-    await supabaseAdmin.from('payment_requests').delete().in('user_id', eligibleIds);
-    await supabaseAdmin.from('orders').delete().in('user_id', eligibleIds);
-    await supabaseAdmin.from('wallet_transactions').delete().in('user_id', eligibleIds);
-    await supabaseAdmin.from('profiles').delete().in('id', eligibleIds);
-
-    // Purge from Supabase auth.users
-    await Promise.allSettled(
-      eligibleIds.map((uid) => supabaseAdmin.auth.admin.deleteUser(uid))
-    );
-
-    res.json({
-      success: true,
-      message: `${eligibleIds.length} banned user(s) permanently deleted.`
-    });
-  } catch (e: any) {
-    console.error('Admin bulk delete error:', e);
-    res.status(500).json({ success: false, error: e.message || 'Failed to bulk delete users' });
-  }
+  void req;
+  res.status(410).json({ success: false, error: 'This legacy endpoint is retired. Use the reviewed data-erasure workflow in the Pages admin application.' });
 });
 
 /**
