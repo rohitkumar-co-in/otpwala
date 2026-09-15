@@ -140,7 +140,7 @@ export default function OrderHistory() {
                   <Fragment key={order.id}>
                   <tr>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td><strong>{order.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Country code: {order.country_code ?? '—'}</small></td>
+                    <td><strong>{order.country_name || 'Unknown country'}</strong></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                       {order.phone_number ? (
                         <span
