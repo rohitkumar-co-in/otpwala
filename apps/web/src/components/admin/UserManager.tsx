@@ -417,6 +417,7 @@ export default function UserManager() {
           <div style={{ position: 'relative', flex: 1 }}>
             <input
               type="text"
+              aria-label="Search users by email, name, or ID"
               placeholder="Search any user by email, full name, or user ID..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
