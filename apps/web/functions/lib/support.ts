@@ -89,15 +89,11 @@ export async function replyToSupportTicket(ticketId: string, actorId: string, re
   const { data: ticket, error: fetchError } = await query.maybeSingle();
   if (fetchError) throw fetchError;
   if (!ticket) throw new Error('Support ticket not found.');
+  if (ticket.status === 'resolved' || ticket.status === 'closed') throw new Error('This ticket is closed and cannot receive further replies. Please create a new ticket if you need more help.');
   const label = isAdmin ? 'Support' : 'Customer';
   const entry = `[${label} · ${new Date().toISOString()}]\n${reply}`;
   const combined = ticket.public_reply ? `${ticket.public_reply}\n\n${entry}` : entry;
   const update: any = { public_reply: combined.slice(-12000), updated_at: new Date().toISOString() };
-  // Any new message reopens a resolved/closed conversation so both sides can continue the same thread.
-  if (ticket.status === 'resolved' || ticket.status === 'closed') {
-    update.status = 'open';
-    update.resolved_at = null;
-  }
   const { data, error } = await supabase.from('support_tickets').update(update).eq('id', ticketId).select().single();
   if (error) throw error;
   return data;
