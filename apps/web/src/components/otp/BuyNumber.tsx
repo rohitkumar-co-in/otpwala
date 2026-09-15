@@ -810,6 +810,7 @@ export default function BuyNumber() {
               <input
                 type="text"
                 className="input input-sm"
+                aria-label="Search countries"
                 placeholder="Search countries..."
                 value={countrySearch}
                 onChange={(e) => setCountrySearch(e.target.value)}
@@ -821,6 +822,7 @@ export default function BuyNumber() {
             </div>
 
             <select
+              aria-label="Sort countries"
               value={countrySort}
               onChange={(e) => setCountrySort(e.target.value as CountrySortOption)}
               className="input input-sm"
