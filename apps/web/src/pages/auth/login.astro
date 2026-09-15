@@ -640,8 +640,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     if (!factor) return;
     const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assurance.data?.currentLevel === 'aal2') return;
-    const code = window.prompt('Two-factor authentication is enabled. Enter your six-digit authenticator code:')?.replace(/\D/g, '') || '';
-    if (!/^\d{6}$/.test(code)) { await supabase.auth.signOut(); throw new Error('Two-factor authentication is required to continue.'); }
+    const code = await new Promise<string | null>((resolve) => {
+      const card = document.querySelector('.auth-card') as HTMLElement;
+      if (!card) return resolve(null);
+      card.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:.75rem">🔐</div><h2>Two-factor verification</h2><p class="text-secondary">Enter the six-digit code from your authenticator app.</p><form id="login-mfa-form" style="display:grid;gap:.75rem;text-align:left"><label for="login-mfa-code">Authenticator code</label><input id="login-mfa-code" class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000" /><button class="btn btn-primary" type="submit">Verify and continue</button><button class="btn btn-secondary" type="button" id="login-mfa-cancel">Cancel</button></form></div>`;
+      const form = card.querySelector('#login-mfa-form') as HTMLFormElement;
+      const input = card.querySelector('#login-mfa-code') as HTMLInputElement;
+      input.focus();
+      form.addEventListener('submit', (event) => { event.preventDefault(); const value = input.value.replace(/\D/g, ''); if (/^\d{6}$/.test(value)) resolve(value); });
+      card.querySelector('#login-mfa-cancel')?.addEventListener('click', () => resolve(null));
+    });
+    if (!code) { await supabase.auth.signOut(); throw new Error('Two-factor authentication is required to continue.'); }
     const challenge = await supabase.auth.mfa.challenge({ factorId: factor.id });
     if (challenge.error) { await supabase.auth.signOut(); throw new Error(challenge.error.message); }
     const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
