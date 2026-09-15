@@ -650,7 +650,7 @@ const formattedTitle = formatPageTitle(title);
       }
 
       // 3. Device session registration
-      if (!getLocalSessionId()) {
+      if (!getLocalSessionId() || getLocalSessionId()?.startsWith('sess_')) {
         registerCurrentSession(session.access_token).catch(() => {});
       }
 

@@ -8,6 +8,7 @@ const second = '123e4567-e89b-42d3-a456-426614174001';
 test('session IDs must be UUIDs', () => {
   assert.equal(isValidSessionId(first), true);
   assert.equal(isValidSessionId('guessable-session'), false);
+  assert.equal(isValidSessionId(`sess_${first}`), false);
   assert.equal(isValidSessionId(''), false);
 });
 

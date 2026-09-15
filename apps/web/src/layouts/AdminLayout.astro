@@ -378,7 +378,7 @@ const formattedTitle = formatPageTitle(title);
       // They'll be blocked by API calls if truly unauthorized
 
       // 2. Device session registration
-      if (!getLocalSessionId()) {
+      if (!getLocalSessionId() || getLocalSessionId()?.startsWith('sess_')) {
         registerCurrentSession(session.access_token).catch(() => {});
       }
 

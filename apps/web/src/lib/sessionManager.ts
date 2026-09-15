@@ -19,9 +19,9 @@ const SESSION_STORAGE_KEY = 'otpwala_session_id';
  */
 export function generateSessionId(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return 'sess_' + crypto.randomUUID();
+    return crypto.randomUUID();
   }
-  return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10);
+  return `${Date.now().toString(16).padStart(8, '0').slice(-8)}-0000-4000-8000-${Math.random().toString(16).slice(2).padEnd(12, '0').slice(0, 12)}`;
 }
 
 /**
