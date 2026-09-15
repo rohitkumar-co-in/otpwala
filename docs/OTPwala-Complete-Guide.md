@@ -125,6 +125,8 @@ For Cloudflare Pages, add the same variables in **Workers & Pages â†’ otpwala â†
 
 The base script creates profiles, orders, wallet transactions, settings, pricing rules, payment requests, RLS policies, and profile creation triggers.
 
+For a new Supabase project, you can alternatively paste the single consolidated file [`../supabase/otpwala-standalone.sql`](../supabase/otpwala-standalone.sql). It contains the base schema followed by every hardening migration in dependency order. Do not run the consolidated file after separately running the same migrations on the same database.
+
 ### 6.2 Apply hardening migrations in order
 
 Run each file once, in filename order, in Supabase SQL Editor:
