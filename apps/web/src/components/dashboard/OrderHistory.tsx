@@ -47,13 +47,13 @@ export default function OrderHistory() {
   }
 
   async function handleCancelOrder(orderId: string, serviceName: string) {
-    const confirmCancel = window.confirm(`Request cancellation for ${serviceName}? An eligible refund is issued after cancellation is confirmed and may take 2–5 minutes to appear.`);
+    const confirmCancel = window.confirm(`Cancel ${serviceName}? If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes after cancellation.`);
     if (!confirmCancel) return;
     setActionLoading(orderId);
     try {
       await cancelOrder(orderId);
       await loadOrders();
-      setSuccessMessage('Number cancelled. Your refund will be credited to your wallet within 2–5 minutes.');
+      setSuccessMessage('Number cancelled. If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes.');
       window.setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err: any) {
       alert(err.message || 'Failed to cancel order');
@@ -92,9 +92,9 @@ export default function OrderHistory() {
         <div>
           <strong className="orders-important-note-title">Important Note</strong>
           <ul>
-            <li>If you do not receive the OTP within <strong>2 minutes</strong>, you can cancel the phone number and purchase a new one.</li>
             <li>It is not guaranteed that every phone number will receive an OTP.</li>
-            <li>If a number does not receive an OTP and is cancelled, the charge will be refunded to your wallet within <strong>5 to 10 minutes</strong>.</li>
+            <li>If you do not receive the OTP within <strong>2 minutes</strong>, you can cancel the phone number and purchase a new one.</li>
+            <li>If a number does not receive an OTP, the charge will be refunded to your wallet within <strong>5 to 10 minutes</strong> after cancellation or automatic expiry.</li>
           </ul>
         </div>
       </div>

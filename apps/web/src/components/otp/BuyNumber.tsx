@@ -476,7 +476,7 @@ export default function BuyNumber() {
       setOrder(null);
       setOtpData(null);
       setStep('service');
-      showSuccessToast('Number cancelled. Your refund will be credited to your wallet within 2–5 minutes.');
+      showSuccessToast('Number cancelled. If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes.');
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
@@ -1335,7 +1335,7 @@ export default function BuyNumber() {
                       No SMS code arrived within 20 minutes.
                     </p>
                     <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
-                      Refund status is reflected in your wallet after cancellation is confirmed.
+                      If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.
                     </p>
                   </div>
                 )}
@@ -1345,7 +1345,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                🛡️ Eligible refunds are credited after cancellation is confirmed (normally within 2–5 minutes).
+                🛡️ If no OTP is received, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
