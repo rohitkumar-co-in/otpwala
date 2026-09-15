@@ -760,9 +760,9 @@ export default function BuyNumber() {
   // ─── Step: Select Country ───
   if (step === 'country') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className="buy-country-view" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="buy-country-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          <div className="buy-country-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => { setStep('service'); setCountrySearch(''); }}
               className="btn btn-ghost btn-sm"
@@ -787,15 +787,15 @@ export default function BuyNumber() {
               >
                 {renderServiceIcon(selectedService, 22)}
               </div>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
+              <h2 className="buy-country-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
                 {selectedService?.name} — <span className="text-gradient">Select Country</span>
               </h2>
             </div>
           </div>
 
           {/* Search & Sort Countries */}
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ position: 'relative', width: '220px' }}>
+          <div className="buy-country-controls" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className="buy-country-search" style={{ position: 'relative', width: '220px' }}>
               <input
                 type="text"
                 className="input input-sm"
@@ -893,8 +893,8 @@ export default function BuyNumber() {
           </div>
         ) : (
           <>
-            <div className="table-container">
-            <table>
+            <div className="table-container country-table-container">
+            <table className="country-table">
               <thead>
                 <tr>
                   <th
@@ -947,9 +947,9 @@ export default function BuyNumber() {
                       </td>
                     </tr>
                     {group.countries.map(country => (
-                  <tr key={country.id}>
-                    <td style={{ fontWeight: 600 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <tr key={country.id} className="country-row">
+                    <td className="country-name-cell" data-label="Country" style={{ fontWeight: 600 }}>
+                      <div className="country-name-content" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         {renderCountryFlag(country, 24, 16)}
                         <span>{country.name}</span>
                         {group.id === 'delivery' && (
@@ -958,11 +958,11 @@ export default function BuyNumber() {
                         {group.id === 'popular' && <StarIcon size={13} color="#f59e0b" />}
                       </div>
                     </td>
-                    <td><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
-                    <td style={{ fontWeight: 700, color: 'var(--success)' }}>
+                    <td className="country-stock-cell" data-label="Available"><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
+                    <td className="country-price-cell" data-label="Price" style={{ fontWeight: 700, color: 'var(--success)' }}>
                       {country.priceInr > 0 ? `₹${country.priceInr.toFixed(2)}` : '—'}
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td className="country-action-cell" style={{ textAlign: 'right' }}>
                       <button
                         onClick={() => handleDirectBuy(country)}
                         disabled={buyingCountryId === country.id}

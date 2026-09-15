@@ -720,6 +720,162 @@ tr:hover td {
     padding: 0.6rem 0.75rem;
     font-size: 0.85rem;
   }
+
+  /* The country picker becomes readable cards instead of a clipped desktop table. */
+  .buy-country-view {
+    gap: 1rem !important;
+  }
+
+  .buy-country-header,
+  .buy-country-title-row,
+  .buy-country-controls {
+    width: 100%;
+  }
+
+  .buy-country-title-row > div:last-child {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .buy-country-title {
+    font-size: clamp(1.05rem, 5.2vw, 1.3rem) !important;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .buy-country-controls {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .buy-country-search,
+  .buy-country-controls > select {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .country-table-container {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .country-table {
+    min-width: 0 !important;
+    display: block;
+  }
+
+  .country-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .country-table tbody,
+  .country-table tr,
+  .country-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .country-table tbody {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .country-table tbody > tr:not(.country-row) {
+    border: 0;
+  }
+
+  .country-table tbody > tr:not(.country-row) td {
+    border: 0;
+    border-radius: var(--radius-md);
+  }
+
+  .country-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem 0.75rem;
+    padding: 0.8rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+
+  .country-row td {
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: normal !important;
+    min-width: 0;
+  }
+
+  .country-name-cell {
+    grid-column: 1 / -1;
+  }
+
+  .country-name-content {
+    min-width: 0;
+    align-items: flex-start !important;
+  }
+
+  .country-name-content > span:not(.badge) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .country-stock-cell,
+  .country-price-cell {
+    display: flex !important;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .country-stock-cell::before,
+  .country-price-cell::before {
+    content: attr(data-label) ":";
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .country-stock-cell {
+    grid-column: 1;
+  }
+
+  .country-price-cell {
+    grid-column: 1;
+  }
+
+  .country-action-cell {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    align-self: center;
+  }
+
+  .country-action-cell .btn {
+    min-width: 72px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .dashboard-content {
+    padding-inline: 0.75rem !important;
+  }
+
+  .toast-container {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .toast {
+    max-width: none;
+  }
 }
 
 @media (max-width: 1024px) {
