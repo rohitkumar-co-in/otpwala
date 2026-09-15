@@ -173,6 +173,8 @@ export const getOrders = (limit = 20, offset = 0, status?: string) => {
 
 // ─── Admin ───
 export const getAdminDashboard = () => apiFetch<any>('/api/admin/dashboard');
+export const runAdminReconciliation = () =>
+  apiFetch<{ scanned: number; delivered: number; refunded: number; failed: number }>('/api/admin/reconcile', { method: 'POST' });
 export const getAdminUsers = (limit = 20, offset = 0, search = '') =>
   apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${search}`);
 export const getAdminUserDetails = (userId: string) =>

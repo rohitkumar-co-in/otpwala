@@ -12,7 +12,11 @@ export default function OrderManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window === 'undefined') return 'all';
+    const requested = new URLSearchParams(window.location.search).get('status');
+    return requested || 'all';
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -84,7 +88,7 @@ export default function OrderManager() {
 
       {/* Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-        {['all', 'waiting', 'code_received', 'completed', 'cancelled', 'expired'].map((st) => (
+        {['all', 'stuck', 'failed_refund', 'waiting', 'code_received', 'completed', 'cancelled', 'expired'].map((st) => (
           <button
             key={st}
             onClick={() => { setStatusFilter(st); setPage(0); }}

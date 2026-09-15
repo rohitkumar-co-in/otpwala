@@ -877,6 +877,11 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, data: stats });
       }
 
+      if (path === '/api/admin/reconcile' && method === 'POST') {
+        const result = await reconcileExpiredOrders(env, 200);
+        return jsonResponse({ success: true, data: result });
+      }
+
       if (path === '/api/admin/tiger-balance') {
         const tiger = new TigerSmsClient(env);
         const bal = await tiger.getBalance().catch(() => ({ balance: '0' }));

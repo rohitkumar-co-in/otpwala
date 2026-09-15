@@ -11,14 +11,31 @@ export async function getAdminDashboard(env?: any) {
   if (metricsError) throw metricsError;
 
   let tigerBalance = 0;
+  let providerAvailable = true;
+  let providerError: string | null = null;
   try {
     const bal = await tiger.getBalance();
     tigerBalance = parseFloat(bal.balance) || 0;
-  } catch {}
+  } catch (error: any) {
+    providerAvailable = false;
+    providerError = String(error?.message || 'Tiger SMS is unavailable').slice(0, 200);
+  }
+
+  const now = new Date().toISOString();
+  const [failedRefunds, stuckOrders, latestRefund] = await Promise.all([
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('refund_status', 'failed'),
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'waiting').lte('expires_at', now),
+    supabase.from('wallet_transactions').select('created_at').eq('type', 'refund').eq('status', 'completed').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  ]);
 
   return {
     ...(metrics || {}),
     tigerBalance,
+    providerAvailable,
+    providerError,
+    failedRefunds: failedRefunds.count || 0,
+    stuckOrders: stuckOrders.count || 0,
+    lastRefundAt: latestRefund.data?.created_at || null,
   };
 }
 
@@ -102,7 +119,9 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
   let query = supabase
     .from('orders')
     .select('*, profiles(email)', { count: 'exact' });
-  if (status && status !== 'all') query = query.eq('status', status);
+  if (status === 'failed_refund') query = query.eq('refund_status', 'failed');
+  else if (status === 'stuck') query = query.eq('status', 'waiting').lte('expires_at', new Date().toISOString());
+  else if (status && status !== 'all') query = query.eq('status', status);
   const { data, count, error } = await query
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);

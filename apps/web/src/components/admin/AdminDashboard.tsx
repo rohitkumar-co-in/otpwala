@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest } from '../../lib/api';
+import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
 import {
   ServerIcon,
   DollarIcon,
@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [paymentTab, setPaymentTab] = useState<'pending' | 'approved' | 'all'>('pending');
+  const [reconciling, setReconciling] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -65,6 +66,21 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleReconcile = async () => {
+    setReconciling(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const result = await runAdminReconciliation();
+      setSuccessMsg(`Reconciliation complete: ${result.scanned} scanned, ${result.delivered} delivered, ${result.refunded} refunded, ${result.failed} failed.`);
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Reconciliation failed');
+    } finally {
+      setReconciling(false);
+    }
+  };
 
   const handleApprovePayment = async (requestId: string, amount: number) => {
     setActionLoading(requestId);
@@ -127,6 +143,15 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleReconcile}
+            disabled={reconciling}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <RefreshCwIcon size={14} className={reconciling ? 'animate-spin' : ''} />
+            <span>{reconciling ? 'Reconciling...' : 'Run Reconciliation'}</span>
+          </button>
           <button
             className="btn btn-secondary btn-sm"
             onClick={loadData}
@@ -199,6 +224,15 @@ export default function AdminDashboard() {
           >
             Top Up on Tiger SMS ↗
           </a>
+        </div>
+      )}
+
+      {stats && (!stats.providerAvailable || stats.failedRefunds > 0 || stats.stuckOrders > 0) && (
+        <div className="alert alert-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.45rem' }}>
+          <strong>Operations require attention</strong>
+          {!stats.providerAvailable && <span>Tiger SMS health check failed: {stats.providerError || 'provider unavailable'}</span>}
+          {stats.failedRefunds > 0 && <a href="/admin/orders?status=failed_refund" style={{ color: 'inherit' }}>{stats.failedRefunds} refund(s) failed — inspect and retry reconciliation</a>}
+          {stats.stuckOrders > 0 && <a href="/admin/orders?status=stuck" style={{ color: 'inherit' }}>{stats.stuckOrders} expired waiting order(s) need reconciliation</a>}
         </div>
       )}
 
