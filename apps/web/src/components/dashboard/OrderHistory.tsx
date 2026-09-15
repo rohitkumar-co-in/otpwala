@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
 import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 
@@ -10,6 +10,7 @@ export default function OrderHistory() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const limit = 15;
 
   useEffect(() => {
@@ -134,7 +135,8 @@ export default function OrderHistory() {
                 {orders.map(order => {
                   const cancelWaitSeconds = Math.max(0, 120 - Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000));
                   return (
-                  <tr key={order.id}>
+                  <Fragment key={order.id}>
+                  <tr>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td>{order.country_name}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
@@ -189,6 +191,16 @@ export default function OrderHistory() {
                       {new Date(order.created_at).toLocaleString()}
                     </td>
                     <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        aria-expanded={expandedOrder === order.id}
+                        onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                      >
+                        History ({order.events?.length || 0})
+                      </button>
                       {order.status === 'waiting' && (
                         <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
                           <a
@@ -219,10 +231,31 @@ export default function OrderHistory() {
                         </a>
                       )}
                       {!['waiting', 'code_received'].includes(order.status) && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</span>
+                        null
                       )}
+                      </div>
                     </td>
                   </tr>
+                  {expandedOrder === order.id && (
+                    <tr>
+                      <td colSpan={9} style={{ padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.025)' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '0.55rem' }}>Order timeline</div>
+                        {order.events?.length ? (
+                          <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.4rem' }}>
+                            {order.events.map((event: any) => (
+                              <li key={event.id} style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                                <strong style={{ color: 'var(--text-primary)' }}>{eventLabel(event)}</strong>
+                                {' — '}{new Date(event.created_at).toLocaleString()}
+                              </li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>No lifecycle events recorded yet.</span>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                   );
                 })}
               </tbody>
@@ -247,6 +280,14 @@ export default function OrderHistory() {
       )}
     </div>
   );
+}
+
+function eventLabel(event: any) {
+  if (event.event_type === 'created') return 'Number purchased';
+  if (event.event_type === 'otp_received') return 'OTP received';
+  if (event.event_type === 'refunded') return 'Refund credited to wallet';
+  if (event.event_type === 'snapshot') return `Recorded as ${String(event.to_status || 'unknown').replace('_', ' ')}`;
+  return `Status changed from ${String(event.from_status || 'unknown').replace('_', ' ')} to ${String(event.to_status || 'unknown').replace('_', ' ')}`;
 }
 
 function StatusBadge({ status }: { status: string }) {

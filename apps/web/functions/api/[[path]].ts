@@ -759,9 +759,22 @@ export const onRequest = async (context: any) => {
       if (ordersError) throw ordersError;
       if (summaryError) throw summaryError;
 
+      const orders = data || [];
+      const orderIds = orders.map((order: any) => order.id);
+      let events: any[] = [];
+      if (orderIds.length) {
+        const eventResult = await supabase.from('order_events').select('*').in('order_id', orderIds).eq('user_id', auth.userId).order('created_at', { ascending: true });
+        if (eventResult.error) throw eventResult.error;
+        events = eventResult.data || [];
+      }
+
       return jsonResponse({
         success: true,
-        data: { orders: data || [], total: count || 0, summary: summary || {} },
+        data: {
+          orders: orders.map((order: any) => ({ ...order, events: events.filter((event: any) => event.order_id === order.id) })),
+          total: count || 0,
+          summary: summary || {},
+        },
       });
     }
 

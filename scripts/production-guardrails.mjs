@@ -14,6 +14,7 @@ const files = {
   alertsMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915160000_operational_alerts.sql', import.meta.url), 'utf8'),
   telegramSecurity: readFileSync(new URL('../functions/lib/telegram-security.ts', import.meta.url), 'utf8'),
   retentionMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915163000_operational_retention.sql', import.meta.url), 'utf8'),
+  orderEventsMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915170000_order_events.sql', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -48,6 +49,8 @@ requireText(files.routes, "X-Telegram-Bot-Api-Secret-Token", 'Telegram webhook a
 requireText(files.retentionMigration, 'cleanup_operational_records', 'Operational retention cleanup is missing');
 requireText(files.retentionMigration, "interval '15 minutes'", 'Stuck purchase-intent recovery is missing');
 requireText(files.order, "rpc('cleanup_operational_records')", 'Scheduled operational cleanup is not invoked');
+requireText(files.orderEventsMigration, 'CREATE TRIGGER orders_capture_event', 'Durable order lifecycle events are missing');
+requireText(files.routes, "from('order_events')", 'User order history does not include lifecycle events');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');

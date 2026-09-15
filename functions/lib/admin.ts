@@ -167,7 +167,18 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return { orders: data || [], total: count || 0 };
+  const orders = data || [];
+  const orderIds = orders.map((order: any) => order.id);
+  let events: any[] = [];
+  if (orderIds.length) {
+    const eventResult = await supabase.from('order_events').select('*').in('order_id', orderIds).order('created_at', { ascending: true });
+    if (eventResult.error) throw eventResult.error;
+    events = eventResult.data || [];
+  }
+  return {
+    orders: orders.map((order: any) => ({ ...order, events: events.filter((event: any) => event.order_id === order.id) })),
+    total: count || 0,
+  };
 }
 
 export async function getAdminPricing(env?: any) {
