@@ -100,10 +100,10 @@ export const getPrice = (service: string, country: number) =>
   );
 
 // ─── Numbers ───
-export const buyNumber = (service: string, country: number) =>
+export const buyNumber = (service: string, country: number, requestId: string) =>
   apiFetch<any>('/api/numbers/buy', {
     method: 'POST',
-    body: JSON.stringify({ service, country }),
+    body: JSON.stringify({ service, country, requestId }),
   });
 
 export const getOrderStatus = (orderId: string) =>

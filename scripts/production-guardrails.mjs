@@ -9,6 +9,7 @@ const files = {
   headers: readFileSync(new URL('../apps/web/public/_headers', import.meta.url), 'utf8'),
   auditMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915142500_admin_audit_log.sql', import.meta.url), 'utf8'),
   supportMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915145500_support_tickets.sql', import.meta.url), 'utf8'),
+  purchaseMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915153000_purchase_idempotency.sql', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -34,6 +35,8 @@ requireText(files.routes, "path === '/api/admin/audit-logs'", 'Admin audit API i
 requireText(files.routes, "path === '/api/support/tickets'", 'User support API is missing');
 requireText(files.headers, 'Content-Security-Policy:', 'Content Security Policy is missing');
 requireText(files.headers, 'Strict-Transport-Security:', 'HSTS is missing');
+requireText(files.purchaseMigration, 'request_id UUID PRIMARY KEY', 'Purchase idempotency key is not unique');
+requireText(files.routes, "prior.status === 'completed'", 'Completed purchase replay protection is missing');
 
 if (failures.length) {
   console.error(`Production guardrails failed:\n- ${failures.join('\n- ')}`);

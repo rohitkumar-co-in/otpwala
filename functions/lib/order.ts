@@ -23,11 +23,14 @@ export async function buyNumber(
   userId: string,
   serviceCode: string,
   countryCode: number,
-  env?: any
+  env?: any,
+  requestedOrderId?: string,
 ) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
-  const orderId = crypto.randomUUID();
+  const orderId = requestedOrderId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedOrderId)
+    ? requestedOrderId
+    : crypto.randomUUID();
 
   // Reject abusive velocity before contacting or charging the provider.
   await enforcePurchaseLimits(supabase, userId);

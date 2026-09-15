@@ -233,6 +233,7 @@ export default function BuyNumber() {
   const [loadingAllCountries, setLoadingAllCountries] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const purchaseInFlightRef = useRef(false);
+  const purchaseRequestIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     loadServices();
@@ -401,7 +402,8 @@ export default function BuyNumber() {
     setError('');
 
     try {
-      const data = await apiBuyNumber(selectedService.code, country.id);
+      purchaseRequestIdRef.current ||= crypto.randomUUID();
+      const data = await apiBuyNumber(selectedService.code, country.id, purchaseRequestIdRef.current);
       const newOrder = {
         orderId: data.orderId,
         phoneNumber: data.phoneNumber,
@@ -416,11 +418,13 @@ export default function BuyNumber() {
       setOtpData(null);
       setSecondsLeft(1200);
       setStep('messages');
+      purchaseRequestIdRef.current = null;
       startPolling(data.orderId);
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
       const code = err?.code || '';
+      if (code && code !== 'purchase_in_progress') purchaseRequestIdRef.current = null;
       const msg = (err?.message || '').toLowerCase();
       if (code === 'user_insufficient_funds' || msg.includes('insufficient wallet balance')) {
         setError(`Insufficient wallet balance. This number costs ₹${country.priceInr?.toFixed(2) || ''}, but your current wallet balance is insufficient.`);

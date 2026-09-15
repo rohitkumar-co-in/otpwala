@@ -457,15 +457,36 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const body = await request.json().catch(() => ({}));
-      const { service, country } = body;
+      const { service, country, requestId } = body;
       if (!service || country === undefined) {
         return jsonResponse({ success: false, error: 'service and country required' }, 400);
       }
 
+      if (!requestId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(requestId))) {
+        return jsonResponse({ success: false, error: 'invalid_request_id', message: 'A valid purchase request ID is required.' }, 400);
+      }
+
+      const supabase = getSupabaseAdmin(env);
+      const normalizedService = String(service).toLowerCase();
+      const normalizedCountry = parseInt(country, 10);
+      const claim = await supabase.from('purchase_intents').insert({ request_id: requestId, user_id: auth.userId, service_code: normalizedService, country_code: normalizedCountry });
+      if (claim.error) {
+        if (claim.error.code !== '23505') throw claim.error;
+        const { data: prior, error: priorError } = await supabase.from('purchase_intents').select('*').eq('request_id', requestId).eq('user_id', auth.userId).maybeSingle();
+        if (priorError || !prior || prior.service_code !== normalizedService || prior.country_code !== normalizedCountry) {
+          return jsonResponse({ success: false, error: 'idempotency_conflict', message: 'Purchase request ID conflict.' }, 409);
+        }
+        if (prior.status === 'completed' && prior.response) return jsonResponse({ success: true, data: prior.response });
+        if (prior.status === 'processing') return jsonResponse({ success: false, error: 'purchase_in_progress', message: 'This purchase is still processing. Please wait.' }, 409);
+        return jsonResponse({ success: false, error: prior.error_code || 'purchase_failed', message: prior.error_message || 'This purchase attempt failed. Please try again.' }, 409);
+      }
+
       try {
-        const result = await buyNumber(auth.userId, service, parseInt(country, 10), env);
+        const result = await buyNumber(auth.userId, normalizedService, normalizedCountry, env, requestId);
+        await supabase.from('purchase_intents').update({ status: 'completed', response: result, updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
         return jsonResponse({ success: true, data: result });
       } catch (buyErr: any) {
+        await supabase.from('purchase_intents').update({ status: 'failed', error_code: buyErr?.code || 'purchase_failed', error_message: String(buyErr?.message || 'Purchase failed').slice(0, 500), updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
         if (buyErr?.code === 'USER_INSUFFICIENT_FUNDS' || (buyErr?.message || '').toLowerCase().includes('insufficient wallet balance')) {
           return jsonResponse({ success: false, error: 'user_insufficient_funds', message: 'Insufficient wallet balance' }, 402);
         }
