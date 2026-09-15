@@ -16,6 +16,7 @@ import {
 } from '../lib/telegram';
 import {
   getAdminDashboard,
+  logAdminAction,
   getAdminUsers,
   creditUserBalance,
   banUser,
@@ -879,6 +880,7 @@ export const onRequest = async (context: any) => {
 
       if (path === '/api/admin/reconcile' && method === 'POST') {
         const result = await reconcileExpiredOrders(env, 200);
+        await logAdminAction(auth.userId, 'orders.reconcile', 'system', null, result, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, data: result });
       }
 
@@ -939,7 +941,9 @@ export const onRequest = async (context: any) => {
       if (userCreditMatch && method === 'POST') {
         const targetUserId = userCreditMatch[1];
         const body = await request.json().catch(() => ({}));
-        await creditUserBalance(targetUserId, parseFloat(body.amount), body.note, env);
+        const amount = parseFloat(body.amount);
+        await creditUserBalance(targetUserId, amount, body.note, env);
+        await logAdminAction(auth.userId, 'wallet.credit', 'user', targetUserId, { amount, reason: body.note }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true });
       }
 
@@ -958,6 +962,7 @@ export const onRequest = async (context: any) => {
         const targetUserId = userBanMatch[1];
         const body = await request.json().catch(() => ({}));
         await banUser(targetUserId, !!body.banned, body.reason, env);
+        await logAdminAction(auth.userId, body.banned ? 'user.ban' : 'user.unban', 'user', targetUserId, { reason: body.reason || null }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, message: body.banned ? 'User banned' : 'User unbanned' });
       }
 
@@ -1100,6 +1105,7 @@ export const onRequest = async (context: any) => {
       const paymentApproveMatch = path.match(/^\/api\/admin\/payment-requests\/([^\/]+)\/approve$/);
       if (paymentApproveMatch && method === 'POST') {
         await approvePaymentRequest(paymentApproveMatch[1], auth.userId, env);
+        await logAdminAction(auth.userId, 'payment.approve', 'payment_request', paymentApproveMatch[1], {}, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true });
       }
 
@@ -1107,6 +1113,7 @@ export const onRequest = async (context: any) => {
       if (paymentRejectMatch && method === 'POST') {
         const body = await request.json().catch(() => ({}));
         await rejectPaymentRequest(paymentRejectMatch[1], body.reason, env);
+        await logAdminAction(auth.userId, 'payment.reject', 'payment_request', paymentRejectMatch[1], { reason: body.reason || null }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true });
       }
 

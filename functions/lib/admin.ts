@@ -4,6 +4,27 @@ import { creditBalance } from './wallet';
 import serviceIcons from '../data/tigerServiceIcons.json';
 import countryFlags from '../data/countryFlags.json';
 
+export async function logAdminAction(
+  actorId: string,
+  action: string,
+  targetType: string,
+  targetId: string | null,
+  metadata: Record<string, unknown> = {},
+  ipAddress: string | null = null,
+  env?: any,
+) {
+  const supabase = getSupabaseAdmin(env);
+  const { error } = await supabase.from('admin_audit_logs').insert({
+    actor_id: actorId,
+    action,
+    target_type: targetType,
+    target_id: targetId,
+    metadata,
+    ip_address: ipAddress,
+  });
+  if (error) throw new Error(`Audit log failed: ${error.message}`);
+}
+
 export async function getAdminDashboard(env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
@@ -100,6 +121,10 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
 }
 
 export async function creditUserBalance(userId: string, amount: number, note: string, env?: any) {
+  if (!Number.isFinite(amount) || amount < 1 || amount > 1000000) {
+    throw new Error('Admin credit must be between ₹1 and ₹10,00,000.');
+  }
+  if (!note || note.trim().length < 5) throw new Error('A reason of at least 5 characters is required.');
   return creditBalance(userId, amount, note || 'Admin Balance Adjustment', 'admin_credit', env);
 }
 
