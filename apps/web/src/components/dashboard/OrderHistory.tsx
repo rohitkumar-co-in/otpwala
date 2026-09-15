@@ -196,7 +196,9 @@ export default function OrderHistory() {
                         <span style={{ color: 'var(--text-muted)' }}>—</span>
                       )}
                     </td>
-                    <td style={{ fontWeight: 600 }}>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>
+                    <td style={{ fontWeight: 600, color: order.status === 'code_received' || order.sms_code ? 'inherit' : 'var(--text-muted)' }}>
+                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refunded: '}₹{parseFloat(order.sell_price_inr).toFixed(2)}
+                    </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleString([], {
                         month: 'short',
