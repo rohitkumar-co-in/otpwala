@@ -125,6 +125,22 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
     zeroMarkupSet = new Set(ids);
   } catch {}
 
+  const userIds = (data || []).map((u: any) => u.id).filter(Boolean);
+  const orderTotals: Record<string, { spent: number; orders: number }> = {};
+  if (userIds.length) {
+    const { data: orderRows } = await supabase.from('orders').select('user_id,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
+    for (const order of orderRows || []) {
+      const refunded = ['refunded', 'refund_issued', 'cancelled'].includes(String(order.refund_status || '').toLowerCase()) || String(order.status || '').toLowerCase() === 'cancelled';
+      if (refunded) continue;
+      const amount = Number(order.sell_price_inr ?? order.price_inr ?? 0);
+      if (!Number.isFinite(amount) || amount < 0) continue;
+      const total = orderTotals[order.user_id] || { spent: 0, orders: 0 };
+      total.spent += amount;
+      total.orders += 1;
+      orderTotals[order.user_id] = total;
+    }
+  }
+
   const enrichedUsers = (data || []).map((u: any) => {
     const authInfo = authMap[u.id] || {};
     const resolvedName = (u.full_name && u.full_name.trim()) || authInfo.name || null;
@@ -140,6 +156,9 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
       last_sign_in_at: lastLogin,
       created_at: registeredAt,
       has_zero_markup: zeroMarkupSet.has(u.id),
+      // Derive reporting totals from orders so refunds/cancellations cannot inflate spend.
+      total_spent: Number((orderTotals[u.id]?.spent ?? 0).toFixed(2)),
+      total_orders: orderTotals[u.id]?.orders ?? 0,
     };
   });
 
