@@ -188,6 +188,7 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
     .select('*, profiles(email)', { count: 'exact' });
   if (status === 'failed_refund') query = query.eq('refund_status', 'failed');
   else if (status === 'stuck') query = query.eq('status', 'waiting').lte('expires_at', new Date().toISOString());
+  else if (status === 'code_received') query = query.in('status', ['code_received', 'completed']);
   else if (status && status !== 'all') query = query.eq('status', status);
   const { data, count, error } = await query
     .order('created_at', { ascending: false })
