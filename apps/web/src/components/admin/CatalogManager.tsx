@@ -396,6 +396,7 @@ export default function CatalogManager() {
           <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
             <input
               type="text"
+              aria-label={`Search ${activeTab === 'services' ? 'services' : 'countries'}`}
               placeholder={`Search ${activeTab === 'services' ? 'services (e.g. WhatsApp, tg)...' : 'countries (e.g. India, 22)...'}`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -408,6 +409,7 @@ export default function CatalogManager() {
           </div>
 
           <select
+            aria-label="Filter catalog status"
             value={filterState}
             onChange={(e) => setFilterState(e.target.value as any)}
             className="input"
