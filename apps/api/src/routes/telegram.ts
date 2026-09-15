@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
-import { creditBalance } from '../services/wallet.js';
 import {
   getTelegramConfig,
   verifyActionToken,
