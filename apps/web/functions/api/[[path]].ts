@@ -158,6 +158,31 @@ export const onRequest = async (context: any) => {
       }
     }
 
+    if (path === '/api/account/export' && method === 'GET') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      const supabase = getSupabaseAdmin(env);
+      const [profile, orders, transactions, tickets] = await Promise.all([
+        supabase.from('profiles').select('id,email,full_name,role,wallet_balance,created_at,updated_at').eq('id', auth.userId).single(),
+        supabase.from('orders').select('id,service_name,country_name,phone_number,status,sms_code,price_inr,refund_status,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+        supabase.from('wallet_transactions').select('id,type,amount,balance_after,description,status,reference_type,reference_id,created_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+        supabase.from('support_tickets').select('id,order_id,subject,message,status,priority,public_reply,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+      ]);
+      const queryError = profile.error || orders.error || transactions.error || tickets.error;
+      if (queryError) throw queryError;
+      return jsonResponse({ success: true, data: { exportedAt: new Date().toISOString(), profile: profile.data, orders: orders.data || [], walletTransactions: transactions.data || [], supportTickets: tickets.data || [] } });
+    }
+
+    if (path === '/api/account/deletion-request' && method === 'POST') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      const supabase = getSupabaseAdmin(env);
+      const { data: existing } = await supabase.from('support_tickets').select('id,status').eq('user_id', auth.userId).eq('subject', 'Account deletion request').in('status', ['open','in_progress']).maybeSingle();
+      if (existing) return jsonResponse({ success: true, data: existing, message: 'A deletion request is already being reviewed.' });
+      const ticket = await createSupportTicket(auth.userId, { subject: 'Account deletion request', message: 'Please delete my OTPWala account and eligible personal data. I understand legally required financial records may be retained.' }, env);
+      return jsonResponse({ success: true, data: ticket }, 201);
+    }
+
     if (path === '/api/cron/reconcile' && method === 'POST') {
       const cronSecret = String(env?.CRON_SECRET || '').trim();
       const supplied = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');

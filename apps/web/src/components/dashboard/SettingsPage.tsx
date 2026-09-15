@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getLocalSessionId } from '../../lib/sessionManager';
+import { exportAccountData, requestAccountDeletion } from '../../lib/api';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -24,6 +25,28 @@ export default function SettingsPage() {
 
   // Password strength
   const [strengthScore, setStrengthScore] = useState(0);
+  const [privacyBusy, setPrivacyBusy] = useState('');
+
+  async function downloadAccountData() {
+    setPrivacyBusy('export'); setErrorMsg('');
+    try {
+      const data = await exportAccountData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = `otpwala-data-${new Date().toISOString().slice(0, 10)}.json`; link.click();
+      URL.revokeObjectURL(url); setSuccessMsg('Your account data export was generated.');
+    } catch (error: any) { setErrorMsg(error.message || 'Unable to export account data.'); }
+    finally { setPrivacyBusy(''); }
+  }
+
+  async function submitDeletionRequest() {
+    if (!window.confirm('Submit an account deletion request for admin review? Financial records may need to be retained where legally required.')) return;
+    setPrivacyBusy('delete'); setErrorMsg('');
+    try { await requestAccountDeletion(); setSuccessMsg('Your account deletion request was submitted to support.'); }
+    catch (error: any) { setErrorMsg(error.message || 'Unable to submit deletion request.'); }
+    finally { setPrivacyBusy(''); }
+  }
 
   useEffect(() => {
     loadUserData();
@@ -475,6 +498,14 @@ export default function SettingsPage() {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
               Session ID: {activeSessionId ? activeSessionId.substring(0, 16) + '...' : 'Active'}
             </span>
+          </div>
+          <div className="card-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg, 16px)' }}>
+            <h3 style={{ marginTop: 0 }}>Privacy &amp; Account Data</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Download your profile, orders, wallet ledger, and support history, or request reviewed account deletion.</p>
+            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary btn-sm" onClick={downloadAccountData} disabled={Boolean(privacyBusy)}>{privacyBusy === 'export' ? 'Preparing…' : 'Download My Data'}</button>
+              <button className="btn btn-sm" onClick={submitDeletionRequest} disabled={Boolean(privacyBusy)} style={{ color: 'var(--error)', border: '1px solid rgba(239,68,68,.4)' }}>{privacyBusy === 'delete' ? 'Submitting…' : 'Request Account Deletion'}</button>
+            </div>
           </div>
         </div>
 

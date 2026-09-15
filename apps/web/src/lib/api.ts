@@ -121,6 +121,8 @@ export const retryOrder = (orderId: string) =>
 export const getSupportTickets = () => apiFetch<any[]>('/api/support/tickets');
 export const createSupportTicket = (subject: string, message: string, orderId?: string) =>
   apiFetch<any>('/api/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, orderId }) });
+export const exportAccountData = () => apiFetch<any>('/api/account/export');
+export const requestAccountDeletion = () => apiFetch<any>('/api/account/deletion-request', { method: 'POST' });
 
 // ─── Wallet ───
 export const getWallet = () =>
