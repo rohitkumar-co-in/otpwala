@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
-import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
+import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -12,7 +12,16 @@ export default function OrderHistory() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const limit = 15;
+
+  async function copyToClipboard(value: string, id: string) {
+    try {
+      await navigator.clipboard?.writeText(value);
+      setCopiedId(id);
+      window.setTimeout(() => setCopiedId((current) => current === id ? null : current), 1500);
+    } catch {}
+  }
 
   useEffect(() => {
     loadOrders();
@@ -141,15 +150,14 @@ export default function OrderHistory() {
                   <tr>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td><strong>{order.country_name || 'Unknown country'}</strong></td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600 }}>
                       {order.phone_number ? (
-                        <span
-                          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                          onClick={() => navigator.clipboard?.writeText(String(order.phone_number || ''))}
-                          title={`Copy ${order.phone_number}`}
-                        >
-                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formattedPhone.display || order.phone_number}</span>
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 400 }}>Phone number</small>{formattedPhone.display || order.phone_number}</span>
+                          <button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(String(order.phone_number || ''), `number-${order.id}`)} title="Copy number">
+                            {copiedId === `number-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
+                          </button>
+                        </div>
                       ) : '—'}
                     </td>
                     <td>
@@ -159,12 +167,12 @@ export default function OrderHistory() {
                             {order.sms_code}
                           </span>
                           <button
-                            onClick={() => navigator.clipboard?.writeText(order.sms_code)}
+                            onClick={() => copyToClipboard(order.sms_code, `code-${order.id}`)}
                             className="btn btn-ghost btn-sm"
                             style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }}
                             title="Copy OTP"
                           >
-                            Copy
+                            {copiedId === `code-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
                           </button>
                         </div>
                       ) : order.status === 'waiting' ? (
