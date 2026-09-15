@@ -1,5 +1,5 @@
-import { Fragment, useState, useEffect } from 'react';
-import { getOrders, cancelOrder } from '../../lib/api';
+import { useState, useEffect } from 'react';
+import { getOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 
@@ -9,9 +9,7 @@ export default function OrderHistory() {
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const limit = 15;
 
@@ -54,22 +52,6 @@ export default function OrderHistory() {
       console.error('Error loading orders:', err);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleCancelOrder(orderId: string, serviceName: string) {
-    const confirmCancel = window.confirm(`Cancel ${serviceName}? If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes after cancellation.`);
-    if (!confirmCancel) return;
-    setActionLoading(orderId);
-    try {
-      await cancelOrder(orderId);
-      await loadOrders();
-      setSuccessMessage('Number cancelled. If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes.');
-      window.setTimeout(() => setSuccessMessage(''), 5000);
-    } catch (err: any) {
-      alert(err.message || 'Failed to cancel order');
-    } finally {
-      setActionLoading(null);
     }
   }
 
@@ -133,7 +115,6 @@ export default function OrderHistory() {
                   <th>Service</th>
                   <th>Country</th>
                   <th>Number</th>
-                  <th>OTP Code</th>
                   <th>Status</th>
                   <th>Refund</th>
                   <th>Price</th>
@@ -146,8 +127,7 @@ export default function OrderHistory() {
                   const formattedPhone = formatPhoneNumber(order.phone_number, order.country_code);
                   const cancelWaitSeconds = Math.max(0, 120 - Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000));
                   return (
-                  <Fragment key={order.id}>
-                  <tr>
+                  <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td><strong>{order.country_name || 'Unknown country'}</strong></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600 }}>
@@ -180,11 +160,8 @@ export default function OrderHistory() {
                           <RefreshCwIcon size={12} className="animate-spin" />
                           <span>Waiting for OTP...</span>
                         </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                      ) : <StatusBadge status={order.status} />}
                     </td>
-                    <td><StatusBadge status={order.status} /></td>
                     <td>
                       {order.refund_status === 'refunded' ? (
                         <span className="badge badge-success">Credited</span>
@@ -207,72 +184,7 @@ export default function OrderHistory() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        aria-expanded={expandedOrder === order.id}
-                        onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                      >
-                        History ({order.events?.length || 0})
-                      </button>
-                      {order.status === 'waiting' && (
-                        <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-                          <a
-                            href={`/dashboard/buy?active=${order.id}`}
-                            className="btn btn-primary btn-sm"
-                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', textDecoration: 'none' }}
-                          >
-                            Live Room
-                          </a>
-                          <button
-                            onClick={() => handleCancelOrder(order.id, order.service_name)}
-                            disabled={actionLoading === order.id || cancelWaitSeconds > 0}
-                            className="btn btn-danger btn-sm"
-                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                            title={cancelWaitSeconds > 0 ? 'Please wait 2 minutes for the OTP before cancelling this number.' : 'Request cancellation'}
-                          >
-                            {cancelWaitSeconds > 0 ? `Wait ${cancelWaitSeconds}s` : 'Cancel'}
-                          </button>
-                        </div>
-                      )}
-                      {order.status === 'code_received' && (
-                        <a
-                          href={`/dashboard/buy?active=${order.id}`}
-                          className="btn btn-success btn-sm"
-                          style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', textDecoration: 'none' }}
-                        >
-                          View Code
-                        </a>
-                      )}
-                      {!['waiting', 'code_received'].includes(order.status) && (
-                        null
-                      )}
-                      </div>
-                    </td>
                   </tr>
-                  {expandedOrder === order.id && (
-                    <tr>
-                      <td colSpan={9} style={{ padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.025)' }}>
-                        <div style={{ fontWeight: 700, marginBottom: '0.55rem' }}>Order timeline</div>
-                        {order.events?.length ? (
-                          <ol style={{ margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.4rem' }}>
-                            {order.events.map((event: any) => (
-                              <li key={event.id} style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                                <strong style={{ color: 'var(--text-primary)' }}>{eventLabel(event)}</strong>
-                                {' — '}{new Date(event.created_at).toLocaleString()}
-                              </li>
-                            ))}
-                          </ol>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>No lifecycle events recorded yet.</span>
-                        )}
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
                   );
                 })}
               </tbody>
