@@ -138,7 +138,7 @@ export default function OrderHistory() {
                   <Fragment key={order.id}>
                   <tr>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td>{order.country_name}</td>
+                    <td><strong>{order.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Country code: {order.country_code ?? '—'}</small></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                       {order.phone_number ? (
                         <span
@@ -146,7 +146,7 @@ export default function OrderHistory() {
                           onClick={() => navigator.clipboard?.writeText(String(order.phone_number || ''))}
                           title={`Copy ${order.phone_number}`}
                         >
-                          {order.phone_number}
+                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{order.phone_number}</span>
                         </span>
                       ) : '—'}
                     </td>

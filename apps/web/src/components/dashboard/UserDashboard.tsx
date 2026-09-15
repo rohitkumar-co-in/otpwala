@@ -142,9 +142,9 @@ export default function UserDashboard() {
                 {recentOrders.map(order => (
                   <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td>{order.country_name}</td>
+                    <td><strong>{order.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Country code: {order.country_code ?? '—'}</small></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      {order.phone_number}
+                      <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{order.phone_number}</span>
                     </td>
                     <td><StatusBadge status={order.status} /></td>
                     <td>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>

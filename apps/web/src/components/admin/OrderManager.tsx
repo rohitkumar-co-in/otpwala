@@ -151,7 +151,8 @@ export default function OrderManager() {
                     <td style={{ padding: '0.75rem' }}>
                       <div style={{ display: 'grid', gap: '0.2rem', minWidth: 150 }}>
                         <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{o.country_name || `Country ID ${o.country_code}`}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{o.country_name || 'Unknown country'}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Country code: {o.country_code ?? '—'}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.25rem' }}>
                         <span className="badge badge-info" style={{ fontWeight: 700 }}>
@@ -166,7 +167,7 @@ export default function OrderManager() {
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                            {o.phone_number}
+                            <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{o.phone_number}</span>
                           </span>
                           <button
                             className="btn btn-ghost btn-sm"
