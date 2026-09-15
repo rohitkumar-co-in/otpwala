@@ -116,16 +116,13 @@ export default function OrderHistory() {
                   <th>Country</th>
                   <th>Number</th>
                   <th>Status</th>
-                  <th>Refund</th>
                   <th>Price</th>
                   <th>Date</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map(order => {
                   const formattedPhone = formatPhoneNumber(order.phone_number, order.country_code);
-                  const cancelWaitSeconds = Math.max(0, 120 - Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000));
                   return (
                   <tr key={order.id}>
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
@@ -161,17 +158,6 @@ export default function OrderHistory() {
                           <span>Waiting for OTP...</span>
                         </span>
                       ) : <StatusBadge status={order.status} />}
-                    </td>
-                    <td>
-                      {order.refund_status === 'refunded' ? (
-                        <span className="badge badge-success">Credited</span>
-                      ) : ['pending', 'processing'].includes(order.refund_status) ? (
-                        <span className="badge badge-warning">Processing</span>
-                      ) : order.refund_status === 'failed' ? (
-                        <span className="badge badge-error">Needs Support</span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
                     </td>
                     <td style={{ fontWeight: 600, color: order.status === 'code_received' || order.sms_code ? 'inherit' : 'var(--text-muted)' }}>
                       {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refunded: '}₹{parseFloat(order.sell_price_inr).toFixed(2)}
