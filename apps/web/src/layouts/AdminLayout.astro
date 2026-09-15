@@ -46,6 +46,7 @@ const formattedTitle = formatPageTitle(title);
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="dashboard-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -220,7 +221,7 @@ const formattedTitle = formatPageTitle(title);
           </div>
         </div>
       </header>
-      <main class="dashboard-content">
+      <main class="dashboard-content" id="main-content" tabindex="-1">
         <slot />
       </main>
     </div>

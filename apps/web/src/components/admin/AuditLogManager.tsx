@@ -38,8 +38,9 @@ export default function AuditLogManager() {
     {error && <div className="alert alert-error"><AlertCircleIcon size={18} /> {error}</div>}
     <div className="card" style={{ padding: '1rem', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+        <caption className="sr-only">Privileged administrator actions ordered from newest to oldest</caption>
         <thead><tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <th style={{ padding: '0.7rem' }}>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th><th>IP</th>
+          <th scope="col" style={{ padding: '0.7rem' }}>Time</th><th scope="col">Actor</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Details</th><th scope="col">IP</th>
         </tr></thead>
         <tbody>{logs.map((log) => <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
           <td style={{ padding: '0.7rem', whiteSpace: 'nowrap' }}>{new Date(log.created_at).toLocaleString()}</td>

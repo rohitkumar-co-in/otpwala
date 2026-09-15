@@ -215,6 +215,7 @@ const webAppSchema = {
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <!-- Header -->
   <header class="site-header">
     <div class="container flex items-center justify-between">
@@ -315,7 +316,7 @@ const webAppSchema = {
   <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
   <!-- Main Content -->
-  <main>
+  <main id="main-content" tabindex="-1">
     <slot />
   </main>
 

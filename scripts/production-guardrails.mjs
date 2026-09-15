@@ -7,6 +7,7 @@ const files = {
   order: readFileSync(new URL('../functions/lib/order.ts', import.meta.url), 'utf8'),
   routes: readFileSync(new URL('../functions/api/[[path]].ts', import.meta.url), 'utf8'),
   headers: readFileSync(new URL('../apps/web/public/_headers', import.meta.url), 'utf8'),
+  globalCss: readFileSync(new URL('../apps/web/src/styles/global.css', import.meta.url), 'utf8'),
   auditMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915142500_admin_audit_log.sql', import.meta.url), 'utf8'),
   supportMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915145500_support_tickets.sql', import.meta.url), 'utf8'),
   purchaseMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915153000_purchase_idempotency.sql', import.meta.url), 'utf8'),
@@ -38,6 +39,8 @@ requireText(files.headers, 'Strict-Transport-Security:', 'HSTS is missing');
 requireText(files.purchaseMigration, 'request_id UUID PRIMARY KEY', 'Purchase idempotency key is not unique');
 requireText(files.routes, "prior.status === 'completed'", 'Completed purchase replay protection is missing');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
+requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
+requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
 
 if (failures.length) {
   console.error(`Production guardrails failed:\n- ${failures.join('\n- ')}`);
