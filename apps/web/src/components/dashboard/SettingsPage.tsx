@@ -163,7 +163,7 @@ export default function SettingsPage() {
   const createdAt = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A';
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ width: '100%', maxWidth: '1120px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--text-primary)' }}>
           Account Settings & Security
@@ -174,10 +174,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Grid: Change Password Card & Account Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1.25rem', alignItems: 'start' }}>
         
         {/* Card 1: Change Password */}
-        <div className="card-glass" style={{ padding: '1.75rem', borderRadius: 'var(--radius-lg, 16px)' }}>
+        <div className="card-glass" style={{ padding: 'clamp(1.25rem, 2vw, 1.75rem)', borderRadius: 'var(--radius-lg, 16px)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
             <div style={{
               width: '40px',
@@ -431,7 +431,7 @@ export default function SettingsPage() {
 
         {/* Card 2: Account Security Overview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="card-glass" style={{ padding: '1.75rem', borderRadius: 'var(--radius-lg, 16px)' }}>
+          <div className="card-glass" style={{ padding: 'clamp(1.25rem, 2vw, 1.75rem)', borderRadius: 'var(--radius-lg, 16px)' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 1.25rem', color: 'var(--text-primary)' }}>
               Account Credentials
             </h3>
