@@ -922,30 +922,11 @@ router.post('/payment-requests/:id/approve', async (req: AuthenticatedRequest, r
       return;
     }
 
-    const st = request.status;
-    if (st === 'approved' || st === 'paid') {
-      res.status(400).json({ success: false, error: 'This payment request has already been approved and credited.' });
-      return;
-    }
-
-    const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
-    const utr = request.transaction_id || request.gateway_payment_id || id;
-
-    // Credit user balance
-    await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup');
-
-    // Update status in payment_requests
-    const res1 = await supabaseAdmin
-      .from('payment_requests')
-      .update({ status: 'approved', updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (res1.error) {
-      await supabaseAdmin
-        .from('payment_requests')
-        .update({ status: 'paid', updated_at: new Date().toISOString() })
-        .eq('id', id);
-    }
+    const { error: approvalError } = await supabaseAdmin.rpc('approve_payment_request_atomic', {
+      p_request_id: id,
+      p_admin_id: req.userId || 'legacy-admin',
+    });
+    if (approvalError) throw approvalError;
 
     res.json({ success: true, message: 'Deposit approved and credited successfully' });
   } catch (e: any) {
@@ -1117,30 +1098,11 @@ router.post('/payment-requests/:id/approve', async (req: AuthenticatedRequest, r
       return;
     }
 
-    const st = request.status;
-    if (st === 'approved' || st === 'paid') {
-      res.status(400).json({ success: false, error: 'This payment request has already been approved and credited.' });
-      return;
-    }
-
-    const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
-    const utr = request.transaction_id || request.gateway_payment_id || id;
-
-    // Credit user balance
-    await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup');
-
-    // Update status in payment_requests
-    const res1 = await supabaseAdmin
-      .from('payment_requests')
-      .update({ status: 'approved', updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (res1.error) {
-      await supabaseAdmin
-        .from('payment_requests')
-        .update({ status: 'paid', updated_at: new Date().toISOString() })
-        .eq('id', id);
-    }
+    const { error: approvalError } = await supabaseAdmin.rpc('approve_payment_request_atomic', {
+      p_request_id: id,
+      p_admin_id: req.userId || 'legacy-admin',
+    });
+    if (approvalError) throw approvalError;
 
     res.json({ success: true, message: 'Deposit approved and credited successfully' });
   } catch (e: any) {

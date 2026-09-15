@@ -77,6 +77,7 @@ requireText(files.ledgerAppendOnlyMigration, 'wallet_transactions_append_only', 
 requireText(files.ledgerAppendOnlyMigration, 'wallet_deduction_must_be_negative', 'Wallet debit direction guard is missing');
 requireText(files.legacyWallet, "rpc('post_wallet_transaction'", 'Legacy API wallet service bypasses the atomic ledger RPC');
 if (/from\('wallet_transactions'\)\.insert\(/.test(files.legacyWallet)) failures.push('Legacy API wallet service writes directly to the append-only ledger');
+requireText(files.legacyAdminRoutes, "rpc('approve_payment_request_atomic'", 'Legacy API payment approval bypasses the atomic approval RPC');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
