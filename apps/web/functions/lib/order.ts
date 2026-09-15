@@ -360,7 +360,7 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
     .limit(Math.min(Math.max(limit, 1), 200));
   if (error) throw error;
 
-  const result = { scanned: orders?.length || 0, delivered: 0, refunded: 0, failed: 0 };
+  const result: any = { scanned: orders?.length || 0, delivered: 0, refunded: 0, failed: 0 };
   for (const order of orders || []) {
     try {
       const provider = await tiger.getStatus(order.activation_id);
@@ -397,6 +397,13 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
     await notifyLowProviderBalance(providerBalance, threshold, env);
   } catch (error) {
     console.warn('Provider balance alert check failed:', error);
+  }
+  try {
+    const { data, error } = await supabase.rpc('cleanup_operational_records');
+    if (error) throw error;
+    result.cleanup = data || {};
+  } catch (error) {
+    console.warn('Operational retention cleanup failed:', error);
   }
   return result;
 }
