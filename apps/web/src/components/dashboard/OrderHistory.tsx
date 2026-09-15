@@ -117,7 +117,7 @@ export default function OrderHistory() {
                   <th>Number</th>
                   <th>Status</th>
                   <th>Price</th>
-                  <th>Date</th>
+                  <th>Time</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,7 +160,7 @@ export default function OrderHistory() {
                       ) : <StatusBadge status={order.status} />}
                     </td>
                     <td style={{ fontWeight: 600, color: order.status === 'code_received' || order.sms_code ? 'inherit' : 'var(--text-muted)' }}>
-                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refunded: '}₹{parseFloat(order.sell_price_inr).toFixed(2)}
+                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refund: '}₹{parseFloat(order.sell_price_inr).toFixed(2)}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleString([], {
