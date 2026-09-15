@@ -171,11 +171,6 @@ export default function OrderManager() {
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: '#34d399' }}>
                       <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
-                      {o.cost_price_inr != null && (
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                          Provider: ₹{parseFloat(o.cost_price_inr).toFixed(2)}
-                        </div>
-                      )}
                       {o.cost_price_inr != null && (o.sms_code || ['code_received', 'completed'].includes(o.status)) && (
                         <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
                           Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
