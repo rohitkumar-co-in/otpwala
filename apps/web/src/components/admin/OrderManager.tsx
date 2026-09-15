@@ -128,7 +128,7 @@ export default function OrderManager() {
                   <th style={{ padding: '0.75rem' }}>Country</th>
                   <th style={{ padding: '0.75rem' }}>Number</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem' }}>Financials</th>
+                  <th style={{ padding: '0.75rem' }}>Price</th>
                   <th style={{ padding: '0.75rem' }}>Time</th>
                 </tr>
               </thead>
