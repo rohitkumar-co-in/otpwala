@@ -11,6 +11,9 @@ if (!existsSync(source)) {
 }
 
 rmSync(destination, { recursive: true, force: true });
-cpSync(source, destination, { recursive: true });
+cpSync(source, destination, {
+  recursive: true,
+  filter: (path) => !path.endsWith('.test.ts') && !path.endsWith('.test.js'),
+});
 
 console.log('Synced Pages Functions into the Cloudflare project root.');
