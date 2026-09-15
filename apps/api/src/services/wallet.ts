@@ -61,51 +61,28 @@ export async function deductBalance(
   amount: number,
   description: string
 ): Promise<number> {
-  // Use Supabase RPC for atomic deduction
-  const { data: profile, error: fetchError } = await supabaseAdmin
-    .from('profiles')
-    .select('wallet_balance')
-    .eq('id', userId)
-    .single();
-
-  if (fetchError) throw new Error('Failed to fetch profile');
-
-  const currentBalance = parseFloat(profile.wallet_balance) || 0;
-
-  if (currentBalance < amount) {
-    throw new WalletError('INSUFFICIENT_BALANCE', 'Insufficient wallet balance');
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new WalletError('INVALID_AMOUNT', 'Transaction amount must be positive');
   }
 
-  const newBalance = Math.round((currentBalance - amount) * 10000) / 10000;
-
-  // Update profile balance
-  const { error: updateError } = await supabaseAdmin
-    .from('profiles')
-    .update({
-      wallet_balance: newBalance,
-      total_spent: parseFloat(profile.wallet_balance) > 0
-        ? currentBalance - newBalance + (parseFloat(profile.wallet_balance) - currentBalance)
-        : amount,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId)
-    .eq('wallet_balance', profile.wallet_balance); // Optimistic lock
-
-  if (updateError) {
-    throw new WalletError('CONCURRENT_UPDATE', 'Balance changed during transaction, please retry');
-  }
-
-  // Record transaction
-  await supabaseAdmin.from('wallet_transactions').insert({
-    user_id: userId,
-    type: 'deduction',
-    amount: -amount,
-    balance_after: newBalance,
-    description,
-    status: 'completed',
+  const { data, error } = await supabaseAdmin.rpc('post_wallet_transaction', {
+    p_user_id: userId,
+    p_amount: -amount,
+    p_type: 'deduction',
+    p_description: description,
+    p_reference_type: null,
+    p_reference_id: null,
+    p_idempotency_key: null,
   });
 
-  return newBalance;
+  if (error) {
+    if (error.message?.includes('insufficient_wallet_balance')) {
+      throw new WalletError('INSUFFICIENT_BALANCE', 'Insufficient wallet balance');
+    }
+    throw new WalletError('WALLET_POST_FAILED', error.message || 'Wallet deduction failed');
+  }
+
+  return parseFloat(data?.[0]?.balance_after || '0');
 }
 
 /**
@@ -114,12 +91,12 @@ export async function deductBalance(
 export async function creditBalance(
   userId: string,
   amount: number,
-  typeOrDesc: 'topup' | 'refund' | 'admin_credit' | string,
+  typeOrDesc: 'topup' | 'refund' | 'admin_credit' | 'referral_bonus' | string,
   descOrType?: string,
   paymentInfo?: { paymentId?: string; method?: string }
 ): Promise<number> {
   const validTypes = ['topup', 'refund', 'admin_credit', 'referral_bonus'];
-  let type: 'topup' | 'refund' | 'admin_credit' = 'topup';
+  let type: 'topup' | 'refund' | 'admin_credit' | 'referral_bonus' = 'topup';
   let description = '';
 
   if (validTypes.includes(typeOrDesc)) {
@@ -130,39 +107,23 @@ export async function creditBalance(
     type = (descOrType && validTypes.includes(descOrType)) ? (descOrType as any) : 'topup';
   }
 
-  const { data: profile, error: fetchError } = await supabaseAdmin
-    .from('profiles')
-    .select('wallet_balance')
-    .eq('id', userId)
-    .single();
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new WalletError('INVALID_AMOUNT', 'Transaction amount must be positive');
+  }
 
-  if (fetchError) throw new Error('Failed to fetch profile');
-
-  const currentBalance = parseFloat(profile.wallet_balance) || 0;
-  const newBalance = Math.round((currentBalance + amount) * 10000) / 10000;
-
-  // Update profile balance
-  const { error: updateError } = await supabaseAdmin
-    .from('profiles')
-    .update({
-      wallet_balance: newBalance,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (updateError) throw new Error('Failed to update balance');
-
-  // Record transaction
-  await supabaseAdmin.from('wallet_transactions').insert({
-    user_id: userId,
-    type,
-    amount,
-    balance_after: newBalance,
-    description,
-    payment_id: paymentInfo?.paymentId || null,
-    payment_method: paymentInfo?.method || null,
-    status: 'completed',
+  const { data, error } = await supabaseAdmin.rpc('post_wallet_transaction', {
+    p_user_id: userId,
+    p_amount: amount,
+    p_type: type,
+    p_description: description,
+    p_reference_type: paymentInfo?.method || null,
+    p_reference_id: paymentInfo?.paymentId || null,
+    p_idempotency_key: paymentInfo?.paymentId || null,
   });
+
+  if (error) throw new WalletError('WALLET_POST_FAILED', error.message || 'Wallet credit failed');
+
+  const newBalance = parseFloat(data?.[0]?.balance_after || '0');
 
   // If this was a top-up deposit, credit referral commission (20% first deposit, 5% for next 2 months)
   if (type === 'topup') {

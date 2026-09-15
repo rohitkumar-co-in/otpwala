@@ -306,7 +306,7 @@ export async function processReferralDepositBonus(depositingUserId: string, depo
     await creditBalance(
       referrerId,
       bonusAmount,
-      'admin_credit',
+      'referral_bonus',
       description
     );
   } catch (err) {
