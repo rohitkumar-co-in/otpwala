@@ -573,6 +573,7 @@ export default function BuyNumber() {
             <input
               type="text"
               className="input"
+              aria-label="Search services"
               placeholder="Search services (WhatsApp, Telegram, Google, ChatGPT...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -583,6 +584,8 @@ export default function BuyNumber() {
             </span>
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Clear service search"
                 onClick={() => setSearchQuery('')}
                 style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}
               >

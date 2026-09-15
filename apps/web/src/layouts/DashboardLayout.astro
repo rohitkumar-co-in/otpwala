@@ -187,7 +187,7 @@ const formattedTitle = formatPageTitle(title);
     <!-- Main Content -->
     <div class="dashboard-main">
       <header class="dashboard-header">
-        <button class="btn btn-ghost btn-icon mobile-menu-btn" id="mobile-menu-btn">
+        <button class="btn btn-ghost btn-icon mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Open dashboard menu" aria-controls="sidebar" aria-expanded="false">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
           </svg>
@@ -556,6 +556,8 @@ const formattedTitle = formatPageTitle(title);
     function toggleSidebar() {
       const isOpen = sidebar?.classList.toggle('open');
       backdrop?.classList.toggle('active', !!isOpen);
+      menuBtn?.setAttribute('aria-expanded', String(!!isOpen));
+      menuBtn?.setAttribute('aria-label', isOpen ? 'Close dashboard menu' : 'Open dashboard menu');
       document.body.style.overflow = isOpen ? 'hidden' : '';
     }
 
@@ -563,6 +565,8 @@ const formattedTitle = formatPageTitle(title);
     backdrop?.addEventListener('click', () => {
       sidebar?.classList.remove('open');
       backdrop?.classList.remove('active');
+      menuBtn?.setAttribute('aria-expanded', 'false');
+      menuBtn?.setAttribute('aria-label', 'Open dashboard menu');
       document.body.style.overflow = '';
     });
 
@@ -572,6 +576,8 @@ const formattedTitle = formatPageTitle(title);
         if (window.innerWidth <= 768) {
           sidebar?.classList.remove('open');
           backdrop?.classList.remove('active');
+          menuBtn?.setAttribute('aria-expanded', 'false');
+          menuBtn?.setAttribute('aria-label', 'Open dashboard menu');
           document.body.style.overflow = '';
         }
       });
