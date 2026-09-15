@@ -236,6 +236,35 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {stats?.recentAlerts?.length > 0 && (
+        <section className="card" style={{ padding: '1.25rem' }} aria-labelledby="operational-alerts-heading">
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <div>
+              <h2 id="operational-alerts-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Operational Alert History</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.2rem 0 0' }}>Latest deduplicated provider and notification alerts.</p>
+            </div>
+            {stats.failedAlerts > 0 && <span className="badge badge-error">{stats.failedAlerts} failed</span>}
+          </div>
+          <div style={{ display: 'grid', gap: '0.55rem' }}>
+            {stats.recentAlerts.map((alert: any) => (
+              <div key={alert.alert_key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', padding: '0.75rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', flexWrap: 'wrap' }}>
+                <div>
+                  <strong style={{ fontSize: '0.84rem' }}>{String(alert.alert_type).replaceAll('_', ' ')}</strong>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', marginTop: '0.2rem' }}>
+                    {alert.details?.balance != null ? `Provider balance $${Number(alert.details.balance).toFixed(2)} · threshold $${Number(alert.details.threshold || 0).toFixed(2)} · ` : ''}
+                    {new Date(alert.created_at).toLocaleString()}
+                  </div>
+                  {alert.last_error && <div style={{ color: 'var(--error)', fontSize: '0.74rem', marginTop: '0.2rem' }}>{alert.last_error}</div>}
+                </div>
+                <span className={`badge ${alert.status === 'sent' ? 'badge-success' : alert.status === 'failed' ? 'badge-error' : 'badge-warning'}`}>
+                  {alert.channel}: {alert.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {/* Tiger SMS Balance & Status */}

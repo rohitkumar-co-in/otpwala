@@ -58,6 +58,7 @@ requireText(files.session, "reason: 'concurrent_session'", 'Replaced device sess
 requireText(files.supabase, 'isSessionCurrent', 'Session replacement is not enforced on authenticated APIs');
 requireText(files.routes, 'smsProvider: provider', 'Component-level health reporting is missing');
 requireText(files.statusPage, "fetch('/api/health'", 'Public status page is not connected to health reporting');
+requireText(files.admin, "from('operational_alerts')", 'Admin dashboard does not load operational alert history');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');

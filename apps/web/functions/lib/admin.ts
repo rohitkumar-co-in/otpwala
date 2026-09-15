@@ -59,11 +59,12 @@ export async function getAdminDashboard(env?: any) {
   }
 
   const now = new Date().toISOString();
-  const [failedRefunds, stuckOrders, latestRefund, unresolvedSupport] = await Promise.all([
+  const [failedRefunds, stuckOrders, latestRefund, unresolvedSupport, recentAlerts] = await Promise.all([
     supabase.from('orders').select('id', { count: 'exact', head: true }).eq('refund_status', 'failed'),
     supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'waiting').lte('expires_at', now),
     supabase.from('wallet_transactions').select('created_at').eq('type', 'refund').eq('status', 'completed').order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('support_tickets').select('id', { count: 'exact', head: true }).in('status', ['open', 'in_progress']),
+    supabase.from('operational_alerts').select('alert_key,alert_type,channel,status,details,last_error,created_at,updated_at').order('created_at', { ascending: false }).limit(10),
   ]);
 
   return {
@@ -75,6 +76,8 @@ export async function getAdminDashboard(env?: any) {
     stuckOrders: stuckOrders.count || 0,
     lastRefundAt: latestRefund.data?.created_at || null,
     unresolvedSupport: unresolvedSupport.count || 0,
+    recentAlerts: recentAlerts.data || [],
+    failedAlerts: (recentAlerts.data || []).filter((alert: any) => alert.status === 'failed').length,
   };
 }
 
