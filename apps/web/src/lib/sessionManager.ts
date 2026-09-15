@@ -230,12 +230,12 @@ export async function verifyActiveSession(accessToken: string): Promise<SessionC
 }
 
 /**
- * Terminate the local session and redirect to login only for banned or deleted accounts.
+ * Terminate the local session when the account or this device session is invalidated.
  */
 export async function handleSessionTermination(
   reason: 'concurrent_session' | 'account_deleted' | 'account_banned' | string
 ): Promise<void> {
-  if (reason !== 'account_banned' && reason !== 'account_deleted') {
+  if (!['concurrent_session', 'account_banned', 'account_deleted'].includes(reason)) {
     return;
   }
   clearLocalSessionId();

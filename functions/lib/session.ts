@@ -1,6 +1,8 @@
 import { getSupabaseAdmin } from './supabase';
+import { isSessionCurrent, isValidSessionId } from './session-policy';
 
 export async function registerSession(userId: string, sessionId: string, userAgent = 'unknown', env?: any) {
+  if (!isValidSessionId(sessionId)) throw new Error('invalid_session_id');
   const supabase = getSupabaseAdmin(env);
 
   const { data: { user }, error: userErr } = await supabase.auth.admin.getUserById(userId);
@@ -22,7 +24,7 @@ export async function checkSession(token: string, clientSessionId?: string, env?
 
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) {
-    return { valid: true, warning: 'token_check_skipped' };
+    return { valid: false, reason: 'account_deleted', message: 'Your session is no longer valid' };
   }
 
   const { data: profile } = await supabase
@@ -33,6 +35,10 @@ export async function checkSession(token: string, clientSessionId?: string, env?
 
   if (profile?.is_banned) {
     return { valid: false, reason: 'account_banned', message: 'Your account has been suspended' };
+  }
+
+  if (!isSessionCurrent(user.user_metadata?.current_session_id, clientSessionId)) {
+    return { valid: false, reason: 'concurrent_session', message: 'This device was signed out because a newer login became active.' };
   }
 
   return { valid: true, userId: user.id, email: user.email };

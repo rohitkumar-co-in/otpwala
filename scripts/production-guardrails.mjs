@@ -15,6 +15,8 @@ const files = {
   telegramSecurity: readFileSync(new URL('../functions/lib/telegram-security.ts', import.meta.url), 'utf8'),
   retentionMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915163000_operational_retention.sql', import.meta.url), 'utf8'),
   orderEventsMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915170000_order_events.sql', import.meta.url), 'utf8'),
+  session: readFileSync(new URL('../functions/lib/session.ts', import.meta.url), 'utf8'),
+  supabase: readFileSync(new URL('../functions/lib/supabase.ts', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -51,6 +53,8 @@ requireText(files.retentionMigration, "interval '15 minutes'", 'Stuck purchase-i
 requireText(files.order, "rpc('cleanup_operational_records')", 'Scheduled operational cleanup is not invoked');
 requireText(files.orderEventsMigration, 'CREATE TRIGGER orders_capture_event', 'Durable order lifecycle events are missing');
 requireText(files.routes, "from('order_events')", 'User order history does not include lifecycle events');
+requireText(files.session, "reason: 'concurrent_session'", 'Replaced device sessions are not rejected');
+requireText(files.supabase, 'isSessionCurrent', 'Session replacement is not enforced on authenticated APIs');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');

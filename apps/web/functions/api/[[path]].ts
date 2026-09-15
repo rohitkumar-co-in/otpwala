@@ -299,12 +299,14 @@ export const onRequest = async (context: any) => {
 
     // ─── Session Management ───
     if (path === '/api/auth/register-session' && method === 'POST') {
-      const auth = await authenticateUser(request, env);
+      const auth = await authenticateUser(request, env, { allowSessionReplacement: true });
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const body = await request.json().catch(() => ({}));
       const sessionId = body.sessionId;
-      if (!sessionId) return jsonResponse({ success: false, error: 'sessionId required' }, 400);
+      if (!sessionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(sessionId))) {
+        return jsonResponse({ success: false, error: 'invalid_session_id', message: 'A valid device session ID is required.' }, 400);
+      }
 
       const userAgent = request.headers.get('user-agent') || 'unknown';
       const result = await registerSession(auth.userId, sessionId, userAgent, env);

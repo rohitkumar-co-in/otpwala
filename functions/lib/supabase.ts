@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getConfig } from './config';
+import { isSessionCurrent } from './session-policy';
 
 let cachedClient: SupabaseClient | null = null;
 let lastUrl = '';
@@ -23,7 +24,11 @@ export function getSupabaseAdmin(env?: any): SupabaseClient {
   return cachedClient;
 }
 
-export async function authenticateUser(request: Request, env?: any): Promise<{ userId: string; email: string; role: string; aal: string; hasVerifiedMfa: boolean } | null> {
+export async function authenticateUser(
+  request: Request,
+  env?: any,
+  options?: { allowSessionReplacement?: boolean }
+): Promise<{ userId: string; email: string; role: string; aal: string; hasVerifiedMfa: boolean } | null> {
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return null;
 
@@ -33,6 +38,10 @@ export async function authenticateUser(request: Request, env?: any): Promise<{ u
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return null;
+    if (!options?.allowSessionReplacement) {
+      const suppliedSessionId = request.headers.get('x-session-id') || '';
+      if (!isSessionCurrent(user.user_metadata?.current_session_id, suppliedSessionId)) return null;
+    }
 
     let { data: profile } = await supabase
       .from('profiles')
