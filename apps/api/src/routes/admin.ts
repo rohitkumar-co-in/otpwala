@@ -601,32 +601,11 @@ router.post('/payment-requests/:id/approve', async (req: AuthenticatedRequest, r
   try {
     const { id } = req.params;
 
-    const { data: request, error: fetchError } = await supabaseAdmin
-      .from('payment_requests')
-      .select('*')
-      .eq('id', id)
-      .eq('status', 'created')
-      .single();
-
-    if (fetchError || !request) {
-      res.status(404).json({ success: false, error: 'Request not found or already processed' });
-      return;
-    }
-
-    // Credit the user
-    await creditBalance(
-      request.user_id,
-      parseFloat(request.amount_inr),
-      'topup',
-      'Manual top-up approved by admin',
-      { method: 'manual' }
-    );
-
-    // Mark request as paid
-    await supabaseAdmin
-      .from('payment_requests')
-      .update({ status: 'paid', updated_at: new Date().toISOString() })
-      .eq('id', id);
+    const { error: approvalError } = await supabaseAdmin.rpc('approve_payment_request_atomic', {
+      p_request_id: id,
+      p_admin_id: req.userId || 'legacy-admin',
+    });
+    if (approvalError) throw approvalError;
 
     res.json({ success: true, message: 'Top-up approved and credited' });
   } catch (e) {

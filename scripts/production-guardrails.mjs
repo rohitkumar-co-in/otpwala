@@ -83,6 +83,7 @@ requireText(files.legacyAdminRoutes, "rpc('approve_payment_request_atomic'", 'Le
 requireText(files.legacyOrder, "rpc('refund_order_atomic'", 'Legacy API order refunds bypass the atomic refund RPC');
 requireText(files.legacyTelegram, "rpc('approve_payment_request_atomic'", 'Telegram payment approval bypasses the atomic approval RPC');
 if (/creditBalance\(request\.user_id/.test(files.legacyTelegram)) failures.push('Telegram payment approval can credit outside the atomic approval RPC');
+if (/creditBalance\(\s*request\.user_id/.test(files.legacyAdminRoutes)) failures.push('Legacy admin payment approval can credit outside the atomic approval RPC');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
