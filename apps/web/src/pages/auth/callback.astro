@@ -83,7 +83,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const subEl   = document.getElementById('callback-sub');
   const errEl   = document.getElementById('callback-error');
 
+  async function requireLoginMfa() {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const factor = factors?.totp?.find((item) => item.status === 'verified');
+    if (!factor) return true;
+    const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance.data?.currentLevel === 'aal2') return true;
+    const code = window.prompt('Two-factor authentication is enabled. Enter your six-digit authenticator code:')?.replace(/\D/g, '') || '';
+    if (!/^\d{6}$/.test(code)) return false;
+    const challenge = await supabase.auth.mfa.challenge({ factorId: factor.id });
+    if (challenge.error) return false;
+    const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
+    return !verified.error;
+  }
+
   async function redirectUser(session, isNew) {
+    if (!(await requireLoginMfa())) {
+      await supabase.auth.signOut();
+      if (errEl) { errEl.textContent = 'Two-factor authentication is required. Google login was cancelled.'; errEl.style.display = 'block'; }
+      if (titleEl) titleEl.textContent = 'Authenticator verification required';
+      return;
+    }
     if (isNew) {
       if (titleEl) titleEl.textContent = 'Welcome to OTPWala! 🎉';
       if (subEl)   subEl.textContent   = 'Your account is all set. Taking you in...';
