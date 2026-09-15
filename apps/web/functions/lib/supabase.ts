@@ -1,6 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getConfig } from './config';
-import { isSessionCurrent } from './session-policy';
 
 let cachedClient: SupabaseClient | null = null;
 let lastUrl = '';
@@ -38,10 +37,6 @@ export async function authenticateUser(
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return null;
-    if (!options?.allowSessionReplacement) {
-      const suppliedSessionId = request.headers.get('x-session-id') || '';
-      if (!isSessionCurrent(user.user_metadata?.current_session_id, suppliedSessionId)) return null;
-    }
 
     let { data: profile } = await supabase
       .from('profiles')

@@ -55,7 +55,7 @@ requireText(files.order, "rpc('cleanup_operational_records')", 'Scheduled operat
 requireText(files.orderEventsMigration, 'CREATE TRIGGER orders_capture_event', 'Durable order lifecycle events are missing');
 requireText(files.routes, "from('order_events')", 'User order history does not include lifecycle events');
 requireText(files.session, "reason: 'concurrent_session'", 'Replaced device sessions are not rejected');
-requireText(files.supabase, 'isSessionCurrent', 'Session replacement is not enforced on authenticated APIs');
+requireText(files.session, 'isSessionCurrent', 'Session replacement is not enforced by the authenticated heartbeat');
 requireText(files.routes, 'smsProvider: provider', 'Component-level health reporting is missing');
 requireText(files.statusPage, "fetch('/api/health'", 'Public status page is not connected to health reporting');
 requireText(files.admin, "from('operational_alerts')", 'Admin dashboard does not load operational alert history');
