@@ -104,9 +104,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     });
     if (!code) return false;
     const challenge = await supabase.auth.mfa.challenge({ factorId: factor.id });
-    if (challenge.error) return false;
+    if (challenge.error) throw new Error(challenge.error.message);
     const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
-    return !verified.error;
+    if (verified.error) {
+      const card = document.querySelector('.callback-card') as HTMLElement;
+      if (card) card.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:.75rem">⚠️</div><h2 style="margin:0 0 .5rem">Code not accepted</h2><p class="callback-error" style="display:block">The authenticator code is incorrect or expired. Please start Google login again and enter the current code.</p><a class="btn btn-primary" href="/auth/login" style="display:block;margin-top:1rem">Back to login</a></div>`;
+      return false;
+    }
+    return true;
   }
 
   async function redirectUser(session, isNew) {
