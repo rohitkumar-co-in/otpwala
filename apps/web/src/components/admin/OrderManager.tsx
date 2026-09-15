@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAdminOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import {
@@ -21,7 +21,6 @@ export default function OrderManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   const limit = 20;
 
@@ -132,13 +131,11 @@ export default function OrderManager() {
                   <th style={{ padding: '0.75rem' }}>Financials</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Time</th>
-                  <th style={{ padding: '0.75rem' }}>History</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((o) => (
-                  <Fragment key={o.id}>
-                  <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <tr key={o.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {o.id.slice(0, 8)}...
                     </td>
@@ -197,21 +194,7 @@ export default function OrderManager() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
-                      <button type="button" className="btn btn-ghost btn-sm" aria-expanded={expandedOrder === o.id} onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                        View ({o.events?.length || 0})
-                      </button>
-                    </td>
                   </tr>
-                  {expandedOrder === o.id && (
-                    <tr>
-                      <td colSpan={9} style={{ padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.025)' }}>
-                        <strong>Lifecycle:</strong>{' '}
-                        {(o.events || []).map((event: any) => `${event.event_type.replaceAll('_', ' ')} (${new Date(event.created_at).toLocaleString()})`).join(' → ') || 'No events recorded yet.'}
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
                 ))}
               </tbody>
             </table>
