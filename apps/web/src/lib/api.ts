@@ -118,6 +118,10 @@ export const completeOrder = (orderId: string) =>
 export const retryOrder = (orderId: string) =>
   apiFetch<any>(`/api/numbers/${orderId}/retry`, { method: 'POST' });
 
+export const getSupportTickets = () => apiFetch<any[]>('/api/support/tickets');
+export const createSupportTicket = (subject: string, message: string, orderId?: string) =>
+  apiFetch<any>('/api/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, orderId }) });
+
 // ─── Wallet ───
 export const getWallet = () =>
   apiFetch<{ balance: number; transactions: any[]; totalTransactions: number; config?: any }>('/api/wallet');
@@ -177,6 +181,9 @@ export const runAdminReconciliation = () =>
   apiFetch<{ scanned: number; delivered: number; refunded: number; failed: number }>('/api/admin/reconcile', { method: 'POST' });
 export const getAdminAuditLogs = (limit = 50, offset = 0, action = '') =>
   apiFetch<{ logs: any[]; total: number }>(`/api/admin/audit-logs?limit=${limit}&offset=${offset}&action=${encodeURIComponent(action)}`);
+export const getAdminSupportTickets = (status = 'all') => apiFetch<any[]>(`/api/admin/support/tickets?status=${encodeURIComponent(status)}`);
+export const updateAdminSupportTicket = (id: string, status: string, priority: string, adminNotes: string, publicReply: string) =>
+  apiFetch<any>(`/api/admin/support/tickets/${id}`, { method: 'PUT', body: JSON.stringify({ status, priority, adminNotes, publicReply }) });
 export const getAdminUsers = (limit = 20, offset = 0, search = '') =>
   apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${search}`);
 export const getAdminUserDetails = (userId: string) =>

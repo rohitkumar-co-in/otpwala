@@ -33,6 +33,7 @@ import {
   getAdminRecharges,
 } from '../lib/admin';
 import { TigerSmsClient } from '../lib/tiger';
+import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket } from '../lib/support';
 
 function jsonResponse(data: any, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -145,6 +146,16 @@ export const onRequest = async (context: any) => {
     // ─── Health Check ───
     if (path === '/api/health') {
       return jsonResponse({ status: 'ok', timestamp: new Date().toISOString() });
+    }
+
+    if (path === '/api/support/tickets') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      if (method === 'GET') return jsonResponse({ success: true, data: await getUserSupportTickets(auth.userId, env) });
+      if (method === 'POST') {
+        const ticket = await createSupportTicket(auth.userId, await request.json().catch(() => ({})), env);
+        return jsonResponse({ success: true, data: ticket }, 201);
+      }
     }
 
     if (path === '/api/cron/reconcile' && method === 'POST') {
@@ -889,6 +900,18 @@ export const onRequest = async (context: any) => {
         const action = url.searchParams.get('action') || '';
         const logs = await getAdminAuditLogs(limit, offset, action, env);
         return jsonResponse({ success: true, data: logs });
+      }
+
+      if (path === '/api/admin/support/tickets' && method === 'GET') {
+        return jsonResponse({ success: true, data: await getAdminSupportTickets(url.searchParams.get('status') || 'all', env) });
+      }
+
+      const supportUpdateMatch = path.match(/^\/api\/admin\/support\/tickets\/([^\/]+)$/);
+      if (supportUpdateMatch && method === 'PUT') {
+        const body = await request.json().catch(() => ({}));
+        const ticket = await updateSupportTicket(supportUpdateMatch[1], auth.userId, body, env);
+        await logAdminAction(auth.userId, 'support.update', 'support_ticket', ticket.id, { status: ticket.status, priority: ticket.priority, replied: Boolean(ticket.public_reply) }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, data: ticket });
       }
 
       if (path === '/api/admin/reconcile' && method === 'POST') {
