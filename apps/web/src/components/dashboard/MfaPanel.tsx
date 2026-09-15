@@ -7,6 +7,7 @@ export default function MfaPanel() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [fieldError, setFieldError] = useState('');
   const [needsElevation, setNeedsElevation] = useState(false);
 
   async function load() {
@@ -27,12 +28,12 @@ export default function MfaPanel() {
   }
 
   async function verifyEnrollment() {
-    if (!enrollment?.id || !/^\d{6}$/.test(code)) return setMessage('Enter the 6-digit code from your authenticator app.');
-    setBusy(true); setMessage('');
+    if (!enrollment?.id || !/^\d{6}$/.test(code)) return setFieldError('Enter the 6-digit code from your authenticator app.');
+    setBusy(true); setMessage(''); setFieldError('');
     const challenge = await supabase.auth.mfa.challenge({ factorId: enrollment.id });
     if (challenge.error) { setMessage(challenge.error.message); setBusy(false); return; }
     const verified = await supabase.auth.mfa.verify({ factorId: enrollment.id, challengeId: challenge.data.id, code });
-    if (verified.error) setMessage(verified.error.message);
+    if (verified.error) setFieldError('Invalid TOTP code. Check your authenticator app and try again.');
     else { await supabase.auth.refreshSession(); setEnrollment(null); setCode(''); setMessage('Two-factor authentication is active.'); await load(); }
     setBusy(false);
   }
@@ -46,12 +47,12 @@ export default function MfaPanel() {
   }
 
   async function elevateSession() {
-    if (!factor || !/^\d{6}$/.test(code)) return setMessage('Enter the current 6-digit authenticator code.');
-    setBusy(true); setMessage('');
+    if (!factor || !/^\d{6}$/.test(code)) return setFieldError('Enter the current 6-digit authenticator code.');
+    setBusy(true); setMessage(''); setFieldError('');
     const challenge = await supabase.auth.mfa.challenge({ factorId: factor.id });
     if (challenge.error) { setMessage(challenge.error.message); setBusy(false); return; }
     const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
-    if (verified.error) setMessage(verified.error.message);
+    if (verified.error) setFieldError('Invalid TOTP code. Check your authenticator app and try again.');
     else { setCode(''); setNeedsElevation(false); setMessage('Two-factor verification complete for this session.'); }
     setBusy(false);
   }
@@ -64,7 +65,7 @@ export default function MfaPanel() {
       <span className="badge badge-success" style={{ justifySelf: 'start' }}>Authenticator enabled</span>
       {needsElevation && <>
         <div className="alert alert-warning">Enter an authenticator code to unlock protected admin operations for this session.</div>
-        <label>Six-digit authenticator code<input className="input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} /></label>
+        <label>Six-digit authenticator code<input className="input" aria-invalid={Boolean(fieldError)} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setFieldError(''); }} />{fieldError && <span role="alert" style={{ display: 'block', color: 'var(--error, #ef4444)', fontSize: '.78rem', marginTop: '.35rem' }}>{fieldError}</span>}</label>
         <button className="btn btn-primary btn-sm" onClick={elevateSession} disabled={busy || code.length !== 6} style={{ justifySelf: 'start' }}>{busy ? 'Verifying…' : 'Verify Session'}</button>
       </>}
       <button className="btn btn-sm" onClick={removeMfa} disabled={busy} style={{ justifySelf: 'start', color: 'var(--error)', border: '1px solid rgba(239,68,68,.4)' }}>Remove authenticator</button>
@@ -72,7 +73,7 @@ export default function MfaPanel() {
       <p style={{ margin: 0 }}>Scan this QR code, then enter the current six-digit code.</p>
       <img src={enrollment.totp?.qr_code} alt="Authenticator enrollment QR code" width="200" height="200" style={{ background: '#fff', padding: 8, borderRadius: 8 }} />
       <details><summary>Cannot scan?</summary><code style={{ overflowWrap: 'anywhere' }}>{enrollment.totp?.secret}</code></details>
-      <label>Six-digit verification code<input className="input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} /></label>
+      <label>Six-digit verification code<input className="input" aria-invalid={Boolean(fieldError)} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setFieldError(''); }} />{fieldError && <span role="alert" style={{ display: 'block', color: 'var(--error, #ef4444)', fontSize: '.78rem', marginTop: '.35rem' }}>{fieldError}</span>}</label>
       <button className="btn btn-primary btn-sm" onClick={verifyEnrollment} disabled={busy || code.length !== 6} style={{ justifySelf: 'start' }}>{busy ? 'Verifying…' : 'Verify and Enable'}</button>
     </div> : <button className="btn btn-primary btn-sm" onClick={beginEnrollment} disabled={busy}>{busy ? 'Preparing…' : 'Set Up Authenticator'}</button>}
   </div>;
