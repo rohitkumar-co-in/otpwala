@@ -190,7 +190,12 @@ export default function OrderHistory() {
                     </td>
                     <td style={{ fontWeight: 600 }}>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                      {new Date(order.created_at).toLocaleString()}
+                      {new Date(order.created_at).toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
