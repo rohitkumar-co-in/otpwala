@@ -92,7 +92,7 @@ export default function OrderHistory() {
         <div>
           <strong className="orders-important-note-title">Important Note</strong>
           <ul>
-            <li>It is not guaranteed that every phone number will receive an OTP.</li>
+            <li>It is <strong>not guaranteed</strong> that every phone number will receive an OTP.</li>
             <li>If you do not receive the OTP within <strong>2 minutes</strong>, you can cancel the phone number and purchase a new one.</li>
             <li>If a number does not receive an OTP, the charge will be refunded to your wallet within <strong>5 to 10 minutes</strong> after cancellation or automatic expiry.</li>
           </ul>
