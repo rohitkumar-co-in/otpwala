@@ -89,6 +89,37 @@ export async function sendTelegramMessage(
   }
 }
 
+export async function notifyLowProviderBalance(balance: number, threshold: number, env?: any) {
+  if (!Number.isFinite(balance) || balance >= threshold) return { sent: false, reason: 'above_threshold' };
+  const config = await getTelegramConfig(env);
+  if (!config.enabled) return { sent: false, reason: 'not_configured' };
+  const hour = new Date().toISOString().slice(0, 13);
+  const alertKey = `provider_low_balance:${hour}`;
+  const supabase = getSupabaseAdmin(env);
+  const claim = await supabase.from('operational_alerts').insert({
+    alert_key: alertKey,
+    alert_type: 'provider_low_balance',
+    channel: 'telegram',
+    details: { balance, threshold },
+  });
+  if (claim.error?.code === '23505') return { sent: false, reason: 'already_alerted' };
+  if (claim.error) throw claim.error;
+  const response = await sendTelegramMessage([
+    '⚠️ <b>OTPWala provider balance is low</b>',
+    '',
+    `<b>Current Tiger balance:</b> $${balance.toFixed(2)}`,
+    `<b>Alert threshold:</b> $${threshold.toFixed(2)}`,
+    '',
+    'Top up the provider account to prevent customer purchase failures.',
+  ].join('\n'), undefined, env);
+  await supabase.from('operational_alerts').update({
+    status: response.success ? 'sent' : 'failed',
+    last_error: response.success ? null : String(response.error || 'Notification failed').slice(0, 500),
+    updated_at: new Date().toISOString(),
+  }).eq('alert_key', alertKey);
+  return { sent: response.success, reason: response.error || null };
+}
+
 export function createActionToken(requestId: string, botToken: string): string {
   let hash = 0;
   const str = `${requestId}_${botToken}_otpwala_secret`;

@@ -11,6 +11,7 @@ const files = {
   auditMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915142500_admin_audit_log.sql', import.meta.url), 'utf8'),
   supportMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915145500_support_tickets.sql', import.meta.url), 'utf8'),
   purchaseMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915153000_purchase_idempotency.sql', import.meta.url), 'utf8'),
+  alertsMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915160000_operational_alerts.sql', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -38,6 +39,7 @@ requireText(files.headers, 'Content-Security-Policy:', 'Content Security Policy 
 requireText(files.headers, 'Strict-Transport-Security:', 'HSTS is missing');
 requireText(files.purchaseMigration, 'request_id UUID PRIMARY KEY', 'Purchase idempotency key is not unique');
 requireText(files.routes, "prior.status === 'completed'", 'Completed purchase replay protection is missing');
+requireText(files.alertsMigration, 'alert_key TEXT PRIMARY KEY', 'Operational alert deduplication is missing');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');

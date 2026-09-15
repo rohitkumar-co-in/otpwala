@@ -4,6 +4,7 @@ import { calculateSellPrice, getPricingSettings } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 import { assertProviderCanFund, assertPurchaseAllowed, classifyExpiredProviderStatus } from './policies';
+import { notifyLowProviderBalance } from './telegram';
 
 async function enforcePurchaseLimits(supabase: any, userId: string) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -389,6 +390,13 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
         refund_status: 'failed', refund_failure_reason: String(err?.message || err).slice(0, 500), updated_at: new Date().toISOString(),
       }).eq('id', order.id).eq('status', 'waiting');
     }
+  }
+  try {
+    const providerBalance = parseFloat((await tiger.getBalance()).balance || '0');
+    const threshold = Math.max(parseFloat(String(env?.PROVIDER_LOW_BALANCE_USD || '5')) || 5, 0.01);
+    await notifyLowProviderBalance(providerBalance, threshold, env);
+  } catch (error) {
+    console.warn('Provider balance alert check failed:', error);
   }
   return result;
 }
