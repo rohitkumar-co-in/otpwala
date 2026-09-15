@@ -4,6 +4,21 @@ import { calculateSellPrice, getPricingSettings } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 
+async function enforcePurchaseLimits(supabase: any, userId: string) {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const [active, recent, daily] = await Promise.all([
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'waiting'),
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', tenMinutesAgo),
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', dayAgo),
+  ]);
+  const queryError = active.error || recent.error || daily.error;
+  if (queryError) throw new Error('Unable to verify purchase safety limits. Please retry shortly.');
+  if ((active.count || 0) >= 3) throw new Error('You already have 3 active numbers. Complete or cancel one before buying another.');
+  if ((recent.count || 0) >= 10) throw new Error('Purchase limit reached. Please wait 10 minutes before trying again.');
+  if ((daily.count || 0) >= 50) throw new Error('Daily purchase limit reached. Contact support if you need a higher limit.');
+}
+
 export async function buyNumber(
   userId: string,
   serviceCode: string,
@@ -13,6 +28,9 @@ export async function buyNumber(
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
   const orderId = crypto.randomUUID();
+
+  // Reject abusive velocity before contacting or charging the provider.
+  await enforcePurchaseLimits(supabase, userId);
 
   // 1. Verify service/country not disabled
   const { disabledServices, disabledCountries } = await getDisabledCatalog(env);
@@ -33,6 +51,14 @@ export async function buyNumber(
   const costPriceUsd = parseFloat(String(sData.cost ?? sData.price ?? '0'));
   if (isNaN(costPriceUsd) || costPriceUsd <= 0) {
     throw new Error('Service pricing unavailable for this country');
+  }
+
+  // Avoid charging the wallet when the upstream account cannot fund the order.
+  const providerBalance = parseFloat((await tiger.getBalance()).balance || '0');
+  if (!Number.isFinite(providerBalance) || providerBalance < costPriceUsd) {
+    const error = new Error('Carrier numbers are temporarily unavailable. Please try again later.');
+    (error as any).code = 'PROVIDER_LOW_BALANCE';
+    throw error;
   }
 
   // 3. Calculate sell price in INR

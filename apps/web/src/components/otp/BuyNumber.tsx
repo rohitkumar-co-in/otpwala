@@ -232,6 +232,7 @@ export default function BuyNumber() {
   const [allCountries, setAllCountries] = useState<any[]>([]);
   const [loadingAllCountries, setLoadingAllCountries] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const purchaseInFlightRef = useRef(false);
 
   useEffect(() => {
     loadServices();
@@ -386,6 +387,7 @@ export default function BuyNumber() {
   }
 
   async function handleDirectBuy(country: any) {
+    if (purchaseInFlightRef.current) return;
     setSelectedCountry(country);
 
     // Instant wallet check
@@ -394,6 +396,7 @@ export default function BuyNumber() {
       return;
     }
 
+    purchaseInFlightRef.current = true;
     setBuyingCountryId(country.id);
     setError('');
 
@@ -425,6 +428,7 @@ export default function BuyNumber() {
       }
       setError(err.message || 'Carrier numbers are temporarily unavailable for this country. Please choose another country or retry.');
     } finally {
+      purchaseInFlightRef.current = false;
       setBuyingCountryId(null);
     }
   }
