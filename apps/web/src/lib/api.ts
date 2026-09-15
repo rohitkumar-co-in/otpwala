@@ -122,8 +122,8 @@ export const retryOrder = (orderId: string) =>
   apiFetch<any>(`/api/numbers/${orderId}/retry`, { method: 'POST' });
 
 export const getSupportTickets = () => apiFetch<any[]>('/api/support/tickets');
-export const createSupportTicket = (subject: string, message: string, orderId?: string) =>
-  apiFetch<any>('/api/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, orderId }) });
+export const createSupportTicket = (subject: string, message: string, orderId?: string, ticketType?: string, attachment?: any) =>
+  apiFetch<any>('/api/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, orderId, ticketType, attachment }) });
 export const replyToSupportTicket = (id: string, reply: string) =>
   apiFetch<any>(`/api/support/tickets/${id}/reply`, { method: 'POST', body: JSON.stringify({ reply }) });
 export const exportAccountData = () => apiFetch<any>('/api/account/export');

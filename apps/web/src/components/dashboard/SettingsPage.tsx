@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [strengthScore, setStrengthScore] = useState(0);
   const [privacyBusy, setPrivacyBusy] = useState('');
   const [deletionRequests, setDeletionRequests] = useState<any[]>([]);
+  const deletionPending = deletionRequests.some((request) => request.status === 'pending');
 
   async function downloadAccountData() {
     setPrivacyBusy('export'); setErrorMsg('');
@@ -513,7 +514,7 @@ export default function SettingsPage() {
             {deletionRequests[0] && <p role="status" style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Latest erasure request: <strong style={{ textTransform: 'capitalize' }}>{deletionRequests[0].status}</strong> · submitted {new Date(deletionRequests[0].requested_at).toLocaleString()}</p>}
             <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary btn-sm" onClick={downloadAccountData} disabled={Boolean(privacyBusy)}>{privacyBusy === 'export' ? 'Preparing…' : 'Download My Data'}</button>
-              <button className="btn btn-sm" onClick={submitDeletionRequest} disabled={Boolean(privacyBusy)} style={{ color: 'var(--error)', border: '1px solid rgba(239,68,68,.4)' }}>{privacyBusy === 'delete' ? 'Submitting…' : 'Request Account Deletion'}</button>
+              <button className="btn btn-sm" onClick={submitDeletionRequest} disabled={Boolean(privacyBusy) || deletionPending} aria-disabled={deletionPending} style={{ color: deletionPending ? 'var(--text-muted)' : 'var(--error)', border: '1px solid rgba(239,68,68,.4)', opacity: deletionPending ? .55 : 1, cursor: deletionPending ? 'not-allowed' : undefined }}>{deletionPending ? 'Deletion Request Pending Review' : privacyBusy === 'delete' ? 'Submitting…' : 'Request Account Deletion'}</button>
             </div>
           </div>
         </div>

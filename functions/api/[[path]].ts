@@ -201,7 +201,7 @@ export const onRequest = async (context: any) => {
         supabase.from('profiles').select('id,email,full_name,role,wallet_balance,created_at,updated_at').eq('id', auth.userId).single(),
         supabase.from('orders').select('id,service_name,country_name,phone_number,status,sms_code,price_inr,refund_status,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
         supabase.from('wallet_transactions').select('id,type,amount,balance_after,description,status,reference_type,reference_id,created_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
-        supabase.from('support_tickets').select('id,order_id,subject,message,status,priority,public_reply,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+        supabase.from('support_tickets').select('id,order_id,subject,message,ticket_type,attachment,status,priority,public_reply,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
       ]);
       const queryError = profile.error || orders.error || transactions.error || tickets.error;
       if (queryError) throw queryError;
