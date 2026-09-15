@@ -145,8 +145,35 @@ export const onRequest = async (context: any) => {
 
   try {
     // ─── Health Check ───
-    if (path === '/api/health') {
-      return jsonResponse({ status: 'ok', timestamp: new Date().toISOString() });
+    if (path === '/api/health' && method === 'GET') {
+      const timedCheck = async (check: () => Promise<boolean>) => {
+        const started = Date.now();
+        try {
+          return { status: (await check()) ? 'operational' : 'outage', latencyMs: Date.now() - started };
+        } catch {
+          return { status: 'outage', latencyMs: Date.now() - started };
+        }
+      };
+      const [database, provider] = await Promise.all([
+        timedCheck(async () => {
+          const { error } = await getSupabaseAdmin(env).from('settings').select('key', { head: true, count: 'exact' }).limit(1);
+          return !error;
+        }),
+        timedCheck(async () => (await new TigerSmsClient(env).getBalance())?.balance !== undefined),
+      ]);
+      const components = {
+        website: { status: 'operational', latencyMs: 0 },
+        database,
+        smsProvider: provider,
+      };
+      const status = database.status === 'outage' ? 'outage' : provider.status === 'outage' ? 'degraded' : 'operational';
+      return jsonResponse({
+        success: true,
+        status,
+        components,
+        checkedAt: new Date().toISOString(),
+        version: String(env?.CF_PAGES_COMMIT_SHA || '').slice(0, 7) || undefined,
+      });
     }
 
     if (path === '/api/support/tickets') {
@@ -281,20 +308,6 @@ export const onRequest = async (context: any) => {
       }
 
       return jsonResponse({ success: true, exists: false });
-    }
-
-    if (path === '/api/health' && method === 'GET') {
-      try {
-        const tiger = new TigerSmsClient(env);
-        const bal = await tiger.getBalance();
-        if (bal && bal.balance !== undefined) {
-          return jsonResponse({ success: true, status: 'up' });
-        } else {
-          return jsonResponse({ success: true, status: 'down' });
-        }
-      } catch (err) {
-        return jsonResponse({ success: true, status: 'down' });
-      }
     }
 
     // ─── Session Management ───

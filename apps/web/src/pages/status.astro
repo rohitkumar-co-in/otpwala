@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Service Status — OTPWala" description="Current operational status of OTPWala services.">
+  <main id="main-content" class="status-page">
+    <section class="status-shell" aria-labelledby="status-title">
+      <p class="eyebrow">System health</p>
+      <h1 id="status-title">OTPWala Service Status</h1>
+      <div id="overall" class="overall checking" role="status" aria-live="polite"><span class="status-dot"></span><span>Checking current status…</span></div>
+      <div class="component-list" aria-label="Service components">
+        <article class="component" data-component="website"><div><strong>Website &amp; API</strong><p>Customer dashboard and application endpoints</p></div><span class="component-state">Checking…</span></article>
+        <article class="component" data-component="database"><div><strong>Database &amp; wallets</strong><p>Orders, balances, and account records</p></div><span class="component-state">Checking…</span></article>
+        <article class="component" data-component="smsProvider"><div><strong>SMS number provider</strong><p>Phone-number inventory and OTP delivery connection</p></div><span class="component-state">Checking…</span></article>
+      </div>
+      <p class="updated" id="updated">Status refreshes automatically every 60 seconds.</p>
+      <aside class="help-card">
+        <strong>Having trouble with an order?</strong>
+        <p>If no OTP arrives, cancel the number after 2 minutes. Your charge is refunded within 5–10 minutes after cancellation or automatic expiry.</p>
+        <a class="btn btn-primary" href="/dashboard/support">Contact support</a>
+      </aside>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const labels = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage' };
+  async function refreshStatus() {
+    const overall = document.getElementById('overall');
+    const updated = document.getElementById('updated');
+    if (!overall || !updated) return;
+    try {
+      const response = await fetch('/api/health', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error('Health check unavailable');
+      overall.className = `overall ${data.status}`;
+      overall.innerHTML = `<span class="status-dot"></span><span>${data.status === 'operational' ? 'All systems operational' : data.status === 'degraded' ? 'Some services are degraded' : 'Service interruption detected'}</span>`;
+      for (const [name, rawValue] of Object.entries(data.components || {})) {
+        const value = rawValue as { status: string; latencyMs?: number };
+        const card = document.querySelector(`[data-component="${name}"]`);
+        const state = card?.querySelector('.component-state');
+        if (card && state) {
+          card.setAttribute('data-status', value.status);
+          state.textContent = `${labels[value.status as keyof typeof labels] || value.status}${Number.isFinite(value.latencyMs) ? ` · ${value.latencyMs} ms` : ''}`;
+        }
+      }
+      updated.textContent = `Last checked ${new Date(data.checkedAt).toLocaleString()}. Refreshes every 60 seconds.`;
+    } catch {
+      overall.className = 'overall outage';
+      overall.innerHTML = '<span class="status-dot"></span><span>Status check is temporarily unavailable</span>';
+      updated.textContent = 'Unable to retrieve the latest status. Please try again shortly.';
+    }
+  }
+  refreshStatus();
+  window.setInterval(refreshStatus, 60000);
+</script>
+
+<style>
+  .status-page { min-height: 70vh; padding: 8rem 1rem 4rem; }
+  .status-shell { width: min(760px, 100%); margin: 0 auto; }
+  .eyebrow { color: var(--primary); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .75rem; }
+  h1 { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 3.25rem); margin: .35rem 0 1.5rem; }
+  .overall { padding: 1rem 1.2rem; border: 1px solid var(--border-subtle); border-radius: 14px; display: flex; align-items: center; gap: .7rem; font-weight: 800; background: var(--bg-card); }
+  .overall.operational { color: var(--success); border-color: rgba(16,185,129,.35); }
+  .overall.degraded { color: #f59e0b; border-color: rgba(245,158,11,.35); }
+  .overall.outage { color: var(--error); border-color: rgba(239,68,68,.35); }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; flex: none; }
+  .checking { color: var(--text-muted); }
+  .component-list { margin-top: 1rem; border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; }
+  .component { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.15rem 1.2rem; background: var(--bg-card); }
+  .component + .component { border-top: 1px solid var(--border-subtle); }
+  .component p { margin: .25rem 0 0; color: var(--text-muted); font-size: .82rem; }
+  .component-state { color: var(--text-muted); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+  .component[data-status="operational"] .component-state { color: var(--success); }
+  .component[data-status="outage"] .component-state { color: var(--error); }
+  .updated { color: var(--text-muted); font-size: .78rem; margin: .8rem .2rem 2rem; }
+  .help-card { padding: 1.25rem; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card); }
+  .help-card p { color: var(--text-secondary); line-height: 1.6; }
+  @media (max-width: 560px) { .status-page { padding-top: 6.5rem; } .component { align-items: flex-start; flex-direction: column; } }
+</style>

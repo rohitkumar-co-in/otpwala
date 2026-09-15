@@ -17,6 +17,7 @@ const files = {
   orderEventsMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915170000_order_events.sql', import.meta.url), 'utf8'),
   session: readFileSync(new URL('../functions/lib/session.ts', import.meta.url), 'utf8'),
   supabase: readFileSync(new URL('../functions/lib/supabase.ts', import.meta.url), 'utf8'),
+  statusPage: readFileSync(new URL('../apps/web/src/pages/status.astro', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -55,6 +56,8 @@ requireText(files.orderEventsMigration, 'CREATE TRIGGER orders_capture_event', '
 requireText(files.routes, "from('order_events')", 'User order history does not include lifecycle events');
 requireText(files.session, "reason: 'concurrent_session'", 'Replaced device sessions are not rejected');
 requireText(files.supabase, 'isSessionCurrent', 'Session replacement is not enforced on authenticated APIs');
+requireText(files.routes, 'smsProvider: provider', 'Component-level health reporting is missing');
+requireText(files.statusPage, "fetch('/api/health'", 'Public status page is not connected to health reporting');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');

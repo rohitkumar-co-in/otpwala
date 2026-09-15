@@ -10,7 +10,15 @@ async function check(name, path, expectedStatus, validate = () => true) {
 }
 
 await check('Homepage', '/', 200, (r) => Boolean(r.headers.get('content-security-policy')) && Boolean(r.headers.get('strict-transport-security')));
-await check('Health API', '/api/health', 200, (r, body) => r.headers.get('cache-control') === 'no-store' && JSON.parse(body).status === 'ok');
+await check('Service status page', '/status/', 200);
+await check('Health API', '/api/health', 200, (r, body) => {
+  const data = JSON.parse(body);
+  return r.headers.get('cache-control') === 'no-store'
+    && ['operational', 'degraded', 'outage'].includes(data.status)
+    && data.components?.website?.status === 'operational'
+    && Boolean(data.components?.database?.status)
+    && Boolean(data.components?.smsProvider?.status);
+});
 await check('Auth config', '/api/auth/config', 200, (_r, body) => JSON.parse(body).success === true);
 await check('User support auth boundary', '/api/support/tickets', 401);
 await check('Account export auth boundary', '/api/account/export', 401);
