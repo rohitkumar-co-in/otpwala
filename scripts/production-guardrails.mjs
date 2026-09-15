@@ -25,6 +25,7 @@ const files = {
   legacyAdminRoutes: readFileSync(new URL('../apps/api/src/routes/admin.ts', import.meta.url), 'utf8'),
   legacyWallet: readFileSync(new URL('../apps/api/src/services/wallet.ts', import.meta.url), 'utf8'),
   legacyOrder: readFileSync(new URL('../apps/api/src/services/order.ts', import.meta.url), 'utf8'),
+  legacyTelegram: readFileSync(new URL('../apps/api/src/routes/telegram.ts', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -80,6 +81,8 @@ requireText(files.legacyWallet, "rpc('post_wallet_transaction'", 'Legacy API wal
 if (/from\('wallet_transactions'\)\.insert\(/.test(files.legacyWallet)) failures.push('Legacy API wallet service writes directly to the append-only ledger');
 requireText(files.legacyAdminRoutes, "rpc('approve_payment_request_atomic'", 'Legacy API payment approval bypasses the atomic approval RPC');
 requireText(files.legacyOrder, "rpc('refund_order_atomic'", 'Legacy API order refunds bypass the atomic refund RPC');
+requireText(files.legacyTelegram, "rpc('approve_payment_request_atomic'", 'Telegram payment approval bypasses the atomic approval RPC');
+if (/creditBalance\(request\.user_id/.test(files.legacyTelegram)) failures.push('Telegram payment approval can credit outside the atomic approval RPC');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');

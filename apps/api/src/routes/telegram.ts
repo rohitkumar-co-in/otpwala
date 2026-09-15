@@ -84,34 +84,11 @@ function renderActionPageHtml(props: { success: boolean; title: string; message:
 }
 
 async function approvePayment(id: string) {
-  const { data: request, error: fetchErr } = await supabaseAdmin
-    .from('payment_requests')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (fetchErr || !request) throw new Error('Payment request not found');
-  const st = request.status;
-  if (st === 'approved' || st === 'paid') {
-    throw new Error('This payment request has already been approved and credited.');
-  }
-
-  const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
-  const utr = request.transaction_id || request.gateway_payment_id || id;
-
-  await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup');
-
-  const res1 = await supabaseAdmin
-    .from('payment_requests')
-    .update({ status: 'approved', updated_at: new Date().toISOString() })
-    .eq('id', id);
-
-  if (res1.error) {
-    await supabaseAdmin
-      .from('payment_requests')
-      .update({ status: 'paid', updated_at: new Date().toISOString() })
-      .eq('id', id);
-  }
+  const { error } = await supabaseAdmin.rpc('approve_payment_request_atomic', {
+    p_request_id: id,
+    p_admin_id: 'telegram',
+  });
+  if (error) throw error;
 }
 
 async function rejectPayment(id: string, reason = '') {
