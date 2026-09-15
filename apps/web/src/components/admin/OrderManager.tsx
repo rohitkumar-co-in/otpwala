@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { getAdminOrders } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   RefreshCwIcon,
   CopyIcon,
@@ -167,7 +168,7 @@ export default function OrderManager() {
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                            <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{o.phone_number}</span>
+                            <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formatPhoneNumber(o.phone_number, o.country_code).display || o.phone_number}</span>
                           </span>
                           <button
                             className="btn btn-ghost btn-sm"

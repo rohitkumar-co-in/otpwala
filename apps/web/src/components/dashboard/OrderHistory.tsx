@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 
 export default function OrderHistory() {
@@ -133,6 +134,7 @@ export default function OrderHistory() {
               </thead>
               <tbody>
                 {orders.map(order => {
+                  const formattedPhone = formatPhoneNumber(order.phone_number, order.country_code);
                   const cancelWaitSeconds = Math.max(0, 120 - Math.floor((Date.now() - new Date(order.created_at).getTime()) / 1000));
                   return (
                   <Fragment key={order.id}>
@@ -146,7 +148,7 @@ export default function OrderHistory() {
                           onClick={() => navigator.clipboard?.writeText(String(order.phone_number || ''))}
                           title={`Copy ${order.phone_number}`}
                         >
-                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{order.phone_number}</span>
+                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formattedPhone.display || order.phone_number}</span>
                         </span>
                       ) : '—'}
                     </td>
