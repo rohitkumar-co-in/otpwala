@@ -1,4 +1,6 @@
 import { getSupabaseAdmin } from './supabase';
+import { createActionToken, getTelegramWebhookSecret } from './telegram-security';
+export { createActionToken, getTelegramWebhookSecret, verifyActionToken } from './telegram-security';
 
 export interface TelegramConfig {
   botToken: string;
@@ -120,22 +122,6 @@ export async function notifyLowProviderBalance(balance: number, threshold: numbe
   return { sent: response.success, reason: response.error || null };
 }
 
-export function createActionToken(requestId: string, botToken: string): string {
-  let hash = 0;
-  const str = `${requestId}_${botToken}_otpwala_secret`;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-export function verifyActionToken(requestId: string, token: string, botToken: string): boolean {
-  if (!requestId || !token || !botToken) return false;
-  return createActionToken(requestId, botToken) === token;
-}
-
 export async function answerCallbackQuery(
   callbackQueryId: string,
   text: string,
@@ -185,11 +171,13 @@ export async function ensureTelegramWebhook(origin: string, env?: any): Promise<
     const config = await getTelegramConfig(env);
     if (!config.botToken || !origin) return;
     const webhookUrl = `${origin.replace(/\/+$/, '')}/api/telegram/webhook`;
+    const secretToken = await getTelegramWebhookSecret(config.botToken);
     await fetch(`https://api.telegram.org/bot${config.botToken}/setWebhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: webhookUrl,
+        secret_token: secretToken,
         allowed_updates: ['callback_query', 'message'],
       }),
     });
@@ -246,7 +234,7 @@ export async function notifyPaymentApprovalRequest(
     }
 
     const origin = (details.origin || '').replace(/\/+$/, '') || 'https://otpwala.pages.dev';
-    const token = createActionToken(details.requestId, config.botToken);
+    const token = await createActionToken(details.requestId, config.botToken);
     const approveActionUrl = `${origin}/api/telegram/action?action=approve&id=${details.requestId}&token=${token}`;
     const rejectActionUrl = `${origin}/api/telegram/action?action=reject&id=${details.requestId}&token=${token}`;
 

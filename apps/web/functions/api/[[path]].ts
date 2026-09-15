@@ -11,6 +11,7 @@ import {
   notifyPaymentApprovalRequest,
   getTelegramConfig,
   verifyActionToken,
+  getTelegramWebhookSecret,
   answerCallbackQuery,
   editTelegramMessageText,
 } from '../lib/telegram';
@@ -805,11 +806,16 @@ export const onRequest = async (context: any) => {
       }
 
       try {
+        const config = await getTelegramConfig(env);
+        const suppliedSecret = request.headers.get('X-Telegram-Bot-Api-Secret-Token') || '';
+        const expectedSecret = await getTelegramWebhookSecret(config.botToken);
+        if (!expectedSecret || suppliedSecret !== expectedSecret) {
+          return jsonResponse({ ok: false, error: 'Unauthorized' }, 401);
+        }
         const update = await request.json().catch(() => ({}));
         const callbackQuery = update?.callback_query;
 
         if (callbackQuery) {
-          const config = await getTelegramConfig(env);
           const callbackId = callbackQuery.id;
           const fromId = String(callbackQuery.from?.id || '');
           const chatId = String(callbackQuery.message?.chat?.id || fromId);
@@ -870,7 +876,7 @@ export const onRequest = async (context: any) => {
       const token = url.searchParams.get('token');
 
       const config = await getTelegramConfig(env);
-      if (!id || !token || !action || !verifyActionToken(id, token, config.botToken)) {
+      if (!id || !token || !action || !(await verifyActionToken(id, token, config.botToken))) {
         return new Response(
           renderActionPageHtml({
             success: false,
