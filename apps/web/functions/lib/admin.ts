@@ -25,6 +25,21 @@ export async function logAdminAction(
   if (error) throw new Error(`Audit log failed: ${error.message}`);
 }
 
+export async function getAdminAuditLogs(limit = 50, offset = 0, action = '', env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const safeLimit = Math.min(Math.max(limit, 1), 200);
+  const safeOffset = Math.max(offset, 0);
+  let query = supabase
+    .from('admin_audit_logs')
+    .select('id,actor_id,action,target_type,target_id,metadata,ip_address,created_at,profiles:actor_id(email,full_name)', { count: 'exact' });
+  if (action.trim()) query = query.ilike('action', `%${action.trim()}%`);
+  const { data, count, error } = await query
+    .order('created_at', { ascending: false })
+    .range(safeOffset, safeOffset + safeLimit - 1);
+  if (error) throw error;
+  return { logs: data || [], total: count || 0 };
+}
+
 export async function getAdminDashboard(env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);

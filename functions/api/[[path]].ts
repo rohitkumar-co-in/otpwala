@@ -17,6 +17,7 @@ import {
 import {
   getAdminDashboard,
   logAdminAction,
+  getAdminAuditLogs,
   getAdminUsers,
   creditUserBalance,
   banUser,
@@ -878,6 +879,14 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, data: stats });
       }
 
+      if (path === '/api/admin/audit-logs' && method === 'GET') {
+        const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+        const action = url.searchParams.get('action') || '';
+        const logs = await getAdminAuditLogs(limit, offset, action, env);
+        return jsonResponse({ success: true, data: logs });
+      }
+
       if (path === '/api/admin/reconcile' && method === 'POST') {
         const result = await reconcileExpiredOrders(env, 200);
         await logAdminAction(auth.userId, 'orders.reconcile', 'system', null, result, request.headers.get('cf-connecting-ip'), env);
@@ -1035,6 +1044,7 @@ export const onRequest = async (context: any) => {
         if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'User is already an admin or superadmin.' }, 400);
         
         await supabase.from('profiles').update({ role: 'admin' }).eq('id', targetUserId);
+        await logAdminAction(auth.userId, 'user.promote', 'user', targetUserId, { role: 'admin' }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, message: 'User promoted to admin' });
       }
 
@@ -1050,6 +1060,7 @@ export const onRequest = async (context: any) => {
         if (profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot demote a superadmin.' }, 400);
 
         await supabase.from('profiles').update({ role: 'user' }).eq('id', targetUserId);
+        await logAdminAction(auth.userId, 'user.demote', 'user', targetUserId, { role: 'user' }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, message: 'User demoted to standard user' });
       }
 
@@ -1069,12 +1080,14 @@ export const onRequest = async (context: any) => {
       if (path === '/api/admin/pricing' && method === 'POST') {
         const rule = await request.json();
         const created = await createPricingRule(rule, env);
+        await logAdminAction(auth.userId, 'pricing.create', 'pricing_rule', created.id || null, { scope: rule.scope || null }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, data: created });
       }
 
       const priceDeleteMatch = path.match(/^\/api\/admin\/pricing\/([^\/]+)$/);
       if (priceDeleteMatch && method === 'DELETE') {
         await deletePricingRule(priceDeleteMatch[1], env);
+        await logAdminAction(auth.userId, 'pricing.delete', 'pricing_rule', priceDeleteMatch[1], {}, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true });
       }
 
@@ -1085,7 +1098,9 @@ export const onRequest = async (context: any) => {
 
       if (path === '/api/admin/settings' && method === 'POST') {
         const body = await request.json();
-        await saveAdminSettings(body.settings || body, env);
+        const changedSettings = body.settings || body;
+        await saveAdminSettings(changedSettings, env);
+        await logAdminAction(auth.userId, 'settings.update', 'settings', null, { keys: Object.keys(changedSettings) }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true });
       }
       if (path === '/api/admin/payment-requests' && method === 'GET') {
@@ -1165,6 +1180,7 @@ export const onRequest = async (context: any) => {
           return jsonResponse({ success: false, error: 'Invalid code or enabled status' }, 400);
         }
         const updated = await setServiceActiveStatus(code, enabled, env);
+        await logAdminAction(auth.userId, 'catalog.service_visibility', 'service', String(code), { enabled }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, message: `Service ${code.toUpperCase()} is now ${enabled ? 'enabled' : 'disabled'}`, data: updated });
       }
 
