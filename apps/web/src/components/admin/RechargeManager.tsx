@@ -92,6 +92,7 @@ export default function RechargeManager() {
               <input
                 type="text"
                 className="input input-sm"
+                aria-label="Search recharge records by email"
                 placeholder="Search email..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -100,7 +101,7 @@ export default function RechargeManager() {
             </div>
             <button type="submit" className="btn btn-secondary btn-sm">Search</button>
           </form>
-          <button className="btn btn-ghost btn-sm btn-icon" onClick={loadRecharges} title="Refresh" disabled={loading}>
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={loadRecharges} title="Refresh" aria-label="Refresh recharge records" disabled={loading}>
             <RefreshCwIcon size={16} className={loading ? 'spin' : ''} />
           </button>
         </div>
