@@ -149,7 +149,7 @@ export default function OrderManager() {
                     <td style={{ padding: '0.75rem' }}>
                       <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
                     </td>
-                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Dialing code: {formatPhoneNumber(o.phone_number, o.country_code).dialCode ? `+${formatPhoneNumber(o.phone_number, o.country_code).dialCode}` : '—'}</small></td>
+                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
                     <td style={{ padding: '0.75rem' }}>
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
