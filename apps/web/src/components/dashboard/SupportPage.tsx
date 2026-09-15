@@ -16,6 +16,7 @@ export default function SupportPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault(); setBusy(true); setNotice('');
+    if (subject.trim().length < 5 || message.trim().length < 10) { setNotice('Please enter a subject (at least 5 characters) and a message (at least 10 characters).'); setBusy(false); return; }
     try {
       await createSupportTicket(subject, message, orderId.trim() || undefined);
       setSubject(''); setMessage(''); setOrderId(''); setNotice('Ticket created successfully.'); await load();
@@ -25,7 +26,7 @@ export default function SupportPage() {
 
   async function submitReply(ticketId: string) {
     const reply = (replies[ticketId] || '').trim();
-    if (!reply) return;
+    if (!reply) { setNotice('Please enter a reply before sending.'); return; }
     setReplyBusy(ticketId); setNotice('');
     try { await replyToSupportTicket(ticketId, reply); setReplies((all) => ({ ...all, [ticketId]: '' })); setNotice('Reply added to your ticket.'); await load(); }
     catch (err: any) { setNotice(err.message || 'Unable to send reply.'); }

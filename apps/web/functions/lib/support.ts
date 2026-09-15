@@ -71,3 +71,22 @@ export async function updateSupportTicket(ticketId: string, actorId: string, inp
   if (error) throw error;
   return data;
 }
+
+export async function replyToSupportTicket(ticketId: string, actorId: string, replyInput: any, isAdmin: boolean, env?: any) {
+  const reply = String(replyInput?.reply || '').trim();
+  if (reply.length < 1 || reply.length > 4000) throw new Error('Reply must be 1–4000 characters.');
+  const supabase = getSupabaseAdmin(env);
+  let query = supabase.from('support_tickets').select('id,user_id,status,public_reply').eq('id', ticketId);
+  if (!isAdmin) query = query.eq('user_id', actorId);
+  const { data: ticket, error: fetchError } = await query.maybeSingle();
+  if (fetchError) throw fetchError;
+  if (!ticket) throw new Error('Support ticket not found.');
+  const label = isAdmin ? 'Support' : 'Customer';
+  const entry = `[${label} · ${new Date().toISOString()}]\n${reply}`;
+  const combined = ticket.public_reply ? `${ticket.public_reply}\n\n${entry}` : entry;
+  const update: any = { public_reply: combined.slice(-12000), updated_at: new Date().toISOString() };
+  if (!isAdmin && (ticket.status === 'resolved' || ticket.status === 'closed')) update.status = 'open';
+  const { data, error } = await supabase.from('support_tickets').update(update).eq('id', ticketId).select().single();
+  if (error) throw error;
+  return data;
+}
