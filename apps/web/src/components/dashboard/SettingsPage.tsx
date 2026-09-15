@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getLocalSessionId } from '../../lib/sessionManager';
 import { exportAccountData, requestAccountDeletion } from '../../lib/api';
+import MfaPanel from './MfaPanel';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -499,6 +500,7 @@ export default function SettingsPage() {
               Session ID: {activeSessionId ? activeSessionId.substring(0, 16) + '...' : 'Active'}
             </span>
           </div>
+          <MfaPanel />
           <div className="card-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg, 16px)' }}>
             <h3 style={{ marginTop: 0 }}>Privacy &amp; Account Data</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Download your profile, orders, wallet ledger, and support history, or request reviewed account deletion.</p>

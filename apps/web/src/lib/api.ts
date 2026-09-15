@@ -64,6 +64,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const data = await res.json();
   
   if (!data.success) {
+    if (data.error === 'mfa_required' && typeof window !== 'undefined' && !window.location.pathname.includes('/dashboard/settings')) {
+      window.location.href = '/dashboard/settings?mfa=1';
+    }
     if (
       data.error === 'concurrent_session' ||
       data.error === 'account_deleted' ||

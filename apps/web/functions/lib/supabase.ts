@@ -23,7 +23,7 @@ export function getSupabaseAdmin(env?: any): SupabaseClient {
   return cachedClient;
 }
 
-export async function authenticateUser(request: Request, env?: any): Promise<{ userId: string; email: string; role: string } | null> {
+export async function authenticateUser(request: Request, env?: any): Promise<{ userId: string; email: string; role: string; aal: string; hasVerifiedMfa: boolean } | null> {
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return null;
 
@@ -62,10 +62,21 @@ export async function authenticateUser(request: Request, env?: any): Promise<{ u
 
     if (profile?.is_banned) return null;
 
+    let aal = 'aal1';
+    try {
+      const payloadPart = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(payloadPart));
+      aal = payload?.aal || 'aal1';
+    } catch {}
+    const hasVerifiedMfa = Array.isArray((user as any).factors)
+      && (user as any).factors.some((factor: any) => factor?.status === 'verified');
+
     return {
       userId: user.id,
       email: user.email || '',
       role: profile?.role || 'user',
+      aal,
+      hasVerifiedMfa,
     };
   } catch {
     return null;

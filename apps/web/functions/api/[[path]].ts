@@ -934,6 +934,9 @@ export const onRequest = async (context: any) => {
       if (!auth || (auth.role !== 'admin' && auth.role !== 'superadmin')) {
         return jsonResponse({ success: false, error: 'Admin access required' }, 403);
       }
+      if (auth.hasVerifiedMfa && auth.aal !== 'aal2') {
+        return jsonResponse({ success: false, error: 'mfa_required', message: 'Complete two-factor authentication to access admin operations.' }, 403);
+      }
 
       if (path === '/api/admin/dashboard') {
         const stats = await getAdminDashboard(env);

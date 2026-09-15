@@ -37,6 +37,7 @@ requireText(files.headers, 'Content-Security-Policy:', 'Content Security Policy 
 requireText(files.headers, 'Strict-Transport-Security:', 'HSTS is missing');
 requireText(files.purchaseMigration, 'request_id UUID PRIMARY KEY', 'Purchase idempotency key is not unique');
 requireText(files.routes, "prior.status === 'completed'", 'Completed purchase replay protection is missing');
+requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 
 if (failures.length) {
   console.error(`Production guardrails failed:\n- ${failures.join('\n- ')}`);
