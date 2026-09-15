@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getOrders, cancelOrder } from '../../lib/api';
-import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon } from '../ui/Icons';
+import { ClipboardListIcon, ClockIcon, CheckIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -85,11 +85,18 @@ export default function OrderHistory() {
         </div>
       </div>
 
-      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.6rem', background: 'rgba(234, 179, 8, 0.08)', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(234, 179, 8, 0.25)' }}>
-        <span style={{ fontSize: '1.1rem', marginTop: '0.05rem' }}>ℹ️</span>
-        <span style={{ lineHeight: 1.5 }}>
-          <strong>Important Note:</strong> If you do not receive the OTP within 2 minutes, you can cancel the phone number and purchase a new one. It is not guaranteed that every phone number will receive an OTP. If a number does not receive an OTP and is cancelled, the charge will be refunded to your wallet within 5 to 10 minutes.
+      <div className="orders-important-note" role="note" aria-label="Important OTP information">
+        <span className="orders-important-note-icon" aria-hidden="true">
+          <AlertCircleIcon size={22} />
         </span>
+        <div>
+          <strong className="orders-important-note-title">Important Note</strong>
+          <ul>
+            <li>If you do not receive the OTP within <strong>2 minutes</strong>, you can cancel the phone number and purchase a new one.</li>
+            <li>It is not guaranteed that every phone number will receive an OTP.</li>
+            <li>If a number does not receive an OTP and is cancelled, the charge will be refunded to your wallet within <strong>5 to 10 minutes</strong>.</li>
+          </ul>
+        </div>
       </div>
 
       {successMessage && (

@@ -607,6 +607,58 @@ tr:hover td {
   letter-spacing: 0.01em;
 }
 
+/* ─── Prominent dashboard notices ─── */
+.orders-important-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  color: #78350f;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.96), rgba(255, 251, 235, 0.96));
+  border: 1px solid rgba(217, 119, 6, 0.38);
+  border-left: 5px solid #d97706;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 22px rgba(146, 64, 14, 0.09);
+}
+
+.orders-important-note-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 0.45rem;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.17);
+  border-radius: 50%;
+}
+
+.orders-important-note-title {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #92400e;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.orders-important-note ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.orders-important-note li + li {
+  margin-top: 0.3rem;
+}
+
+.orders-important-note li::marker {
+  color: #d97706;
+}
+
+.orders-important-note li strong {
+  color: #92400e;
+  font-weight: 800;
+}
+
 /* ─── Toast ─── */
 .toast-container {
   position: fixed;
@@ -719,6 +771,21 @@ tr:hover td {
   th, td {
     padding: 0.6rem 0.75rem;
     font-size: 0.85rem;
+  }
+
+  .orders-important-note {
+    gap: 0.65rem;
+    padding: 0.85rem;
+    border-left-width: 4px;
+  }
+
+  .orders-important-note-icon {
+    padding: 0.35rem;
+  }
+
+  .orders-important-note ul {
+    font-size: 0.84rem;
+    line-height: 1.55;
   }
 
   /* The country picker becomes readable cards instead of a clipped desktop table. */
