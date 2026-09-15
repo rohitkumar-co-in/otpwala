@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from './supabase';
+import { getTelegramConfig, sendTelegramMessage } from './telegram';
 
 const allowedStatuses = new Set(['open', 'in_progress', 'resolved', 'closed']);
 const allowedPriorities = new Set(['low', 'normal', 'high', 'urgent']);
@@ -20,6 +21,21 @@ export async function createSupportTicket(userId: string, input: any, env?: any)
   if ((count || 0) >= 5) throw new Error('Support ticket limit reached. Please wait before creating another ticket.');
   const { data, error } = await supabase.from('support_tickets').insert({ user_id: userId, order_id: orderId, subject, message }).select().single();
   if (error) throw error;
+  try {
+    const telegram = await getTelegramConfig(env);
+    if (telegram.enabled) {
+      await sendTelegramMessage([
+        '🎫 <b>New OTPWala support ticket</b>',
+        '',
+        `<b>Ticket:</b> <code>${data.id}</code>`,
+        `<b>Order linked:</b> ${orderId ? 'Yes' : 'No'}`,
+        '',
+        'Open the protected admin Support Queue to review the customer message.',
+      ].join('\n'), undefined, env);
+    }
+  } catch {
+    // Ticket creation must not fail if the optional notification channel is unavailable.
+  }
   return data;
 }
 

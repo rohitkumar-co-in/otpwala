@@ -335,6 +335,7 @@ export default function AdminDashboard() {
               ['Gross Profit', `₹${parseFloat(stats.grossProfit || 0).toFixed(2)}`, '#059669'],
               ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
               ['Admin Credits (Non-cash)', `₹${parseFloat(stats.adminCredits || 0).toFixed(2)}`, '#a855f7'],
+              ['Unresolved Support', stats.unresolvedSupport || 0, '#0ea5e9'],
             ].map(([label, value, color]) => (
               <div key={String(label)} style={{ padding: '0.85rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
