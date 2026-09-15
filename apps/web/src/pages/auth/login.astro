@@ -634,8 +634,23 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   });
 
   // ─── Post-Login Redirect Helper ───
+  async function requireLoginMfa() {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const factor = factors?.totp?.find((item: any) => item.status === 'verified');
+    if (!factor) return;
+    const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance.data?.currentLevel === 'aal2') return;
+    const code = window.prompt('Two-factor authentication is enabled. Enter your six-digit authenticator code:')?.replace(/\D/g, '') || '';
+    if (!/^\d{6}$/.test(code)) { await supabase.auth.signOut(); throw new Error('Two-factor authentication is required to continue.'); }
+    const challenge = await supabase.auth.mfa.challenge({ factorId: factor.id });
+    if (challenge.error) { await supabase.auth.signOut(); throw new Error(challenge.error.message); }
+    const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
+    if (verified.error) { await supabase.auth.signOut(); throw new Error('Invalid authenticator code. Login was cancelled.'); }
+  }
+
   async function handleLoginSuccess(user: any) {
     try {
+      await requireLoginMfa();
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         await registerCurrentSession(session.access_token);
@@ -651,7 +666,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         window.location.href = '/admin';
         return;
       }
-    } catch {}
+    } catch (err: any) {
+      if (String(err?.message || '').toLowerCase().includes('two-factor') || String(err?.message || '').toLowerCase().includes('authenticator')) {
+        showError(err.message);
+        return;
+      }
+    }
     window.location.href = '/dashboard';
   }
 
