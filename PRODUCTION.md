@@ -5,7 +5,9 @@
 1. Rotate the Tiger SMS API key and Supabase service-role key if they have ever appeared in source history.
 2. Apply all files in `apps/api/supabase/migrations` to the production Supabase project.
 3. Configure every variable documented in `.env.example` in Cloudflare; never expose server keys with a `PUBLIC_` prefix.
-4. Deploy only after the GitHub `Production checks` workflow succeeds.
+4. Deploy only after the GitHub `Verify production safeguards` workflow in
+   `.github/workflows/verify.yml` succeeds. It runs the same gate locally with:
+   `npm run verify:production`.
 5. Schedule `POST /api/cron/reconcile` every minute with `Authorization: Bearer <CRON_SECRET>`.
 
 ## Financial definitions
@@ -27,7 +29,13 @@
 - Duplicate UTR submissions: blocked by the unique database index.
 - Provider/API health and balance: review separately; a positive balance does not prove API health.
 
+## Release verification
+
+- The repository must be clean before release: `git status --short` should return no files.
+- Confirm the deployed commit is the intended `main` commit before announcing a release.
+- Run `npm run verify:production` locally when investigating a failed hosted check; it covers the web build, API type-check, unit tests, production guardrails, and live unauthenticated smoke checks.
+- A successful build does not verify payment settlement, provider credit, or administrator MFA; those require the corresponding external operational checks.
+
 ## Recovery rule
 
 Never repair balances by editing `profiles.wallet_balance` directly. Post a referenced `admin_credit` through the admin API so the ledger remains auditable.
-
