@@ -26,6 +26,8 @@ export default function AdminDashboard() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [paymentTab, setPaymentTab] = useState<'pending' | 'approved' | 'all'>('pending');
   const [reconciling, setReconciling] = useState(false);
+  const integrityUnavailable = Boolean(stats?.financialIntegrity?.error);
+  const integrityIssues = Number(stats?.financialIntegrity?.totalIssues || 0);
 
   const loadData = async () => {
     setLoading(true);
@@ -266,12 +268,12 @@ export default function AdminDashboard() {
       )}
 
       {stats?.financialIntegrity && (
-        <section className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'var(--success)' : 'var(--error)'}` }} aria-labelledby="financial-integrity-heading">
+        <section className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${integrityUnavailable || integrityIssues > 0 ? 'var(--error)' : 'var(--success)'}` }} aria-labelledby="financial-integrity-heading">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <div><h2 id="financial-integrity-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Financial Integrity Check</h2><p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>Cross-checks orders, refunds, approved top-ups, and profile balances against the immutable wallet ledger.</p></div>
-            <span className={`badge ${Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'badge-success' : 'badge-error'}`}>{Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'All checks passed' : `${stats.financialIntegrity.totalIssues} issue(s)`}</span>
+            <span className={`badge ${integrityUnavailable || integrityIssues > 0 ? 'badge-error' : 'badge-success'}`}>{integrityUnavailable ? 'Check unavailable' : integrityIssues === 0 ? 'All checks passed' : `${integrityIssues} issue(s)`}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '0.55rem', marginTop: '0.85rem' }}>
+          {integrityUnavailable ? <p role="alert" style={{ color: 'var(--error)', fontSize: '0.8rem', margin: '0.85rem 0 0' }}>{stats.financialIntegrity.error} Refresh the dashboard; if it persists, investigate the database RPC before approving financial actions.</p> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '0.55rem', marginTop: '0.85rem' }}>
             {[
               ['Orders without debit', stats.financialIntegrity.ordersWithoutDebit],
               ['Order amount mismatch', stats.financialIntegrity.orderDebitMismatch],
@@ -281,8 +283,8 @@ export default function AdminDashboard() {
               ['Top-up amount mismatch', stats.financialIntegrity.topupAmountMismatch],
               ['Wallet balance mismatch', stats.financialIntegrity.walletBalanceMismatch],
             ].map(([label,value]) => <div key={String(label)} style={{ padding: '0.65rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>{label}<strong style={{ display: 'block', marginTop: '0.2rem', fontSize: '1rem', color: Number(value || 0) ? 'var(--error)' : 'var(--success)' }}>{Number(value || 0)}</strong></div>)}
-          </div>
-          {(Number(stats.financialIntegrity.legacyUnlinkedOrders || 0) + Number(stats.financialIntegrity.legacyUnlinkedTopups || 0)) > 0 && (
+          </div>}
+          {!integrityUnavailable && (Number(stats.financialIntegrity.legacyUnlinkedOrders || 0) + Number(stats.financialIntegrity.legacyUnlinkedTopups || 0)) > 0 && (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: '0.85rem 0 0' }}>
               Historical pre-baseline records: {Number(stats.financialIntegrity.legacyUnlinkedOrders || 0)} order(s) and {Number(stats.financialIntegrity.legacyUnlinkedTopups || 0)} top-up(s) lack provable legacy links. They are retained for audit and excluded from the live atomic-ledger control.
             </p>

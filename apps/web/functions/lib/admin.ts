@@ -79,7 +79,10 @@ export async function getAdminDashboard(env?: any) {
     unresolvedSupport: unresolvedSupport.count || 0,
     recentAlerts: recentAlerts.data || [],
     failedAlerts: (recentAlerts.data || []).filter((alert: any) => alert.status === 'failed').length,
-    financialIntegrity: financialIntegrity.data || { totalIssues: 0 },
+    // A failed integrity RPC must never be presented as a successful check.
+    financialIntegrity: financialIntegrity.error
+      ? { totalIssues: null, error: 'Financial integrity check could not be completed.' }
+      : (financialIntegrity.data || { totalIssues: null, error: 'Financial integrity check returned no result.' }),
   };
 }
 
