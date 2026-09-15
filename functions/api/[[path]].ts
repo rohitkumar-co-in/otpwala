@@ -34,7 +34,7 @@ import {
   getAdminRecharges,
 } from '../lib/admin';
 import { TigerSmsClient } from '../lib/tiger';
-import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket } from '../lib/support';
+import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket, replyToSupportTicket } from '../lib/support';
 
 function jsonResponse(data: any, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -184,6 +184,13 @@ export const onRequest = async (context: any) => {
         const ticket = await createSupportTicket(auth.userId, await request.json().catch(() => ({})), env);
         return jsonResponse({ success: true, data: ticket }, 201);
       }
+    }
+
+    const userSupportReplyMatch = path.match(/^\/api\/support\/tickets\/([^\/]+)\/reply$/);
+    if (userSupportReplyMatch && method === 'POST') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      return jsonResponse({ success: true, data: await replyToSupportTicket(userSupportReplyMatch[1], auth.userId, await request.json().catch(() => ({})), false, env) });
     }
 
     if (path === '/api/account/export' && method === 'GET') {
@@ -1041,6 +1048,13 @@ export const onRequest = async (context: any) => {
         const body = await request.json().catch(() => ({}));
         const ticket = await updateSupportTicket(supportUpdateMatch[1], auth.userId, body, env);
         await logAdminAction(auth.userId, 'support.update', 'support_ticket', ticket.id, { status: ticket.status, priority: ticket.priority, replied: Boolean(ticket.public_reply) }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, data: ticket });
+      }
+
+      const supportReplyMatch = path.match(/^\/api\/admin\/support\/tickets\/([^\/]+)\/reply$/);
+      if (supportReplyMatch && method === 'POST') {
+        const ticket = await replyToSupportTicket(supportReplyMatch[1], auth.userId, await request.json().catch(() => ({})), true, env);
+        await logAdminAction(auth.userId, 'support.reply', 'support_ticket', ticket.id, { replied: true }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, data: ticket });
       }
 
