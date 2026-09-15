@@ -149,12 +149,16 @@ export default function OrderManager() {
                       </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <div style={{ display: 'grid', gap: '0.2rem', minWidth: 150 }}>
+                        <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{o.country_name || `Country ID ${o.country_code}`}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.25rem' }}>
                         <span className="badge badge-info" style={{ fontWeight: 700 }}>
                           {o.service_code.toUpperCase()}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          ID:{o.country_code}
+                          Country ID: {o.country_code}
                         </span>
                       </div>
                     </td>
