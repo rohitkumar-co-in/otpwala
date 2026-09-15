@@ -82,10 +82,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const titleEl = document.getElementById('callback-title');
   const subEl   = document.getElementById('callback-sub');
   const errEl   = document.getElementById('callback-error');
+  let redirectInProgress = false;
 
   async function requireLoginMfa() {
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    const factor = factors?.totp?.find((item) => item.status === 'verified');
+    const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+    if (factorsError) throw factorsError;
+    const factor = [...(factors?.totp || []), ...(factors?.all || [])].find((item) => item.status === 'verified');
     if (!factor) return true;
     const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assurance.data?.currentLevel === 'aal2') return true;
@@ -108,7 +110,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   async function redirectUser(session, isNew) {
-    if (!(await requireLoginMfa())) {
+    if (redirectInProgress) return;
+    redirectInProgress = true;
+    let mfaPassed = false;
+    try { mfaPassed = await requireLoginMfa(); } catch (error: any) {
+      redirectInProgress = false;
+      if (errEl) { errEl.textContent = error?.message || 'Unable to verify two-factor authentication. Please try again.'; errEl.style.display = 'block'; }
+      if (titleEl) titleEl.textContent = 'Two-factor verification unavailable';
+      return;
+    }
+    if (!mfaPassed) {
       await supabase.auth.signOut();
       if (errEl) { errEl.textContent = 'Two-factor authentication is required. Google login was cancelled.'; errEl.style.display = 'block'; }
       if (titleEl) titleEl.textContent = 'Authenticator verification required';
