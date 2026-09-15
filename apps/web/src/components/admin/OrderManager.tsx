@@ -138,7 +138,7 @@ export default function OrderManager() {
                         {o.profiles?.email || 'Unknown User'}
                       </div>
                       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        Tiger ID: {o.tiger_order_id || '—'}
+                        Tiger ID: {o.activation_id || o.tiger_order_id || '—'}
                       </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}>

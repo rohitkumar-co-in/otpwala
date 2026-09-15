@@ -324,12 +324,14 @@ export async function retryOrder(orderId: string, userId: string, env?: any) {
 export async function reconcileExpiredOrders(env?: any, limit = 50) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
+  const now = new Date();
+  const legacyCutoff = new Date(now.getTime() - 20 * 60 * 1000);
   const { data: orders, error } = await supabase
     .from('orders')
     .select('*')
     .eq('status', 'waiting')
-    .lte('expires_at', new Date().toISOString())
-    .order('expires_at', { ascending: true })
+    .or(`expires_at.lte.${now.toISOString()},and(expires_at.is.null,created_at.lte.${legacyCutoff.toISOString()})`)
+    .order('created_at', { ascending: true })
     .limit(Math.min(Math.max(limit, 1), 200));
   if (error) throw error;
 

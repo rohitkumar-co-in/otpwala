@@ -683,10 +683,13 @@ export default function WalletPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => (
+                {transactions.map((tx) => {
+                  const isDebit = tx.type === 'deduction';
+                  const amount = Math.abs(parseFloat(tx.amount) || 0);
+                  return (
                   <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '0.75rem 1rem' }}>
-                      <span className={`badge ${parseFloat(tx.amount) >= 0 ? 'badge-success' : 'badge-secondary'}`}>
+                      <span className={`badge ${isDebit ? 'badge-secondary' : 'badge-success'}`}>
                         {tx.type}
                       </span>
                     </td>
@@ -695,10 +698,10 @@ export default function WalletPage() {
                         padding: '0.75rem 1rem',
                         fontWeight: 700,
                         fontFamily: 'var(--font-mono)',
-                        color: parseFloat(tx.amount) >= 0 ? 'var(--success)' : 'var(--error)',
+                        color: isDebit ? 'var(--error)' : 'var(--success)',
                       }}
                     >
-                      {parseFloat(tx.amount) >= 0 ? '+' : ''}₹{Math.abs(parseFloat(tx.amount)).toFixed(2)}
+                      {isDebit ? '−' : '+'}₹{amount.toFixed(2)}
                     </td>
                     <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                       ₹{parseFloat(tx.balance_after || 0).toFixed(2)}
@@ -710,7 +713,8 @@ export default function WalletPage() {
                       {new Date(tx.created_at).toLocaleString()}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
 
