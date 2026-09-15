@@ -128,7 +128,7 @@ export default function OrderManager() {
                   <th style={{ padding: '0.75rem' }}>Service</th>
                   <th style={{ padding: '0.75rem' }}>Country</th>
                   <th style={{ padding: '0.75rem' }}>Number</th>
-                  <th style={{ padding: '0.75rem' }}>OTP Code</th>
+                  <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Financials</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Time</th>
@@ -152,11 +152,6 @@ export default function OrderManager() {
                     </td>
                     <td style={{ padding: '0.75rem' }}>
                       <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
-                      <div style={{ marginTop: '0.25rem' }}>
-                        <span className="badge badge-info" style={{ fontWeight: 700 }}>
-                          {o.service_code.toUpperCase()}
-                        </span>
-                      </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Dialing code: {formatPhoneNumber(o.phone_number, o.country_code).dialCode ? `+${formatPhoneNumber(o.phone_number, o.country_code).dialCode}` : '—'}</small></td>
                     <td style={{ padding: '0.75rem' }}>
@@ -179,30 +174,7 @@ export default function OrderManager() {
                       )}
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      {o.sms_code ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span
-                            className="badge badge-success"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}
-                          >
-                            {o.sms_code}
-                          </span>
-                          <button
-                            className="btn btn-ghost btn-sm"
-                            style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                            onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)}
-                            title="Copy OTP"
-                          >
-                            {copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
-                          </button>
-                        </div>
-                      ) : o.status === 'waiting' ? (
-                        <span style={{ color: '#60a5fa', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                          <span className="status-dot active"></span> Waiting for SMS...
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                      {o.sms_code ? <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{o.sms_code}</span><button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)} title="Copy OTP">{copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}</button></div> : <span className={`badge ${o.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(o.status) ? 'badge-error' : 'badge-warning'}`}>{o.status === 'completed' || o.status === 'code_received' ? 'OTP Received' : o.status.replace('_', ' ')}</span>}
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: '#34d399' }}>
                       <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
@@ -216,17 +188,6 @@ export default function OrderManager() {
                           Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
                         </div>
                       )}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
-                      <span className={`badge ${
-                        o.status === 'code_received' || o.status === 'completed'
-                          ? 'badge-success'
-                          : o.status === 'waiting'
-                          ? 'badge-info'
-                          : 'badge-error'
-                      }`}>
-                        {['code_received', 'completed'].includes(o.status) ? 'OTP Received' : o.status.replace('_', ' ')}
-                      </span>
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(o.created_at).toLocaleString([], {
