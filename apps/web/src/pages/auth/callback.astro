@@ -84,7 +84,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const errEl   = document.getElementById('callback-error');
   let redirectInProgress = false;
 
-  async function requireLoginMfa() {
+  async function requireLoginMfa(retryMessage = '') {
     const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
     if (factorsError) throw factorsError;
     const factor = [...(factors?.totp || []), ...(factors?.all || [])].find((item) => item.status === 'verified');
@@ -94,7 +94,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const code = await new Promise<string | null>((resolve) => {
       const card = document.querySelector('.callback-card') as HTMLElement;
       if (!card) return resolve(null);
-      card.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:.75rem">🔐</div><h2 style="margin:0 0 .5rem">Two-factor verification</h2><p style="color:var(--text-secondary);margin:0 0 1.25rem">Enter the six-digit code from your authenticator app to continue with Google login.</p><form id="mfa-login-form" style="display:grid;gap:.75rem;text-align:left"><label for="mfa-login-code">Authenticator code</label><input id="mfa-login-code" class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000" /><div id="mfa-login-error" class="auth-error" style="display:none"></div><button class="btn btn-primary" type="submit">Verify and continue</button><button class="btn btn-secondary" type="button" id="mfa-login-cancel">Cancel</button></form></div>`;
+      card.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:.75rem">🔐</div><h2 style="margin:0 0 .5rem">Two-factor verification</h2><p style="color:var(--text-secondary);margin:0 0 1.25rem">Enter the six-digit code from your authenticator app to continue with Google login.</p>${retryMessage ? `<div class="auth-error" style="display:block;margin-bottom:1rem">${retryMessage}</div>` : ''}<form id="mfa-login-form" style="display:grid;gap:.75rem;text-align:left"><label for="mfa-login-code">Authenticator code</label><input id="mfa-login-code" class="input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000" /><div id="mfa-login-error" class="auth-error" style="display:none"></div><button class="btn btn-primary" type="submit">Verify and continue</button><button class="btn btn-secondary" type="button" id="mfa-login-cancel">Cancel</button></form></div>`;
       const form = card.querySelector('#mfa-login-form') as HTMLFormElement;
       const input = card.querySelector('#mfa-login-code') as HTMLInputElement;
       const error = card.querySelector('#mfa-login-error') as HTMLElement;
@@ -107,9 +107,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     if (challenge.error) throw new Error(challenge.error.message);
     const verified = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.data.id, code });
     if (verified.error) {
-      const card = document.querySelector('.callback-card') as HTMLElement;
-      if (card) card.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:.75rem">⚠️</div><h2 style="margin:0 0 .5rem">Code not accepted</h2><p class="callback-error" style="display:block">The authenticator code is incorrect or expired. Please start Google login again and enter the current code.</p><a class="btn btn-primary" href="/auth/login" style="display:block;margin-top:1rem">Back to login</a></div>`;
-      return false;
+      return await requireLoginMfa('Invalid or expired authenticator code. Enter the current code and try again.');
     }
     return true;
   }
