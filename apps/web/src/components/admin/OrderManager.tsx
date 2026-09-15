@@ -89,7 +89,7 @@ export default function OrderManager() {
 
       {/* Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-        {['all', 'stuck', 'failed_refund', 'waiting', 'code_received', 'completed', 'cancelled', 'expired'].map((st) => (
+        {['all', 'stuck', 'failed_refund', 'waiting', 'code_received', 'cancelled', 'expired'].map((st) => (
           <button
             key={st}
             onClick={() => { setStatusFilter(st); setPage(0); }}
@@ -224,7 +224,7 @@ export default function OrderManager() {
                           ? 'badge-info'
                           : 'badge-error'
                       }`}>
-                        {o.status.replace('_', ' ')}
+                        {['code_received', 'completed'].includes(o.status) ? 'OTP Received' : o.status.replace('_', ' ')}
                       </span>
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>

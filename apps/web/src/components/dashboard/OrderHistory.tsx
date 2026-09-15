@@ -74,13 +74,13 @@ export default function OrderHistory() {
         </h2>
         
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {['', 'waiting', 'code_received', 'completed', 'cancelled'].map(s => (
+          {['', 'waiting', 'code_received', 'cancelled'].map(s => (
             <button
               key={s}
               onClick={() => { setStatusFilter(s); setPage(0); }}
               className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-ghost'}`}
             >
-              {s === '' ? 'All' : s === 'code_received' ? 'Received' : s.charAt(0).toUpperCase() + s.slice(1)}
+              {s === '' ? 'All' : s === 'code_received' ? 'OTP Received' : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
         </div>
@@ -293,8 +293,8 @@ function eventLabel(event: any) {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; icon: any; className: string }> = {
     waiting: { label: 'Waiting', icon: <ClockIcon size={12} />, className: 'badge badge-warning' },
-    code_received: { label: 'Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
-    completed: { label: 'Done', icon: <CheckIcon size={12} />, className: 'badge badge-info' },
+    code_received: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
+    completed: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
     cancelled: { label: 'Cancelled', icon: <XIcon size={12} />, className: 'badge badge-error' },
     refunded: { label: 'Refunded', icon: <RefreshCwIcon size={12} />, className: 'badge badge-accent' },
     expired: { label: 'Expired', icon: <ClockIcon size={12} />, className: 'badge badge-error' },

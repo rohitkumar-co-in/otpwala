@@ -199,7 +199,7 @@ function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
     waiting: { label: 'Waiting', className: 'badge badge-warning', icon: <ClockIcon size={12} /> },
     code_received: { label: 'Code Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
-    completed: { label: 'Completed', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
+    completed: { label: 'OTP Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
     cancelled: { label: 'Cancelled', className: 'badge badge-error', icon: <XIcon size={12} /> },
     refunded: { label: 'Refunded', className: 'badge badge-info', icon: <DollarIcon size={12} /> },
     expired: { label: 'Expired', className: 'badge badge-ghost', icon: <XIcon size={12} /> },
