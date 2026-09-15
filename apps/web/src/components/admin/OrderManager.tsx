@@ -125,8 +125,9 @@ export default function OrderManager() {
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.75rem' }}>ID</th>
                   <th style={{ padding: '0.75rem' }}>User Email</th>
-                  <th style={{ padding: '0.75rem' }}>Service / Country</th>
-                  <th style={{ padding: '0.75rem' }}>Phone Number</th>
+                  <th style={{ padding: '0.75rem' }}>Service</th>
+                  <th style={{ padding: '0.75rem' }}>Country</th>
+                  <th style={{ padding: '0.75rem' }}>Number</th>
                   <th style={{ padding: '0.75rem' }}>OTP Code</th>
                   <th style={{ padding: '0.75rem' }}>Financials</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
@@ -150,18 +151,14 @@ export default function OrderManager() {
                       </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      <div style={{ display: 'grid', gap: '0.2rem', minWidth: 150 }}>
-                        <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{o.country_name || 'Unknown country'}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.25rem' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
+                      <div style={{ marginTop: '0.25rem' }}>
                         <span className="badge badge-info" style={{ fontWeight: 700 }}>
                           {o.service_code.toUpperCase()}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        </span>
                       </div>
                     </td>
+                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
                     <td style={{ padding: '0.75rem' }}>
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
