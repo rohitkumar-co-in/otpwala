@@ -8,7 +8,10 @@
     "build": "npm --prefix apps/web run build && node -e \"const fs=require('fs'); if(fs.existsSync('apps/web/dist')){fs.cpSync('apps/web/dist','dist',{recursive:true});}\"",
     "build:web": "npm --prefix apps/web run build",
     "build:api": "pnpm --filter @otpwala/api build",
-    "deploy:web": "npm --prefix apps/web run build && npx wrangler pages deploy dist --project-name=otpwala --cwd apps/web --commit-dirty=true"
+    "deploy:web": "npm --prefix apps/web run build && npx wrangler pages deploy dist --project-name=otpwala --cwd apps/web --commit-dirty=true",
+    "test:guardrails": "node scripts/production-guardrails.mjs",
+    "test:smoke": "node scripts/smoke-production.mjs",
+    "verify:production": "npm run build && npm --prefix apps/api run build && npm run test:guardrails && npm run test:smoke"
   },
   "engines": {
     "node": ">=18.0.0"
