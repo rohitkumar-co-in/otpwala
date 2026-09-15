@@ -14,8 +14,9 @@ export default function MfaPanel() {
   async function load() {
     const { data, error } = await supabase.auth.mfa.listFactors();
     if (error) return setMessage(error.message);
-    const verifiedFactor = data?.totp?.find((item: any) => item.status === 'verified') || null;
-    const unverifiedFactor = data?.totp?.find((item: any) => item.status !== 'verified') || null;
+    const factors = [...(data?.totp || []), ...(data?.all || [])].filter((item: any, index: number, list: any[]) => item?.id && list.findIndex((other) => other.id === item.id) === index);
+    const verifiedFactor = factors.find((item: any) => item.status === 'verified') || null;
+    const unverifiedFactor = factors.find((item: any) => item.status !== 'verified') || null;
     setFactor(verifiedFactor);
     setPendingFactor(unverifiedFactor);
     const assurance = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -26,7 +27,13 @@ export default function MfaPanel() {
   async function beginEnrollment() {
     setBusy(true); setMessage('');
     const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'OTPWala Authenticator' });
-    if (error) { setMessage(error.message); await load(); } else setEnrollment(data);
+    if (error) {
+      const factorsResult = await supabase.auth.mfa.listFactors();
+      const factors = [...(factorsResult.data?.totp || []), ...(factorsResult.data?.all || [])];
+      const existing = factors.find((item: any) => item.friendly_name === 'OTPWala Authenticator' || item.friendlyName === 'OTPWala Authenticator');
+      if (existing) setPendingFactor(existing);
+      setMessage(existing ? 'An incomplete authenticator setup already exists. Cancel it below, then try again.' : error.message);
+    } else setEnrollment(data);
     setBusy(false);
   }
 
