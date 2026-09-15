@@ -347,11 +347,22 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
         result.delivered++;
         continue;
       }
-      if (provider.status === 'waiting') await tiger.setStatus(order.activation_id, 8);
-      if (provider.status === 'waiting' || provider.status === 'cancelled') {
+      const isProviderWaiting = provider.status === 'waiting' || provider.status.startsWith('status_wait');
+      const isTerminalWithoutOtp = [
+        'cancelled',
+        'completed',
+        'status_finish',
+        'no_activation',
+      ].includes(provider.status);
+
+      if (isProviderWaiting) await tiger.setStatus(order.activation_id, 8);
+      if (isProviderWaiting || isTerminalWithoutOtp) {
         await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
         result.refunded++;
+        continue;
       }
+
+      throw new Error(`Unsupported provider status during expiry reconciliation: ${provider.status}`);
     } catch (err: any) {
       result.failed++;
       await supabase.from('orders').update({
