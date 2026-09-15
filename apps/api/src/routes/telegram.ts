@@ -4,6 +4,7 @@ import { creditBalance } from '../services/wallet.js';
 import {
   getTelegramConfig,
   verifyActionToken,
+  verifyTelegramWebhookSecret,
   answerCallbackQuery,
   editTelegramMessageText,
 } from '../services/telegram.js';
@@ -118,6 +119,13 @@ router.get('/webhook', (_req: Request, res: Response) => {
  */
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
+    const config = await getTelegramConfig();
+    const suppliedSecret = String(req.header('X-Telegram-Bot-Api-Secret-Token') || '');
+    if (!verifyTelegramWebhookSecret(suppliedSecret, config.botToken)) {
+      res.status(401).json({ ok: false, error: 'Unauthorized webhook' });
+      return;
+    }
+
     const update = req.body;
     const callbackQuery = update?.callback_query;
 

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export interface TelegramConfig {
   botToken: string;
@@ -183,6 +184,17 @@ export function verifyActionToken(requestId: string, token: string, botToken: st
   return createActionToken(requestId, botToken) === token;
 }
 
+export function getTelegramWebhookSecret(botToken: string): string {
+  return createHmac('sha256', botToken).update('otpwala:telegram-webhook:v1').digest('base64url');
+}
+
+export function verifyTelegramWebhookSecret(supplied: string, botToken: string): boolean {
+  if (!supplied || !botToken) return false;
+  const expected = Buffer.from(getTelegramWebhookSecret(botToken));
+  const actual = Buffer.from(supplied);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
 export async function answerCallbackQuery(
   callbackQueryId: string,
   text: string,
@@ -226,4 +238,3 @@ export async function editTelegramMessageText(
     console.warn('Failed to edit telegram message text:', e);
   }
 }
-
