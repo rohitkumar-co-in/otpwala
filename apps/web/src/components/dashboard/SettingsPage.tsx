@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getLocalSessionId } from '../../lib/sessionManager';
-import { exportAccountData, requestAccountDeletion } from '../../lib/api';
+import { exportAccountData, requestAccountDeletion, getAccountDeletionRequests } from '../../lib/api';
 import MfaPanel from './MfaPanel';
 
 export default function SettingsPage() {
@@ -27,6 +27,7 @@ export default function SettingsPage() {
   // Password strength
   const [strengthScore, setStrengthScore] = useState(0);
   const [privacyBusy, setPrivacyBusy] = useState('');
+  const [deletionRequests, setDeletionRequests] = useState<any[]>([]);
 
   async function downloadAccountData() {
     setPrivacyBusy('export'); setErrorMsg('');
@@ -44,13 +45,14 @@ export default function SettingsPage() {
   async function submitDeletionRequest() {
     if (!window.confirm('Submit an account deletion request for admin review? Financial records may need to be retained where legally required.')) return;
     setPrivacyBusy('delete'); setErrorMsg('');
-    try { await requestAccountDeletion(); setSuccessMsg('Your account deletion request was submitted to support.'); }
+    try { await requestAccountDeletion(); setDeletionRequests(await getAccountDeletionRequests()); setSuccessMsg('Your account deletion request was submitted for privacy review.'); }
     catch (error: any) { setErrorMsg(error.message || 'Unable to submit deletion request.'); }
     finally { setPrivacyBusy(''); }
   }
 
   useEffect(() => {
     loadUserData();
+    getAccountDeletionRequests().then(setDeletionRequests).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -504,6 +506,7 @@ export default function SettingsPage() {
           <div className="card-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg, 16px)' }}>
             <h3 style={{ marginTop: 0 }}>Privacy &amp; Account Data</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Download your profile, orders, wallet ledger, and support history, or request reviewed account deletion.</p>
+            {deletionRequests[0] && <p role="status" style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Latest erasure request: <strong style={{ textTransform: 'capitalize' }}>{deletionRequests[0].status}</strong> · submitted {new Date(deletionRequests[0].requested_at).toLocaleString()}</p>}
             <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary btn-sm" onClick={downloadAccountData} disabled={Boolean(privacyBusy)}>{privacyBusy === 'export' ? 'Preparing…' : 'Download My Data'}</button>
               <button className="btn btn-sm" onClick={submitDeletionRequest} disabled={Boolean(privacyBusy)} style={{ color: 'var(--error)', border: '1px solid rgba(239,68,68,.4)' }}>{privacyBusy === 'delete' ? 'Submitting…' : 'Request Account Deletion'}</button>

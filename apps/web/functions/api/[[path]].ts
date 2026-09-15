@@ -205,10 +205,19 @@ export const onRequest = async (context: any) => {
       const auth = await authenticateUser(request, env);
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
       const supabase = getSupabaseAdmin(env);
-      const { data: existing } = await supabase.from('support_tickets').select('id,status').eq('user_id', auth.userId).eq('subject', 'Account deletion request').in('status', ['open','in_progress']).maybeSingle();
+      const { data: existing } = await supabase.from('data_deletion_requests').select('id,status,requested_at').eq('user_id', auth.userId).eq('status', 'pending').maybeSingle();
       if (existing) return jsonResponse({ success: true, data: existing, message: 'A deletion request is already being reviewed.' });
-      const ticket = await createSupportTicket(auth.userId, { subject: 'Account deletion request', message: 'Please delete my OTPWala account and eligible personal data. I understand legally required financial records may be retained.' }, env);
-      return jsonResponse({ success: true, data: ticket }, 201);
+      const { data, error } = await supabase.from('data_deletion_requests').insert({ user_id: auth.userId, user_message: 'Erase my account and eligible personal data. I understand required financial records may be retained.' }).select().single();
+      if (error) throw error;
+      return jsonResponse({ success: true, data }, 201);
+    }
+
+    if (path === '/api/account/deletion-request' && method === 'GET') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      const { data, error } = await getSupabaseAdmin(env).from('data_deletion_requests').select('id,status,user_message,admin_notes,requested_at,processed_at,updated_at').eq('user_id', auth.userId).order('requested_at', { ascending: false }).limit(10);
+      if (error) throw error;
+      return jsonResponse({ success: true, data: data || [] });
     }
 
     if (path === '/api/cron/reconcile' && method === 'POST') {
@@ -989,6 +998,44 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, data: await getAdminSupportTickets(url.searchParams.get('status') || 'all', env) });
       }
 
+      if (path === '/api/admin/data-deletion-requests' && method === 'GET') {
+        const status = url.searchParams.get('status') || 'pending';
+        let query = getSupabaseAdmin(env).from('data_deletion_requests').select('*,profiles:user_id(email,full_name,wallet_balance,is_banned)').order('requested_at', { ascending: true }).limit(200);
+        if (status !== 'all') query = query.eq('status', status);
+        const { data, error } = await query;
+        if (error) throw error;
+        return jsonResponse({ success: true, data: data || [] });
+      }
+
+      const deletionDecisionMatch = path.match(/^\/api\/admin\/data-deletion-requests\/([^\/]+)$/);
+      if (deletionDecisionMatch && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can process data erasure requests.' }, 403);
+        const body = await request.json().catch(() => ({}));
+        const decision = String(body.decision || '');
+        const notes = String(body.notes || '').trim().slice(0, 2000);
+        if (!['approve', 'reject'].includes(decision)) return jsonResponse({ success: false, error: 'Decision must be approve or reject.' }, 400);
+        const supabase = getSupabaseAdmin(env);
+        const { data: deletionRequest, error: requestError } = await supabase.from('data_deletion_requests').select('id,user_id,status').eq('id', deletionDecisionMatch[1]).maybeSingle();
+        if (requestError) throw requestError;
+        if (!deletionRequest) return jsonResponse({ success: false, error: 'Deletion request not found.' }, 404);
+        if (deletionRequest.status !== 'pending') return jsonResponse({ success: false, error: 'This deletion request has already been processed.' }, 409);
+
+        if (decision === 'reject') {
+          const { error } = await supabase.from('data_deletion_requests').update({ status: 'rejected', admin_notes: notes || 'Request rejected after review.', processed_by: auth.userId, processed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', deletionRequest.id).eq('status', 'pending');
+          if (error) throw error;
+          await logAdminAction(auth.userId, 'privacy.erasure_rejected', 'user', deletionRequest.user_id, { requestId: deletionRequest.id, notes }, request.headers.get('cf-connecting-ip'), env);
+          return jsonResponse({ success: true, data: { status: 'rejected' } });
+        }
+
+        await supabase.from('profiles').update({ is_banned: true, updated_at: new Date().toISOString() }).eq('id', deletionRequest.user_id);
+        const { data: result, error: eraseError } = await supabase.rpc('erase_user_personal_data', { p_user_id: deletionRequest.user_id, p_actor_id: auth.userId, p_request_id: deletionRequest.id });
+        if (eraseError) throw eraseError;
+        const authDeletion = await supabase.auth.admin.deleteUser(deletionRequest.user_id);
+        if (authDeletion.error) throw new Error(`Personal data was anonymized, but authentication deletion needs retry: ${authDeletion.error.message}`);
+        await logAdminAction(auth.userId, 'privacy.erasure_completed', 'user', deletionRequest.user_id, { requestId: deletionRequest.id, financialRecordsRetained: true }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, data: result });
+      }
+
       const supportUpdateMatch = path.match(/^\/api\/admin\/support\/tickets\/([^\/]+)$/);
       if (supportUpdateMatch && method === 'PUT') {
         const body = await request.json().catch(() => ({}));
@@ -1088,7 +1135,7 @@ export const onRequest = async (context: any) => {
       // DELETE /api/admin/users/:id
       const userDeleteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)$/);
       if (userDeleteMatch && method === 'DELETE') {
-        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can delete users.' }, 403);
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
         const targetUserId = userDeleteMatch[1];
         const supabase = getSupabaseAdmin(env);
         if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'You cannot delete your own account.' }, 400);
@@ -1098,12 +1145,12 @@ export const onRequest = async (context: any) => {
         if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
         if (!profile.is_banned) return jsonResponse({ success: false, error: 'User must be banned before they can be deleted. Please ban the user first.' }, 400);
 
-        await supabase.from('payment_requests').delete().eq('user_id', targetUserId);
-        await supabase.from('orders').delete().eq('user_id', targetUserId);
-        await supabase.from('wallet_transactions').delete().eq('user_id', targetUserId);
-        await supabase.from('profiles').delete().eq('id', targetUserId);
-        try { await supabase.auth.admin.deleteUser(targetUserId); } catch {}
-        return jsonResponse({ success: true, message: `User ${profile.email || targetUserId} permanently deleted.` });
+        const { data: erased, error: eraseError } = await supabase.rpc('erase_user_personal_data', { p_user_id: targetUserId, p_actor_id: auth.userId, p_request_id: null });
+        if (eraseError) throw eraseError;
+        const authDeletion = await supabase.auth.admin.deleteUser(targetUserId);
+        if (authDeletion.error) throw authDeletion.error;
+        await logAdminAction(auth.userId, 'privacy.erasure_completed', 'user', targetUserId, { source: 'admin-user-management', financialRecordsRetained: true }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, data: erased, message: `Personal data for ${profile.email || targetUserId} was erased; pseudonymized financial records were retained.` });
       }
 
       // POST /api/admin/users/bulk-ban
@@ -1121,7 +1168,7 @@ export const onRequest = async (context: any) => {
 
       // POST /api/admin/users/bulk-delete
       if (path === '/api/admin/users/bulk-delete' && method === 'POST') {
-        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can delete users.' }, 403);
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
         const body = await request.json().catch(() => ({}));
         const { userIds } = body;
         if (!Array.isArray(userIds) || userIds.length === 0) return jsonResponse({ success: false, error: 'No users selected.' }, 400);
@@ -1133,12 +1180,16 @@ export const onRequest = async (context: any) => {
         if (unbanned.length > 0) return jsonResponse({ success: false, error: `Cannot delete unbanned users (${unbanned.length} unbanned). All selected users must be banned first.` }, 400);
         const eligible = profiles.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin' && p.is_banned).map((p: any) => p.id);
         if (eligible.length === 0) return jsonResponse({ success: false, error: 'No eligible banned users to delete.' }, 400);
-        await supabase.from('payment_requests').delete().in('user_id', eligible);
-        await supabase.from('orders').delete().in('user_id', eligible);
-        await supabase.from('wallet_transactions').delete().in('user_id', eligible);
-        await supabase.from('profiles').delete().in('id', eligible);
-        await Promise.allSettled(eligible.map((uid: string) => supabase.auth.admin.deleteUser(uid)));
-        return jsonResponse({ success: true, message: `${eligible.length} banned user(s) permanently deleted.` });
+        const results = [];
+        for (const uid of eligible) {
+          const { error: eraseError } = await supabase.rpc('erase_user_personal_data', { p_user_id: uid, p_actor_id: auth.userId, p_request_id: null });
+          if (eraseError) throw eraseError;
+          const authDeletion = await supabase.auth.admin.deleteUser(uid);
+          if (authDeletion.error) throw authDeletion.error;
+          results.push(uid);
+        }
+        await logAdminAction(auth.userId, 'privacy.bulk_erasure_completed', 'user', null, { count: results.length, userIds: results, financialRecordsRetained: true }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, message: `${results.length} banned user account(s) anonymized; financial records retained.` });
       }
 
       // POST /api/admin/users/:id/promote

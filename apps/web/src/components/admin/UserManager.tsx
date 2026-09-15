@@ -246,14 +246,14 @@ export default function UserManager() {
     setSuccess(null);
     try {
       await deleteUser(deleteTarget.id);
-      setSuccess(`User ${deleteTarget.email} has been permanently deleted.`);
+      setSuccess(`Personal data for ${deleteTarget.email} was erased and required financial records were retained.`);
       
       // Optimistic update: instantly remove from UI
       setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to delete user');
+      setError(err.message || 'Failed to erase personal data');
     } finally {
       setDeleting(false);
     }
@@ -352,11 +352,11 @@ export default function UserManager() {
       const idSet = new Set(idsToDelete);
       setUsers((prev) => prev.filter((u) => !idSet.has(u.id)));
       
-      setSuccess(`${idsToDelete.length} banned user(s) permanently deleted.`);
+      setSuccess(`${idsToDelete.length} banned user account(s) anonymized; required financial records retained.`);
       setSelectedUserIds([]);
       setShowBulkDeleteModal(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to bulk delete users');
+      setError(err.message || 'Failed to erase selected users');
     } finally {
       setDeleting(false);
     }
@@ -511,7 +511,7 @@ export default function UserManager() {
                 }}
               >
                 <TrashIcon size={13} style={{ display: 'inline', marginRight: '4px' }} />
-                Delete Selected ({selectedBannedUsers.length})
+                Erase Selected ({selectedBannedUsers.length})
               </button>
             )}
           </div>
@@ -882,11 +882,11 @@ export default function UserManager() {
           <div className="card glass-card" style={{ maxWidth: '440px', width: '100%', padding: '1.75rem', border: '1px solid #ef4444' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ef4444', marginBottom: '1rem' }}>
               <AlertCircleIcon size={24} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm User Deletion</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Personal-Data Erasure</h3>
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Are you sure you want to permanently delete user <strong>{deleteTarget.email}</strong>?
+              Erase the login credentials and eligible personal data for <strong>{deleteTarget.email}</strong>?
             </p>
 
             <div style={{
@@ -899,7 +899,7 @@ export default function UserManager() {
               lineHeight: 1.45,
               marginBottom: '1.5rem',
             }}>
-              <strong>Warning:</strong> This action cannot be undone. All wallet balances, order history, transactions, and authentication credentials will be erased immediately.
+              <strong>Important:</strong> This cannot be undone. Authentication and personal content will be erased. Pseudonymized wallet transactions and order accounting records will be retained; the wallet must already be zero.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
@@ -924,7 +924,7 @@ export default function UserManager() {
                   padding: '0.5rem 1.1rem',
                 }}
               >
-                {deleting ? 'Deleting...' : 'Yes, Delete Permanently'}
+                {deleting ? 'Erasing...' : 'Erase Personal Data'}
               </button>
             </div>
           </div>
@@ -947,11 +947,11 @@ export default function UserManager() {
           <div className="card glass-card" style={{ maxWidth: '460px', width: '100%', padding: '1.75rem', border: '1px solid #ef4444' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ef4444', marginBottom: '1rem' }}>
               <AlertCircleIcon size={24} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Bulk Deletion</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Bulk Erasure</h3>
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1rem' }}>
-              Are you sure you want to permanently delete <strong>{selectedBannedUsers.length}</strong> banned user(s)?
+              Erase eligible personal data for <strong>{selectedBannedUsers.length}</strong> banned user(s)?
             </p>
 
             {selectedUnbannedCount > 0 && (
@@ -978,7 +978,7 @@ export default function UserManager() {
               lineHeight: 1.45,
               marginBottom: '1.5rem',
             }}>
-              <strong>Warning:</strong> This action cannot be undone. All data associated with these accounts will be purged.
+              <strong>Important:</strong> Authentication and personal content will be erased. Pseudonymized financial and order records will be retained, and every wallet must be zero.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
@@ -1003,7 +1003,7 @@ export default function UserManager() {
                   padding: '0.5rem 1.1rem',
                 }}
               >
-                {deleting ? 'Deleting...' : `Yes, Delete ${selectedBannedUsers.length} User(s)`}
+                {deleting ? 'Erasing...' : `Erase ${selectedBannedUsers.length} User(s)`}
               </button>
             </div>
           </div>

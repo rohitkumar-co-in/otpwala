@@ -126,6 +126,7 @@ export const createSupportTicket = (subject: string, message: string, orderId?: 
   apiFetch<any>('/api/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, orderId }) });
 export const exportAccountData = () => apiFetch<any>('/api/account/export');
 export const requestAccountDeletion = () => apiFetch<any>('/api/account/deletion-request', { method: 'POST' });
+export const getAccountDeletionRequests = () => apiFetch<any[]>('/api/account/deletion-request');
 
 // ─── Wallet ───
 export const getWallet = () =>
@@ -187,6 +188,9 @@ export const runAdminReconciliation = () =>
 export const getAdminAuditLogs = (limit = 50, offset = 0, action = '') =>
   apiFetch<{ logs: any[]; total: number }>(`/api/admin/audit-logs?limit=${limit}&offset=${offset}&action=${encodeURIComponent(action)}`);
 export const getAdminSupportTickets = (status = 'all') => apiFetch<any[]>(`/api/admin/support/tickets?status=${encodeURIComponent(status)}`);
+export const getAdminDataDeletionRequests = (status = 'pending') => apiFetch<any[]>(`/api/admin/data-deletion-requests?status=${encodeURIComponent(status)}`);
+export const processAdminDataDeletionRequest = (id: string, decision: 'approve' | 'reject', notes = '') =>
+  apiFetch<any>(`/api/admin/data-deletion-requests/${id}`, { method: 'POST', body: JSON.stringify({ decision, notes }) });
 export const updateAdminSupportTicket = (id: string, status: string, priority: string, adminNotes: string, publicReply: string) =>
   apiFetch<any>(`/api/admin/support/tickets/${id}`, { method: 'PUT', body: JSON.stringify({ status, priority, adminNotes, publicReply }) });
 export const getAdminUsers = (limit = 20, offset = 0, search = '') =>

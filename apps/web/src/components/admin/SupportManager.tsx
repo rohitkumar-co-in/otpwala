@@ -1,22 +1,42 @@
 import { useEffect, useState } from 'react';
-import { getAdminSupportTickets, updateAdminSupportTicket } from '../../lib/api';
+import { getAdminSupportTickets, updateAdminSupportTicket, getAdminDataDeletionRequests, processAdminDataDeletionRequest } from '../../lib/api';
 
 export default function SupportManager() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [filter, setFilter] = useState('open');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [deletions, setDeletions] = useState<any[]>([]);
+  const [deletionNotes, setDeletionNotes] = useState<Record<string,string>>({});
   const load = () => getAdminSupportTickets(filter).then(setTickets).catch((e) => setError(e.message));
+  const loadDeletions = () => getAdminDataDeletionRequests('pending').then(setDeletions).catch((e) => setError(e.message));
   useEffect(() => { load(); }, [filter]);
+  useEffect(() => { loadDeletions(); }, []);
   const edit = (id: string, key: string, value: string) => setTickets((rows) => rows.map((r) => r.id === id ? { ...r, [key]: value } : r));
   async function save(t: any) {
     setBusy(t.id); setError('');
     try { await updateAdminSupportTicket(t.id, t.status, t.priority, t.admin_notes || '', t.public_reply || ''); await load(); }
     catch (e: any) { setError(e.message || 'Unable to update ticket.'); } finally { setBusy(''); }
   }
+  async function processDeletion(id: string, decision: 'approve'|'reject') {
+    if (decision === 'approve' && !window.confirm('Erase this user’s login and eligible personal data? Financial ledger and order accounting records will be retained in pseudonymized form.')) return;
+    setBusy(id); setError('');
+    try { await processAdminDataDeletionRequest(id, decision, deletionNotes[id] || ''); await loadDeletions(); }
+    catch (e: any) { setError(e.message || 'Unable to process data erasure request.'); } finally { setBusy(''); }
+  }
   return <div style={{ display: 'grid', gap: '1rem' }}>
     <div><h1 style={{ margin: 0, fontSize: '1.75rem' }}>Support Queue</h1><p style={{ color: 'var(--text-secondary)' }}>Review, reply to, assign, and resolve customer issues.</p></div>
     {error && <div className="alert alert-error">{error}</div>}
+    <section className="card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+      <div><h2 style={{ margin: 0, fontSize: '1.1rem' }}>Privacy &amp; Data-Erasure Requests</h2><p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>Super Admin review is required. Approval removes authentication and personal content while retaining pseudonymized financial records.</p></div>
+      {deletions.length === 0 ? <p style={{ color: 'var(--text-muted)', margin: 0 }}>No pending erasure requests.</p> : deletions.map((d) => <article key={d.id} style={{ padding: '0.85rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', display: 'grid', gap: '0.55rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><strong>{d.profiles?.email || d.user_id}</strong><span className="badge badge-warning">Pending since {new Date(d.requested_at).toLocaleString()}</span></div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem' }}>{d.user_message}</p>
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Wallet: ₹{Number(d.profiles?.wallet_balance || 0).toFixed(2)} · Suspended: {d.profiles?.is_banned ? 'Yes' : 'No (will be suspended on approval)'}</div>
+        <label>Review notes<textarea className="input" rows={2} maxLength={2000} value={deletionNotes[d.id] || ''} onChange={(e) => setDeletionNotes((all) => ({...all,[d.id]:e.target.value}))} /></label>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}><button className="btn btn-primary btn-sm" disabled={busy === d.id} onClick={() => processDeletion(d.id,'approve')}>Approve secure erasure</button><button className="btn btn-ghost btn-sm" disabled={busy === d.id} onClick={() => processDeletion(d.id,'reject')}>Reject request</button></div>
+      </article>)}
+    </section>
     <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>{['open','in_progress','resolved','closed','all'].map((s) => <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter(s)}>{s.replace('_',' ')}</button>)}</div>
     {tickets.length === 0 && <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>No matching tickets.</div>}
     {tickets.map((t) => <article className="card" key={t.id} style={{ padding: '1rem', display: 'grid', gap: '0.7rem', overflowWrap: 'anywhere' }}>

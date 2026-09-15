@@ -18,6 +18,7 @@ const files = {
   session: readFileSync(new URL('../functions/lib/session.ts', import.meta.url), 'utf8'),
   supabase: readFileSync(new URL('../functions/lib/supabase.ts', import.meta.url), 'utf8'),
   statusPage: readFileSync(new URL('../apps/web/src/pages/status.astro', import.meta.url), 'utf8'),
+  erasureMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915180000_data_erasure_workflow.sql', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -59,6 +60,10 @@ requireText(files.session, 'isSessionCurrent', 'Session replacement is not enfor
 requireText(files.routes, 'smsProvider: provider', 'Component-level health reporting is missing');
 requireText(files.statusPage, "fetch('/api/health'", 'Public status page is not connected to health reporting');
 requireText(files.admin, "from('operational_alerts')", 'Admin dashboard does not load operational alert history');
+requireText(files.erasureMigration, 'erase_user_personal_data', 'Reviewed personal-data erasure workflow is missing');
+requireText(files.erasureMigration, 'financial_records_retained', 'Data erasure does not preserve financial records');
+requireText(files.routes, "privacy.erasure_completed", 'Completed data erasures are not audited');
+if (/from\('wallet_transactions'\)\.delete\(\)/.test(files.routes)) failures.push('User deletion still destroys the financial ledger');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
