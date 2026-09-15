@@ -28,7 +28,7 @@ requireText(files.admin, "rpc('admin_dashboard_metrics')", 'Admin dashboard bypa
 requireText(files.order, "rpc('refund_order_atomic'", 'Order refunds bypass atomic refund RPC');
 requireText(files.order, 'reconcileExpiredOrders', 'Expired-order reconciliation is missing');
 requireText(files.order, 'enforcePurchaseLimits', 'Purchase velocity controls are missing');
-requireText(files.order, 'providerBalance < costPriceUsd', 'Provider pre-charge balance guard is missing');
+requireText(files.order, 'assertProviderCanFund(providerBalance, costPriceUsd)', 'Provider pre-charge balance guard is missing');
 requireText(files.auditMigration, 'ENABLE ROW LEVEL SECURITY', 'Audit-log RLS is missing');
 requireText(files.auditMigration, 'REVOKE ALL', 'Audit-log public access is not revoked');
 requireText(files.supportMigration, 'ENABLE ROW LEVEL SECURITY', 'Support-ticket RLS is missing');

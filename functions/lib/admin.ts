@@ -3,6 +3,7 @@ import { TigerSmsClient } from './tiger';
 import { creditBalance } from './wallet';
 import serviceIcons from '../data/tigerServiceIcons.json';
 import countryFlags from '../data/countryFlags.json';
+import { assertValidAdminCredit } from './policies';
 
 export async function logAdminAction(
   actorId: string,
@@ -138,10 +139,7 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
 }
 
 export async function creditUserBalance(userId: string, amount: number, note: string, env?: any) {
-  if (!Number.isFinite(amount) || amount < 1 || amount > 1000000) {
-    throw new Error('Admin credit must be between ₹1 and ₹10,00,000.');
-  }
-  if (!note || note.trim().length < 5) throw new Error('A reason of at least 5 characters is required.');
+  assertValidAdminCredit(amount, note);
   return creditBalance(userId, amount, note || 'Admin Balance Adjustment', 'admin_credit', env);
 }
 

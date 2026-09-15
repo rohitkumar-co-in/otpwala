@@ -3,6 +3,7 @@ import { TigerSmsClient, TigerSmsError } from './tiger';
 import { calculateSellPrice, getPricingSettings } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
+import { assertProviderCanFund, assertPurchaseAllowed, classifyExpiredProviderStatus } from './policies';
 
 async function enforcePurchaseLimits(supabase: any, userId: string) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -14,9 +15,7 @@ async function enforcePurchaseLimits(supabase: any, userId: string) {
   ]);
   const queryError = active.error || recent.error || daily.error;
   if (queryError) throw new Error('Unable to verify purchase safety limits. Please retry shortly.');
-  if ((active.count || 0) >= 3) throw new Error('You already have 3 active numbers. Complete or cancel one before buying another.');
-  if ((recent.count || 0) >= 10) throw new Error('Purchase limit reached. Please wait 10 minutes before trying again.');
-  if ((daily.count || 0) >= 50) throw new Error('Daily purchase limit reached. Contact support if you need a higher limit.');
+  assertPurchaseAllowed({ active: active.count || 0, recent: recent.count || 0, daily: daily.count || 0 });
 }
 
 export async function buyNumber(
@@ -58,11 +57,7 @@ export async function buyNumber(
 
   // Avoid charging the wallet when the upstream account cannot fund the order.
   const providerBalance = parseFloat((await tiger.getBalance()).balance || '0');
-  if (!Number.isFinite(providerBalance) || providerBalance < costPriceUsd) {
-    const error = new Error('Carrier numbers are temporarily unavailable. Please try again later.');
-    (error as any).code = 'PROVIDER_LOW_BALANCE';
-    throw error;
-  }
+  assertProviderCanFund(providerBalance, costPriceUsd);
 
   // 3. Calculate sell price in INR
   const { rate: fxRate } = await getPricingSettings(env);
@@ -376,13 +371,9 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
         result.delivered++;
         continue;
       }
-      const isProviderWaiting = provider.status === 'waiting' || provider.status.startsWith('status_wait');
-      const isTerminalWithoutOtp = [
-        'cancelled',
-        'completed',
-        'status_finish',
-        'no_activation',
-      ].includes(provider.status);
+      const providerOutcome = classifyExpiredProviderStatus(provider.status);
+      const isProviderWaiting = providerOutcome === 'cancel_and_refund';
+      const isTerminalWithoutOtp = providerOutcome === 'refund';
 
       if (isProviderWaiting) await tiger.setStatus(order.activation_id, 8);
       if (isProviderWaiting || isTerminalWithoutOtp) {
