@@ -36,6 +36,19 @@ async function getCountryName(id: number): Promise<string> {
   }
 }
 
+async function refundOrderAtomically(
+  orderId: string,
+  terminalStatus: 'cancelled' | 'expired',
+  reason: string
+): Promise<void> {
+  const { error } = await supabaseAdmin.rpc('refund_order_atomic', {
+    p_order_id: orderId,
+    p_terminal_status: terminalStatus,
+    p_reason: reason,
+  });
+  if (error) throw new Error(error.message || 'Order refund failed');
+}
+
 /**
  * Buy a number — full transactional flow.
  */
@@ -191,23 +204,11 @@ export async function checkOrderStatus(
       // Ignore upstream error if already expired
     }
 
-    // Auto-refund user wallet
-    await creditBalance(
-      userId,
-      parseFloat(order.sell_price_inr),
-      'refund',
+    await refundOrderAtomically(
+      orderId,
+      'expired',
       `Auto-refund: Order expired without SMS (${order.service_name})`
     );
-
-    // Update order status to expired
-    await supabaseAdmin
-      .from('orders')
-      .update({
-        status: 'expired',
-        tiger_status: 'EXPIRED',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId);
 
     return formatOrderStatus({
       ...order,
@@ -243,21 +244,11 @@ export async function checkOrderStatus(
   } catch (e: any) {
     // If upstream says activation was cancelled/not found, auto-refund
     if (e?.code === 'ACCESS_CANCEL' || e?.code === 'NO_ACTIVATION') {
-      await creditBalance(
-        userId,
-        parseFloat(order.sell_price_inr),
-        'refund',
+      await refundOrderAtomically(
+        orderId,
+        'expired',
         `Auto-refund: Activation cancelled upstream (${order.service_name})`
       );
-
-      await supabaseAdmin
-        .from('orders')
-        .update({
-          status: 'expired',
-          tiger_status: 'ACCESS_CANCEL',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
 
       return formatOrderStatus({
         ...order,
@@ -315,24 +306,13 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
     throw new OrderError('TIGER_SMS_UNAVAILABLE', 'TIGER_SMS_UNAVAILABLE');
   }
 
-  // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
-  // now is it safe to credit the user's OTPWala wallet.
-  await creditBalance(
-    userId,
-    parseFloat(order.sell_price_inr),
-    'refund',
+  // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. The
+  // database function records the credit and terminal order state together.
+  await refundOrderAtomically(
+    orderId,
+    'cancelled',
     `Refund: Cancelled ${order.service_name} (${order.country_name})`
   );
-
-  // Update order status
-  await supabaseAdmin
-    .from('orders')
-    .update({
-      status: 'cancelled',
-      tiger_status: 'ACCESS_CANCEL',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', orderId);
 }
 
 /**
@@ -446,21 +426,9 @@ export async function getOrderHistory(
     if (order.status === 'waiting') {
       const elapsedSec = (now - new Date(order.created_at).getTime()) / 1000;
       if (elapsedSec > 1200) {
-        // Mark as expired in DB
-        await supabaseAdmin
-          .from('orders')
-          .update({
-            status: 'expired',
-            tiger_status: 'EXPIRED',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', order.id);
-
-        // Refund user
-        await creditBalance(
-          userId,
-          Number(order.sell_price_inr),
-          'refund',
+        await refundOrderAtomically(
+          order.id,
+          'expired',
           `Auto-refund: Order expired without SMS (${order.service_name})`
         );
         

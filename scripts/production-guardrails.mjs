@@ -24,6 +24,7 @@ const files = {
   ledgerAppendOnlyMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql', import.meta.url), 'utf8'),
   legacyAdminRoutes: readFileSync(new URL('../apps/api/src/routes/admin.ts', import.meta.url), 'utf8'),
   legacyWallet: readFileSync(new URL('../apps/api/src/services/wallet.ts', import.meta.url), 'utf8'),
+  legacyOrder: readFileSync(new URL('../apps/api/src/services/order.ts', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -78,6 +79,7 @@ requireText(files.ledgerAppendOnlyMigration, 'wallet_deduction_must_be_negative'
 requireText(files.legacyWallet, "rpc('post_wallet_transaction'", 'Legacy API wallet service bypasses the atomic ledger RPC');
 if (/from\('wallet_transactions'\)\.insert\(/.test(files.legacyWallet)) failures.push('Legacy API wallet service writes directly to the append-only ledger');
 requireText(files.legacyAdminRoutes, "rpc('approve_payment_request_atomic'", 'Legacy API payment approval bypasses the atomic approval RPC');
+requireText(files.legacyOrder, "rpc('refund_order_atomic'", 'Legacy API order refunds bypass the atomic refund RPC');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
