@@ -227,7 +227,7 @@ export default function RechargeManager() {
           <div className="modal-content card glass-card" style={{ width: '100%', maxWidth: '420px', padding: '1.5rem', animation: 'scaleUp 0.2s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-display)' }}>Change Balance</h3>
-              <button className="btn btn-ghost btn-sm btn-icon" onClick={() => setCreditUserTarget(null)}><XIcon size={18} /></button>
+              <button type="button" className="btn btn-ghost btn-sm btn-icon" aria-label="Close balance editor" onClick={() => setCreditUserTarget(null)}><XIcon size={18} /></button>
             </div>
             
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
@@ -240,6 +240,7 @@ export default function RechargeManager() {
                 <input 
                   type="number" 
                   className="input" 
+                  aria-label="Balance adjustment amount"
                   value={creditAmount}
                   onChange={(e) => setCreditAmount(Number(e.target.value))}
                   required
@@ -252,6 +253,7 @@ export default function RechargeManager() {
                 <input 
                   type="text" 
                   className="input" 
+                  aria-label="Balance adjustment reason"
                   value={creditReason}
                   onChange={(e) => setCreditReason(e.target.value)}
                   required
