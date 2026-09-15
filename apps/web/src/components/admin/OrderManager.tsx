@@ -158,7 +158,7 @@ export default function OrderManager() {
                         </span>
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
+                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Dialing code: {formatPhoneNumber(o.phone_number, o.country_code).dialCode ? `+${formatPhoneNumber(o.phone_number, o.country_code).dialCode}` : '—'}</small></td>
                     <td style={{ padding: '0.75rem' }}>
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
