@@ -93,7 +93,11 @@ export async function replyToSupportTicket(ticketId: string, actorId: string, re
   const entry = `[${label} · ${new Date().toISOString()}]\n${reply}`;
   const combined = ticket.public_reply ? `${ticket.public_reply}\n\n${entry}` : entry;
   const update: any = { public_reply: combined.slice(-12000), updated_at: new Date().toISOString() };
-  if (!isAdmin && (ticket.status === 'resolved' || ticket.status === 'closed')) update.status = 'open';
+  // Any new message reopens a resolved/closed conversation so both sides can continue the same thread.
+  if (ticket.status === 'resolved' || ticket.status === 'closed') {
+    update.status = 'open';
+    update.resolved_at = null;
+  }
   const { data, error } = await supabase.from('support_tickets').update(update).eq('id', ticketId).select().single();
   if (error) throw error;
   return data;
