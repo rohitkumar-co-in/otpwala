@@ -176,6 +176,7 @@ export default function SettingsPage() {
       {/* Grid: Change Password Card & Account Details */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1.25rem', alignItems: 'start' }}>
         
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', minWidth: 0 }}>
         {/* Card 1: Change Password */}
         <div className="card-glass" style={{ padding: 'clamp(1.25rem, 2vw, 1.75rem)', borderRadius: 'var(--radius-lg, 16px)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -429,6 +430,10 @@ export default function SettingsPage() {
           </form>
         </div>
 
+        {/* Keep the strongest account protection next to the password controls. */}
+        <MfaPanel />
+        </div>
+
         {/* Card 2: Account Security Overview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div className="card-glass" style={{ padding: 'clamp(1.25rem, 2vw, 1.75rem)', borderRadius: 'var(--radius-lg, 16px)' }}>
@@ -502,7 +507,6 @@ export default function SettingsPage() {
               Session ID: {activeSessionId ? activeSessionId.substring(0, 16) + '...' : 'Active'}
             </span>
           </div>
-          <MfaPanel />
           <div className="card-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg, 16px)' }}>
             <h3 style={{ marginTop: 0 }}>Privacy &amp; Account Data</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>Download your profile, orders, wallet ledger, and support history, or request reviewed account deletion.</p>
