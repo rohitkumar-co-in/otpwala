@@ -21,6 +21,7 @@ const files = {
   erasureMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915180000_data_erasure_workflow.sql', import.meta.url), 'utf8'),
   integrityMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915190000_financial_integrity_report.sql', import.meta.url), 'utf8'),
   ledgerBaselineMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql', import.meta.url), 'utf8'),
+  ledgerAppendOnlyMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql', import.meta.url), 'utf8'),
   legacyAdminRoutes: readFileSync(new URL('../apps/api/src/routes/admin.ts', import.meta.url), 'utf8'),
 };
 
@@ -71,6 +72,8 @@ if (/from\('wallet_transactions'\)\.delete\(\)/.test(files.legacyAdminRoutes)) f
 requireText(files.integrityMigration, 'financial_integrity_report', 'Financial cross-ledger integrity report is missing');
 requireText(files.ledgerBaselineMigration, 'financial_ledger_baselines', 'Financial ledger baseline is missing');
 requireText(files.ledgerBaselineMigration, 'opening_balance', 'Legacy opening balances are not recorded safely');
+requireText(files.ledgerAppendOnlyMigration, 'wallet_transactions_append_only', 'Wallet ledger append-only guard is missing');
+requireText(files.ledgerAppendOnlyMigration, 'wallet_deduction_must_be_negative', 'Wallet debit direction guard is missing');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
