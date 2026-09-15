@@ -142,9 +142,6 @@ export default function OrderManager() {
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                         {o.profiles?.email || 'Unknown User'}
                       </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        Tiger ID: {o.activation_id || o.tiger_order_id || '—'}
-                      </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
                       <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
