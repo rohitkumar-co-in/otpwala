@@ -265,6 +265,31 @@ export default function AdminDashboard() {
         </section>
       )}
 
+      {stats?.financialIntegrity && (
+        <section className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'var(--success)' : 'var(--error)'}` }} aria-labelledby="financial-integrity-heading">
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div><h2 id="financial-integrity-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Financial Integrity Check</h2><p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>Cross-checks orders, refunds, approved top-ups, and profile balances against the immutable wallet ledger.</p></div>
+            <span className={`badge ${Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'badge-success' : 'badge-error'}`}>{Number(stats.financialIntegrity.totalIssues || 0) === 0 ? 'All checks passed' : `${stats.financialIntegrity.totalIssues} issue(s)`}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '0.55rem', marginTop: '0.85rem' }}>
+            {[
+              ['Orders without debit', stats.financialIntegrity.ordersWithoutDebit],
+              ['Order amount mismatch', stats.financialIntegrity.orderDebitMismatch],
+              ['Refunds without credit', stats.financialIntegrity.refundsWithoutCredit],
+              ['Refund amount mismatch', stats.financialIntegrity.refundAmountMismatch],
+              ['Top-ups without credit', stats.financialIntegrity.topupsWithoutCredit],
+              ['Top-up amount mismatch', stats.financialIntegrity.topupAmountMismatch],
+              ['Wallet balance mismatch', stats.financialIntegrity.walletBalanceMismatch],
+            ].map(([label,value]) => <div key={String(label)} style={{ padding: '0.65rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', fontSize: '0.76rem', color: 'var(--text-muted)' }}>{label}<strong style={{ display: 'block', marginTop: '0.2rem', fontSize: '1rem', color: Number(value || 0) ? 'var(--error)' : 'var(--success)' }}>{Number(value || 0)}</strong></div>)}
+          </div>
+          {(Number(stats.financialIntegrity.legacyUnlinkedOrders || 0) + Number(stats.financialIntegrity.legacyUnlinkedTopups || 0)) > 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: '0.85rem 0 0' }}>
+              Historical pre-baseline records: {Number(stats.financialIntegrity.legacyUnlinkedOrders || 0)} order(s) and {Number(stats.financialIntegrity.legacyUnlinkedTopups || 0)} top-up(s) lack provable legacy links. They are retained for audit and excluded from the live atomic-ledger control.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {/* Tiger SMS Balance & Status */}

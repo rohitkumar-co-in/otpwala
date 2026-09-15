@@ -19,6 +19,8 @@ const files = {
   supabase: readFileSync(new URL('../functions/lib/supabase.ts', import.meta.url), 'utf8'),
   statusPage: readFileSync(new URL('../apps/web/src/pages/status.astro', import.meta.url), 'utf8'),
   erasureMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915180000_data_erasure_workflow.sql', import.meta.url), 'utf8'),
+  integrityMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915190000_financial_integrity_report.sql', import.meta.url), 'utf8'),
+  ledgerBaselineMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -64,6 +66,10 @@ requireText(files.erasureMigration, 'erase_user_personal_data', 'Reviewed person
 requireText(files.erasureMigration, 'financial_records_retained', 'Data erasure does not preserve financial records');
 requireText(files.routes, "privacy.erasure_completed", 'Completed data erasures are not audited');
 if (/from\('wallet_transactions'\)\.delete\(\)/.test(files.routes)) failures.push('User deletion still destroys the financial ledger');
+requireText(files.integrityMigration, 'financial_integrity_report', 'Financial cross-ledger integrity report is missing');
+requireText(files.ledgerBaselineMigration, 'financial_ledger_baselines', 'Financial ledger baseline is missing');
+requireText(files.ledgerBaselineMigration, 'opening_balance', 'Legacy opening balances are not recorded safely');
+requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
