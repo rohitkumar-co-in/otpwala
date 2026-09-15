@@ -1092,6 +1092,12 @@ router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, re
 
     res.json({ success: true, message: 'Deposit request rejected' });
 
+  } catch (e: any) {
+    console.error('Error rejecting payment request:', e);
+    res.status(500).json({ success: false, error: e.message || 'Failed to reject payment request' });
+  }
+});
+
 /**
  * POST /api/admin/catalog/country
  * Toggle or set a specific country enabled/disabled.

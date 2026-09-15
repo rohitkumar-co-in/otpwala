@@ -124,6 +124,7 @@ export default function OrderHistory() {
                   <th>Number</th>
                   <th>OTP Code</th>
                   <th>Status</th>
+                  <th>Refund</th>
                   <th>Price</th>
                   <th>Date</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
@@ -172,6 +173,17 @@ export default function OrderHistory() {
                       )}
                     </td>
                     <td><StatusBadge status={order.status} /></td>
+                    <td>
+                      {order.refund_status === 'refunded' ? (
+                        <span className="badge badge-success">Credited</span>
+                      ) : ['pending', 'processing'].includes(order.refund_status) ? (
+                        <span className="badge badge-warning">Processing</span>
+                      ) : order.refund_status === 'failed' ? (
+                        <span className="badge badge-error">Needs Support</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                      )}
+                    </td>
                     <td style={{ fontWeight: 600 }}>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleString()}

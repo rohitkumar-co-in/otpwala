@@ -7,25 +7,8 @@ import countryFlags from '../data/countryFlags.json';
 export async function getAdminDashboard(env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
-
-  const [
-    { count: totalUsers },
-    { count: totalOrders },
-    revenueResult,
-    todayOrdersResult,
-    activeOrdersResult,
-  ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('orders').select('sell_price_inr').in('status', ['completed', 'code_received']),
-    supabase.from('orders').select('sell_price_inr')
-      .gte('created_at', new Date().toISOString().split('T')[0])
-      .in('status', ['completed', 'code_received']),
-    supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'waiting'),
-  ]);
-
-  const totalRevenue = (revenueResult.data || []).reduce((sum: number, o: any) => sum + parseFloat(o.sell_price_inr || 0), 0);
-  const revenueToday = (todayOrdersResult.data || []).reduce((sum: number, o: any) => sum + parseFloat(o.sell_price_inr || 0), 0);
+  const { data: metrics, error: metricsError } = await supabase.rpc('admin_dashboard_metrics');
+  if (metricsError) throw metricsError;
 
   let tigerBalance = 0;
   try {
@@ -34,11 +17,7 @@ export async function getAdminDashboard(env?: any) {
   } catch {}
 
   return {
-    totalUsers: totalUsers || 0,
-    totalOrders: totalOrders || 0,
-    totalRevenue,
-    revenueToday,
-    activeOrders: activeOrdersResult.count || 0,
+    ...(metrics || {}),
     tigerBalance,
   };
 }
@@ -118,11 +97,13 @@ export async function banUser(userId: string, banned: boolean, reason?: string, 
   return { success: true };
 }
 
-export async function getAdminOrders(limit = 20, offset = 0, env?: any) {
+export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env?: any) {
   const supabase = getSupabaseAdmin(env);
-  const { data, count, error } = await supabase
+  let query = supabase
     .from('orders')
-    .select('*', { count: 'exact' })
+    .select('*, profiles(email)', { count: 'exact' });
+  if (status && status !== 'all') query = query.eq('status', status);
+  const { data, count, error } = await query
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -204,64 +185,17 @@ export async function getPaymentRequests(env?: any) {
   });
 }
 
-export async function approvePaymentRequest(id: string, env?: any) {
+export async function approvePaymentRequest(id: string, actorId = 'system', env?: any) {
   const supabase = getSupabaseAdmin(env);
-  const { data: request, error: fetchErr } = await supabase
-    .from('payment_requests')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (fetchErr || !request) throw new Error('Payment request not found');
-  const st = request.status;
-  if (st === 'approved' || st === 'paid') {
-    throw new Error('This payment request has already been approved and credited.');
+  const { data, error } = await supabase.rpc('approve_payment_request_atomic', {
+    p_request_id: id,
+    p_admin_id: actorId,
+  });
+  if (error) {
+    if (error.message?.includes('already_approved')) throw new Error('This payment request has already been approved and credited.');
+    throw new Error(error.message || 'Payment approval failed');
   }
-
-  const amount = parseFloat(request.amount ?? request.amount_inr ?? 0);
-  const utr = request.transaction_id || request.gateway_payment_id || id;
-
-  // Credit user wallet balance
-  await creditBalance(request.user_id, amount, `Deposit approved (UTR: ${utr})`, 'topup', env);
-
-  // Mark request as approved/paid in payment_requests
-  let updateSuccess = false;
-
-  const res1 = await supabase
-    .from('payment_requests')
-    .update({ status: 'approved', updated_at: new Date().toISOString() })
-    .eq('id', id);
-
-  if (!res1.error) {
-    updateSuccess = true;
-  } else {
-    // Fallback to 'paid' if legacy status constraint is present
-    const res2 = await supabase
-      .from('payment_requests')
-      .update({ status: 'paid', updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (!res2.error) {
-      updateSuccess = true;
-    } else {
-      // Try updating status alone
-      const res3 = await supabase
-        .from('payment_requests')
-        .update({ status: 'approved' })
-        .eq('id', id);
-
-      if (!res3.error) {
-        updateSuccess = true;
-      } else {
-        await supabase
-          .from('payment_requests')
-          .update({ status: 'paid' })
-          .eq('id', id);
-      }
-    }
-  }
-
-  return { success: true };
+  return { success: true, transactionId: data?.[0]?.transaction_id, balanceAfter: data?.[0]?.balance_after };
 }
 
 export async function rejectPaymentRequest(id: string, reason = '', env?: any) {

@@ -230,19 +230,19 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Total Revenue */}
+        {/* Customer funds collected (approved top-ups only) */}
         <div className="card glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Revenue
+              Total Funds Collected
             </span>
             <DollarIcon size={20} color="#34d399" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: '#34d399' }}>
-            {loading && !stats ? '...' : `₹${parseFloat(stats?.totalRevenue || 0).toFixed(2)}`}
+            {loading && !stats ? '...' : `₹${parseFloat(stats?.totalTopups || 0).toFixed(2)}`}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
-            Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.revenueToday || 0).toFixed(2)}</strong>
+            Approved top-ups only · Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.topupsToday || 0).toFixed(2)}</strong>
           </div>
         </div>
 
@@ -281,6 +281,35 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {stats && (
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.05rem', margin: 0 }}>Order &amp; Financial Breakdown</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
+              Lifetime totals. Today uses Asia/Kolkata time. Sales and provider cost include OTP-delivered orders only.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
+            {[
+              ['OTP Delivered', stats.otpDelivered || 0, '#10b981'],
+              ['OTP Not Received', stats.otpNotReceived || 0, '#f59e0b'],
+              ['Refunds Issued', `${stats.refundCount || 0} · ₹${parseFloat(stats.refundAmount || 0).toFixed(2)}`, '#ef4444'],
+              ['Refunds Needing Attention', stats.refundsPending || 0, '#f97316'],
+              ['Gross OTP Sales', `₹${parseFloat(stats.grossOtpSales || 0).toFixed(2)}`, '#3b82f6'],
+              ['Provider Cost', `₹${parseFloat(stats.providerCostInr || 0).toFixed(2)}`, '#8b5cf6'],
+              ['Gross Profit', `₹${parseFloat(stats.grossProfit || 0).toFixed(2)}`, '#059669'],
+              ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
+              ['Admin Credits (Non-cash)', `₹${parseFloat(stats.adminCredits || 0).toFixed(2)}`, '#a855f7'],
+            ].map(([label, value, color]) => (
+              <div key={String(label)} style={{ padding: '0.85rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)' }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+                <div style={{ color: String(color), fontSize: '1.15rem', fontWeight: 800, marginTop: '0.3rem' }}>{String(value)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Manual Top-up Requests Section with Tabs */}
       {(() => {

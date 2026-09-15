@@ -23,7 +23,7 @@ export default function OrderManager() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAdminOrders(limit, page * limit);
+      const data = await getAdminOrders(limit, page * limit, statusFilter);
       setOrders(data?.orders || []);
       setTotal(data?.total || 0);
     } catch (err: any) {
@@ -35,7 +35,7 @@ export default function OrderManager() {
 
   useEffect(() => {
     loadOrders();
-  }, [page]);
+  }, [page, statusFilter]);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -43,9 +43,7 @@ export default function OrderManager() {
     setTimeout(() => setCopiedId(null), 1800);
   };
 
-  const filteredOrders = statusFilter === 'all'
-    ? orders
-    : orders.filter((o) => o.status === statusFilter);
+  const filteredOrders = orders;
 
   const totalPages = Math.ceil(total / limit);
 
@@ -89,7 +87,7 @@ export default function OrderManager() {
         {['all', 'waiting', 'code_received', 'completed', 'cancelled', 'expired'].map((st) => (
           <button
             key={st}
-            onClick={() => setStatusFilter(st)}
+            onClick={() => { setStatusFilter(st); setPage(0); }}
             className={`btn btn-sm ${statusFilter === st ? 'btn-primary' : 'btn-ghost'}`}
             style={{ textTransform: 'capitalize' }}
           >
@@ -124,7 +122,7 @@ export default function OrderManager() {
                   <th style={{ padding: '0.75rem' }}>Service / Country</th>
                   <th style={{ padding: '0.75rem' }}>Phone Number</th>
                   <th style={{ padding: '0.75rem' }}>OTP Code</th>
-                  <th style={{ padding: '0.75rem' }}>Sell Price</th>
+                  <th style={{ padding: '0.75rem' }}>Financials</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Time</th>
                 </tr>
@@ -199,10 +197,15 @@ export default function OrderManager() {
                       )}
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: '#34d399' }}>
-                      ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}
-                      {o.cost_price_usd && (
+                      <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
+                      {o.cost_price_inr != null && (
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                          Base: ${parseFloat(o.cost_price_usd).toFixed(2)}
+                          Provider: ₹{parseFloat(o.cost_price_inr).toFixed(2)}
+                        </div>
+                      )}
+                      {o.cost_price_inr != null && (o.sms_code || ['code_received', 'completed'].includes(o.status)) && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
+                          Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
                         </div>
                       )}
                     </td>

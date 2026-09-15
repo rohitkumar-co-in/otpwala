@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from './supabase';
 import { TigerSmsClient, TigerSmsError } from './tiger';
-import { calculateSellPrice } from './pricing';
+import { calculateSellPrice, getPricingSettings } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 
@@ -12,6 +12,7 @@ export async function buyNumber(
 ) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
+  const orderId = crypto.randomUUID();
 
   // 1. Verify service/country not disabled
   const { disabledServices, disabledCountries } = await getDisabledCatalog(env);
@@ -35,11 +36,13 @@ export async function buyNumber(
   }
 
   // 3. Calculate sell price in INR
+  const { rate: fxRate } = await getPricingSettings(env);
+  const costPriceInr = Math.round(costPriceUsd * fxRate * 10000) / 10000;
   const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env);
 
   // 4. Deduct balance from user wallet
   try {
-    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceCode.toUpperCase()}`, env);
+    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceCode.toUpperCase()}`, env, 'order', orderId, `purchase:${orderId}`);
   } catch (err: any) {
     const error = new Error('Insufficient wallet balance');
     (error as any).code = 'USER_INSUFFICIENT_FUNDS';
@@ -56,7 +59,7 @@ export async function buyNumber(
     phoneNumber = result.phoneNumber;
   } catch (err: any) {
     // Auto-refund on purchase failure
-    await creditBalance(userId, sellPriceInr, `Auto-refund: Purchase failed for ${serviceCode.toUpperCase()}`, 'refund', env);
+    await creditBalance(userId, sellPriceInr, `Auto-refund: Purchase failed for ${serviceCode.toUpperCase()}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
     throw err;
   }
 
@@ -74,6 +77,7 @@ export async function buyNumber(
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
+      id: orderId,
       user_id: userId,
       activation_id: activationId,
       service_code: serviceCode,
@@ -82,16 +86,22 @@ export async function buyNumber(
       country_name: countryName,
       phone_number: phoneNumber,
       cost_price_usd: costPriceUsd,
+      cost_price_inr: costPriceInr,
+      fx_rate: fxRate,
       sell_price_inr: sellPriceInr,
       price_inr: sellPriceInr,
       status: 'waiting',
       tiger_status: 'STATUS_WAIT_CODE',
+      expires_at: expiresAt,
     })
     .select()
     .single();
 
   if (orderError) {
     console.error('Failed to create order record:', orderError);
+    try { await tiger.setStatus(activationId, 8); } catch {}
+    await creditBalance(userId, sellPriceInr, `Auto-refund: Order recording failed for ${serviceCode.toUpperCase()}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
+    throw new Error('Purchase could not be recorded. Your wallet has been refunded.');
   }
 
   // 7. Update user stats in profiles
@@ -109,7 +119,7 @@ export async function buyNumber(
   }
 
   return {
-    orderId: order?.id || activationId,
+    orderId,
     activationId,
     phoneNumber,
     serviceCode,
@@ -128,6 +138,16 @@ async function findOrder(supabase: any, orderId: string, userId: string) {
   query = isUuid ? query.eq('id', orderId) : query.eq('activation_id', orderId);
   const { data } = await query.maybeSingle();
   return data;
+}
+
+async function refundOrder(supabase: any, orderId: string, terminalStatus: 'cancelled' | 'expired', reason: string) {
+  const { data, error } = await supabase.rpc('refund_order_atomic', {
+    p_order_id: orderId,
+    p_terminal_status: terminalStatus,
+    p_reason: reason,
+  });
+  if (error) throw new Error(error.message || 'Order refund failed');
+  return data?.[0];
 }
 
 export async function checkOrderStatus(orderId: string, userId: string, env?: any) {
@@ -185,11 +205,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
   }
 
   if (statusResult.status === 'cancelled' && order.status !== 'cancelled') {
-    await creditBalance(userId, parseFloat(order.sell_price_inr), `Refund: Order cancelled (${order.service_name})`, 'refund', env);
-    await supabase
-      .from('orders')
-      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .eq('id', order.id);
+    await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled (${order.service_name})`);
 
     return {
       orderId: order.id,
@@ -201,6 +217,24 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
       priceInr: order.sell_price_inr,
       createdAt: order.created_at,
     };
+  }
+
+  const expiryTime = order.expires_at ? new Date(order.expires_at).getTime() : new Date(order.created_at).getTime() + 20 * 60 * 1000;
+  if (statusResult.status === 'waiting' && Number.isFinite(expiryTime) && Date.now() >= expiryTime) {
+    const tigerStatus = await tiger.setStatus(order.activation_id, 8);
+    if (tigerStatus === 'ACCESS_CANCEL') {
+      await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
+      return {
+        orderId: order.id,
+        status: 'expired',
+        phoneNumber: order.phone_number,
+        serviceCode: order.service_code,
+        serviceName: order.service_name,
+        countryName: order.country_name,
+        priceInr: order.sell_price_inr,
+        createdAt: order.created_at,
+      };
+    }
   }
 
   return {
@@ -224,7 +258,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
-  if (!['waiting', 'code_received'].includes(order.status)) {
+  if (order.status !== 'waiting') {
     throw new Error('Order cannot be cancelled in its current status');
   }
 
@@ -250,12 +284,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
 
   // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
   // now is it safe to credit the user's OTPWala wallet.
-  await creditBalance(userId, parseFloat(order.sell_price_inr), `Refund: Order cancelled by user (${order.service_name})`, 'refund', env);
-
-  await supabase
-    .from('orders')
-    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('id', order.id);
+  await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled by user (${order.service_name})`);
 
   return { success: true };
 }
@@ -290,4 +319,43 @@ export async function retryOrder(orderId: string, userId: string, env?: any) {
 
   await tiger.setStatus(order.activation_id, 3);
   return { success: true };
+}
+
+export async function reconcileExpiredOrders(env?: any, limit = 50) {
+  const supabase = getSupabaseAdmin(env);
+  const tiger = new TigerSmsClient(env);
+  const { data: orders, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('status', 'waiting')
+    .lte('expires_at', new Date().toISOString())
+    .order('expires_at', { ascending: true })
+    .limit(Math.min(Math.max(limit, 1), 200));
+  if (error) throw error;
+
+  const result = { scanned: orders?.length || 0, delivered: 0, refunded: 0, failed: 0 };
+  for (const order of orders || []) {
+    try {
+      const provider = await tiger.getStatus(order.activation_id);
+      if (provider.status === 'code_received' && provider.code) {
+        await supabase.from('orders').update({
+          status: 'code_received', sms_code: provider.code, sms_text: provider.text || '',
+          tiger_status: 'STATUS_OK', updated_at: new Date().toISOString(),
+        }).eq('id', order.id).eq('status', 'waiting');
+        result.delivered++;
+        continue;
+      }
+      if (provider.status === 'waiting') await tiger.setStatus(order.activation_id, 8);
+      if (provider.status === 'waiting' || provider.status === 'cancelled') {
+        await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
+        result.refunded++;
+      }
+    } catch (err: any) {
+      result.failed++;
+      await supabase.from('orders').update({
+        refund_status: 'failed', refund_failure_reason: String(err?.message || err).slice(0, 500), updated_at: new Date().toISOString(),
+      }).eq('id', order.id).eq('status', 'waiting');
+    }
+  }
+  return result;
 }

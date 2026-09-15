@@ -168,7 +168,7 @@ export const topUp = (amount: number, method = 'upi', utr?: string) =>
 export const getOrders = (limit = 20, offset = 0, status?: string) => {
   let url = `/api/orders?limit=${limit}&offset=${offset}`;
   if (status) url += `&status=${status}`;
-  return apiFetch<{ orders: any[]; total: number }>(url);
+  return apiFetch<{ orders: any[]; total: number; summary?: { totalOrders: number; activeOrders: number; otpDelivered: number; otpNotReceived: number; totalRefunded: number; spentOnDelivered: number } }>(url);
 };
 
 // ─── Admin ───
@@ -219,8 +219,8 @@ export const saveAdminSetting = (key: string, value: string) =>
 export const saveAdminSettingsBatch = (settings: Record<string, any>) =>
   apiFetch<any>('/api/admin/settings', { method: 'POST', body: JSON.stringify({ settings }) });
 export const getAdminTigerBalance = () => apiFetch<any>('/api/admin/tiger-balance');
-export const getAdminOrders = (limit = 20, offset = 0) =>
-  apiFetch<any>(`/api/admin/orders?limit=${limit}&offset=${offset}`);
+export const getAdminOrders = (limit = 20, offset = 0, status = 'all') =>
+  apiFetch<any>(`/api/admin/orders?limit=${limit}&offset=${offset}&status=${encodeURIComponent(status)}`);
 export const getAdminPaymentRequests = () =>
   apiFetch<any[]>('/api/admin/payment-requests');
 export const getAdminRecharges = (limit = 20, offset = 0, search = '') =>

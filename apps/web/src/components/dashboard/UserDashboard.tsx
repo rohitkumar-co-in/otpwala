@@ -13,6 +13,7 @@ import {
 export default function UserDashboard() {
   const [balance, setBalance] = useState(0);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function UserDashboard() {
       ]);
       setBalance(parseFloat(walletData.balance) || 0);
       setRecentOrders(ordersData.orders || []);
+      setSummary(ordersData.summary || { totalOrders: ordersData.total || 0 });
     } catch (err) {
       console.error('Dashboard load error:', err);
     } finally {
@@ -42,7 +44,7 @@ export default function UserDashboard() {
     );
   }
 
-  const activeOrders = recentOrders.filter(o => o.status === 'waiting' || o.status === 'code_received');
+  const activeOrders = recentOrders.filter(o => o.status === 'waiting');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -59,14 +61,26 @@ export default function UserDashboard() {
         <StatCard
           icon={<ClipboardListIcon size={24} color="var(--accent-primary)" />}
           label="Total Orders"
-          value={String(recentOrders.length)}
+          value={String(summary.totalOrders || 0)}
           color="var(--accent-primary)"
         />
         <StatCard
           icon={<ClockIcon size={24} color="var(--warning)" />}
           label="Active Orders"
-          value={String(activeOrders.length)}
+          value={String(summary.activeOrders || 0)}
           color="var(--warning)"
+        />
+        <StatCard
+          icon={<CheckIcon size={24} color="var(--success)" />}
+          label="OTP Delivered"
+          value={String(summary.otpDelivered || 0)}
+          color="var(--success)"
+        />
+        <StatCard
+          icon={<XIcon size={24} color="var(--error)" />}
+          label="OTP Not Received"
+          value={String(summary.otpNotReceived || 0)}
+          color="var(--error)"
         />
       </div>
 

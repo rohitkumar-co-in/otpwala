@@ -30,13 +30,12 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.otpwala.me')) {
       callback(null, true);
-    } else {
-      callback(null, true); // Permissive fallback for production API client
-    }
+    } else callback(new Error('Origin not allowed'));
   },
   credentials: true,
 }));
 app.use(express.json());
+app.disable('x-powered-by');
 
 // Rate limiting
 const limiter = rateLimit({

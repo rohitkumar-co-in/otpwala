@@ -1,6 +1,6 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
 import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry } from '../lib/catalog';
-import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder } from '../lib/order';
+import { buyNumber, checkOrderStatus, cancelOrder, completeOrder, retryOrder, reconcileExpiredOrders } from '../lib/order';
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
@@ -37,7 +37,7 @@ function jsonResponse(data: any, status = 200) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://otpwala.me',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-session-id',
     },
@@ -46,7 +46,7 @@ function jsonResponse(data: any, status = 200) {
 
 function corsHeaders() {
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://otpwala.me',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-session-id',
   };
@@ -141,6 +141,14 @@ export const onRequest = async (context: any) => {
       return jsonResponse({ status: 'ok', timestamp: new Date().toISOString() });
     }
 
+    if (path === '/api/cron/reconcile' && method === 'POST') {
+      const cronSecret = String(env?.CRON_SECRET || '').trim();
+      const supplied = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+      if (!cronSecret || supplied !== cronSecret) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      const result = await reconcileExpiredOrders(env);
+      return jsonResponse({ success: true, data: result });
+    }
+
     // ─── Branding ───
     if (path === '/api/branding') {
       const supabase = getSupabaseAdmin(env);
@@ -167,12 +175,17 @@ export const onRequest = async (context: any) => {
 
     // ─── Auth Config & Email Pre-check ───
     if (path === '/api/auth/config') {
+      const supabase = getSupabaseAdmin(env);
+      const { data } = await supabase.from('settings').select('key,value').in('key', [
+        'auth_allow_registration', 'auth_allow_email_signup', 'auth_allow_google_login',
+      ]);
+      const settings = Object.fromEntries((data || []).map((row: any) => [row.key, String(row.value)]));
       return jsonResponse({
         success: true,
         data: {
-          allowRegistration: true,
-          allowEmailSignup: true,
-          allowGoogleLogin: true,
+          allowRegistration: settings.auth_allow_registration !== 'false',
+          allowEmailSignup: settings.auth_allow_email_signup !== 'false',
+          allowGoogleLogin: settings.auth_allow_google_login !== 'false',
         },
       });
     }
@@ -543,7 +556,18 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: false, error: 'Invalid deposit amount' }, 400);
       }
 
+      if (!/^\d{12}$/.test(utr)) {
+        return jsonResponse({ success: false, error: 'Enter a valid 12-digit UTR / reference number' }, 400);
+      }
+
       const supabase = getSupabaseAdmin(env);
+      const walletConfig = await getWalletConfig(env);
+      if (amount < walletConfig.minDeposit || amount > walletConfig.maxDeposit) {
+        return jsonResponse({ success: false, error: `Deposit amount must be between ₹${walletConfig.minDeposit} and ₹${walletConfig.maxDeposit}` }, 400);
+      }
+
+      const { data: duplicateUtr } = await supabase.from('payment_requests').select('id').ilike('transaction_id', utr).maybeSingle();
+      if (duplicateUtr) return jsonResponse({ success: false, error: 'This UTR / reference number has already been submitted' }, 409);
       let data: any = null;
 
       // Try inserting with modern column names
@@ -664,13 +688,16 @@ export const onRequest = async (context: any) => {
         query = query.eq('status', status);
       }
 
-      const { data, count } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+      const [{ data, count, error: ordersError }, { data: summary, error: summaryError }] = await Promise.all([
+        query.order('created_at', { ascending: false }).range(offset, offset + limit - 1),
+        supabase.rpc('user_order_metrics', { p_user_id: auth.userId }),
+      ]);
+      if (ordersError) throw ordersError;
+      if (summaryError) throw summaryError;
 
       return jsonResponse({
         success: true,
-        data: { orders: data || [], total: count || 0 },
+        data: { orders: data || [], total: count || 0, summary: summary || {} },
       });
     }
 
@@ -736,7 +763,7 @@ export const onRequest = async (context: any) => {
           if (data.startsWith('approve_')) {
             const requestId = data.replace(/^approve_/, '');
             try {
-              await approvePaymentRequest(requestId, env);
+              await approvePaymentRequest(requestId, `telegram:${fromId}`, env);
               await answerCallbackQuery(callbackId, '✅ Deposit approved & credited successfully!', false, config.botToken);
 
               if (messageId && chatId && config.botToken) {
@@ -793,7 +820,7 @@ export const onRequest = async (context: any) => {
 
       try {
         if (action === 'approve') {
-          await approvePaymentRequest(id, env);
+          await approvePaymentRequest(id, 'telegram-action-link', env);
           return new Response(
             renderActionPageHtml({
               success: true,
@@ -1019,7 +1046,8 @@ export const onRequest = async (context: any) => {
       if (path === '/api/admin/orders' && method === 'GET') {
         const limit = parseInt(url.searchParams.get('limit') || '20', 10);
         const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-        const orders = await getAdminOrders(limit, offset, env);
+        const status = url.searchParams.get('status') || 'all';
+        const orders = await getAdminOrders(limit, offset, status, env);
         return jsonResponse({ success: true, data: orders });
       }
 
@@ -1066,7 +1094,7 @@ export const onRequest = async (context: any) => {
 
       const paymentApproveMatch = path.match(/^\/api\/admin\/payment-requests\/([^\/]+)\/approve$/);
       if (paymentApproveMatch && method === 'POST') {
-        await approvePaymentRequest(paymentApproveMatch[1], env);
+        await approvePaymentRequest(paymentApproveMatch[1], auth.userId, env);
         return jsonResponse({ success: true });
       }
 
