@@ -57,7 +57,8 @@ export async function getUserSupportTickets(userId: string, env?: any) {
 export async function getAdminSupportTickets(status = 'all', env?: any) {
   const supabase = getSupabaseAdmin(env);
   let query = supabase.from('support_tickets').select('*,profiles:user_id(email,full_name)').order('created_at', { ascending: false }).limit(200);
-  if (status !== 'all') query = query.eq('status', status);
+  if (status === 'open') query = query.in('status', ['open', 'in_progress']);
+  else if (status !== 'all') query = query.eq('status', status);
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
@@ -72,7 +73,8 @@ export async function updateSupportTicket(ticketId: string, actorId: string, inp
   if (!allowedPriorities.has(priority)) throw new Error('Invalid ticket priority.');
   if (adminNotes.length > 4000) throw new Error('Admin notes are too long.');
   if (publicReply.length > 4000) throw new Error('Public reply is too long.');
-  const update: any = { status, priority, admin_notes: adminNotes || null, public_reply: publicReply || null, assigned_to: actorId, updated_at: new Date().toISOString() };
+  const normalizedStatus = status === 'in_progress' ? 'open' : status;
+  const update: any = { status: normalizedStatus, priority, admin_notes: adminNotes || null, public_reply: publicReply || null, assigned_to: actorId, updated_at: new Date().toISOString() };
   if (status === 'resolved' || status === 'closed') update.resolved_at = new Date().toISOString();
   const supabase = getSupabaseAdmin(env);
   const { data, error } = await supabase.from('support_tickets').update(update).eq('id', ticketId).select().single();

@@ -44,13 +44,13 @@ export default function SupportManager() {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}><button className="btn btn-primary btn-sm" disabled={busy === d.id} onClick={() => processDeletion(d.id,'approve')}>Approve secure erasure</button><button className="btn btn-ghost btn-sm" disabled={busy === d.id} onClick={() => processDeletion(d.id,'reject')}>Reject request</button></div>
       </article>)}
     </section>
-    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>{['open','in_progress','resolved','closed','all'].map((s) => <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter(s)}>{s.replace('_',' ')}</button>)}</div>
+    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>{['open','resolved','closed','all'].map((s) => <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter(s)}>{s === 'open' ? 'Open' : s.charAt(0).toUpperCase() + s.slice(1)}</button>)}</div>
     {tickets.length === 0 && <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>No matching tickets.</div>}
     {tickets.map((t) => <article className="card" key={t.id} style={{ padding: '1rem', display: 'grid', gap: '0.7rem', overflowWrap: 'anywhere' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}><strong>{t.subject}</strong><span style={{ display: 'inline-flex', alignItems: 'center', gap: '.6rem' }}><span className="badge" style={{ background: String(t.status).toLowerCase() === 'closed' ? 'rgba(239,68,68,.14)' : String(t.status).toLowerCase() === 'resolved' ? 'rgba(16,185,129,.14)' : 'rgba(245,158,11,.16)', color: String(t.status).toLowerCase() === 'closed' ? '#dc2626' : String(t.status).toLowerCase() === 'resolved' ? '#059669' : '#b45309' }}>{String(t.status).toLowerCase() === 'closed' ? 'Closed' : String(t.status).toLowerCase() === 'resolved' ? 'Resolved' : 'Open'}</span>{t.profiles?.email || t.user_id}</span></div>
       <p style={{ margin: 0 }}>{t.message}</p>{t.order_id && <small>Order: {t.order_id}</small>}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <label>Status <select className="input" value={t.status} onChange={(e) => edit(t.id,'status',e.target.value)}>{['open','in_progress','resolved','closed'].map(x=><option key={x}>{x}</option>)}</select></label>
+        <label>Status <select className="input" value={['open', 'in_progress', 'pending'].includes(String(t.status).toLowerCase()) ? 'open' : t.status} onChange={(e) => edit(t.id,'status',e.target.value)}>{['open','resolved','closed'].map(x=><option key={x}>{x}</option>)}</select></label>
         <label>Priority <select className="input" value={t.priority} onChange={(e) => edit(t.id,'priority',e.target.value)}>{['low','normal','high','urgent'].map(x=><option key={x}>{x}</option>)}</select></label>
       </div>
       <label>Reply visible to customer<textarea className="input" rows={3} maxLength={4000} value={t.public_reply || ''} onChange={(e) => edit(t.id,'public_reply',e.target.value)} /></label>
