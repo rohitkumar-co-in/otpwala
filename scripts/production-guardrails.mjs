@@ -26,6 +26,10 @@ const files = {
   legacyWallet: readFileSync(new URL('../apps/api/src/services/wallet.ts', import.meta.url), 'utf8'),
   legacyOrder: readFileSync(new URL('../apps/api/src/services/order.ts', import.meta.url), 'utf8'),
   legacyTelegram: readFileSync(new URL('../apps/api/src/routes/telegram.ts', import.meta.url), 'utf8'),
+  baseLayout: readFileSync(new URL('../apps/web/src/layouts/BaseLayout.astro', import.meta.url), 'utf8'),
+  dashboardLayout: readFileSync(new URL('../apps/web/src/layouts/DashboardLayout.astro', import.meta.url), 'utf8'),
+  servicesPage: readFileSync(new URL('../apps/web/src/pages/services.astro', import.meta.url), 'utf8'),
+  pricingPage: readFileSync(new URL('../apps/web/src/pages/pricing.astro', import.meta.url), 'utf8'),
 };
 
 const failures = [];
@@ -90,6 +94,10 @@ requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard d
 requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
+requireText(files.baseLayout, '<html lang="en">', 'Public layout language is missing');
+requireText(files.dashboardLayout, '<html lang="en">', 'Dashboard layout language is missing');
+requireText(files.servicesPage, 'aria-label="Search available services"', 'Public services search is not labelled');
+requireText(files.pricingPage, 'aria-label="Filter pricing by service name"', 'Public pricing search is not labelled');
 
 if (failures.length) {
   console.error(`Production guardrails failed:\n- ${failures.join('\n- ')}`);
