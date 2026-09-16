@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/phone';
 import {
   ServerIcon,
   DollarIcon,
@@ -13,14 +14,18 @@ import {
   CheckIcon,
   AlertCircleIcon,
   CheckCircleIcon,
+  CopyIcon,
   XIcon,
 } from '../ui/Icons';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [recentOrdersTotal, setRecentOrdersTotal] = useState(0);
   const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -28,6 +33,19 @@ export default function AdminDashboard() {
   const [reconciling, setReconciling] = useState(false);
   const integrityUnavailable = Boolean(stats?.financialIntegrity?.error);
   const integrityIssues = Number(stats?.financialIntegrity?.totalIssues || 0);
+
+  const loadRecentOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const data = await getAdminOrders(8, 0);
+      setRecentOrders(data?.orders || []);
+      setRecentOrdersTotal(data?.total || 0);
+    } catch (err) {
+      console.warn('Dashboard orders warning:', err);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -41,13 +59,7 @@ export default function AdminDashboard() {
           console.warn('Dashboard stats warning:', err);
         });
 
-      const fetchOrders = getAdminOrders(8, 0)
-        .then((data) => {
-          setRecentOrders(data?.orders || []);
-        })
-        .catch((err) => {
-          console.warn('Dashboard orders warning:', err);
-        });
+      const fetchOrders = loadRecentOrders();
 
       const fetchPayments = getAdminPaymentRequests()
         .then((data) => {
@@ -68,6 +80,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1800);
+  };
 
   const handleReconcile = async () => {
     setReconciling(true);
@@ -607,70 +625,102 @@ export default function AdminDashboard() {
           </a>
         </div>
 
-        {loading && recentOrders.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <RefreshCwIcon size={16} className="animate-spin" style={{ display: 'inline', marginRight: '6px' }} />
-            Loading recent orders...
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            Showing <strong>{recentOrders.length}</strong> orders on this page (Total {recentOrdersTotal})
+          </span>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={loadRecentOrders}
+            disabled={ordersLoading}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: ordersLoading ? 'not-allowed' : 'pointer' }}
+          >
+            <RefreshCwIcon size={14} className={ordersLoading ? 'animate-spin' : ''} />
+            <span>{ordersLoading ? 'Refreshing...' : 'Refresh'}</span>
+          </button>
+        </div>
+
+        {ordersLoading && recentOrders.length === 0 ? (
+          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Loading platform orders...
           </div>
         ) : recentOrders.length === 0 ? (
-          <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            No orders found yet.
+          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            No orders found for selected filter.
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Order ID</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>User</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Service</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Number</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>OTP Code</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Status</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Price</th>
-                  <th style={{ padding: '0.65rem 0.75rem' }}>Created</th>
+                  <th style={{ padding: '0.75rem' }}>ID</th>
+                  <th style={{ padding: '0.75rem' }}>User Email</th>
+                  <th style={{ padding: '0.75rem' }}>Service</th>
+                  <th style={{ padding: '0.75rem' }}>Country</th>
+                  <th style={{ padding: '0.75rem' }}>Number</th>
+                  <th style={{ padding: '0.75rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem' }}>Price</th>
+                  <th style={{ padding: '0.75rem' }}>Time</th>
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.map((o) => (
                   <tr key={o.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {o.id.slice(0, 8)}...
                     </td>
                     <td style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
-                      {o.profiles?.email || 'User'}
-                    </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>
-                      {o.service_code.toUpperCase()}
-                    </td>
-                    <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                      {o.phone_number || '—'}
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {o.profiles?.email || 'Unknown User'}
+                      </div>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      {o.sms_code ? (
-                        <span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                          {o.sms_code}
-                        </span>
+                      <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
+                    </td>
+                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
+                    <td style={{ padding: '0.75rem' }}>
+                      {o.phone_number ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                            <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formatPhoneNumber(o.phone_number, o.country_code).display || o.phone_number}</span>
+                          </span>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
+                            onClick={() => copyToClipboard(String(o.phone_number || ''), o.id)}
+                            title="Copy number"
+                          >
+                            {copiedId === o.id ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
+                          </button>
+                        </div>
                       ) : (
                         <span style={{ color: 'var(--text-muted)' }}>—</span>
                       )}
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      <span className={`badge ${
-                        o.status === 'code_received' || o.status === 'completed'
-                          ? 'badge-success'
-                          : o.status === 'waiting'
-                          ? 'badge-info'
-                          : 'badge-error'
-                      }`}>
-                        {o.status}
-                      </span>
+                      {o.sms_code ? <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{o.sms_code}</span><button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)} title="Copy OTP">{copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}</button></div> : <span className={`badge ${o.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(o.status) ? 'badge-error' : 'badge-warning'}`}>{o.status === 'code_received' ? 'OTP Received' : o.status.replace('_', ' ')}</span>}
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>
-                      ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}
+                    <td style={{ padding: '0.75rem', fontWeight: 700, color: '#34d399' }}>
+                      {o.status === 'code_received' || o.sms_code ? (
+                        <>
+                          <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
+                          {o.cost_price_inr != null && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
+                              Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ color: 'var(--text-muted)' }}>Refunded: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
+                      )}
                     </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                      {new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                      {new Date(o.created_at).toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </td>
                   </tr>
                 ))}
