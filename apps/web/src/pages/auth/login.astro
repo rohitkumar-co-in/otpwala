@@ -545,6 +545,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       root.classList.remove('auth-config-no-google');
       if (googleWrapper) googleWrapper.style.display = 'block';
     }
+    root.classList.remove('auth-config-pending');
   })();
 
   function showError(msg: string, isHtml = false) {

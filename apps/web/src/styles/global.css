@@ -991,16 +991,21 @@ tr:hover td {
 }
 
 /* ─── Zero-Flash Auth Config Pre-Hydration Rules ─── */
-html.auth-config-no-reg #register-form,
+html.auth-config-pending #email-form,
+html.auth-config-pending #google-signup-wrapper,
+html.auth-config-no-reg #email-form,
 html.auth-config-no-reg #google-signup-wrapper,
 html.auth-config-no-reg #google-login-wrapper {
   display: none !important;
+}
+html.auth-config-pending #auth-config-loading {
+  display: block !important;
 }
 html.auth-config-no-reg #registration-closed-notice {
   display: block !important;
 }
 
-html.auth-config-no-email #register-form {
+html.auth-config-no-email #email-form {
   display: none !important;
 }
 html.auth-config-no-email #email-signup-disabled-notice {

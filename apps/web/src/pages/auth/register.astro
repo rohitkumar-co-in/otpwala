@@ -28,6 +28,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <span style="font-size: 0.85rem; color: #1e40af; line-height: 1.4; display: block;">Standard email registration is currently paused. Please use Google to create an account.</span>
           </div>
 
+          <div id="auth-config-loading" style="display: none; color: var(--text-secondary); font-size: 0.85rem; text-align: center; margin-bottom: 1.25rem;">Checking available sign-up methods...</div>
+
           <div id="google-signup-wrapper">
             <button class="btn btn-secondary" style="width: 100%; margin-bottom: 1.5rem;" id="google-signup-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -234,6 +236,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const googleWrapper    = document.getElementById('google-signup-wrapper');
   const regClosedNotice  = document.getElementById('registration-closed-notice');
   const emailDisabledNotice = document.getElementById('email-signup-disabled-notice');
+  const authConfigLoading = document.getElementById('auth-config-loading');
 
   function showErr(el, msg) { el.innerHTML = msg; el.style.display = 'block'; }
   function hideErr(el) { el.style.display = 'none'; el.textContent = ''; }
@@ -280,12 +283,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const res = await getAuthConfig();
       if (res) authConfig = res;
     } catch(e) {}
+    document.documentElement.classList.remove('auth-config-pending');
+    if (authConfigLoading) authConfigLoading.style.display = 'none';
     if (!authConfig.allowRegistration) {
       regClosedNotice.style.display = 'block';
       googleWrapper.style.display = 'none';
       emailForm.style.display = 'none';
       return;
     }
+    if (authConfig.allowEmailSignup) emailForm.style.display = '';
     if (!authConfig.allowGoogleLogin) googleWrapper.style.display = 'none';
     if (!authConfig.allowEmailSignup) { emailDisabledNotice.style.display = 'block'; emailForm.style.display = 'none'; }
   })();

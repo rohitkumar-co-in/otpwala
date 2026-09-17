@@ -202,10 +202,12 @@ const webAppSchema = {
   <script is:inline>
     (function() {
       try {
+        var path = window.location.pathname;
+        var cl = document.documentElement.classList;
+        if (path === '/auth/register' || path === '/auth/login') cl.add('auth-config-pending');
         var raw = localStorage.getItem('otpwala_auth_config');
         if (raw) {
           var cfg = JSON.parse(raw);
-          var cl = document.documentElement.classList;
           if (cfg.allowRegistration === false) cl.add('auth-config-no-reg');
           if (cfg.allowEmailSignup === false) cl.add('auth-config-no-email');
           if (cfg.allowGoogleLogin === false) cl.add('auth-config-no-google');
