@@ -1,43 +1,51 @@
-# Astro Starter Kit: Minimal
+# OTPWala Web
 
-```sh
-npm create astro@latest -- --template minimal
+The production web application is an Astro site with React islands and Cloudflare Pages Functions.
+
+## Local development
+
+From the repository root:
+
+```bash
+pnpm install
+pnpm dev:web
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The site runs at `http://localhost:4321`. The development API, when used, runs at `http://localhost:3001`.
 
-## 🚀 Project Structure
+## Build and verification
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run build:web
+npm run test:unit
+npm run test:guardrails
+npm run test:smoke
+npm run verify:production
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+The build synchronizes the shared Pages Functions source into the web project before running Astro. Do not edit generated copies to fix behavior; update the source implementation and rebuild.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Deployment
 
-Any static assets, like images, can be placed in the `public/` directory.
+GitHub `main` is connected to the `otpwala` Cloudflare Pages project. A successful push triggers a production deployment. Required server-side variables belong in Cloudflare Pages environment settings, never in client code or committed files:
 
-## 🧞 Commands
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `PUBLIC_SUPABASE_ANON_KEY`
+- `TIGER_SMS_API_KEY`
+- `TIGER_SMS_BASE_URL`
+- `CRON_SECRET`
 
-All commands are run from the root of the project, from a terminal:
+Keep `.env`, `.env.local`, and `supabse-cred/` local and ignored.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Financial data boundary
 
-## 👀 Want to learn more?
+Wallet balances are written only through the atomic Supabase wallet RPCs. `wallet_transactions` is the immutable ledger; the separate read-only views are used for reporting:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- `wallet_topups`
+- `wallet_deductions`
+- `wallet_refunds`
+- `wallet_admin_funding`
+- `wallet_referral_bonuses`
+
+Do not edit balances or ledger rows directly in the browser, Pages Functions, or Supabase table editor.

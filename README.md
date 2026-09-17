@@ -86,13 +86,19 @@ PUBLIC_API_URL=http://localhost:3001
 ```
 
 ### 4. Database Setup (Supabase)
-1. Go to your Supabase project dashboard -> **SQL Editor**.
-2. Copy and paste the entire contents of [`supabase/migration.sql`](./supabase/migration.sql).
-3. Click **Run**.
-   - This creates the `profiles`, `orders`, `wallet_transactions`, `pricing_rules`, `settings`, and `payment_requests` tables.
-   - Sets up automatic profile creation on user signup.
-   - Configures secure Row Level Security (RLS) policies.
-   - Sets default USD/INR exchange rate (86.50) and margin rules.
+For a new Supabase project, run [`supabase/otpwala-standalone.sql`](./supabase/otpwala-standalone.sql) once in the SQL Editor. It contains the base schema and all migrations in dependency order.
+
+For an existing project, run each file in [`apps/api/supabase/migrations`](./apps/api/supabase/migrations) once, in filename order. Do not rerun the standalone file over production.
+
+The financial model keeps `wallet_transactions` as the single immutable balance ledger. Read-only views separate reporting into `wallet_topups`, `wallet_deductions`, `wallet_refunds`, `wallet_admin_funding`, and `wallet_referral_bonuses`.
+
+Funding categories are explicit:
+
+- `topup`: customer payment submitted through the website and approved by an admin.
+- `admin_credit`: money received outside the website and manually credited.
+- `admin_grant`: free balance added by an admin; never revenue.
+
+Never edit `profiles.wallet_balance` or `wallet_transactions` directly in production. Use the application RPCs/admin flows so balances and history remain consistent.
 
 To promote your user account to Admin:
 ```sql
@@ -127,3 +133,5 @@ pnpm dev:web
 - Upstream Tiger SMS API key is stored strictly on the server backend (`apps/api`) and is **never** exposed to the client.
 - Orders are automatically refunded to the user's wallet if Tiger SMS does not receive an SMS or if the order is cancelled within the active window.
 - Rate limiting is configured on all API endpoints to protect against abuse.
+- Keep `.env` and `supabse-cred/` local and ignored; never commit service-role, Tiger, Telegram, payment, or cron secrets.
+- Before release, run `npm run verify:production` and confirm the Cloudflare Pages deployment uses the intended `main` commit.
