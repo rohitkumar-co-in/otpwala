@@ -10,9 +10,14 @@ Allow: /terms
 Allow: /terms-of-service
 Allow: /privacy
 Allow: /privacy-policy
+Allow: /acceptable-use
+Allow: /refund-policy
 Allow: /auth/login
 Allow: /auth/register
-Allow: /auth/forgot-password
+
+# Authentication callback and password-reset screens are functional, not search content
+Disallow: /auth/callback
+Disallow: /auth/reset-password
 
 # Disallow authenticated, user-specific, and administrative areas
 Disallow: /dashboard/

@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/legal.css';
+---
+
+<BaseLayout
+  title="Refund & Payments Policy - OTPWala"
+  description="OTPWala's wallet top-up, order cancellation, service-credit, unauthorized-payment, and payment-dispute policy."
+  canonical="https://otpwala.me/refund-policy"
+>
+  <div class="legal-page">
+    <section class="legal-hero">
+      <div class="container">
+        <div class="legal-hero-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/><path d="M12 7v5l3 2"/></svg>
+          PAYMENTS & CREDITS
+        </div>
+        <h1>Refund & Payments Policy</h1>
+        <p class="legal-hero-sub">This policy explains how wallet deposits, order credits, payment errors, and unauthorized transactions are handled.</p>
+        <div class="legal-meta">
+          <span><strong>Effective Date:</strong> September 17, 2026</span>
+          <span class="meta-dot">&middot;</span>
+          <span><strong>Last Updated:</strong> September 17, 2026</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="container legal-body">
+      <div class="legal-layout">
+        <aside class="legal-sidebar hide-mobile">
+          <div class="legal-toc">
+            <h4>Contents</h4>
+            <nav>
+              <a href="#wallet">Wallet deposits</a>
+              <a href="#orders">Order credits</a>
+              <a href="#errors">Payment errors</a>
+              <a href="#fraud">Unauthorized payments</a>
+              <a href="#contact">Contact support</a>
+            </nav>
+          </div>
+        </aside>
+
+        <article class="legal-content">
+          <section id="wallet" class="legal-section">
+            <h2>1. Wallet Deposits</h2>
+            <p>OTPWala uses a prepaid wallet. The price, currency, and payment instructions are shown before you submit a top-up. A wallet balance is intended for the account that received the verified payment, is not transferable, and is not a bank or cash-withdrawal account.</p>
+            <p>After a top-up has been verified and credited, it is generally final for on-platform use. This rule is subject to applicable law, payment-network rules, and any mandatory rights relating to unauthorized, duplicate, or incorrectly processed payments. We do not waive rights that cannot legally be waived.</p>
+          </section>
+
+          <section id="orders" class="legal-section highlight-box">
+            <div class="box-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/><path d="M4 12h16"/></svg> ORDER CREDITS</div>
+            <h2>2. Failed Orders and Cancellation Credits</h2>
+            <p>Order pricing is displayed before confirmation. Cancellation may be unavailable during the initial waiting period or when the upstream provider rejects the request. The dashboard shows the result of the cancellation request.</p>
+            <p>Where an eligible order does not receive an OTP and the order expires or is successfully cancelled, the applicable order amount is credited back to the OTPWala wallet. This is an on-platform service credit, not a cash refund, and the displayed processing window is an estimate rather than a guarantee.</p>
+          </section>
+
+          <section id="errors" class="legal-section">
+            <h2>3. Payment Errors and Corrections</h2>
+            <ul>
+              <li>For a missing or delayed top-up, contact support with the UTR, UPI reference, transaction ID, amount, date, and the account email.</li>
+              <li>For a duplicate charge, incorrect amount, or technical error, report it promptly so we can reconcile the payment and correct the account where appropriate.</li>
+              <li>Do not submit a reused reference, edited receipt, or payment belonging to another person. Such activity may be treated as suspected payment fraud.</li>
+              <li>Never send a UPI PIN, card CVV, password, or one-time authentication code to support.</li>
+            </ul>
+          </section>
+
+          <section id="fraud" class="legal-section">
+            <h2>4. Unauthorized Payments and Disputes</h2>
+            <p>If you believe a payment was unauthorized, contact your bank or payment provider immediately and notify <a href="mailto:support@otpwala.me">support@otpwala.me</a>. We may request reasonable information needed to investigate, preserve records, and coordinate with the payment provider.</p>
+            <p>Knowingly false payment disputes, chargeback abuse, fabricated evidence, or attempts to obtain both a wallet credit and an external reversal may lead to account restrictions and reporting to the relevant payment provider or authorities. Legitimate disputes and legal rights remain unaffected.</p>
+          </section>
+
+          <section id="contact" class="legal-section">
+            <h2>5. Contact Support</h2>
+            <div class="contact-card">
+              <strong>Payments Support</strong><br/>
+              <span>Email:</span> <a href="mailto:support@otpwala.me">support@otpwala.me</a><br/>
+              <span>Telegram:</span> <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer">@OTPWalaSupport</a>
+            </div>
+            <p>See the <a href="/terms">Terms of Service</a> and <a href="/acceptable-use">Acceptable Use & Anti-Fraud Policy</a> for the full rules governing accounts and prohibited conduct.</p>
+          </section>
+        </article>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

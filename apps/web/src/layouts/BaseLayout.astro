@@ -53,11 +53,7 @@ const webSiteSchema = {
   "name": "OTPWala",
   "url": siteOrigin,
   "description": "Instant Virtual Numbers for SMS & OTP Verification",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": `${siteOrigin}/#services?q={search_term_string}`,
-    "query-input": "required name=search_term_string"
-  }
+  "inLanguage": "en"
 };
 
 const webAppSchema = {
@@ -67,20 +63,29 @@ const webAppSchema = {
   "url": siteOrigin,
   "applicationCategory": "UtilityApplication",
   "operatingSystem": "All",
-  "offers": {
-    "@type": "AggregateOffer",
-    "priceCurrency": "INR",
-    "lowPrice": "3.00",
-    "highPrice": "25.00",
-    "offerCount": "980"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "ratingCount": "12480",
-    "bestRating": "5",
-    "worstRating": "1"
-  }
+  "inLanguage": "en"
+};
+
+const pageName = (title || 'OTPWala').replace(/\s*[—|-]\s*OTPWala.*$/i, '').trim() || 'OTPWala';
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${canonicalURL}#webpage`,
+  "url": canonicalURL,
+  "name": formattedTitle,
+  "description": description,
+  "isPartOf": { "@id": `${siteOrigin}/#website` },
+  "about": { "@id": `${siteOrigin}/#organization` },
+  "inLanguage": "en"
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": `${siteOrigin}/` },
+    ...(currentPath === '/' ? [] : [{ "@type": "ListItem", "position": 2, "name": pageName, "item": canonicalURL }])
+  ]
 };
 ---
 
@@ -169,9 +174,11 @@ const webAppSchema = {
   <link rel="manifest" href="/site.webmanifest?v=3" />
   
   <!-- Structured Data: JSON-LD Schemas -->
-  <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
-  <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify({ ...organizationSchema, "@id": `${siteOrigin}/#organization` })} />
+  <script type="application/ld+json" set:html={JSON.stringify({ ...webSiteSchema, "@id": `${siteOrigin}/#website` })} />
   <script type="application/ld+json" set:html={JSON.stringify(webAppSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(webPageSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <!-- Instant Site Branding Pre-Hydration (Zero FOUC) -->
   <script is:inline>
@@ -404,6 +411,8 @@ const webAppSchema = {
           <h4>Legal & Support</h4>
           <a href="/terms">Terms of Service</a>
           <a href="/privacy">Privacy Policy</a>
+          <a href="/acceptable-use">Acceptable Use &amp; Anti-Fraud</a>
+          <a href="/refund-policy">Refund &amp; Payments</a>
           <a href="/status">Service Status</a>
           <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener">Contact Support</a>
         </div>

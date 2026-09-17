@@ -337,7 +337,7 @@ export default function WalletPage() {
             Strict No-Refund & Platform-Only Usage Policy
           </div>
           <div style={{ color: '#475569', fontSize: '0.825rem', lineHeight: 1.5 }}>
-            <strong style={{ color: '#0f172a' }}>No refund requests will be entertained once funds are deposited.</strong> All deposits are strictly non-refundable and non-withdrawable. Deposited funds can only be used on the platform to purchase temporary virtual phone numbers and SMS verification services.
+            <strong style={{ color: '#0f172a' }}>Verified wallet deposits are intended for on-platform use and are generally final.</strong> They are non-withdrawable and non-transferable, subject to applicable law and correction of unauthorized, duplicate, incorrectly credited, or technically failed payments. Deposited funds can only be used on the platform to purchase temporary virtual phone numbers and SMS verification services.
           </div>
         </div>
       </div>
@@ -548,7 +548,7 @@ export default function WalletPage() {
           </div>
           <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '0.6rem', display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
             <AlertCircleIcon size={16} color="#f87171" aria-hidden="true" />
-            <span style={{ lineHeight: 1.4 }}>By depositing, you confirm you understand no refund requests will be entertained. Balance can only be used on the platform.</span>
+            <span style={{ lineHeight: 1.4 }}>By depositing, you confirm that wallet funds are intended for on-platform use. For an unauthorized, duplicate, or incorrectly credited payment, contact support promptly with the transaction reference.</span>
           </div>
 
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>

@@ -27,7 +27,7 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
         <div class="legal-meta">
           <span><strong>Effective Date:</strong> January 1, 2026</span>
           <span class="meta-dot">·</span>
-          <span><strong>Last Updated:</strong> January 15, 2026</span>
+          <span><strong>Last Updated:</strong> September 17, 2026</span>
           <span class="meta-dot">·</span>
           <span><strong>Version:</strong> 2.4</span>
         </div>
@@ -48,9 +48,10 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
               <a href="#how-we-use">4. How We Use Information</a>
               <a href="#sms-retention">5. SMS & Data Retention</a>
               <a href="#data-sharing">6. Information Sharing</a>
-              <a href="#data-security">7. Security Safeguards</a>
-              <a href="#user-rights">8. Your Rights & Choices</a>
-              <a href="#contact">9. Contact & Support</a>
+              <a href="#cookies">7. Cookies & Local Storage</a>
+              <a href="#data-security">8. Security Safeguards</a>
+              <a href="#user-rights">9. Your Rights & Choices</a>
+              <a href="#contact">10. Contact & Support</a>
             </nav>
           </div>
         </aside>
@@ -213,22 +214,28 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
             </ul>
           </section>
 
+          <section id="cookies" class="legal-section">
+            <h2>7. Cookies, Local Storage & Similar Technologies</h2>
+            <p>OTPWala uses essential browser storage and similar technologies to keep you signed in, remember limited preferences such as branding or authentication settings, preserve referral attribution, protect sessions, and support fraud prevention. These technologies are necessary for core account and security functions.</p>
+            <p>We do not use Google OAuth data for advertising. We may use operational logs or privacy-respecting analytics only where configured and lawful. You can clear browser storage or block cookies, but doing so may sign you out or prevent parts of the service from working.</p>
+          </section>
+
           {/* 7. Security Safeguards */}
           <section id="data-security" class="legal-section">
-            <h2>7. Security Safeguards</h2>
+            <h2>8. Security Safeguards</h2>
             <p>
               We implement comprehensive physical, technical, and organizational security measures to protect your information:
             </p>
             <ul>
-              <li><strong>End-to-End Encryption:</strong> All traffic between your browser and our servers is encrypted using modern Transport Layer Security (TLS 1.3 / HTTPS).</li>
-              <li><strong>Token-Based Authentication:</strong> User sessions are managed using encrypted, short-lived JSON Web Tokens (JWT) stored securely and authenticated through Supabase Auth.</li>
+              <li><strong>Transport Security:</strong> We use HTTPS/TLS for traffic between supported clients and our services.</li>
+              <li><strong>Token-Based Authentication:</strong> User sessions are managed through Supabase Auth and protected using the security controls provided by the authentication platform and our application.</li>
               <li><strong>Role-Based Access Control:</strong> Strict database-level Row Level Security (RLS) policies ensure that users can only access their own orders, wallets, and profile records.</li>
             </ul>
           </section>
 
           {/* 8. User Rights */}
           <section id="user-rights" class="legal-section">
-            <h2>8. Your Rights & Choices</h2>
+            <h2>9. Your Rights & Choices</h2>
             <p>Under applicable data privacy regulations (including Indian IT Act rules and GDPR principles), you have the right to:</p>
             <ul>
               <li><strong>Access:</strong> Request a summary of the personal data we hold associated with your account.</li>
@@ -240,7 +247,7 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
 
           {/* 9. Contact */}
           <section id="contact" class="legal-section">
-            <h2>9. Contact & Inquiries</h2>
+            <h2>10. Contact & Inquiries</h2>
             <p>
               If you have any questions, concerns, or requests regarding this Privacy Policy or how your data is handled, please reach out to our team:
             </p>
