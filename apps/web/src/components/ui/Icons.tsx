@@ -133,6 +133,52 @@ export const AlertCircleIcon = ({ size = 20, color = 'currentColor', className, 
   </svg>
 );
 
+export const InfoIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+);
+
+export const LockIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <rect x="3" y="11" width="18" height="10" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+export const GiftIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <polyline points="20 12 20 22 4 22 4 12" />
+    <rect x="2" y="7" width="20" height="5" />
+    <line x1="12" y1="22" x2="12" y2="7" />
+    <path d="M12 7H7.5a2.5 2.5 0 1 1 2.5-2.5C10 7 12 7 12 7z" />
+    <path d="M12 7h4.5A2.5 2.5 0 1 0 14 4.5C14 7 12 7 12 7z" />
+  </svg>
+);
+
+export const HourglassIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <path d="M5 3h14M5 21h14M7 3v4a5 5 0 0 0 2 4 5 5 0 0 0-2 4v4M17 3v4a5 5 0 0 1-2 4 5 5 0 0 1 2 4v4" />
+    <path d="M9 7h6M9 17h6" />
+  </svg>
+);
+
+export const MessageCircleIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-9 8.5 8.5 8.5 0 0 1-4-.99L3 21l1.99-4.99A8.5 8.5 0 1 1 21 11.5z" />
+  </svg>
+);
+
+export const TargetIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1" />
+  </svg>
+);
+
 export const ClockIcon = ({ size = 18, color = 'currentColor', className, ...props }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
     <circle cx="12" cy="12" r="10" />

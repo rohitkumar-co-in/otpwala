@@ -11,6 +11,8 @@ import {
   RefreshCwIcon,
   CopyIcon,
   AlertCircleIcon,
+  HourglassIcon,
+  ShieldIcon,
   StarIcon,
   XIcon,
   ArrowUpDownIcon,
@@ -1265,7 +1267,10 @@ export default function BuyNumber() {
                 }}
               >
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: hasOtp ? '#10b981' : isExpired ? '#ef4444' : '#f59e0b', marginBottom: '0.45rem', fontWeight: 700 }}>
-                  {hasOtp ? '✅ OTP Received' : isExpired ? '❌ Order Expired' : '⏳ Waiting for OTP Code'}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    {hasOtp ? <CheckCircleIcon size={15} /> : isExpired ? <XIcon size={15} /> : <HourglassIcon size={15} />}
+                    {hasOtp ? 'OTP Received' : isExpired ? 'Order Expired' : 'Waiting for OTP Code'}
+                  </span>
                 </div>
 
                 {isWaiting && (
@@ -1346,7 +1351,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                🛡️ If no OTP is received, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.
+                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />If no OTP is received, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.</span>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

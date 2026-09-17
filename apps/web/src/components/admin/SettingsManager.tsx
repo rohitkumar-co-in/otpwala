@@ -900,7 +900,7 @@ export default function SettingsManager() {
               </p>
             </div>
             <span className={`badge ${telegramNotificationsEnabled && telegramBotToken && telegramAdminChatId ? 'badge-success' : 'badge-ghost'}`} style={{ fontSize: '0.75rem' }}>
-              {telegramNotificationsEnabled && telegramBotToken && telegramAdminChatId ? '🔔 Alerts Active' : '⚪ Unconfigured'}
+              {telegramNotificationsEnabled && telegramBotToken && telegramAdminChatId ? 'Alerts Active' : 'Unconfigured'}
             </span>
           </div>
 
@@ -1070,7 +1070,7 @@ export default function SettingsManager() {
           }}>
             <strong style={{ color: 'var(--text-primary)' }}>Commission Rules:</strong> Configure bonus percentages credited to referrers when their referred friends make wallet deposits.
             <span style={{ color: '#a855f7', fontWeight: 600, display: 'block', marginTop: '0.25rem' }}>
-              ⚡ The 2nd and 3rd deposit bonuses can only be rewarded if deposited within the configured eligibility window below.
+              The 2nd and 3rd deposit bonuses can only be rewarded if deposited within the configured eligibility window below.
             </span>
           </div>
 
@@ -1365,8 +1365,8 @@ export default function SettingsManager() {
                   fontWeight: 600,
                 }}
               >
-                <option value="false">🟢 Live (Normal Operation)</option>
-                <option value="true">🔴 Entire Site Under Maintenance</option>
+                <option value="false">Live (Normal Operation)</option>
+                <option value="true">Entire Site Under Maintenance</option>
               </select>
             </div>
           </div>

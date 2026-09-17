@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getReferralStats, claimReferralCode, type ReferralStatsData } from '../../lib/api';
-import { UsersIcon, CheckCircleIcon, AlertCircleIcon, RefreshCwIcon } from '../ui/Icons';
+import { UsersIcon, CheckCircleIcon, AlertCircleIcon, RefreshCwIcon, LockIcon, HourglassIcon, GiftIcon, TargetIcon, ZapIcon, InfoIcon } from '../ui/Icons';
 
 export default function ReferEarnPage() {
   const [data, setData] = useState<ReferralStatsData | null>(null);
@@ -141,7 +141,7 @@ export default function ReferEarnPage() {
             fontSize: '1.1rem',
           }}
         >
-          ℹ️
+          <InfoIcon size={18} color="var(--accent-primary)" aria-hidden="true" />
         </div>
         <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
           <strong>Platform Credit Policy:</strong> All referral commission bonuses are added directly to your OTPWala wallet.
@@ -175,7 +175,7 @@ export default function ReferEarnPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                    🔒
+                    <LockIcon size={19} color="#10b981" aria-hidden="true" />
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -208,7 +208,7 @@ export default function ReferEarnPage() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', opacity: 0.6 }}>
-                  ⌛
+                  <HourglassIcon size={19} color="var(--text-muted)" aria-hidden="true" />
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
@@ -239,7 +239,7 @@ export default function ReferEarnPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <span style={{ fontSize: '1.15rem' }}>🎁</span>
+                  <GiftIcon size={19} color="var(--accent-primary)" aria-hidden="true" />
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                     Have a Friend&apos;s Referral Code?
                   </h2>
@@ -263,7 +263,7 @@ export default function ReferEarnPage() {
                   padding: '0.35rem 0.75rem',
                 }}
               >
-                <span>⏳</span>
+                <HourglassIcon size={15} color="#eab308" aria-hidden="true" />
                 <span>{hoursLeft.toFixed(1)}h remaining to claim</span>
               </span>
             </div>
@@ -449,19 +449,19 @@ export default function ReferEarnPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🎯 1st Deposit Bonus</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><TargetIcon size={15} color="#10b981" aria-hidden="true" />1st Deposit Bonus</span>
                 <span style={{ fontWeight: 700, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>{tier1}% Commission</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <span>⚡ 2nd Deposit Bonus</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><ZapIcon size={15} color="#3b82f6" aria-hidden="true" />2nd Deposit Bonus</span>
                   <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)' }}>Only if within {windowDays} days of joining</span>
                 </div>
                 <span style={{ fontWeight: 700, color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>{tier2}% Commission</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <span>🔥 3rd Deposit Bonus</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><GiftIcon size={15} color="#8b5cf6" aria-hidden="true" />3rd Deposit Bonus</span>
                   <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)' }}>Only if within {windowDays} days of joining</span>
                 </div>
                 <span style={{ fontWeight: 700, color: '#8b5cf6', background: 'rgba(139, 92, 246, 0.1)', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>{tier3}% Commission</span>
@@ -590,7 +590,7 @@ export default function ReferEarnPage() {
                   <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ color: '#10b981' }}>🎁</span>
+                        <GiftIcon size={16} color="#10b981" aria-hidden="true" />
                         <span>{log.description}</span>
                       </div>
                     </td>

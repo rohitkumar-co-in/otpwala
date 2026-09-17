@@ -129,6 +129,13 @@ body {
   min-height: 100vh;
 }
 
+.inline-icon {
+  display: inline-block;
+  vertical-align: -0.2em;
+  margin-right: 0.25rem;
+  flex: 0 0 auto;
+}
+
 .skip-link {
   position: fixed;
   left: 1rem;

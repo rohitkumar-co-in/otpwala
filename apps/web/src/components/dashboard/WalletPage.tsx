@@ -12,6 +12,8 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XIcon,
+  InfoIcon,
+  CreditCardIcon,
 } from '../ui/Icons';
 
 interface WalletConfig {
@@ -283,7 +285,7 @@ export default function WalletPage() {
             borderRadius: '999px',
           }}
         >
-          <span>💼</span>
+          <CreditCardIcon size={16} color="#2563eb" aria-hidden="true" />
           <span>Available Wallet Balance</span>
         </div>
         <div
@@ -329,7 +331,7 @@ export default function WalletPage() {
           gap: '0.85rem',
         }}
       >
-        <div style={{ color: '#dc2626', fontSize: '1.25rem', lineHeight: 1, marginTop: '2px' }}>⚠️</div>
+        <AlertCircleIcon size={21} color="#dc2626" aria-hidden="true" />
         <div>
           <div style={{ color: '#b91c1c', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.2rem' }}>
             Strict No-Refund & Platform-Only Usage Policy
@@ -539,13 +541,13 @@ export default function WalletPage() {
             </div>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.08)', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
-            <span style={{ fontSize: '1.1rem', marginTop: '0.05rem' }}>ℹ️</span>
+            <InfoIcon size={18} color="#3b82f6" aria-hidden="true" />
             <span style={{ lineHeight: 1.45 }}>
               <strong>Note:</strong> Your balance will be added in <strong>under 5 minutes to 2 hours</strong> after payment verification. If it takes longer than that, please message <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>@OTPWalaSupport</a> on Telegram with your Transaction ID and screenshot for faster payment approval.
             </span>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '0.6rem', display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
-            <span style={{ marginTop: '0.05rem' }}>⚠️</span>
+            <AlertCircleIcon size={16} color="#f87171" aria-hidden="true" />
             <span style={{ lineHeight: 1.4 }}>By depositing, you confirm you understand no refund requests will be entertained. Balance can only be used on the platform.</span>
           </div>
 

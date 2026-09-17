@@ -234,7 +234,7 @@ export default function AdminDashboard() {
           gap: '1rem',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+            <AlertCircleIcon size={22} color="#f59e0b" aria-hidden="true" />
             <div>
               <div style={{ fontWeight: 600, color: '#f59e0b', fontSize: '0.875rem' }}>
                 Tiger SMS Provider Balance is Low (${parseFloat(stats.tigerBalance || 0).toFixed(2)})
