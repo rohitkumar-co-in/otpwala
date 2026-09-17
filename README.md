@@ -2,6 +2,8 @@
 
 > High-speed virtual number marketplace for instant SMS & OTP verification powered by **Astro.js**, **React Islands**, **Express.js**, **Supabase**, and **Tiger SMS API**.
 
+**New here? Start with [the beginner setup guide](./docs/BEGINNER-SETUP.md).**
+
 ---
 
 ## 🎯 Architecture Overview
