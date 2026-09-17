@@ -91,12 +91,12 @@ export async function deductBalance(
 export async function creditBalance(
   userId: string,
   amount: number,
-  typeOrDesc: 'topup' | 'refund' | 'admin_credit' | 'referral_bonus' | string,
+  typeOrDesc: 'topup' | 'refund' | 'admin_credit' | 'admin_grant' | 'referral_bonus' | string,
   descOrType?: string,
   paymentInfo?: { paymentId?: string; method?: string }
 ): Promise<number> {
-  const validTypes = ['topup', 'refund', 'admin_credit', 'referral_bonus'];
-  let type: 'topup' | 'refund' | 'admin_credit' | 'referral_bonus' = 'topup';
+  const validTypes = ['topup', 'refund', 'admin_credit', 'admin_grant', 'referral_bonus'];
+  let type: 'topup' | 'refund' | 'admin_credit' | 'admin_grant' | 'referral_bonus' = 'topup';
   let description = '';
 
   if (validTypes.includes(typeOrDesc)) {

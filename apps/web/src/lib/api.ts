@@ -201,10 +201,14 @@ export const getAdminUsers = (limit = 20, offset = 0, search = '') =>
   apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${search}`);
 export const getAdminUserDetails = (userId: string) =>
   apiFetch<{ user: any; transactions: any[]; orders: any[] }>(`/api/admin/users/${userId}/details`);
-export const creditUser = (userId: string, amount: number, description: string) =>
+// Admin-added balance must always state where the money came from:
+//   manual_funding -> money really received (counts as collected cash)
+//   free_grant     -> goodwill balance, no money received (never revenue)
+export type AdminFundingSource = 'manual_funding' | 'free_grant';
+export const creditUser = (userId: string, amount: number, note: string, fundingSource: AdminFundingSource) =>
   apiFetch<any>(`/api/admin/users/${userId}/credit`, {
     method: 'POST',
-    body: JSON.stringify({ amount, description }),
+    body: JSON.stringify({ amount, note, fundingSource }),
   });
 export const banUser = (userId: string, banned: boolean) =>
   apiFetch<any>(`/api/admin/users/${userId}/ban`, {
@@ -247,8 +251,10 @@ export const getAdminOrders = (limit = 20, offset = 0, status = 'all') =>
   apiFetch<any>(`/api/admin/orders?limit=${limit}&offset=${offset}&status=${encodeURIComponent(status)}`);
 export const getAdminPaymentRequests = () =>
   apiFetch<any[]>('/api/admin/payment-requests');
-export const getAdminRecharges = (limit = 20, offset = 0, search = '') =>
-  apiFetch<any>(`/api/admin/recharges?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`);
+export const getAdminRecharges = (limit = 20, offset = 0, search = '', source = 'all') =>
+  apiFetch<any>(`/api/admin/recharges?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&source=${encodeURIComponent(source)}`);
+export const getAdminFundingSummary = () =>
+  apiFetch<any>('/api/admin/funding-summary');
 export const approvePaymentRequest = (id: string) =>
   apiFetch<any>(`/api/admin/payment-requests/${id}/approve`, { method: 'POST' });
 export const rejectPaymentRequest = (id: string, reason?: string) =>

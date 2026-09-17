@@ -32,6 +32,7 @@ import {
   approvePaymentRequest,
   rejectPaymentRequest,
   getAdminRecharges,
+  getFundingSummary,
 } from '../lib/admin';
 import { TigerSmsClient } from '../lib/tiger';
 import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket, replyToSupportTicket } from '../lib/support';
@@ -1112,9 +1113,28 @@ export const onRequest = async (context: any) => {
         const targetUserId = userCreditMatch[1];
         const body = await request.json().catch(() => ({}));
         const amount = parseFloat(body.amount);
-        await creditUserBalance(targetUserId, amount, body.note, env);
-        await logAdminAction(auth.userId, 'wallet.credit', 'user', targetUserId, { amount, reason: body.note }, request.headers.get('cf-connecting-ip'), env);
-        return jsonResponse({ success: true });
+        // The funding source is mandatory: it decides whether this counts as
+        // money really collected or as free balance handed out by an admin.
+        // Legacy clients sent the reason as `description`; accept both keys.
+        const note = body.note ?? body.description;
+        const fundingSource = String(body.fundingSource || '').trim();
+        const credit = await creditUserBalance(targetUserId, amount, note, fundingSource, env);
+        await logAdminAction(
+          auth.userId,
+          credit.ledgerType === 'admin_grant' ? 'wallet.grant_free_funds' : 'wallet.credit_manual_funding',
+          'user',
+          targetUserId,
+          { amount, reason: note, fundingSource: credit.fundingSource, ledgerType: credit.ledgerType },
+          request.headers.get('cf-connecting-ip'),
+          env,
+        );
+        return jsonResponse({ success: true, data: { fundingSource: credit.fundingSource, ledgerType: credit.ledgerType, balance: credit.balance } });
+      }
+
+      // GET /api/admin/funding-summary — canonical balance-sheet funding totals.
+      if (path === '/api/admin/funding-summary' && method === 'GET') {
+        const summary = await getFundingSummary(env);
+        return jsonResponse({ success: true, data: summary });
       }
 
       // POST /api/admin/users/:id/zero-markup
@@ -1278,7 +1298,8 @@ export const onRequest = async (context: any) => {
         const limit = parseInt(url.searchParams.get('limit') || '20');
         const offset = parseInt(url.searchParams.get('offset') || '0');
         const search = url.searchParams.get('search') || '';
-        const recharges = await getAdminRecharges(limit, offset, search, env);
+        const source = url.searchParams.get('source') || 'all';
+        const recharges = await getAdminRecharges(limit, offset, search, source, env);
         return jsonResponse({ success: true, data: recharges });
       }
 

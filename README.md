@@ -41,7 +41,8 @@
    - **Pending Top-ups**: One-click approval for customer UPI / manual balance deposits.
    - **Dynamic Profit Margins (`/admin/pricing`)**: Set percentage or fixed margins globally, per-service, or per-country with interactive profit margin simulator.
    - **Catalog & Visibility Controls (`/admin/catalog`)**: Enable or disable any of the 100+ services and 190+ countries with 1-click toggles, plus batch actions ("Top Popular Only", "Enable All", "Disable All").
-   - **User Management (`/admin/users`)**: Search users, manually credit wallet balances with custom notes, ban/unban users.
+   - **User Management (`/admin/users`)**: Search users, manually credit wallet balances with custom notes, ban/unban users. Every admin credit must declare a funding source (manually funded = money received, or free funds = no money received).
+   - **Funding Sources & Balance Sheet (`/admin/recharges`)**: Wallet funding is split into UPI top-ups (cash), manual funding confirmed by an admin (cash) and free funds granted by an admin (never revenue). Filter by source and see collected cash versus granted balance at a glance.
    - **Orders Audit Log (`/admin/orders`)**: Complete platform audit log with phone numbers, OTP codes, cost vs sell prices, timestamps.
    - **System Settings (`/admin/settings`)**: Configurable USD-to-INR conversion rate, fallback markups, UPI IDs, maintenance mode.
 

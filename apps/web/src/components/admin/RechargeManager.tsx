@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
   getAdminRecharges,
+  getAdminFundingSummary,
   creditUser,
 } from '../../lib/api';
+import type { AdminFundingSource } from '../../lib/api';
+import FundingSourcePicker from './FundingSourcePicker';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -25,17 +28,47 @@ export default function RechargeManager() {
   const [creditUserTarget, setCreditUserTarget] = useState<any | null>(null);
   const [creditAmount, setCreditAmount] = useState<number>(100);
   const [creditReason, setCreditReason] = useState<string>('Manual Admin Credit');
+  const [creditFundingSource, setCreditFundingSource] = useState<'' | AdminFundingSource>('');
   const [crediting, setCrediting] = useState(false);
 
+  // Balance-sheet view: which funding source is being listed, and platform totals.
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'upi' | 'manual' | 'free'>('all');
+  const [summary, setSummary] = useState<any>(null);
+
+  const SOURCE_FILTERS: { key: 'all' | 'upi' | 'manual' | 'free'; label: string }[] = [
+    { key: 'all', label: 'All funding' },
+    { key: 'upi', label: 'UPI top-ups (cash)' },
+    { key: 'manual', label: 'Manual funding (cash)' },
+    { key: 'free', label: 'Free funds (no cash)' },
+  ];
+
+  const sourceBadge = (tx: any) => {
+    if (tx.type === 'topup') return { label: 'UPI Top-Up', className: 'badge-success' };
+    if (tx.type === 'admin_grant') return { label: 'Free Funds (Admin)', className: 'badge-warning' };
+    return { label: 'Manual Funding', className: 'badge-primary' };
+  };
+
+  const inr = (value: any) => `₹${parseFloat(value || 0).toFixed(2)}`;
+
   const limit = 20;
+
+  const loadSummary = async () => {
+    try {
+      const data = await getAdminFundingSummary();
+      if (data) setSummary(data);
+    } catch (err) {
+      console.warn('Funding summary warning:', err);
+    }
+  };
 
   const loadRecharges = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAdminRecharges(limit, page * limit, search);
+      const data = await getAdminRecharges(limit, page * limit, search, sourceFilter);
       setRecharges(data?.recharges || []);
       setTotal(data?.total || 0);
+      loadSummary();
     } catch (err: any) {
       setError(err.message || 'Failed to load recharges');
     } finally {
@@ -45,7 +78,7 @@ export default function RechargeManager() {
 
   useEffect(() => {
     loadRecharges();
-  }, [page, search]);
+  }, [page, search, sourceFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,13 +93,23 @@ export default function RechargeManager() {
       setError('Please enter a valid amount');
       return;
     }
+    if (!creditFundingSource) {
+      setError('Choose whether the funds were manually funded (money received) or added for free by admin.');
+      return;
+    }
     setCrediting(true);
     setError(null);
     setSuccess(null);
     try {
-      await creditUser(creditUserTarget.user_id, creditAmount, creditReason);
-      setSuccess(`Successfully ${creditAmount > 0 ? 'credited' : 'debited'} ₹${Math.abs(creditAmount)} to ${creditUserTarget.email}!`);
+      await creditUser(creditUserTarget.user_id, creditAmount, creditReason, creditFundingSource);
+      setSuccess(
+        creditFundingSource === 'free_grant'
+          ? `Added ${inr(Math.abs(creditAmount))} free funds to ${creditUserTarget.email} (not counted as revenue).`
+          : `Recorded ${inr(Math.abs(creditAmount))} manual funding for ${creditUserTarget.email} as collected cash.`
+      );
       setCreditUserTarget(null);
+      setCreditReason('Manual Admin Credit');
+      setCreditFundingSource('');
       await loadRecharges();
     } catch (err: any) {
       setError(err.message || 'Failed to update user balance');
@@ -82,7 +125,7 @@ export default function RechargeManager() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', margin: 0 }}>Wallet Recharges</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>History of all UPI top-ups and manual admin credits across the platform.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>Every wallet funding entry, separated into cash really received and free balance granted to users.</p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -126,6 +169,47 @@ export default function RechargeManager() {
         </div>
       )}
 
+      {/* Balance-sheet view: what was really collected vs granted for free */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Cash collected (real money)</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399', marginTop: '0.3rem' }}>{inr(summary?.cashCollected)}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+            UPI top-ups {inr(summary?.totalTopups)} ({summary?.topupCount || 0})
+            <br />
+            Manual funding {inr(summary?.manualFunding)} ({summary?.manualFundingCount || 0})
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #a855f7' }}>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Free funds granted (not revenue)</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc', marginTop: '0.3rem' }}>{inr(summary?.freeFunds)}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+            {summary?.freeFundsCount || 0} admin grant(s) · today {inr(summary?.freeFundsToday)}
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #64748b' }}>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Customer wallet liability</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.3rem' }}>{inr(summary?.walletLiability)}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+            Today collected: {inr(summary?.cashCollectedToday)}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem', marginBottom: '1rem' }}>
+        {SOURCE_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => { setSourceFilter(f.key); setPage(0); }}
+            className={`btn btn-sm ${sourceFilter === f.key ? 'btn-primary' : 'btn-ghost'}`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       <div className="card glass-card" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="table-responsive">
           <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -161,8 +245,8 @@ export default function RechargeManager() {
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tx.name}</div>
                     </td>
                     <td style={{ padding: '0.75rem 1rem' }}>
-                      <span className={`badge ${tx.type === 'admin_credit' ? 'badge-primary' : 'badge-success'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
-                        {tx.type === 'admin_credit' ? 'Admin Credit' : 'UPI Top-Up'}
+                      <span className={`badge ${sourceBadge(tx).className}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                        {sourceBadge(tx).label}
                       </span>
                     </td>
                     <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--success)' }}>
@@ -181,11 +265,11 @@ export default function RechargeManager() {
                       <button 
                         className="btn btn-ghost btn-sm"
                         onClick={() => setCreditUserTarget(tx)}
-                        title="Change User Balance"
+                        title="Add Funds"
                         style={{ color: 'var(--primary)' }}
                       >
                         <CreditCardIcon size={16} />
-                        <span style={{ marginLeft: '0.35rem' }}>Change Balance</span>
+                        <span style={{ marginLeft: '0.35rem' }}>Add Funds</span>
                       </button>
                     </td>
                   </tr>
@@ -226,12 +310,12 @@ export default function RechargeManager() {
         <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div className="modal-content card glass-card" style={{ width: '100%', maxWidth: '420px', padding: '1.5rem', animation: 'scaleUp 0.2s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-display)' }}>Change Balance</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-display)' }}>Add Funds</h3>
               <button type="button" className="btn btn-ghost btn-sm btn-icon" aria-label="Close balance editor" onClick={() => setCreditUserTarget(null)}><XIcon size={18} /></button>
             </div>
             
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              Update wallet balance for <strong style={{ color: 'var(--text-primary)' }}>{creditUserTarget.email}</strong>. Use negative values to deduct balance.
+              Add funds to <strong style={{ color: 'var(--text-primary)' }}>{creditUserTarget.email}</strong> and record where the money came from.
             </p>
 
             <form onSubmit={handleCreditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -248,6 +332,12 @@ export default function RechargeManager() {
                 />
               </div>
               
+              <FundingSourcePicker
+                value={creditFundingSource}
+                onChange={setCreditFundingSource}
+                disabled={crediting}
+              />
+
               <div>
                 <label className="label">Reason / Description</label>
                 <input 
@@ -257,14 +347,15 @@ export default function RechargeManager() {
                   value={creditReason}
                   onChange={(e) => setCreditReason(e.target.value)}
                   required
-                  placeholder="e.g. Manual deposit, refund, etc."
+                  minLength={5}
+                  placeholder="e.g. Customer paid ₹500 via UPI / Goodwill credit"
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setCreditUserTarget(null)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={crediting}>
-                  {crediting ? 'Processing...' : 'Submit'}
+                <button type="submit" className="btn btn-primary" disabled={crediting || !creditFundingSource}>
+                  {crediting ? 'Processing...' : !creditFundingSource ? 'Choose funding source' : `Add ₹${creditAmount}`}
                 </button>
               </div>
             </form>

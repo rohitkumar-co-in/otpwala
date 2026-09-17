@@ -45,7 +45,7 @@ export async function creditBalance(
   userId: string,
   amount: number,
   description: string,
-  type: 'refund' | 'topup' | 'admin_credit' = 'refund',
+  type: 'refund' | 'topup' | 'admin_credit' | 'admin_grant' = 'refund',
   env?: any,
   referenceType?: string,
   referenceId?: string,

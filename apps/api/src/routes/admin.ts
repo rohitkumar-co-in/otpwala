@@ -279,7 +279,7 @@ router.post('/users/:id/zero-markup', async (req: AuthenticatedRequest, res) => 
 router.post('/users/:id/credit', async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const { amount, description } = req.body;
+    const { amount, description, note, fundingSource } = req.body;
     const amountNum = parseFloat(amount);
 
     if (!amountNum || amountNum <= 0) {
@@ -287,14 +287,35 @@ router.post('/users/:id/credit', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    const newBalance = await creditBalance(
-      id,
-      amountNum,
-      'admin_credit',
-      description || `Admin credit by ${req.userEmail}`
-    );
+    // Admin-added balance must declare whether money was really received.
+    const source = String(fundingSource || '').trim();
+    if (!['manual_funding', 'free_grant'].includes(source)) {
+      res.status(400).json({
+        success: false,
+        error: 'Choose whether the funds were manually funded (money received) or added for free by an admin.',
+      });
+      return;
+    }
 
-    res.json({ success: true, data: { newBalance } });
+    const ledgerType = source === 'free_grant' ? 'admin_grant' : 'admin_credit';
+    const reason = (note ?? description) || `${ledgerType === 'admin_grant' ? 'Free funds' : 'Manual funding'} by ${req.userEmail}`;
+    let newBalance: number;
+    try {
+      newBalance = await creditBalance(id, amountNum, ledgerType, reason, { method: 'admin_funding' });
+    } catch (err: any) {
+      // Pre-migration schema: the ledger still rejects admin_grant rows.
+      const raw = String(err?.message || '');
+      if (source === 'free_grant' && (raw.includes('invalid_wallet_transaction') || raw.includes('wallet_transactions_type_check'))) {
+        res.status(409).json({
+          success: false,
+          error: 'Free funds cannot be recorded yet — apply the 20260915210000_admin_funding_sources SQL migration in Supabase first. Meanwhile you can add the balance as "manually funded".',
+        });
+        return;
+      }
+      throw err;
+    }
+
+    res.json({ success: true, data: { newBalance, fundingSource: source, ledgerType } });
   } catch (e) {
     console.error('Admin credit error:', e);
     res.status(500).json({ success: false, error: 'Failed to credit user' });
@@ -1119,14 +1140,41 @@ router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, re
 });
 
 /**
+ * GET /api/admin/funding-summary
+ * Return canonical cash, free-funds, and wallet-liability totals.
+ */
+router.get('/funding-summary', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { data, error } = await supabaseAdmin.rpc('wallet_funding_summary');
+    if (error) throw error;
+    res.json({ success: true, data: data || {} });
+  } catch (e: any) {
+    console.error('Error fetching funding summary:', e);
+    res.status(500).json({ success: false, error: 'Failed to fetch funding summary' });
+  }
+});
+
+/**
  * GET /api/admin/recharges
- * Fetch wallet recharge history (topups and admin credits) across all users.
+ * Fetch wallet funding history across all users.
  */
 router.get('/recharges', async (req: AuthenticatedRequest, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string || '';
+    const source = String(req.query.source || 'all').trim();
+    const sourceTypes: Record<string, string[]> = {
+      upi: ['topup'],
+      manual: ['admin_credit'],
+      free: ['admin_grant'],
+      all: ['topup', 'admin_credit', 'admin_grant'],
+    };
+
+    if (!sourceTypes[source]) {
+      res.status(400).json({ success: false, error: 'Invalid funding source filter' });
+      return;
+    }
 
     // First, if there's a search term (like email), we might need to find the user IDs first.
     let userIds: string[] = [];
@@ -1147,7 +1195,7 @@ router.get('/recharges', async (req: AuthenticatedRequest, res) => {
     let query = supabaseAdmin
       .from('wallet_transactions')
       .select('*, profiles(email, full_name)', { count: 'exact' })
-      .in('type', ['topup', 'admin_credit']);
+      .in('type', sourceTypes[source]);
 
     if (userIds.length > 0) {
       query = query.in('user_id', userIds);

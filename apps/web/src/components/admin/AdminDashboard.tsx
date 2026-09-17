@@ -33,6 +33,13 @@ export default function AdminDashboard() {
   const [reconciling, setReconciling] = useState(false);
   const integrityUnavailable = Boolean(stats?.financialIntegrity?.error);
   const integrityIssues = Number(stats?.financialIntegrity?.totalIssues || 0);
+  // Funding totals come from the wallet_funding_summary RPC. Until that migration is
+  // applied the keys are absent — fall back to top-ups only and say so instead of
+  // silently reporting free balance as collected cash.
+  const fundingSummaryAvailable = stats ? stats.cashCollected !== undefined : false;
+  const cashCollected = fundingSummaryAvailable
+    ? Number(stats?.cashCollected || 0)
+    : parseFloat(stats?.totalTopups || 0) + parseFloat(stats?.adminCredits || 0);
 
   const loadRecentOrders = async () => {
     setOrdersLoading(true);
@@ -338,19 +345,22 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Customer funds collected (approved top-ups only) */}
+        {/* Cash really received: UPI top-ups + manually confirmed funding */}
         <div className="card glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Funds Collected
+              Cash Collected (Real Money)
             </span>
             <DollarIcon size={20} color="#34d399" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: '#34d399' }}>
-            {loading && !stats ? '...' : `₹${parseFloat(stats?.totalTopups || 0).toFixed(2)}`}
+            {loading && !stats ? '...' : `₹${parseFloat(stats?.cashCollected ?? stats?.totalTopups ?? 0).toFixed(2)}`}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
-            Approved top-ups only · Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.topupsToday || 0).toFixed(2)}</strong>
+            UPI ₹{parseFloat(stats?.totalTopups || 0).toFixed(2)} ({stats?.topupCount || 0})
+            {' · '}Manual ₹{parseFloat(stats?.manualFunding || 0).toFixed(2)} ({stats?.manualFundingCount || 0})
+            <br />
+            Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.cashCollectedToday || 0).toFixed(2)}</strong>
           </div>
         </div>
 
@@ -396,6 +406,7 @@ export default function AdminDashboard() {
             <h2 style={{ fontSize: '1.05rem', margin: 0 }}>Order &amp; Financial Breakdown</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
               Lifetime totals. Today uses Asia/Kolkata time. Sales and provider cost include OTP-delivered orders only.
+              Cash collected counts UPI top-ups and admin-confirmed manual funding; free funds granted by an admin are never revenue.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
@@ -408,7 +419,8 @@ export default function AdminDashboard() {
               ['Provider Cost', `₹${parseFloat(stats.providerCostInr || 0).toFixed(2)}`, '#8b5cf6'],
               ['Gross Profit', `₹${parseFloat(stats.grossProfit || 0).toFixed(2)}`, '#059669'],
               ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
-              ['Admin Credits (Non-cash)', `₹${parseFloat(stats.adminCredits || 0).toFixed(2)}`, '#a855f7'],
+              ['Cash Collected (UPI + Manual)', `₹${parseFloat(stats.cashCollected || 0).toFixed(2)}`, '#10b981'],
+              ['Free Funds Granted (Not Revenue)', `₹${parseFloat(stats.freeFunds || 0).toFixed(2)} · ${stats.freeFundsCount || 0} grant(s)`, '#a855f7'],
               ['Unresolved Support', stats.unresolvedSupport || 0, '#0ea5e9'],
             ].map(([label, value, color]) => (
               <div key={String(label)} style={{ padding: '0.85rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)' }}>

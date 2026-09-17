@@ -3,7 +3,7 @@ import { TigerSmsClient } from './tiger';
 import { creditBalance } from './wallet';
 import serviceIcons from '../data/tigerServiceIcons.json';
 import countryFlags from '../data/countryFlags.json';
-import { assertValidAdminCredit } from './policies';
+import { assertValidAdminCredit, assertValidAdminFundingSource, resolveAdminCreditLedgerType, adminFundingLedgerTypes } from './policies';
 
 export async function logAdminAction(
   actorId: string,
@@ -165,9 +165,77 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
   return { users: enrichedUsers, total: count || 0 };
 }
 
-export async function creditUserBalance(userId: string, amount: number, note: string, env?: any) {
+export async function creditUserBalance(userId: string, amount: number, note: string, fundingSource: string, env?: any) {
   assertValidAdminCredit(amount, note);
-  return creditBalance(userId, amount, note || 'Admin Balance Adjustment', 'admin_credit', env);
+  // No silent default: an ambiguous credit would corrupt the balance sheet.
+  assertValidAdminFundingSource(fundingSource);
+  const ledgerType = resolveAdminCreditLedgerType(fundingSource);
+  const description = ledgerType === 'admin_grant'
+    ? `Free funds by admin (no money received): ${note.trim()}`
+    : `Manual funding by admin (money received): ${note.trim()}`;
+
+  try {
+    const balance = await creditBalance(userId, amount, description, ledgerType, env, 'admin_funding', fundingSource);
+    return { balance, ledgerType, fundingSource };
+  } catch (error: any) {
+    // Pre-migration schema: the ledger still rejects admin_grant rows — tell the
+    // admin what to do instead of leaking a raw Postgres error.
+    const raw = String(error?.message || '');
+    if (fundingSource === 'free_grant' && (raw.includes('invalid_wallet_transaction') || raw.includes('wallet_transactions_type_check'))) {
+      throw new Error('Free funds cannot be recorded yet — apply the 20260915210000_admin_funding_sources SQL migration in Supabase first. Meanwhile you can add the balance as "manually funded".');
+    }
+    throw error;
+  }
+}
+
+// Canonical balance-sheet totals (real money in vs free funds handed out).
+// Falls back to direct ledger aggregates when the wallet_funding_summary RPC is
+// not deployed yet (funding-sources migration pending), so the balance sheet
+// keeps working: free funds are genuinely zero before the migration because the
+// check constraint rejects admin_grant rows.
+export async function getFundingSummary(env?: any) {
+  const supabase = getSupabaseAdmin(env);
+  const { data, error } = await supabase.rpc('wallet_funding_summary');
+  if (!error) return data || {};
+
+  const missing = ['404', 'PGRST202', '42883'].includes(String(error.code || ''))
+    || /wallet_funding_summary|Could not find the function|schema cache/i.test(String(error.message || ''));
+  if (!missing) throw error;
+
+  // Asia/Kolkata is a fixed UTC+5:30 offset — no DST, safe to derive directly.
+  const todayIst = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+  const [funding, profiles] = await Promise.all([
+    supabase.from('wallet_transactions').select('type,amount,created_at').in('type', ['topup', 'admin_credit']).eq('status', 'completed'),
+    supabase.from('profiles').select('wallet_balance').eq('role', 'user'),
+  ]);
+  if (funding.error) throw funding.error;
+  if (profiles.error) throw profiles.error;
+
+  const totals = { totalTopups: 0, topupCount: 0, topupsToday: 0, manualFunding: 0, manualFundingCount: 0, manualFundingToday: 0 };
+  for (const tx of funding.data || []) {
+    const amount = parseFloat(tx.amount) || 0;
+    const isToday = new Date(new Date(tx.created_at).getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 10) === todayIst;
+    if (tx.type === 'topup') {
+      totals.totalTopups += amount;
+      totals.topupCount += 1;
+      if (isToday) totals.topupsToday += amount;
+    } else {
+      totals.manualFunding += amount;
+      totals.manualFundingCount += 1;
+      if (isToday) totals.manualFundingToday += amount;
+    }
+  }
+
+  return {
+    ...totals,
+    freeFunds: 0,
+    freeFundsToday: 0,
+    freeFundsCount: 0,
+    cashCollected: totals.totalTopups + totals.manualFunding,
+    cashCollectedToday: totals.topupsToday + totals.manualFundingToday,
+    walletLiability: (profiles.data || []).reduce((sum: number, p: any) => sum + (parseFloat(p.wallet_balance) || 0), 0),
+    legacySchema: true,
+  };
 }
 
 export async function banUser(userId: string, banned: boolean, reason?: string, env?: any) {
@@ -313,7 +381,7 @@ export async function rejectPaymentRequest(id: string, reason = '', env?: any) {
   return { success: true };
 }
 
-export async function getAdminRecharges(limit = 20, offset = 0, search = '', env?: any) {
+export async function getAdminRecharges(limit = 20, offset = 0, search = '', source = 'all', env?: any) {
   const supabase = getSupabaseAdmin(env);
   
   let userIds: string[] = [];
@@ -333,7 +401,7 @@ export async function getAdminRecharges(limit = 20, offset = 0, search = '', env
   let query = supabase
     .from('wallet_transactions')
     .select('*, profiles(email, full_name)', { count: 'exact' })
-    .in('type', ['topup', 'admin_credit']);
+    .in('type', adminFundingLedgerTypes(source));
 
   if (userIds.length > 0) {
     query = query.in('user_id', userIds);
@@ -349,6 +417,8 @@ export async function getAdminRecharges(limit = 20, offset = 0, search = '', env
     ...tx,
     email: tx.profiles?.email || 'Unknown',
     name: tx.profiles?.full_name || 'Unknown',
+    // Normalised label so the admin UI never has to guess what funded the balance.
+    fundingSource: tx.type === 'topup' ? 'upi' : tx.type === 'admin_grant' ? 'free_grant' : 'manual_funding',
   }));
 
   return { recharges, total: count || 0 };

@@ -12,6 +12,8 @@ import {
   promoteAdmin,
   demoteAdmin,
 } from '../../lib/api';
+import type { AdminFundingSource } from '../../lib/api';
+import FundingSourcePicker from './FundingSourcePicker';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -38,6 +40,8 @@ export default function UserManager() {
   const [creditUserTarget, setCreditUserTarget] = useState<any | null>(null);
   const [creditAmount, setCreditAmount] = useState<number>(100);
   const [creditReason, setCreditReason] = useState<string>('Manual Admin Credit');
+  // Required, never defaulted: silent guesses are what made the balance sheet unclear.
+  const [creditFundingSource, setCreditFundingSource] = useState<'' | AdminFundingSource>('');
   const [crediting, setCrediting] = useState(false);
 
   // Single delete confirmation modal state
@@ -121,12 +125,20 @@ export default function UserManager() {
       setError('Please enter a valid positive amount');
       return;
     }
+    if (!creditFundingSource) {
+      setError('Choose whether the funds were manually funded (money received) or added for free by admin.');
+      return;
+    }
     setCrediting(true);
     setError(null);
     setSuccess(null);
     try {
-      await creditUser(creditUserTarget.id, creditAmount, creditReason);
-      setSuccess(`Successfully credited ₹${creditAmount} to ${creditUserTarget.email}!`);
+      await creditUser(creditUserTarget.id, creditAmount, creditReason, creditFundingSource);
+      setSuccess(
+        creditFundingSource === 'free_grant'
+          ? `Added ₹${creditAmount} free funds to ${creditUserTarget.email} (not counted as revenue).`
+          : `Recorded ₹${creditAmount} manual funding for ${creditUserTarget.email} as collected cash.`
+      );
       setCreditUserTarget(null);
       await loadUsers();
     } catch (err: any) {
@@ -733,7 +745,8 @@ export default function UserManager() {
                             onClick={() => {
                               setCreditUserTarget(u);
                               setCreditAmount(100);
-                              setCreditReason('Manual admin top-up');
+                              setCreditReason('');
+                              setCreditFundingSource('');
                             }}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                           >
@@ -791,7 +804,7 @@ export default function UserManager() {
         }}>
           <div className="card glass-card" style={{ maxWidth: '440px', width: '100%', padding: '1.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Credit User Wallet</h3>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Add Funds to Wallet</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => setCreditUserTarget(null)}>
                 <XIcon size={14} />
               </button>
@@ -840,6 +853,12 @@ export default function UserManager() {
                 </div>
               </div>
 
+              <FundingSourcePicker
+                value={creditFundingSource}
+                onChange={setCreditFundingSource}
+                disabled={crediting}
+              />
+
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
                   Reason / Description
@@ -847,9 +866,11 @@ export default function UserManager() {
                 <input
                   type="text"
                   required
+                  minLength={5}
                   value={creditReason}
                   onChange={(e) => setCreditReason(e.target.value)}
                   className="input"
+                  placeholder={creditFundingSource === 'free_grant' ? 'e.g. Goodwill credit for failed order #1234' : 'e.g. Customer paid ₹500 via UPI on 16 Sep'}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -858,8 +879,8 @@ export default function UserManager() {
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCreditUserTarget(null)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary btn-sm" disabled={crediting}>
-                  {crediting ? 'Crediting...' : `Confirm Credit ₹${creditAmount}`}
+                <button type="submit" className="btn btn-primary btn-sm" disabled={crediting || !creditFundingSource}>
+                  {crediting ? 'Crediting...' : !creditFundingSource ? 'Choose funding source' : `Confirm ₹${creditAmount}`}
                 </button>
               </div>
             </form>

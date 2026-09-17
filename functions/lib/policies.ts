@@ -21,6 +21,31 @@ export function assertValidAdminCredit(amount: number, note: string) {
   if (!note || note.trim().length < 5) throw new Error('A reason of at least 5 characters is required.');
 }
 
+// Funding sources decide whether admin-added balance counts as real money.
+//   manual_funding -> money was really received (cash in)
+//   free_grant     -> goodwill balance, no money received (never revenue)
+export const ADMIN_FUNDING_SOURCES = ['manual_funding', 'free_grant'] as const;
+export const ADMIN_LEDGER_TYPES = ['topup', 'admin_credit', 'admin_grant'] as const;
+
+export type AdminFundingSource = (typeof ADMIN_FUNDING_SOURCES)[number];
+
+export function assertValidAdminFundingSource(source: string) {
+  if (!ADMIN_FUNDING_SOURCES.includes(source as AdminFundingSource)) {
+    throw new Error('Choose whether the funds were manually funded (money received) or added for free by an admin.');
+  }
+}
+
+export function resolveAdminCreditLedgerType(source: AdminFundingSource): 'admin_credit' | 'admin_grant' {
+  return source === 'free_grant' ? 'admin_grant' : 'admin_credit';
+}
+
+export function adminFundingLedgerTypes(source: string) {
+  if (source === 'upi') return ['topup'];
+  if (source === 'manual') return ['admin_credit'];
+  if (source === 'free') return ['admin_grant'];
+  return [...ADMIN_LEDGER_TYPES];
+}
+
 export function classifyExpiredProviderStatus(status: string) {
   if (status === 'code_received') return 'deliver' as const;
   if (status === 'waiting' || status.startsWith('status_wait')) return 'cancel_and_refund' as const;

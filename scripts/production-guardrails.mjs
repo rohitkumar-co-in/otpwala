@@ -22,6 +22,7 @@ const files = {
   integrityMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915190000_financial_integrity_report.sql', import.meta.url), 'utf8'),
   ledgerBaselineMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql', import.meta.url), 'utf8'),
   ledgerAppendOnlyMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql', import.meta.url), 'utf8'),
+  fundingSourcesMigration: readFileSync(new URL('../apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql', import.meta.url), 'utf8'),
   legacyAdminRoutes: readFileSync(new URL('../apps/api/src/routes/admin.ts', import.meta.url), 'utf8'),
   legacyWallet: readFileSync(new URL('../apps/api/src/services/wallet.ts', import.meta.url), 'utf8'),
   legacyOrder: readFileSync(new URL('../apps/api/src/services/order.ts', import.meta.url), 'utf8'),
@@ -81,6 +82,17 @@ requireText(files.ledgerBaselineMigration, 'financial_ledger_baselines', 'Financ
 requireText(files.ledgerBaselineMigration, 'opening_balance', 'Legacy opening balances are not recorded safely');
 requireText(files.ledgerAppendOnlyMigration, 'wallet_transactions_append_only', 'Wallet ledger append-only guard is missing');
 requireText(files.ledgerAppendOnlyMigration, 'wallet_deduction_must_be_negative', 'Wallet debit direction guard is missing');
+
+// Real money and free admin funds must stay distinguishable in the ledger.
+requireText(files.fundingSourcesMigration, "'admin_grant'", 'Free admin funds are not a distinct ledger type');
+requireText(files.fundingSourcesMigration, 'wallet_funding_summary', 'Canonical funding-source summary is missing');
+requireText(files.fundingSourcesMigration, "'cashCollected'", 'Collected-cash total is missing from the funding summary');
+requireText(files.admin, 'assertValidAdminFundingSource', 'Admin funding source is not validated');
+requireText(files.admin, 'resolveAdminCreditLedgerType', 'Admin credits are not classified into a ledger type');
+requireText(files.admin, "rpc('wallet_funding_summary')", 'Admin funding summary bypasses the canonical RPC');
+requireText(files.routes, 'body.fundingSource', 'Admin credit API ignores the funding source');
+requireText(files.legacyAdminRoutes, 'fundingSource', 'Legacy admin credit ignores the funding source');
+if (/'admin_credit',\s*env\)/.test(files.admin)) failures.push('Admin credit can still write an unclassified admin_credit');
 requireText(files.legacyWallet, "rpc('post_wallet_transaction'", 'Legacy API wallet service bypasses the atomic ledger RPC');
 if (/from\('wallet_transactions'\)\.insert\(/.test(files.legacyWallet)) failures.push('Legacy API wallet service writes directly to the append-only ledger');
 requireText(files.legacyAdminRoutes, "rpc('approve_payment_request_atomic'", 'Legacy API payment approval bypasses the atomic approval RPC');

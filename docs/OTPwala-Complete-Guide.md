@@ -147,11 +147,20 @@ apps/api/supabase/migrations/20260915190000_financial_integrity_report.sql
 apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql
 apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql
 apps/api/supabase/migrations/20260915200000_support_ticket_types_attachments.sql
+apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
 ```
 
 Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
 
 The final migration adds `ticket_type` and `attachment` to `support_tickets`. Without it, ticket creation with a type or image will fail.
+
+The admin funding migration separates wallet credits into three categories:
+
+- `topup`: customer payment submitted from the website and approved by an admin.
+- `admin_credit`: money received by an admin outside the website and manually credited.
+- `admin_grant`: free balance added by an admin; it is not revenue.
+
+Apply the migration only after confirming that legacy `admin_credit` rows without a payment reference were free admin funds. Its one-time reclassification preserves website top-ups as `topup` and moves only unmarked legacy admin credits to `admin_grant`.
 
 ### 6.3 Create the first admin
 
