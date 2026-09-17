@@ -94,10 +94,9 @@ const servicesFaqSchema = {
       <!-- Hero Header -->
       <div class="services-hero">
         <span class="badge-pill">Popular Services</span>
-        <h1>Virtual Numbers for <span class="text-gradient">Featured Services</span></h1>
+        <h1>Virtual Numbers for <span class="text-gradient">SMS Verification Services</span></h1>
         <p class="hero-desc">
-          Explore popular SMS verification services selected by OTPWala.
-          Keep your real SIM identity safe from spam and data breaches.
+          Browse temporary virtual numbers for SMS verification on WhatsApp, Telegram, Google, Instagram, Facebook, TikTok, and other supported apps. Review live country availability, stock, and pricing before purchase.
         </p>
 
         <!-- Search & Filters -->
@@ -118,6 +117,25 @@ const servicesFaqSchema = {
 
         </div>
       </div>
+
+      <!-- Crawlable service-intent content; the live catalog below remains interactive. -->
+      <section class="service-intent" aria-labelledby="service-intent-title">
+        <div>
+          <span class="badge-pill">SMS Verification Catalog</span>
+          <h2 id="service-intent-title">Temporary Numbers for Popular Apps</h2>
+          <p>OTPWala lets you choose a country and service before ordering a temporary number. Availability changes with live carrier inventory, so the catalog and pricing shown at purchase are the source of truth.</p>
+        </div>
+        <div class="service-intent-links" aria-label="Popular SMS verification services">
+          <a href="/pricing">WhatsApp verification numbers</a>
+          <a href="/pricing">Telegram verification numbers</a>
+          <a href="/pricing">Google and Gmail verification</a>
+          <a href="/pricing">Instagram verification numbers</a>
+          <a href="/pricing">Facebook verification numbers</a>
+          <a href="/pricing">TikTok verification numbers</a>
+          <a href="/pricing">ChatGPT verification numbers</a>
+          <a href="/how-it-works">How temporary SMS numbers work</a>
+        </div>
+      </section>
 
       <!-- Quick Stats Bar -->
       <div class="stats-bar">
@@ -244,6 +262,22 @@ const servicesFaqSchema = {
     padding: 2rem 0 5rem;
     min-height: 80vh;
   }
+
+  .service-intent {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr);
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card, #fff);
+  }
+  .service-intent h2 { margin: 0.55rem 0 0.5rem; font-size: 1.35rem; }
+  .service-intent p { margin: 0; color: var(--text-secondary); line-height: 1.65; }
+  .service-intent-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem 1rem; align-content: center; }
+  .service-intent-links a { color: var(--accent-primary); font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 0.15em; }
+  @media (max-width: 720px) { .service-intent { grid-template-columns: 1fr; } }
 
   .breadcrumb-nav {
     margin-bottom: 1.5rem;
