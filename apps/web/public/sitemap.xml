@@ -12,70 +12,70 @@
   </url>
   <!-- Services Catalog -->
   <url>
-    <loc>https://otpwala.me/services</loc>
+    <loc>https://otpwala.me/services/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- Pricing & Rates -->
   <url>
-    <loc>https://otpwala.me/pricing</loc>
+    <loc>https://otpwala.me/pricing/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- How It Works Guide -->
   <url>
-    <loc>https://otpwala.me/how-it-works</loc>
+    <loc>https://otpwala.me/how-it-works/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <!-- Registration / Sign Up -->
   <url>
-    <loc>https://otpwala.me/auth/register</loc>
+    <loc>https://otpwala.me/auth/register/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- Authentication / Login -->
   <url>
-    <loc>https://otpwala.me/auth/login</loc>
+    <loc>https://otpwala.me/auth/login/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- Terms of Service -->
   <url>
-    <loc>https://otpwala.me/terms</loc>
+    <loc>https://otpwala.me/terms/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Privacy Policy -->
   <url>
-    <loc>https://otpwala.me/privacy</loc>
+    <loc>https://otpwala.me/privacy/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Acceptable Use & Anti-Fraud Policy -->
   <url>
-    <loc>https://otpwala.me/acceptable-use</loc>
+    <loc>https://otpwala.me/acceptable-use/</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Refund & Payments Policy -->
   <url>
-    <loc>https://otpwala.me/refund-policy</loc>
+    <loc>https://otpwala.me/refund-policy/</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Public Service Status -->
   <url>
-    <loc>https://otpwala.me/status</loc>
+    <loc>https://otpwala.me/status/</loc>
     <lastmod>2026-09-18</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.4</priority>
