@@ -55,6 +55,7 @@ export default function SettingsManager() {
   // Telegram Bot Notifications for Payment Approvals
   const [telegramBotToken, setTelegramBotToken] = useState('');
   const [telegramAdminChatId, setTelegramAdminChatId] = useState('');
+  const [providerLowBalanceThreshold, setProviderLowBalanceThreshold] = useState('5');
   const [telegramNotificationsEnabled, setTelegramNotificationsEnabled] = useState(true);
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramTestResult, setTelegramTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -124,6 +125,7 @@ export default function SettingsManager() {
 
       if (s.telegram_bot_token) setTelegramBotToken(s.telegram_bot_token);
       if (s.telegram_admin_chat_id) setTelegramAdminChatId(s.telegram_admin_chat_id);
+      if (s.provider_low_balance_threshold_usd) setProviderLowBalanceThreshold(s.provider_low_balance_threshold_usd);
       if (s.telegram_notifications_enabled !== undefined) {
         setTelegramNotificationsEnabled(s.telegram_notifications_enabled !== 'false');
       }
@@ -211,6 +213,7 @@ export default function SettingsManager() {
         telegram_bot_token: telegramBotToken.trim(),
         telegram_admin_chat_id: telegramAdminChatId.trim(),
         telegram_notifications_enabled: String(telegramNotificationsEnabled),
+        provider_low_balance_threshold_usd: providerLowBalanceThreshold,
         maintenance_mode: maintenanceMode,
         auth_allow_email_signup: String(allowEmailSignup),
         auth_allow_google_login: String(allowGoogleLogin),
@@ -431,6 +434,7 @@ export default function SettingsManager() {
                 Tagline appended to the brand name on the homepage browser tab.
               </span>
             </div>
+
           </div>
 
           {/* Live Browser Tab Preview Box */}
@@ -883,10 +887,10 @@ export default function SettingsManager() {
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <TelegramIcon size={20} style={{ color: '#0284c7' }} />
-                <span>Telegram Bot Alerts for Payment Approvals</span>
+                <span>Telegram Bot Alerts</span>
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
-                Instant real-time push alerts sent directly to your Telegram chat whenever a customer submits a UPI deposit with a UTR
+                Payment approval alerts plus low-provider-balance alerts sent directly to your Telegram chat.
               </p>
             </div>
             <span className={`badge ${telegramNotificationsEnabled && telegramBotToken && telegramAdminChatId ? 'badge-success' : 'badge-ghost'}`} style={{ fontSize: '0.75rem' }}>
@@ -944,6 +948,26 @@ export default function SettingsManager() {
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
                 Your unique numerical Telegram ID where alerts will be delivered.
+              </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Low Provider Balance Threshold (USD)
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                value={providerLowBalanceThreshold}
+                onChange={(e) => setProviderLowBalanceThreshold(e.target.value)}
+                className="input"
+                style={{ width: '100%' }}
+                placeholder="5.00"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Telegram sends at most two low-balance alerts per IST day: one before noon and one after noon.
               </span>
             </div>
           </div>

@@ -373,7 +373,14 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
   }
   try {
     const providerBalance = parseFloat((await tiger.getBalance()).balance || '0');
-    const threshold = Math.max(parseFloat(String(env?.PROVIDER_LOW_BALANCE_USD || '5')) || 5, 0.01);
+    const { data: thresholdSetting } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'provider_low_balance_threshold_usd')
+      .maybeSingle();
+    const configuredThreshold = parseFloat(String(thresholdSetting?.value ?? '').replace(/^"|"$/g, ''));
+    const fallbackThreshold = parseFloat(String(env?.PROVIDER_LOW_BALANCE_USD || '5')) || 5;
+    const threshold = Math.max(Number.isFinite(configuredThreshold) ? configuredThreshold : fallbackThreshold, 0.01);
     await notifyLowProviderBalance(providerBalance, threshold, env);
   } catch (error) {
     console.warn('Provider balance alert check failed:', error);

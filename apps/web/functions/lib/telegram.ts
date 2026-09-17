@@ -95,8 +95,13 @@ export async function notifyLowProviderBalance(balance: number, threshold: numbe
   if (!Number.isFinite(balance) || balance >= threshold) return { sent: false, reason: 'above_threshold' };
   const config = await getTelegramConfig(env);
   if (!config.enabled) return { sent: false, reason: 'not_configured' };
-  const hour = new Date().toISOString().slice(0, 13);
-  const alertKey = `provider_low_balance:${hour}`;
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const timeParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const halfDay = Number(timeParts.hour) < 12 ? 'am' : 'pm';
+  const alertKey = `provider_low_balance:${timeParts.year}-${timeParts.month}-${timeParts.day}:${halfDay}`;
   const supabase = getSupabaseAdmin(env);
   const claim = await supabase.from('operational_alerts').insert({
     alert_key: alertKey,

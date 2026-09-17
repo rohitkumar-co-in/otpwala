@@ -153,6 +153,7 @@ INSERT INTO public.settings (key, value) VALUES
     ('telegram_bot_token',              '""'),
     ('telegram_admin_chat_id',          '""'),
     ('telegram_notifications_enabled',  '"true"'),
+    ('provider_low_balance_threshold_usd', '"5"'),
     ('referral_bonus_percent_1',        '"20"'),
     ('referral_bonus_percent_2',        '"5"'),
     ('referral_bonus_percent_3',        '"5"'),
