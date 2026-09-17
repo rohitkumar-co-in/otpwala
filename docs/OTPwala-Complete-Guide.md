@@ -107,9 +107,6 @@ API_BASE_URL=http://localhost:3001
 WEB_URL=http://localhost:4321
 NODE_ENV=development
 
-RAZORPAY_KEY_ID=YOUR_RAZORPAY_KEY_ID
-RAZORPAY_KEY_SECRET=YOUR_RAZORPAY_KEY_SECRET
-RAZORPAY_WEBHOOK_SECRET=YOUR_RAZORPAY_WEBHOOK_SECRET
 ```
 
 For Cloudflare Pages, add the same variables in **Workers & Pages → otpwala → Settings → Environment variables**. Put public values in both environments as appropriate, but keep service-role, Tiger, cron, and payment secrets server-only.

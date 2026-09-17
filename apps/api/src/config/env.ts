@@ -9,11 +9,6 @@ export const env = {
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 
-  // Razorpay
-  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
-  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
-  RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || '',
-
   // Server
   API_PORT: parseInt(process.env.API_PORT || '3001', 10),
   WEB_URL: process.env.WEB_URL || 'http://localhost:4321',

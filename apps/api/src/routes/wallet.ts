@@ -154,7 +154,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
     const config = await getWalletConfig();
 
     // Reject card payments
-    if (method && (method.toLowerCase().includes('card') || method.toLowerCase() === 'razorpay')) {
+    if (method && method.toLowerCase().includes('card')) {
       res.status(400).json({
         success: false,
         error: 'Card payments are disabled. Please use UPI payment to deposit.',
