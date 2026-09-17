@@ -1,16 +1,9 @@
 -- OTPWala standalone Supabase schema
 -- Generated from supabase/migration.sql plus all apps/api/supabase/migrations.
 -- Run this single file in Supabase SQL Editor for a fresh project.
+-- Run once on a fresh project only; use individual migrations for an existing database.
 -- Sections are ordered by dependency.
 
--- ===== BASE SCHEMA: supabase/migration.sql =====
--- ╔══════════════════════════════════════════════════════════════════╗
--- ║              OTPWala — Complete Supabase Schema                  ║
--- ║  Run in Supabase SQL Editor. Safe to re-run (IF NOT EXISTS +    ║
--- ║  ON CONFLICT DO NOTHING / DROP POLICY IF EXISTS everywhere)     ║
--- ╚══════════════════════════════════════════════════════════════════╝
-
--- ─── 1. USER PROFILES ───────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.profiles (
     id              UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     email           TEXT NOT NULL,
