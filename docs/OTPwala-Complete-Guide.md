@@ -149,6 +149,7 @@ apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql
 apps/api/supabase/migrations/20260915200000_support_ticket_types_attachments.sql
 apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
 apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
+apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 ```
 
 Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
@@ -162,6 +163,8 @@ The admin funding migration separates wallet credits into three categories:
 - `admin_grant`: free balance added by an admin; it is not revenue.
 
 Apply the migration only after confirming that legacy `admin_credit` rows without a payment reference were free admin funds. Its one-time reclassification preserves website top-ups as `topup` and moves only unmarked legacy admin credits to `admin_grant`.
+
+The financial ledger views migration creates separate read-only reporting surfaces: `wallet_topups`, `wallet_deductions`, `wallet_refunds`, `wallet_admin_funding`, and `wallet_referral_bonuses`. `wallet_transactions` remains the only immutable source of balance truth; do not create separate writable balance tables or insert into these views.
 
 ### 6.3 Create the first admin
 

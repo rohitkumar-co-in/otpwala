@@ -64,7 +64,7 @@ export interface TigerNumberV2Response {
 
 export type UserRole = 'user' | 'admin' | 'superadmin';
 export type OrderStatus = 'waiting' | 'code_received' | 'completed' | 'cancelled' | 'refunded' | 'expired';
-export type WalletTransactionType = 'topup' | 'deduction' | 'refund' | 'admin_credit';
+export type WalletTransactionType = 'topup' | 'deduction' | 'refund' | 'admin_credit' | 'admin_grant' | 'referral_bonus' | 'opening_balance';
 export type MarkupType = 'percentage' | 'flat' | 'fixed_price';
 
 export interface UserProfile {
