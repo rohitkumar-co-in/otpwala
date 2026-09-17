@@ -28,7 +28,10 @@ export default function WalletPage() {
   const [userRequests, setUserRequests] = useState<any[]>([]);
   const [totalTx, setTotalTx] = useState(0);
   const [page, setPage] = useState(0);
+  const [transactionFilter, setTransactionFilter] = useState<'all' | 'topup' | 'deduction' | 'refund' | 'admin_grant'>('all');
   const [loading, setLoading] = useState(true);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [transactionsError, setTransactionsError] = useState<string | null>(null);
 
   // Dynamic Wallet Config (Admin Controlled)
   const [walletConfig, setWalletConfig] = useState<WalletConfig>({
@@ -76,6 +79,7 @@ export default function WalletPage() {
   }
 
   async function loadWallet() {
+    setWalletError(null);
     try {
       const [walletData, requestsData] = await Promise.all([
         getWallet(),
@@ -98,20 +102,23 @@ export default function WalletPage() {
         setWalletConfig(safeConfig);
         setTopUpAmount(String(safeConfig.suggestions[0]));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Wallet error:', err);
+      setWalletError(err?.message || 'Unable to load your wallet.');
     } finally {
       setLoading(false);
     }
   }
 
   async function loadTransactions() {
+    setTransactionsError(null);
     try {
       const data = await getTransactions(limit, page * limit);
       setTransactions(data.transactions || []);
       setTotalTx(data.total || 0);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Transaction error:', err);
+      setTransactionsError(err?.message || 'Unable to load transaction history.');
     }
   }
 
@@ -175,6 +182,9 @@ export default function WalletPage() {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiPayUri)}`;
 
   const totalPages = Math.ceil(totalTx / limit);
+  const visibleTransactions = transactionFilter === 'all'
+    ? transactions
+    : transactions.filter((tx) => tx.type === transactionFilter);
 
   if (loading) {
     return (
@@ -299,6 +309,12 @@ export default function WalletPage() {
         >
           Available for temporary virtual-number purchases
         </div>
+        {walletError && (
+          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+            <span>{walletError}</span>
+            <button className="btn btn-ghost btn-sm" onClick={loadWallet}>Retry</button>
+          </div>
+        )}
       </div>
 
       {/* Strict No-Refund Notice Banner */}
@@ -665,8 +681,20 @@ export default function WalletPage() {
 
       {/* Transaction History */}
       <div>
-        <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem', fontWeight: 700 }}>Transaction History</h3>
-        {transactions.length === 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem', fontWeight: 700 }}>Transaction History</h3>
+          {transactionsError && <button className="btn btn-ghost btn-sm" onClick={loadTransactions}>Retry history</button>}
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', marginBottom: '0.75rem' }} aria-label="Filter wallet transactions">
+          {(['all', 'topup', 'deduction', 'refund', 'admin_grant'] as const).map((filter) => (
+            <button key={filter} type="button" className={`btn btn-sm ${transactionFilter === filter ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTransactionFilter(filter)}>
+              {filter === 'all' ? 'All' : filter === 'admin_grant' ? 'Free funds' : filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </button>
+          ))}
+        </div>
+        {transactionsError ? (
+          <div className="alert alert-error" role="alert">{transactionsError}</div>
+        ) : visibleTransactions.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
             No transactions yet.
           </div>
@@ -683,7 +711,7 @@ export default function WalletPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => {
+                {visibleTransactions.map((tx) => {
                   const isDebit = tx.type === 'deduction';
                   const amount = Math.abs(parseFloat(tx.amount) || 0);
                   return (

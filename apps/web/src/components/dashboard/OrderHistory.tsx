@@ -25,10 +25,11 @@ export default function OrderHistory() {
     loadOrders();
   }, [page, statusFilter]);
 
+  const hasWaitingOrders = orders.some((o) => o.status === 'waiting');
+
   // Background check every 3s if any order is waiting for SMS
   useEffect(() => {
-    const hasWaiting = orders.some((o) => o.status === 'waiting');
-    if (!hasWaiting) return;
+    if (!hasWaitingOrders) return;
 
     const interval = setInterval(async () => {
       try {
@@ -40,7 +41,7 @@ export default function OrderHistory() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [orders, page, statusFilter]);
+  }, [hasWaitingOrders, page, statusFilter]);
 
   async function loadOrders() {
     setLoading(true);

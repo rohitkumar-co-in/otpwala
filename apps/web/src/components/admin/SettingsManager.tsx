@@ -178,8 +178,14 @@ export default function SettingsManager() {
 
     const parsedMinDeposit = Number(minDeposit);
     const parsedMaxDeposit = Number(maxDeposit);
+    const parsedProviderThreshold = Number(providerLowBalanceThreshold);
     if (!Number.isFinite(parsedMinDeposit) || !Number.isFinite(parsedMaxDeposit) || parsedMinDeposit < 1 || parsedMaxDeposit < parsedMinDeposit) {
       setError('Wallet limits are invalid. The maximum deposit must be greater than or equal to the minimum deposit.');
+      setSavingKey(null);
+      return;
+    }
+    if (!Number.isFinite(parsedProviderThreshold) || parsedProviderThreshold < 0.01) {
+      setError('Low provider balance threshold must be at least $0.01.');
       setSavingKey(null);
       return;
     }

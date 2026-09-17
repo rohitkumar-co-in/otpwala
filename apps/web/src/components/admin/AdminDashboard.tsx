@@ -64,6 +64,7 @@ export default function AdminDashboard() {
         })
         .catch((err) => {
           console.warn('Dashboard stats warning:', err);
+          setError(err?.message || 'Unable to load dashboard metrics.');
         });
 
       const fetchOrders = loadRecentOrders();
@@ -74,6 +75,7 @@ export default function AdminDashboard() {
         })
         .catch((err) => {
           console.warn('Dashboard payments warning:', err);
+          setError(err?.message || 'Unable to load payment requests.');
         });
 
       await Promise.allSettled([fetchStats, fetchOrders, fetchPayments]);
@@ -124,7 +126,7 @@ export default function AdminDashboard() {
         getAdminPaymentRequests().catch(() => []),
       ]);
       if (newStats) setStats(newStats);
-      if (newRequests && newRequests.length > 0) setPaymentRequests(newRequests);
+      if (newRequests) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to approve payment');
     } finally {
@@ -149,7 +151,7 @@ export default function AdminDashboard() {
         getAdminPaymentRequests().catch(() => []),
       ]);
       if (newStats) setStats(newStats);
-      if (newRequests && newRequests.length > 0) setPaymentRequests(newRequests);
+      if (newRequests) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to reject payment');
     } finally {

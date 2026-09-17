@@ -16,22 +16,25 @@ export default function UserDashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
   async function loadDashboard() {
+    setError(null);
     try {
       const [walletData, ordersData] = await Promise.all([
         getWallet(),
         getOrders(5, 0),
       ]);
-      setBalance(parseFloat(walletData.balance) || 0);
+      setBalance(parseFloat(String(walletData.balance)) || 0);
       setRecentOrders(ordersData.orders || []);
       setSummary(ordersData.summary || { totalOrders: ordersData.total || 0 });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Dashboard load error:', err);
+      setError(err?.message || 'Unable to load your dashboard.');
     } finally {
       setLoading(false);
     }
@@ -41,6 +44,18 @@ export default function UserDashboard() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
         <div className="spinner spinner-lg"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card" role="alert" style={{ padding: '2rem', textAlign: 'center' }}>
+        <h2 style={{ marginTop: 0 }}>Dashboard unavailable</h2>
+        <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
+        <button className="btn btn-primary" onClick={() => { setLoading(true); loadDashboard(); }}>
+          Try again
+        </button>
       </div>
     );
   }
