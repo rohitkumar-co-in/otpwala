@@ -148,6 +148,7 @@ apps/api/supabase/migrations/20260915191000_financial_ledger_baseline.sql
 apps/api/supabase/migrations/20260915192000_wallet_ledger_append_only.sql
 apps/api/supabase/migrations/20260915200000_support_ticket_types_attachments.sql
 apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
+apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
 ```
 
 Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.

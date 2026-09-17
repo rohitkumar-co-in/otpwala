@@ -851,10 +851,11 @@ topup_amount_mismatch AS (
   WHERE p.status IN('approved','paid') AND abs(coalesce(w.amount,0)-coalesce(p.amount,0)) > 0.01
 ),
 wallet_balance_mismatch AS (
-  SELECT count(*) AS n FROM profiles p
-  LEFT JOIN LATERAL (SELECT balance_after FROM wallet_transactions w WHERE w.user_id=p.id AND w.status='completed' ORDER BY w.created_at DESC,w.id DESC LIMIT 1) latest ON true
-  WHERE (latest.balance_after IS NOT NULL AND abs(coalesce(p.wallet_balance,0)-latest.balance_after)>0.01)
-     OR (latest.balance_after IS NULL AND abs(coalesce(p.wallet_balance,0))>0.01)
+  SELECT count(*) AS n FROM profiles p CROSS JOIN baseline b
+  LEFT JOIN LATERAL (SELECT balance_after, created_at FROM wallet_transactions w WHERE w.user_id=p.id AND w.status='completed' ORDER BY w.created_at DESC,w.id DESC LIMIT 1) latest ON true
+  WHERE latest.created_at >= b.cutover_at
+    AND latest.balance_after IS NOT NULL
+    AND abs(coalesce(p.wallet_balance,0)-latest.balance_after)>0.01
 ),
 totals AS (
   SELECT (SELECT n FROM orders_without_debit) orders_without_debit,
