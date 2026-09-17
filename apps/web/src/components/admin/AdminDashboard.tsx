@@ -406,14 +406,14 @@ export default function AdminDashboard() {
             <h2 style={{ fontSize: '1.05rem', margin: 0 }}>Order &amp; Financial Breakdown</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
               Lifetime totals. Today uses Asia/Kolkata time. Sales and provider cost include OTP-delivered orders only.
-              Cash collected counts UPI top-ups and admin-confirmed manual funding; free funds granted by an admin are never revenue.
+              Cash collected counts UPI top-ups and admin-confirmed manual funding; free funds granted by an admin are never revenue. Order refunds are wallet credits, not cash collected or revenue.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
             {[
               ['OTP Delivered', stats.otpDelivered || 0, '#10b981'],
               ['OTP Not Received', stats.otpNotReceived || 0, '#f59e0b'],
-              ['Refunds Issued', `${stats.refundCount || 0} · ₹${parseFloat(stats.refundAmount || 0).toFixed(2)}`, '#ef4444'],
+              ['Lifetime Order Refunds (Wallet Credits)', `${stats.refundCount || 0} · ₹${parseFloat(stats.refundAmount || 0).toFixed(2)}`, '#ef4444'],
               ['Refunds Needing Attention', stats.refundsPending || 0, '#f97316'],
               ['Gross OTP Sales', `₹${parseFloat(stats.grossOtpSales || 0).toFixed(2)}`, '#3b82f6'],
               ['Provider Cost', `₹${parseFloat(stats.providerCostInr || 0).toFixed(2)}`, '#8b5cf6'],
