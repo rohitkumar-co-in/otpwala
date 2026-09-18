@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { getWallet, getTransactions, topUp, getUserPaymentRequests } from '../../lib/api';
 import {
   DollarIcon,
-  ZapIcon,
   CheckIcon,
   CopyIcon,
   QrCodeIcon,
@@ -30,17 +29,36 @@ interface WalletConfig {
   usdtInrRate?: number;
 }
 
-const BinanceIcon = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 1024 1024" fill="none">
-    <path
-      d="M512 0C229.23 0 0 229.23 0 512s229.23 512 512 512 512-229.23 512-512S794.77 0 512 0z"
-      fill="#F3BA2F"
-    />
-    <path
-      d="M512 195.4l117.8 117.8-274.6 274.6-117.8-117.8L512 195.4zm235.6 235.6l117.8 117.8-117.8 117.8-117.8-117.8 117.8-117.8zM512 391.8l156.8 156.8-156.8 156.8-156.8-156.8 156.8-156.8zm-235.6 39.2l117.8 117.8-117.8 117.8-117.8-117.8 117.8-117.8zm235.6 318.6l235.6-235.6 117.8 117.8L512 870.6 276.4 631.8l117.8-117.8 117.8 117.8z"
-      fill="#1E2026"
-    />
-  </svg>
+const BinanceIcon = ({ size = 20, style }: { size?: number; style?: React.CSSProperties }) => (
+  <img
+    src="/icons/services/binance.svg"
+    alt="Binance Pay"
+    width={size}
+    height={size}
+    style={{
+      display: 'block',
+      width: `${size}px`,
+      height: `${size}px`,
+      objectFit: 'contain',
+      ...style,
+    }}
+  />
+);
+
+const UpiIcon = ({ size = 20, style }: { size?: number; style?: React.CSSProperties }) => (
+  <img
+    src="/icons/services/upi.svg"
+    alt="UPI"
+    width={size}
+    height={size}
+    style={{
+      display: 'block',
+      width: `${size}px`,
+      height: `${size}px`,
+      objectFit: 'contain',
+      ...style,
+    }}
+  />
 );
 
 export default function WalletPage() {
@@ -439,8 +457,20 @@ export default function WalletPage() {
       <div className="card" style={{ padding: '1.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-sm)', background: paymentMethod === 'binance' ? 'rgba(245, 158, 11, 0.15)' : 'var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {paymentMethod === 'binance' ? <BinanceIcon size={20} /> : <ZapIcon size={18} color="var(--accent-primary)" />}
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: 'var(--radius-sm)',
+                background: paymentMethod === 'binance' ? '#181a20' : '#ffffff',
+                border: paymentMethod === 'binance' ? '1px solid rgba(243, 186, 47, 0.35)' : '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+              }}
+            >
+              {paymentMethod === 'binance' ? <BinanceIcon size={24} /> : <UpiIcon size={22} />}
             </div>
             <div>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
@@ -487,17 +517,19 @@ export default function WalletPage() {
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: '8px',
-                    background: '#F3BA2F',
+                    background: '#181a20',
+                    border: '1px solid rgba(243, 186, 47, 0.35)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
+                    padding: '4px',
                   }}
                 >
-                  <BinanceIcon size={22} />
+                  <BinanceIcon size={30} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -537,17 +569,20 @@ export default function WalletPage() {
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: '8px',
-                    background: paymentMethod === 'upi' ? '#2563eb' : 'var(--bg-tertiary)',
+                    background: '#ffffff',
+                    border: '1px solid var(--border-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
+                    padding: '5px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                   }}
                 >
-                  <ZapIcon size={18} color={paymentMethod === 'upi' ? '#ffffff' : 'var(--accent-primary)'} />
+                  <UpiIcon size={28} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.92rem', color: paymentMethod === 'upi' ? '#1d4ed8' : 'var(--text-primary)' }}>
@@ -650,9 +685,12 @@ export default function WalletPage() {
               marginBottom: '1.5rem',
             }}
           >
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1rem' }}>
-              2. Scan QR or Pay to Admin UPI ID:
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <UpiIcon size={20} />
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
+                2. Scan QR or Pay to Admin UPI ID:
+              </label>
+            </div>
 
             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
               {/* Dynamic QR Box */}
@@ -749,9 +787,12 @@ export default function WalletPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
-                2. Send USDT via Binance Pay:
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BinanceIcon size={20} />
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
+                  2. Send USDT via Binance Pay:
+                </label>
+              </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '999px', border: '1px solid #fde68a' }}>
                 Amount to Send: {usdtAmount} USDT
               </div>
@@ -798,7 +839,7 @@ export default function WalletPage() {
                     padding: '1rem',
                   }}
                 >
-                  <BinanceIcon size={32} />
+                  <BinanceIcon size={44} />
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                     Use Binance Pay ID directly
                   </span>
@@ -1056,8 +1097,9 @@ export default function WalletPage() {
                         )}
                       </td>
                       <td style={{ padding: '0.75rem 1rem' }}>
-                        <span className={`badge ${method === 'binance' ? 'badge-warning' : 'badge-info'}`}>
-                          {method === 'binance' ? 'BINANCE PAY' : method.toUpperCase()}
+                        <span className={`badge ${method === 'binance' ? 'badge-warning' : 'badge-info'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          {method === 'binance' ? <BinanceIcon size={14} /> : <UpiIcon size={14} />}
+                          <span>{method === 'binance' ? 'BINANCE PAY' : method.toUpperCase()}</span>
                         </span>
                       </td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
