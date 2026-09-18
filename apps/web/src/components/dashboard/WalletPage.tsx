@@ -87,8 +87,10 @@ export default function WalletPage() {
   });
 
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'binance'>(getActiveCurrency() === 'INR' ? 'upi' : 'binance');
-  const [topUpAmount, setTopUpAmount] = useState('100');
+  // Default top-up mode is always UPI when any user opens the wallet page
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'binance'>('upi');
+  const [upiAmount, setUpiAmount] = useState('100');
+  const [binanceAmount, setBinanceAmount] = useState('1');
   const [utrNumber, setUtrNumber] = useState('');
   const [binanceTxId, setBinanceTxId] = useState('');
   const [agreeNote, setAgreeNote] = useState(false);
@@ -108,7 +110,6 @@ export default function WalletPage() {
     const handleCurrencyChange = (e: any) => {
       if (e.detail?.currency) {
         setCurrency(e.detail.currency);
-        setPaymentMethod(e.detail.currency === 'INR' ? 'upi' : 'binance');
       }
     };
     window.addEventListener('otpwala:currency-change', handleCurrencyChange);
@@ -156,7 +157,10 @@ export default function WalletPage() {
           suggestions: suggestions.length > 0 ? suggestions : [minDeposit],
         };
         setWalletConfig(safeConfig);
-        setTopUpAmount(String(safeConfig.suggestions[0]));
+        setUpiAmount(String(safeConfig.suggestions[0] || 100));
+        const rate = Number(safeConfig.usdtInrRate) || 115;
+        const defaultUsdt = Math.max(1, Math.round((safeConfig.suggestions[0] || 100) / rate));
+        setBinanceAmount(String(defaultUsdt));
       }
     } catch (err: any) {
       console.error('Wallet error:', err);
@@ -194,41 +198,61 @@ export default function WalletPage() {
 
   async function handleSubmitDeposit(e: React.FormEvent) {
     e.preventDefault();
-    const amount = parseFloat(topUpAmount);
-
-    if (!amount || isNaN(amount)) {
-      setTopUpError('Please enter a valid deposit amount');
-      return;
-    }
-
     const rate = Number(walletConfig.usdtInrRate) || 115;
+    let finalAmountInr = 0;
+    let displayUsdt = '';
 
-    if (amount < walletConfig.minDeposit) {
-      setTopUpError(
-        currency === 'USD'
-          ? `Minimum deposit amount is $${(walletConfig.minDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})`
-          : `Minimum deposit amount is ₹${walletConfig.minDeposit} (~$${(walletConfig.minDeposit / rate).toFixed(2)})`
-      );
-      return;
-    }
+    if (paymentMethod === 'binance') {
+      const usdtVal = parseFloat(binanceAmount);
+      if (!usdtVal || isNaN(usdtVal) || usdtVal <= 0) {
+        setTopUpError('Please enter a valid USDT / USD amount');
+        return;
+      }
+      finalAmountInr = Number((usdtVal * rate).toFixed(2));
+      displayUsdt = usdtVal.toFixed(2);
 
-    if (amount > walletConfig.maxDeposit) {
-      setTopUpError(
-        currency === 'USD'
-          ? `Maximum deposit amount is $${(walletConfig.maxDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
-          : `Maximum deposit amount is ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`
-      );
-      return;
-    }
+      const minUsdt = Number((walletConfig.minDeposit / rate).toFixed(2));
+      const maxUsdt = Number((walletConfig.maxDeposit / rate).toFixed(2));
 
-    if (paymentMethod === 'upi') {
-      if (!utrNumber.trim()) {
-        setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
+      if (usdtVal < minUsdt) {
+        setTopUpError(`Minimum deposit amount is $${minUsdt} USDT (≈ ₹${walletConfig.minDeposit})`);
+        return;
+      }
+      if (usdtVal > maxUsdt) {
+        setTopUpError(`Maximum deposit amount is $${maxUsdt} USDT (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`);
+        return;
+      }
+      if (!binanceTxId.trim()) {
+        setTopUpError('Please enter your Binance Order ID or Transaction ID');
         return;
       }
     } else {
-      if (!binanceTxId.trim()) {
-        setTopUpError('Please enter your Binance Order ID or Transaction ID');
+      const upiVal = parseFloat(upiAmount);
+      if (!upiVal || isNaN(upiVal) || upiVal <= 0) {
+        setTopUpError('Please enter a valid deposit amount');
+        return;
+      }
+      finalAmountInr = upiVal;
+      displayUsdt = (upiVal / rate).toFixed(2);
+
+      if (upiVal < walletConfig.minDeposit) {
+        setTopUpError(
+          currency === 'USD'
+            ? `Minimum deposit amount is $${(walletConfig.minDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})`
+            : `Minimum deposit amount is ₹${walletConfig.minDeposit} (~$${(walletConfig.minDeposit / rate).toFixed(2)})`
+        );
+        return;
+      }
+      if (upiVal > walletConfig.maxDeposit) {
+        setTopUpError(
+          currency === 'USD'
+            ? `Maximum deposit amount is $${(walletConfig.maxDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
+            : `Maximum deposit amount is ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`
+        );
+        return;
+      }
+      if (!utrNumber.trim()) {
+        setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
         return;
       }
     }
@@ -244,22 +268,19 @@ export default function WalletPage() {
 
     try {
       const refId = paymentMethod === 'upi' ? utrNumber.trim() : binanceTxId.trim();
-      const data = await topUp(amount, paymentMethod, refId);
-      const usdtEst = (amount / rate).toFixed(2);
+      const data = await topUp(finalAmountInr, paymentMethod, refId);
       if (paymentMethod === 'upi') {
         setTopUpSuccess(
           data.data?.message ||
             (currency === 'USD'
-              ? `UPI deposit request of $${usdtEst} (≈ ₹${amount}) submitted! Admin will verify and credit your wallet.`
-              : `UPI deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`)
+              ? `UPI deposit request of $${displayUsdt} (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
+              : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`)
         );
         setUtrNumber('');
       } else {
         setTopUpSuccess(
           data.data?.message ||
-            (currency === 'USD'
-              ? `Binance Pay deposit request of ${usdtEst} USDT (≈ ₹${amount}) submitted! Admin will verify and credit your wallet.`
-              : `Binance Pay deposit request of ₹${amount} (~${usdtEst} USDT) submitted! Admin will verify and credit your wallet.`)
+            `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
         );
         setBinanceTxId('');
       }
@@ -271,12 +292,17 @@ export default function WalletPage() {
     }
   }
 
-  const numericAmount = parseFloat(topUpAmount) || walletConfig.minDeposit;
-  const upiPayUri = `upi://pay?pa=${walletConfig.upiId}&pn=${encodeURIComponent(walletConfig.upiName)}&am=${numericAmount}&cu=INR&tn=OTPWala%20Deposit`;
+  const usdtRate = Number(walletConfig.usdtInrRate) || 115;
+  const numericUpiAmount = parseFloat(upiAmount) || walletConfig.minDeposit;
+  const numericBinanceUsdt = parseFloat(binanceAmount) || Number((walletConfig.minDeposit / usdtRate).toFixed(2));
+  const calculatedInr = Number((numericBinanceUsdt * usdtRate).toFixed(2));
+
+  const numericAmount = paymentMethod === 'binance' ? calculatedInr : numericUpiAmount;
+  const usdtAmount = paymentMethod === 'binance' ? numericBinanceUsdt.toFixed(2) : (numericUpiAmount / usdtRate).toFixed(2);
+
+  const upiPayUri = `upi://pay?pa=${walletConfig.upiId}&pn=${encodeURIComponent(walletConfig.upiName)}&am=${numericUpiAmount}&cu=INR&tn=OTPWala%20Deposit`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiPayUri)}`;
 
-  const usdtRate = Number(walletConfig.usdtInrRate) || 90;
-  const usdtAmount = (numericAmount / usdtRate).toFixed(2);
   // Only use the official uploaded Binance QR code image (never auto-generate pseudo-QRs which fail on Binance App)
   const binanceQrUrl = walletConfig.binancePayQrUrl?.trim() || '';
 
@@ -492,59 +518,7 @@ export default function WalletPage() {
               Select Payment Method:
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-              {/* Binance Pay Option (First) */}
-              <button
-                type="button"
-                onClick={() => {
-                  setPaymentMethod('binance');
-                  setTopUpError(null);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.85rem 1rem',
-                  borderRadius: '12px',
-                  border: paymentMethod === 'binance' ? '2px solid #f59e0b' : '1px solid var(--border-subtle)',
-                  background: paymentMethod === 'binance' ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-secondary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    background: '#181a20',
-                    border: '1px solid rgba(243, 186, 47, 0.35)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    padding: '4px',
-                  }}
-                >
-                  <BinanceIcon size={30} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.92rem', color: paymentMethod === 'binance' ? '#b45309' : 'var(--text-primary)' }}>
-                      Binance Pay
-                    </span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#fef3c7', color: '#b45309', border: '1px solid #fcd34d' }}>
-                      USDT
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Binance App • 0 Gas Fee
-                  </div>
-                </div>
-                {paymentMethod === 'binance' && <CheckCircleIcon size={18} color="#f59e0b" />}
-              </button>
-
-              {/* UPI Option (Second) */}
+              {/* UPI Option (Left / First) */}
               <button
                 type="button"
                 onClick={() => {
@@ -591,81 +565,241 @@ export default function WalletPage() {
                 </div>
                 {paymentMethod === 'upi' && <CheckCircleIcon size={18} color="#2563eb" />}
               </button>
+
+              {/* Binance Pay Option (Right / Second) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentMethod('binance');
+                  setTopUpError(null);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  border: paymentMethod === 'binance' ? '2px solid #f59e0b' : '1px solid var(--border-subtle)',
+                  background: paymentMethod === 'binance' ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-secondary)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    background: '#181a20',
+                    border: '1px solid rgba(243, 186, 47, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    padding: '4px',
+                  }}
+                >
+                  <BinanceIcon size={30} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.92rem', color: paymentMethod === 'binance' ? '#b45309' : 'var(--text-primary)' }}>
+                      Binance Pay
+                    </span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#fef3c7', color: '#b45309', border: '1px solid #fcd34d' }}>
+                      USDT
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Binance App • 0 Gas Fee (Crypto)
+                  </div>
+                </div>
+                {paymentMethod === 'binance' && <CheckCircleIcon size={18} color="#f59e0b" />}
+              </button>
             </div>
           </div>
         )}
 
         {/* Step 1: Amount Selection */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', margin: 0 }}>
-              {currency === 'USD' ? '1. Select or Enter Amount (USD / USDT):' : '1. Select or Enter Amount (INR):'}
+              {paymentMethod === 'binance'
+                ? '1. Select or Enter Amount in USDT / USD:'
+                : currency === 'USD'
+                ? '1. Select or Enter Amount (INR / USD):'
+                : '1. Select or Enter Amount (INR):'}
             </label>
-            {paymentMethod === 'binance' && (
-              <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 600, background: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                Rate: 1 USDT = ₹{usdtRate}
+            {paymentMethod === 'binance' ? (
+              <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 700, background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #fde68a' }}>
+                Exchange Rate: 1 USDT = $1.00 (≈ ₹{usdtRate})
               </span>
+            ) : (
+              currency === 'USD' && (
+                <span style={{ fontSize: '0.78rem', color: '#1e40af', fontWeight: 600, background: 'rgba(37, 99, 235, 0.08)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                  $1 ≈ ₹{usdtRate}
+                </span>
+              )
             )}
           </div>
 
-          {/* Dynamic Admin Suggestions (Up to 5) */}
+          {/* Dynamic Suggestions */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-            {walletConfig.suggestions.slice(0, 5).map((amount) => {
-              const isSelected = topUpAmount === String(amount);
-              const estUsdt = (amount / usdtRate).toFixed(2);
-              return (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => {
-                    setTopUpAmount(String(amount));
-                    setTopUpError(null);
-                  }}
-                  className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-                  style={{
-                    padding: '0.45rem 1.1rem',
-                    fontWeight: 700,
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.9rem',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {currency === 'USD' ? `$${estUsdt} (~₹${amount})` : `₹${amount} (~$${estUsdt})`}
-                </button>
-              );
-            })}
+            {paymentMethod === 'binance' ? (
+              /* Binance USD Suggestions (USD Priority First, Rupees Equivalent on Right) */
+              [1, 2, 5, 10, 20].map((usdVal) => {
+                const inrEquiv = Math.round(usdVal * usdtRate);
+                const isSelected = binanceAmount === String(usdVal);
+                return (
+                  <button
+                    key={usdVal}
+                    type="button"
+                    onClick={() => {
+                      setBinanceAmount(String(usdVal));
+                      setTopUpError(null);
+                    }}
+                    className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                    style={{
+                      padding: '0.45rem 1.1rem',
+                      fontWeight: 700,
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.15s ease',
+                      background: isSelected ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
+                      borderColor: isSelected ? '#d97706' : undefined,
+                    }}
+                  >
+                    ${usdVal} (≈ ₹{inrEquiv.toLocaleString('en-IN')})
+                  </button>
+                );
+              })
+            ) : (
+              /* UPI INR Suggestions */
+              walletConfig.suggestions.slice(0, 5).map((amount) => {
+                const isSelected = upiAmount === String(amount);
+                const estUsdt = (amount / usdtRate).toFixed(2);
+                return (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => {
+                      setUpiAmount(String(amount));
+                      setTopUpError(null);
+                    }}
+                    className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                    style={{
+                      padding: '0.45rem 1.1rem',
+                      fontWeight: 700,
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {currency === 'USD' ? `$${estUsdt} (~₹${amount})` : `₹${amount} (~$${estUsdt})`}
+                  </button>
+                );
+              })
+            )}
           </div>
 
-          <div style={{ maxWidth: '340px' }}>
-            <div className="input-group">
-              <input
-                type="number"
-                className="input"
-                placeholder={currency === 'USD' ? 'Enter Amount (INR base)' : 'Custom Amount (INR)'}
-                value={topUpAmount}
-                onChange={(e) => {
-                  setTopUpAmount(e.target.value);
-                  setTopUpError(null);
-                }}
-                min={walletConfig.minDeposit}
-                max={walletConfig.maxDeposit}
-                style={{ fontSize: '1.1rem', fontWeight: 700 }}
-              />
+          <div style={{ maxWidth: '360px' }}>
+            <div className="input-group" style={{ position: 'relative' }}>
+              {paymentMethod === 'binance' ? (
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      fontWeight: 700,
+                      color: '#b45309',
+                      fontSize: '1.05rem',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="any"
+                    className="input"
+                    placeholder="e.g. 5 or 10 USDT"
+                    value={binanceAmount}
+                    onChange={(e) => {
+                      setBinanceAmount(e.target.value);
+                      setTopUpError(null);
+                    }}
+                    style={{ fontSize: '1.1rem', fontWeight: 700, paddingLeft: '28px', width: '100%' }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      color: '#b45309',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    USDT
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                      fontSize: '1.05rem',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Custom Amount (INR)"
+                    value={upiAmount}
+                    onChange={(e) => {
+                      setUpiAmount(e.target.value);
+                      setTopUpError(null);
+                    }}
+                    min={walletConfig.minDeposit}
+                    max={walletConfig.maxDeposit}
+                    style={{ fontSize: '1.1rem', fontWeight: 700, paddingLeft: '28px', width: '100%' }}
+                  />
+                </div>
+              )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-              <span>
-                {currency === 'USD'
-                  ? `Min: $${(walletConfig.minDeposit / usdtRate).toFixed(2)} (₹${walletConfig.minDeposit})`
-                  : `Min: ₹${walletConfig.minDeposit}`}
-              </span>
-              <span style={{ fontWeight: 700, color: paymentMethod === 'binance' ? '#b45309' : 'var(--text-primary)' }}>
-                {currency === 'USD' ? `≈ ${usdtAmount} USDT ($${usdtAmount})` : `≈ ${usdtAmount} USDT`}
-              </span>
-              <span>
-                {currency === 'USD'
-                  ? `Max: $${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
-                  : `Max: ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`}
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem', flexWrap: 'wrap', gap: '0.25rem' }}>
+              {paymentMethod === 'binance' ? (
+                <>
+                  <span>Min: ${(walletConfig.minDeposit / usdtRate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})</span>
+                  <span style={{ fontWeight: 700, color: '#b45309' }}>
+                    ≈ ₹{calculatedInr.toFixed(2)} INR
+                  </span>
+                  <span>Max: ${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})</span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    {currency === 'USD'
+                      ? `Min: $${(walletConfig.minDeposit / usdtRate).toFixed(2)} (₹${walletConfig.minDeposit})`
+                      : `Min: ₹${walletConfig.minDeposit}`}
+                  </span>
+                  <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                    ≈ ${(numericUpiAmount / usdtRate).toFixed(2)} USD
+                  </span>
+                  <span>
+                    {currency === 'USD'
+                      ? `Max: $${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
+                      : `Max: ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -791,7 +925,7 @@ export default function WalletPage() {
                 </label>
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '999px', border: '1px solid #fde68a' }}>
-                Amount to Send: {usdtAmount} USDT
+                Amount to Send: {usdtAmount} USDT (≈ ₹{numericAmount.toFixed(2)})
               </div>
             </div>
 
@@ -820,8 +954,8 @@ export default function WalletPage() {
                   <span style={{ color: '#111827', fontSize: '0.78rem', fontWeight: 700, marginTop: '8px' }}>
                     Pay {usdtAmount} USDT
                   </span>
-                  <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 500, marginTop: '2px' }}>
-                    Official Binance QR (1:1)
+                  <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600, marginTop: '2px' }}>
+                    ≈ ₹{numericAmount.toFixed(2)} INR
                   </span>
                 </div>
               ) : (
@@ -905,7 +1039,7 @@ export default function WalletPage() {
                   <ol style={{ margin: '0.3rem 0 0 1.1rem', padding: 0 }}>
                     <li>Open <strong>Binance App</strong> ➔ tap <strong>Pay</strong> (or scan the QR above).</li>
                     <li>Choose <strong>Send</strong> ➔ select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
-                    <li>Send exactly <strong>{usdtAmount} USDT</strong> (zero gas fees!).</li>
+                    <li>Send exactly <strong>{usdtAmount} USDT</strong> (≈ ₹{numericAmount.toFixed(2)}) (zero gas fees!).</li>
                     <li>Copy the <strong>Order ID / TxID</strong> from your payment receipt.</li>
                   </ol>
                 </div>
@@ -1003,9 +1137,7 @@ export default function WalletPage() {
                 {topUpLoading
                   ? 'Submitting...'
                   : paymentMethod === 'binance'
-                  ? (currency === 'USD'
-                      ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount})`
-                      : `Submit Binance Pay Deposit (₹${numericAmount} / ≈ ${usdtAmount} USDT)`)
+                  ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
                   : (currency === 'USD'
                       ? `Submit Deposit ($${usdtAmount} / ≈ ₹${numericAmount})`
                       : `Submit Deposit (₹${numericAmount})`)}
@@ -1063,11 +1195,12 @@ export default function WalletPage() {
                   const isApproved = st === 'approved' || st === 'paid';
                   const isRejected = st === 'rejected' || st === 'failed';
                   const method = (req.payment_method || req.gateway || 'UPI').toLowerCase();
+                  const isBinanceMethod = method.includes('binance');
 
                   return (
                     <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#10b981', fontFamily: 'var(--font-mono)' }}>
-                        {currency === 'USD'
+                        {isBinanceMethod || currency === 'USD'
                           ? `$${(amt / usdtRate).toFixed(2)} (≈ ₹${amt.toFixed(2)})`
                           : `₹${amt.toFixed(2)} (≈ $${(amt / usdtRate).toFixed(2)})`}
                       </td>
