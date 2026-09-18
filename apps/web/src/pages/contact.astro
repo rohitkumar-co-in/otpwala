@@ -1,0 +1,993 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// SEO Structured Data
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://otpwala.me"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Contact Us",
+      "item": "https://otpwala.me/contact"
+    }
+  ]
+};
+
+const contactPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact OTPWala Support",
+  "description": "Get in touch with the OTPWala support team for payment verification, SMS delivery assistance, wholesale API inquiries, or account help.",
+  "url": "https://otpwala.me/contact",
+  "mainEntity": {
+    "@type": "Organization",
+    "name": "OTPWala",
+    "url": "https://otpwala.me",
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@otpwala.me",
+        "availableLanguage": ["English", "Hindi"],
+        "hoursAvailable": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          "opens": "10:00",
+          "closes": "22:00"
+        }
+      }
+    ]
+  }
+};
+---
+
+<BaseLayout 
+  title="Contact Us — 24/7 Support & Help Center | OTPWala"
+  description="Contact OTPWala for rapid payment verification, Telegram live support, email assistance, and API integration inquiries. Operating hours 10 AM to 10 PM IST."
+  canonical="https://otpwala.me/contact"
+  keywords="contact otpwala, otpwala support, telegram otpwala support, virtual number customer service, payment verification upi binance, otpwala help desk"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(contactPageSchema)} />
+
+  <section class="contact-page">
+    <div class="container">
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li><a href="/">Home</a></li>
+          <li aria-current="page">Contact Us</li>
+        </ol>
+      </nav>
+
+      <!-- Hero Section -->
+      <div class="contact-hero text-center">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          <span>Help Center &amp; Inquiries</span>
+        </div>
+        <h1>Get in Touch with <span class="text-gradient">OTPWala</span></h1>
+        <p class="hero-sub">
+          Have questions regarding wallet deposits, SMS deliverability, developer APIs, or account security? Our dedicated support team is here to assist you.
+        </p>
+
+        <!-- Live Operating Hours Pill -->
+        <div class="status-banner">
+          <div class="status-indicator">
+            <span class="live-circle"></span>
+            <span class="status-title">Support Desk Active</span>
+          </div>
+          <div class="status-timing">
+            <span>🕒 Daily: <strong>10:00 AM – 10:00 PM IST</strong> (UTC +5:30)</span>
+            <span class="sep">•</span>
+            <span>⚡ Typical Telegram response: <strong>5 – 15 minutes</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Contact Grid -->
+      <div class="contact-cards-grid">
+        <!-- Card 1: Telegram Live Support -->
+        <div class="contact-card highlight-card">
+          <div class="card-badge">Fastest Response</div>
+          <div class="card-icon telegram-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <path d="M21.6 3.6a1.5 1.5 0 0 0-1.6-.3L2.8 10.3c-.6.2-.9.7-.9 1.2 0 .5.4 1 1 1.2l4.8 1.6 1.8 5.6c.2.5.6.8 1.1.8.3 0 .7-.1 1-.4l2.8-2.6 4.7 3.5c.3.2.6.3 1 .3.2 0 .5-.1.7-.2.4-.3.7-.8.7-1.3l2.8-15.5c.1-.5-.1-1.1-.5-1.3zM9.4 13.7l9.6-7.8-7.9 9.1-.4 2.8-.8-2.7-.5-1.4z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Telegram Live Chat</h3>
+            <p class="card-description">
+              Recommended for instant manual payment approvals (UPI UTR / Binance TxID verification) and rapid live troubleshooting.
+            </p>
+            <div class="contact-details">
+              <span class="detail-label">Official Support Handle:</span>
+              <span class="detail-value">@OTPWalaSupport</span>
+            </div>
+            <a 
+              href="https://t.me/OTPWalaSupport" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="btn btn-telegram"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.95-1.28 4.92-2.13 5.9-2.54 2.81-1.17 3.39-1.37 3.77-1.38.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
+              Open Telegram Support
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 2: Official Support Email -->
+        <div class="contact-card">
+          <div class="card-badge secondary">2 – 6 hr SLA</div>
+          <div class="card-icon email-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Email Desk</h3>
+            <p class="card-description">
+              Ideal for account recovery, formal billing receipts, enterprise API integration, security alerts, and legal inquiries.
+            </p>
+            <div class="contact-details">
+              <span class="detail-label">Support &amp; Business Email:</span>
+              <span class="detail-value email-text" id="email-address-text">support@otpwala.me</span>
+            </div>
+            <div class="email-actions">
+              <a href="mailto:support@otpwala.me" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Send Email
+              </a>
+              <button type="button" class="btn btn-ghost" id="copy-email-btn" title="Copy Email Address">
+                <span id="copy-email-text">Copy Address</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Dashboard Ticket Center -->
+        <div class="contact-card">
+          <div class="card-badge primary">For Logged-In Users</div>
+          <div class="card-icon ticket-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>In-App Support Tickets</h3>
+            <p class="card-description">
+              Submit structured tickets directly from your dashboard with linked order IDs, error screenshots, and threaded staff replies.
+            </p>
+            <div class="contact-details">
+              <span class="detail-label">Account Support Portal:</span>
+              <span class="detail-value">Dashboard &rarr; Help &amp; Support</span>
+            </div>
+            <a href="/dashboard/support" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Go to Ticket Desk
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 4: Official Announcements Channel -->
+        <div class="contact-card">
+          <div class="card-badge muted">Community &amp; Alerts</div>
+          <div class="card-icon broadcast-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Official Telegram Channel</h3>
+            <p class="card-description">
+              Stay informed about newly added services, international country stock replenishments, and system status announcements.
+            </p>
+            <div class="contact-details">
+              <span class="detail-label">Broadcast Channel:</span>
+              <span class="detail-value">@OTPWala</span>
+            </div>
+            <a 
+              href="https://t.me/OTPWalaSupport" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="btn btn-secondary"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              View Channel
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Quick Contact Form & Pre-Filled Message Generator -->
+      <div class="inquiry-section">
+        <div class="inquiry-container">
+          <div class="inquiry-header">
+            <div class="section-tag">Direct Inquiry Assistant</div>
+            <h2>Send a Quick Message or Generate a Telegram Ticket</h2>
+            <p>
+              Fill in your inquiry details below to either compose a formatted email or generate a one-click message ready to send to our Telegram support team.
+            </p>
+          </div>
+
+          <form id="contact-form" class="inquiry-form" onsubmit="return false;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contact-name">Your Name / Username</label>
+                <input 
+                  type="text" 
+                  id="contact-name" 
+                  class="input" 
+                  placeholder="e.g. John Doe" 
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="contact-email">Your Email Address</label>
+                <input 
+                  type="email" 
+                  id="contact-email" 
+                  class="input" 
+                  placeholder="name@example.com" 
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contact-category">Inquiry Subject / Category</label>
+                <select id="contact-category" class="input">
+                  <option value="Payment Verification & Wallet Top-up (UPI / Binance)">Payment Verification &amp; Wallet Top-up (UPI / Binance)</option>
+                  <option value="SMS Verification Code Not Received">SMS Verification Code Not Received</option>
+                  <option value="API & Wholesale Developer Inquiry">API &amp; Wholesale Developer Inquiry</option>
+                  <option value="Account Login / Security Issue">Account Login / Security Issue</option>
+                  <option value="General Question or Feedback">General Question or Feedback</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="contact-order-id">Order ID or UTR / TxID (Optional)</label>
+                <input 
+                  type="text" 
+                  id="contact-order-id" 
+                  class="input" 
+                  placeholder="e.g. 52431908 or 428910398124" 
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-message">Describe Your Issue or Question</label>
+              <textarea 
+                id="contact-message" 
+                class="input message-textarea" 
+                rows="4" 
+                placeholder="Please describe how we can help you with as much detail as possible..."
+                required
+              ></textarea>
+            </div>
+
+            <div id="form-alert" class="form-alert" style="display: none;"></div>
+
+            <div class="form-actions">
+              <button type="button" id="send-telegram-btn" class="btn btn-telegram">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.95-1.28 4.92-2.13 5.9-2.54 2.81-1.17 3.39-1.37 3.77-1.38.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
+                Send via Telegram Live Support
+              </button>
+              <button type="button" id="send-email-btn" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Send via Email Client
+              </button>
+              <button type="button" id="copy-message-btn" class="btn btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Message
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Support SLA & Timetable -->
+      <div class="sla-section">
+        <h2 class="section-heading text-center">Service Level &amp; Response Times</h2>
+        <div class="sla-grid">
+          <div class="sla-item">
+            <div class="sla-icon-pill">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h4>Operating Hours</h4>
+            <p><strong>10:00 AM – 10:00 PM IST</strong> (UTC +5:30), 7 days a week including weekends and holidays.</p>
+          </div>
+          <div class="sla-item">
+            <div class="sla-icon-pill">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h4>Payment Approvals</h4>
+            <p><strong>Under 5 mins to 2 hours</strong> for manual UPI and Binance Pay deposits during operating hours.</p>
+          </div>
+          <div class="sla-item">
+            <div class="sla-icon-pill">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h4>Live Chat Support</h4>
+            <p><strong>5 – 15 minutes average</strong> response time on Telegram for urgent account and verification requests.</p>
+          </div>
+          <div class="sla-item">
+            <div class="sla-icon-pill">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h4>Security &amp; Abuse</h4>
+            <p>Reports regarding unauthorized activity or anti-fraud reviews are handled within <strong>24 hours</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Self-Help FAQ Accordion -->
+      <div class="contact-faq">
+        <h2 class="section-heading text-center">Frequently Asked Questions</h2>
+        <div class="faq-accordion">
+          <details class="faq-item" open>
+            <summary class="faq-question">
+              <span>My UPI or Binance top-up hasn't reflected yet. How do I get it verified?</span>
+              <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Manual payments are verified and approved within <strong>5 minutes to 2 hours</strong> during our operating hours (10 AM to 10 PM IST). If you submitted outside these hours or it has been longer than 2 hours, simply message our Telegram team at <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener">@OTPWalaSupport</a> with your payment screenshot and 12-digit UPI UTR number or Binance Transaction ID.
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>What if I cancelled an order because no SMS code arrived?</span>
+              <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                OTPWala features automatic cancellation credits! If a virtual number does not receive an SMS verification code and you cancel it (or the activation window expires), the full order charge is automatically credited back to your wallet balance within 5–10 minutes. Review our <a href="/refund-policy">Refund &amp; Payments Policy</a> for complete details.
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>Do you offer developer API integration or bulk wholesale discounts?</span>
+              <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes! We provide robust REST API endpoints for high-volume automated SMS verification, compatible with standard SMS-activate protocols. For volume pricing tiers, please email us at <a href="mailto:support@otpwala.me">support@otpwala.me</a> or contact us directly on Telegram.
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>How do I report account security issues or unauthorized access?</span>
+              <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                If you suspect unauthorized activity on your account, reset your password immediately from the <a href="/auth/forgot-password">Password Reset page</a> and reach out directly to <a href="mailto:support@otpwala.me">support@otpwala.me</a> with the subject line <em>[URGENT] Security Alert</em> so our team can immediately protect your account and review active sessions.
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Copy Email Button
+  const copyEmailBtn = document.getElementById('copy-email-btn');
+  const copyEmailText = document.getElementById('copy-email-text');
+  if (copyEmailBtn && copyEmailText) {
+    copyEmailBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('support@otpwala.me');
+        copyEmailText.textContent = 'Copied!';
+        copyEmailBtn.style.color = '#10b981';
+        setTimeout(() => {
+          copyEmailText.textContent = 'Copy Address';
+          copyEmailBtn.style.color = '';
+        }, 2200);
+      } catch (e) {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = 'support@otpwala.me';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        copyEmailText.textContent = 'Copied!';
+        setTimeout(() => {
+          copyEmailText.textContent = 'Copy Address';
+        }, 2200);
+      }
+    });
+  }
+
+  // Interactive Message Formulation
+  const nameInput = document.getElementById('contact-name') as HTMLInputElement;
+  const emailInput = document.getElementById('contact-email') as HTMLInputElement;
+  const categorySelect = document.getElementById('contact-category') as HTMLSelectElement;
+  const orderIdInput = document.getElementById('contact-order-id') as HTMLInputElement;
+  const messageInput = document.getElementById('contact-message') as HTMLTextAreaElement;
+  const formAlert = document.getElementById('form-alert');
+
+  function showAlert(msg: string, type: 'info' | 'error' | 'success') {
+    if (!formAlert) return;
+    formAlert.textContent = msg;
+    formAlert.className = `form-alert alert-${type}`;
+    formAlert.style.display = 'block';
+  }
+
+  function getFormattedMessage() {
+    const name = nameInput?.value.trim() || 'Anonymous User';
+    const email = emailInput?.value.trim() || 'Not specified';
+    const category = categorySelect?.value || 'General Support';
+    const orderId = orderIdInput?.value.trim() || 'N/A';
+    const msg = messageInput?.value.trim() || '';
+
+    return `Hello OTPWala Support Team,
+
+Name: ${name}
+Email: ${email}
+Topic: ${category}
+Order / Transaction ID: ${orderId}
+
+Message:
+${msg}`;
+  }
+
+  // Send via Telegram
+  const sendTelegramBtn = document.getElementById('send-telegram-btn');
+  if (sendTelegramBtn) {
+    sendTelegramBtn.addEventListener('click', () => {
+      const msg = messageInput?.value.trim();
+      if (!msg) {
+        showAlert('Please enter your message details before opening Telegram.', 'error');
+        messageInput?.focus();
+        return;
+      }
+      const formatted = getFormattedMessage();
+      const telegramUrl = `https://t.me/OTPWalaSupport?text=${encodeURIComponent(formatted)}`;
+      showAlert('Opening Telegram support with your message...', 'success');
+      window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  // Send via Email
+  const sendEmailBtn = document.getElementById('send-email-btn');
+  if (sendEmailBtn) {
+    sendEmailBtn.addEventListener('click', () => {
+      const msg = messageInput?.value.trim();
+      if (!msg) {
+        showAlert('Please write a message before composing an email.', 'error');
+        messageInput?.focus();
+        return;
+      }
+      const category = categorySelect?.value || 'General Inquiry';
+      const orderId = orderIdInput?.value.trim() ? ` [Order: ${orderIdInput.value.trim()}]` : '';
+      const subject = encodeURIComponent(`[Support Request] ${category}${orderId}`);
+      const body = encodeURIComponent(getFormattedMessage());
+      showAlert('Opening your email client...', 'success');
+      window.location.href = `mailto:support@otpwala.me?subject=${subject}&body=${body}`;
+    });
+  }
+
+  // Copy Message to Clipboard
+  const copyMsgBtn = document.getElementById('copy-message-btn');
+  if (copyMsgBtn) {
+    copyMsgBtn.addEventListener('click', async () => {
+      const msg = messageInput?.value.trim();
+      if (!msg) {
+        showAlert('Please write a message first to copy it.', 'error');
+        messageInput?.focus();
+        return;
+      }
+      const text = getFormattedMessage();
+      try {
+        await navigator.clipboard.writeText(text);
+        showAlert('✓ Message copied to clipboard! You can paste it into Telegram or your email.', 'success');
+      } catch {
+        showAlert('Could not access clipboard. Please copy your text manually.', 'error');
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact-page {
+    padding-top: calc(var(--header-height, 70px) + 2rem);
+    padding-bottom: 5rem;
+    min-height: 85vh;
+  }
+
+  /* Breadcrumbs */
+  .breadcrumb-nav {
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .breadcrumb-list li + li::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: var(--border-subtle);
+  }
+  .breadcrumb-list a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .breadcrumb-list a:hover {
+    color: var(--accent-primary, #3b82f6);
+  }
+  .breadcrumb-list [aria-current="page"] {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Hero Section */
+  .contact-hero {
+    max-width: 780px;
+    margin: 0 auto 3.5rem auto;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .contact-hero h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+    font-family: var(--font-display, 'Outfit', sans-serif);
+  }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+  }
+
+  /* Status Banner */
+  .status-banner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.86rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+    color: #10b981;
+  }
+  .live-circle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+  }
+  .status-timing {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .status-timing strong {
+    color: var(--text-primary);
+  }
+  .sep {
+    color: var(--text-muted);
+  }
+
+  /* Cards Grid */
+  .contact-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+  .contact-card {
+    position: relative;
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+    border-radius: var(--radius-lg, 14px);
+    padding: 2rem 1.6rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+  .contact-card.highlight-card {
+    border-color: rgba(34, 158, 217, 0.5);
+    background: linear-gradient(180deg, rgba(34, 158, 217, 0.06) 0%, var(--card-bg) 100%);
+    box-shadow: 0 4px 20px rgba(34, 158, 217, 0.08);
+  }
+  .card-badge {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.22rem 0.6rem;
+    border-radius: 9999px;
+    background: rgba(34, 158, 217, 0.15);
+    color: #0284c7;
+    border: 1px solid rgba(34, 158, 217, 0.3);
+  }
+  .card-badge.secondary {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+  .card-badge.primary {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  .card-badge.muted {
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+  .card-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .telegram-icon {
+    background: rgba(34, 158, 217, 0.12);
+    color: #229ED9;
+  }
+  .email-icon {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+  }
+  .ticket-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+  }
+  .broadcast-icon {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+  }
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+  .card-body h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    color: var(--text-primary);
+  }
+  .card-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    flex-grow: 1;
+  }
+  .contact-details {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .detail-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+  }
+  .detail-value {
+    color: var(--text-primary);
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .email-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .email-actions .btn {
+    flex: 1;
+    text-align: center;
+  }
+  .btn-telegram {
+    background: #229ED9;
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: 0.65rem 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .btn-telegram:hover {
+    background: #1b8ec5;
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
+
+  /* Inquiry Form Section */
+  .inquiry-section {
+    margin-bottom: 4.5rem;
+  }
+  .inquiry-container {
+    background: var(--card-bg, rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+    border-radius: var(--radius-lg, 16px);
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .inquiry-header {
+    text-align: center;
+    max-width: 650px;
+    margin: 0 auto 2rem auto;
+  }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-primary, #3b82f6);
+    margin-bottom: 0.5rem;
+  }
+  .inquiry-header h2 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    margin-bottom: 0.6rem;
+    color: var(--text-primary);
+  }
+  .inquiry-header p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .inquiry-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .message-textarea {
+    resize: vertical;
+    min-height: 110px;
+    line-height: 1.5;
+  }
+  .form-alert {
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .alert-info { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); }
+  .alert-error { background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25); }
+  .alert-success { background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.5rem;
+  }
+  .form-actions .btn {
+    padding: 0.75rem 1.4rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  /* SLA Section */
+  .sla-section {
+    margin-bottom: 4.5rem;
+  }
+  .section-heading {
+    font-size: 1.85rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    font-family: var(--font-display, 'Outfit', sans-serif);
+  }
+  .sla-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.25rem;
+  }
+  .sla-item {
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md, 12px);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .sla-icon-pill {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+  }
+  .sla-item h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .sla-item p {
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* FAQ Accordion */
+  .contact-faq {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .faq-accordion {
+    display: grid;
+    gap: 0.85rem;
+  }
+  .faq-item {
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md, 10px);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+  .faq-item[open] {
+    border-color: rgba(59, 130, 246, 0.35);
+  }
+  .faq-question {
+    padding: 1.1rem 1.25rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    user-select: none;
+  }
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+  .chevron {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+  }
+  .faq-item[open] .chevron {
+    transform: rotate(180deg);
+    color: var(--accent-primary, #3b82f6);
+  }
+  .faq-answer {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .faq-answer p {
+    margin: 0;
+  }
+  .faq-answer a {
+    color: var(--accent-primary, #3b82f6);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .inquiry-container {
+      padding: 1.75rem 1.25rem;
+    }
+    .form-actions {
+      flex-direction: column;
+    }
+    .form-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
