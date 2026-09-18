@@ -10,6 +10,7 @@ import {
   CheckIcon,
   XIcon,
 } from '../ui/Icons';
+import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
 
 export default function UserDashboard() {
   const [balance, setBalance] = useState(0);
@@ -17,9 +18,17 @@ export default function UserDashboard() {
   const [summary, setSummary] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
+  const [usdRate, setUsdRate] = useState<number>(115);
 
   useEffect(() => {
     loadDashboard();
+    const handleCurrencyChange = (e: any) => {
+      if (e.detail?.currency) setCurrency(e.detail.currency);
+      if (e.detail?.rate) setUsdRate(Number(e.detail.rate));
+    };
+    window.addEventListener('otpwala:currency-change', handleCurrencyChange);
+    return () => window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
   }, []);
 
   async function loadDashboard() {
@@ -30,6 +39,9 @@ export default function UserDashboard() {
         getOrders(5, 0),
       ]);
       setBalance(parseFloat(String(walletData.balance)) || 0);
+      if (walletData.config?.usdToInrRate) {
+        setUsdRate(parseFloat(walletData.config.usdToInrRate) || 115);
+      }
       setRecentOrders(ordersData.orders || []);
       setSummary(ordersData.summary || { totalOrders: ordersData.total || 0 });
     } catch (err: any) {
@@ -71,7 +83,7 @@ export default function UserDashboard() {
         <StatCard
           icon={<DollarIcon size={24} color="var(--success)" />}
           label="Wallet Balance"
-          value={`₹${balance.toFixed(2)}`}
+          value={currency === 'USD' ? `$${(balance / usdRate).toFixed(2)}` : `₹${balance.toFixed(2)}`}
           color="var(--success)"
         />
         <StatCard
@@ -163,7 +175,7 @@ export default function UserDashboard() {
                       <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
                     <td><StatusBadge status={order.status} /></td>
-                    <td>₹{parseFloat(order.sell_price_inr).toFixed(2)}</td>
+                    <td>{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency, usdRate).full}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>

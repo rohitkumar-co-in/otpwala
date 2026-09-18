@@ -635,15 +635,19 @@ export const onRequest = async (context: any) => {
       const body = await request.json().catch(() => ({}));
       const amount = parseFloat(body.amount ?? body.amount_inr ?? 0);
       const utr = String(body.utr || body.transactionId || body.gateway_payment_id || '').trim();
-      const paymentMethod = String(body.method || body.paymentMethod || body.gateway || 'upi').trim();
+      const rawMethod = String(body.method || body.paymentMethod || body.gateway || 'upi').trim().toLowerCase();
+      const isBinance = rawMethod.includes('binance');
+      const cleanPaymentMethod = isBinance ? 'binance' : 'upi';
       const screenshotUrl = body.screenshotUrl || body.screenshot_url || null;
 
       if (!amount || isNaN(amount) || amount <= 0) {
         return jsonResponse({ success: false, error: 'Invalid deposit amount' }, 400);
       }
 
-      if (!/^\d{12}$/.test(utr)) {
+      if (!isBinance && !/^\d{12}$/.test(utr)) {
         return jsonResponse({ success: false, error: 'Enter a valid 12-digit UTR / reference number' }, 400);
+      } else if (isBinance && utr.length < 3) {
+        return jsonResponse({ success: false, error: 'Enter a valid Binance Order ID or Transaction ID' }, 400);
       }
 
       const supabase = getSupabaseAdmin(env);
@@ -663,7 +667,7 @@ export const onRequest = async (context: any) => {
           user_id: auth.userId,
           amount,
           transaction_id: utr || null,
-          payment_method: paymentMethod || 'upi',
+          payment_method: cleanPaymentMethod,
           screenshot_url: screenshotUrl,
           status: 'pending',
         })
@@ -678,7 +682,7 @@ export const onRequest = async (context: any) => {
             user_id: auth.userId,
             amount_inr: amount,
             gateway_payment_id: utr || null,
-            gateway: paymentMethod || 'upi',
+            gateway: cleanPaymentMethod,
             status: 'created',
           })
           .select()
@@ -711,6 +715,7 @@ export const onRequest = async (context: any) => {
             userName: profile?.full_name || undefined,
             createdAt: data?.created_at,
             origin: url.origin,
+            paymentMethod: cleanPaymentMethod,
           }, env);
         } catch (tgErr) {
           console.error('Failed to dispatch telegram payment notification:', tgErr);

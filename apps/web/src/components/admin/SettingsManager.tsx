@@ -52,6 +52,13 @@ export default function SettingsManager() {
   const [upiName, setUpiName] = useState('OTPWala Services');
   const [supportTelegram, setSupportTelegram] = useState('@OTPWalaSupport');
 
+  // Binance Pay Configuration
+  const [binancePayEnabled, setBinancePayEnabled] = useState(true);
+  const [binancePayId, setBinancePayId] = useState('');
+  const [binancePayNickname, setBinancePayNickname] = useState('');
+  const [binancePayQrUrl, setBinancePayQrUrl] = useState('');
+  const [usdtInrRate, setUsdtInrRate] = useState('90');
+
   // Telegram Bot Notifications for Payment Approvals
   const [telegramBotToken, setTelegramBotToken] = useState('');
   const [telegramAdminChatId, setTelegramAdminChatId] = useState('');
@@ -122,6 +129,12 @@ export default function SettingsManager() {
       if (s.upi_id) setUpiId(s.upi_id);
       if (s.upi_merchant_name) setUpiName(s.upi_merchant_name);
       if (s.support_telegram) setSupportTelegram(s.support_telegram);
+
+      if (s.binance_pay_enabled !== undefined) setBinancePayEnabled(s.binance_pay_enabled !== 'false');
+      if (s.binance_pay_id) setBinancePayId(s.binance_pay_id);
+      if (s.binance_pay_nickname) setBinancePayNickname(s.binance_pay_nickname);
+      if (s.binance_pay_qr_url) setBinancePayQrUrl(s.binance_pay_qr_url);
+      if (s.usdt_inr_rate) setUsdtInrRate(s.usdt_inr_rate);
 
       if (s.telegram_bot_token) setTelegramBotToken(s.telegram_bot_token);
       if (s.telegram_admin_chat_id) setTelegramAdminChatId(s.telegram_admin_chat_id);
@@ -216,6 +229,11 @@ export default function SettingsManager() {
         upi_id: upiId,
         upi_merchant_name: upiName,
         support_telegram: supportTelegram,
+        binance_pay_enabled: String(binancePayEnabled),
+        binance_pay_id: binancePayId.trim(),
+        binance_pay_nickname: binancePayNickname.trim(),
+        binance_pay_qr_url: binancePayQrUrl.trim(),
+        usdt_inr_rate: usdtInrRate.trim() || '90',
         telegram_bot_token: telegramBotToken.trim(),
         telegram_admin_chat_id: telegramAdminChatId.trim(),
         telegram_notifications_enabled: String(telegramNotificationsEnabled),
@@ -882,6 +900,116 @@ export default function SettingsManager() {
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
                 Linked on footer, payment screens, and error popups for customer assistance.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* BINANCE PAY (CRYPTO / USDT DEPOSITS) */}
+        <div className="card" style={{ padding: '1.5rem', border: '1px solid rgba(245, 158, 11, 0.3)', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(217, 119, 6, 0.01) 100%)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L6.5 7.5L8.6 9.6L12 6.2L15.4 9.6L17.5 7.5L12 2ZM2 12L7.5 6.5L9.6 8.6L6.2 12L9.6 15.4L7.5 17.5L2 12ZM12 22L17.5 16.5L15.4 14.4L12 17.8L8.6 14.4L6.5 16.5L12 22ZM22 12L16.5 17.5L14.4 15.4L17.8 12L14.4 8.6L16.5 6.5L22 12ZM12 9.5L9.5 12L12 14.5L14.5 12L12 9.5Z" />
+                </svg>
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>Binance Pay (Crypto / USDT)</span>
+                  <span className="badge" style={{ fontSize: '0.68rem', padding: '2px 8px', background: binancePayEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)', color: binancePayEnabled ? '#10b981' : 'var(--text-muted)' }}>
+                    {binancePayEnabled ? 'ENABLED' : 'DISABLED'}
+                  </span>
+                </h2>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Accept direct USDT transfers to your personal Binance Pay ID with manual order verification.
+                </span>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={binancePayEnabled}
+                onChange={(e) => setBinancePayEnabled(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#f59e0b', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Enable Binance Pay</span>
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Your Binance Pay ID
+              </label>
+              <input
+                type="text"
+                value={binancePayId}
+                onChange={(e) => setBinancePayId(e.target.value)}
+                className="input"
+                style={{ width: '100%', fontFamily: 'var(--font-mono)' }}
+                placeholder="e.g. 839210291"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Found in Binance App → Pay → My Pay ID (numerical ID).
+              </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Binance Nickname / Account Name
+              </label>
+              <input
+                type="text"
+                value={binancePayNickname}
+                onChange={(e) => setBinancePayNickname(e.target.value)}
+                className="input"
+                style={{ width: '100%' }}
+                placeholder="e.g. OTPWalaOfficial"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Shown to users to confirm they are sending to the right Binance account.
+              </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                USDT to INR Exchange Rate (₹ per 1 USDT)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>₹</span>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={usdtInrRate}
+                  onChange={(e) => setUsdtInrRate(e.target.value)}
+                  className="input"
+                  style={{ width: '100%', paddingLeft: '2rem', fontWeight: 700 }}
+                  placeholder="90"
+                />
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Rate used to calculate required USDT: e.g. at ₹90/USDT, ₹500 = 5.56 USDT.
+              </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Custom Binance Pay QR Image URL (Optional)
+              </label>
+              <input
+                type="url"
+                value={binancePayQrUrl}
+                onChange={(e) => setBinancePayQrUrl(e.target.value)}
+                className="input"
+                style={{ width: '100%' }}
+                placeholder="https://.../my-binance-qr.png"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Leave empty to automatically display a generated QR code for your Pay ID.
               </span>
             </div>
           </div>

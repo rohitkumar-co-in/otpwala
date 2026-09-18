@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
+import { getActiveCurrency, formatDualPrice, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -233,6 +234,8 @@ export default function BuyNumber() {
   const [showAllCountries, setShowAllCountries] = useState(false);
   const [allCountries, setAllCountries] = useState<any[]>([]);
   const [loadingAllCountries, setLoadingAllCountries] = useState(false);
+  const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
+  const [usdRate, setUsdRate] = useState<number>(DEFAULT_USD_TO_INR_RATE);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const purchaseInFlightRef = useRef(false);
   const purchaseRequestIdRef = useRef<string | null>(null);
@@ -241,13 +244,24 @@ export default function BuyNumber() {
     loadServices();
     checkActiveParam();
     loadWalletBalance();
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    const handleCurrencyChange = (e: any) => {
+      if (e.detail?.currency) setCurrency(e.detail.currency);
+      if (e.detail?.rate) setUsdRate(Number(e.detail.rate));
+    };
+    window.addEventListener('otpwala:currency-change', handleCurrencyChange);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
+    };
   }, []);
 
   async function loadWalletBalance() {
     try {
       const data = await getWallet();
       setWalletBalance(parseFloat(String(data.balance)) || 0);
+      if (data.config?.usdToInrRate) {
+        setUsdRate(parseFloat(data.config.usdToInrRate) || 115);
+      }
     } catch {
       // Ignore
     }
@@ -395,7 +409,9 @@ export default function BuyNumber() {
 
     // Instant wallet check
     if (walletBalance !== null && country.priceInr && walletBalance < country.priceInr) {
-      setError(`Insufficient wallet balance. This number costs ₹${country.priceInr.toFixed(2)}, but your current balance is ₹${walletBalance.toFixed(2)}.`);
+      const pDual = formatDualPrice(country.priceInr, currency, usdRate);
+      const bDual = formatDualPrice(walletBalance, currency, usdRate);
+      setError(`Insufficient wallet balance. This number costs ${pDual.full}, but your current balance is ${bDual.primary}.`);
       return;
     }
 
@@ -429,7 +445,8 @@ export default function BuyNumber() {
       if (code && code !== 'purchase_in_progress') purchaseRequestIdRef.current = null;
       const msg = (err?.message || '').toLowerCase();
       if (code === 'user_insufficient_funds' || msg.includes('insufficient wallet balance')) {
-        setError(`Insufficient wallet balance. This number costs ₹${country.priceInr?.toFixed(2) || ''}, but your current wallet balance is insufficient.`);
+        const pDual = formatDualPrice(country.priceInr || 0, currency, usdRate);
+        setError(`Insufficient wallet balance. This number costs ${pDual.full}, but your current wallet balance is insufficient.`);
         return;
       }
       setError(err.message || 'Carrier numbers are temporarily unavailable for this country. Please choose another country or retry.');
@@ -838,7 +855,7 @@ export default function BuyNumber() {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.65rem' }}>
           {[
             { id: 'all', label: `All Countries (${allCountries.length || countries.length})` },
-            { id: 'cheap', label: `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
+            { id: 'cheap', label: currency === 'USD' ? `Budget (< $0.50)` : `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -963,7 +980,15 @@ export default function BuyNumber() {
                     </td>
                     <td className="country-stock-cell" data-label="Available"><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
                     <td className="country-price-cell" data-label="Price" style={{ fontWeight: 700, color: 'var(--success)' }}>
-                      {country.priceInr > 0 ? `₹${country.priceInr.toFixed(2)}` : '—'}
+                      {country.priceInr > 0 ? (() => {
+                        const dual = formatDualPrice(country.priceInr, currency, usdRate);
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1px' }}>
+                            <span style={{ fontSize: '0.98rem', fontWeight: 800 }}>{dual.primary}</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>{dual.secondary}</span>
+                          </div>
+                        );
+                      })() : '—'}
                     </td>
                     <td className="country-action-cell" style={{ textAlign: 'right' }}>
                       <button
@@ -1129,7 +1154,7 @@ export default function BuyNumber() {
                     {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 18, 12)}
                     <span>{order?.countryName || selectedCountry?.name}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>₹{parseFloat(order?.priceInr || 0).toFixed(2)}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatDualPrice(parseFloat(order?.priceInr || 0), currency, usdRate).full}</span>
                   </div>
                 </div>
               </div>
@@ -1484,7 +1509,7 @@ export default function BuyNumber() {
                           {ro.status === 'code_received' ? 'Received' : ro.status}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600 }}>₹{parseFloat(ro.sell_price_inr || 0).toFixed(2)}</td>
+                      <td style={{ fontWeight: 600 }}>{formatDualPrice(parseFloat(ro.sell_price_inr || 0), currency, usdRate).full}</td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(ro.created_at).toLocaleString()}
                       </td>

@@ -157,7 +157,12 @@ INSERT INTO public.settings (key, value) VALUES
     ('referral_bonus_percent_2',        '"5"'),
     ('referral_bonus_percent_3',        '"5"'),
     ('referral_bonus_window_days',      '"30"'),
-    ('referral_claim_window_hours',     '"24"')
+    ('referral_claim_window_hours',     '"24"'),
+    ('binance_pay_enabled',             '"true"'),
+    ('binance_pay_id',                  '""'),
+    ('binance_pay_nickname',            '""'),
+    ('binance_pay_qr_url',              '""'),
+    ('usdt_inr_rate',                   '"90"')
 ON CONFLICT (key) DO NOTHING;
 
 -- ─── 6. PAYMENT REQUESTS (UPI manual top-up) ────────────────────

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
+import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -11,7 +12,16 @@ export default function OrderHistory() {
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
   const limit = 15;
+
+  useEffect(() => {
+    const handleCurrencyChange = (e: any) => {
+      if (e.detail?.currency) setCurrency(e.detail.currency);
+    };
+    window.addEventListener('otpwala:currency-change', handleCurrencyChange);
+    return () => window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
+  }, []);
 
   async function copyToClipboard(value: string, id: string) {
     try {
@@ -161,7 +171,7 @@ export default function OrderHistory() {
                       ) : <StatusBadge status={order.status} />}
                     </td>
                     <td style={{ fontWeight: 600, color: order.status === 'code_received' || order.sms_code ? 'inherit' : 'var(--text-muted)' }}>
-                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refund: '}₹{parseFloat(order.sell_price_inr).toFixed(2)}
+                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refund: '}{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency).full}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleString([], {

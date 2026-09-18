@@ -228,6 +228,7 @@ export async function notifyPaymentApprovalRequest(
     userId: string;
     createdAt?: string;
     origin?: string;
+    paymentMethod?: string;
   },
   env?: any
 ): Promise<{ success: boolean; error?: string }> {
@@ -250,15 +251,21 @@ export async function notifyPaymentApprovalRequest(
     });
 
     const userLabel = details.userName ? `${details.userName} (${details.userEmail})` : details.userEmail;
+    const isBinance = details.paymentMethod?.toLowerCase() === 'binance';
 
     const message = [
-      '🔔 <b>NEW UPI DEPOSIT FOR APPROVAL</b>',
+      isBinance ? '🔔 <b>NEW BINANCE PAY DEPOSIT FOR APPROVAL</b>' : '🔔 <b>NEW UPI DEPOSIT FOR APPROVAL</b>',
       '',
       `💰 <b>Amount:</b> ₹${details.amount.toFixed(2)}`,
-      `🧾 <b>UTR / Ref ID:</b> <code>${details.utr}</code>`,
+      `💳 <b>Method:</b> ${isBinance ? 'Binance Pay (Crypto / USDT)' : 'UPI'}`,
+      `${isBinance ? '🧾 <b>Binance Order / TxID:</b>' : '🧾 <b>UTR / Ref ID:</b>'} <code>${details.utr}</code>`,
       `👤 <b>User:</b> ${userLabel}`,
       `🆔 <b>Request ID:</b> <code>${details.requestId}</code>`,
       `⏰ <b>Time:</b> ${timeFormatted} (IST)`,
+      '',
+      isBinance
+        ? '👉 <i>Please verify the transfer in your Binance App (Pay Transaction History), then approve to credit the user\'s wallet.</i>'
+        : '👉 <i>Please verify the UTR in your UPI/Bank statement, then approve to credit the user\'s wallet.</i>',
       '',
       '👉 <b>One-Click Approval:</b>',
       `• <a href="${approveActionUrl}"><b>✅ Click Here to Approve &amp; Credit ₹${details.amount.toFixed(2)}</b></a>`,

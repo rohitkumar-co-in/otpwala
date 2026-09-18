@@ -76,11 +76,24 @@ export async function getWalletConfig(env?: any) {
   const upiId = (map.get('upi_id') as string) || 'otpwala@upi';
   const upiName = (map.get('upi_merchant_name') as string) || 'OTPWala';
 
+  const binancePayEnabled = map.get('binance_pay_enabled') !== 'false';
+  const binancePayId = (map.get('binance_pay_id') as string) || '';
+  const binancePayNickname = (map.get('binance_pay_nickname') as string) || '';
+  const binancePayQrUrl = (map.get('binance_pay_qr_url') as string) || '';
+  const catalogRate = parseFloat(map.get('custom_dollar_rate') || map.get('usd_to_inr_rate') || '115') || 115;
+  const usdtInrRate = parseFloat(map.get('usdt_inr_rate') || String(catalogRate)) || catalogRate;
+
   return {
     minDeposit,
     maxDeposit,
     suggestions: [50, 100, 200, 500, 1000],
     upiId,
     upiName,
+    binancePayEnabled,
+    binancePayId,
+    binancePayNickname,
+    binancePayQrUrl,
+    usdtInrRate,
+    usdToInrRate: catalogRate,
   };
 }

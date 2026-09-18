@@ -12,6 +12,12 @@ export interface WalletConfig {
   suggestions: number[];
   upiId: string;
   upiName: string;
+  binancePayEnabled?: boolean;
+  binancePayId?: string;
+  binancePayNickname?: string;
+  binancePayQrUrl?: string;
+  usdtInrRate?: number;
+  usdToInrRate?: number;
 }
 
 export async function getWalletConfig(): Promise<WalletConfig> {
@@ -46,12 +52,25 @@ export async function getWalletConfig(): Promise<WalletConfig> {
   const upiId = (map.get('upi_id') as string) || 'otpwala@upi';
   const upiName = (map.get('upi_merchant_name') as string) || 'OTPWala';
 
+  const binancePayEnabled = map.get('binance_pay_enabled') !== 'false';
+  const binancePayId = (map.get('binance_pay_id') as string) || '';
+  const binancePayNickname = (map.get('binance_pay_nickname') as string) || '';
+  const binancePayQrUrl = (map.get('binance_pay_qr_url') as string) || '';
+  const catalogRate = parseFloat(map.get('custom_dollar_rate') || map.get('usd_to_inr_rate') || '115') || 115;
+  const usdtInrRate = parseFloat(map.get('usdt_inr_rate') || String(catalogRate)) || catalogRate;
+
   return {
     minDeposit,
     maxDeposit,
     suggestions,
     upiId,
     upiName,
+    binancePayEnabled,
+    binancePayId,
+    binancePayNickname,
+    binancePayQrUrl,
+    usdtInrRate,
+    usdToInrRate: catalogRate,
   };
 }
 
@@ -170,6 +189,21 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
+    const rawMethod = String(method || 'upi').toLowerCase();
+    const isBinance = rawMethod.includes('binance');
+    const paymentMethod = isBinance ? 'binance' : 'upi';
+
+    // Validate reference
+    if (!utr || String(utr).trim().length < 3) {
+      res.status(400).json({
+        success: false,
+        error: isBinance
+          ? 'Please enter the Binance Order ID or Transaction ID from your payment receipt'
+          : 'Please enter the UTR or Reference Number from your payment receipt',
+      });
+      return;
+    }
+
     let request: any = null;
 
     // Try modern column insert
@@ -179,7 +213,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
         user_id: req.userId,
         amount: amountNum,
         transaction_id: utr ? String(utr).trim() : null,
-        payment_method: 'upi',
+        payment_method: paymentMethod,
         status: 'pending',
       })
       .select()
@@ -192,7 +226,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
         .insert({
           user_id: req.userId,
           amount_inr: amountNum,
-          gateway: 'upi',
+          gateway: paymentMethod,
           gateway_payment_id: utr ? String(utr).trim() : null,
           status: 'created',
         })
@@ -224,6 +258,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
             userEmail: userProfile?.email || req.userEmail || 'Unknown Email',
             userName: userProfile?.full_name || undefined,
             createdAt: request?.created_at,
+            paymentMethod,
           });
         } catch (err) {
           console.error('Telegram notification error for top-up request:', err);
@@ -231,13 +266,15 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
       })();
     }
 
+    const methodLabel = isBinance ? 'Binance Pay' : 'UPI';
     res.json({
       success: true,
       data: {
-        message: `UPI deposit request of ₹${amountNum} submitted! Admin will verify and credit your wallet.`,
+        message: `${methodLabel} deposit request of ₹${amountNum} submitted! Admin will verify and credit your wallet.`,
         amount: amountNum,
         utr: utr || null,
         requestId: request?.id,
+        method: paymentMethod,
       },
     });
   } catch (e: any) {

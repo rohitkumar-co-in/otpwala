@@ -15,6 +15,7 @@ import {
   InfoIcon,
   CreditCardIcon,
 } from '../ui/Icons';
+import { getActiveCurrency, type Currency } from '../../lib/currency';
 
 interface WalletConfig {
   minDeposit: number;
@@ -22,7 +23,25 @@ interface WalletConfig {
   suggestions: number[];
   upiId: string;
   upiName: string;
+  binancePayEnabled?: boolean;
+  binancePayId?: string;
+  binancePayNickname?: string;
+  binancePayQrUrl?: string;
+  usdtInrRate?: number;
 }
+
+const BinanceIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 1024 1024" fill="none">
+    <path
+      d="M512 0C229.23 0 0 229.23 0 512s229.23 512 512 512 512-229.23 512-512S794.77 0 512 0z"
+      fill="#F3BA2F"
+    />
+    <path
+      d="M512 195.4l117.8 117.8-274.6 274.6-117.8-117.8L512 195.4zm235.6 235.6l117.8 117.8-117.8 117.8-117.8-117.8 117.8-117.8zM512 391.8l156.8 156.8-156.8 156.8-156.8-156.8 156.8-156.8zm-235.6 39.2l117.8 117.8-117.8 117.8-117.8-117.8 117.8-117.8zm235.6 318.6l235.6-235.6 117.8 117.8L512 870.6 276.4 631.8l117.8-117.8 117.8 117.8z"
+      fill="#1E2026"
+    />
+  </svg>
+);
 
 export default function WalletPage() {
   const [balance, setBalance] = useState(0);
@@ -42,15 +61,24 @@ export default function WalletPage() {
     suggestions: [50, 100, 200, 500, 1000],
     upiId: 'otpwala@upi',
     upiName: 'OTPWala Services',
+    binancePayEnabled: true,
+    binancePayId: '',
+    binancePayNickname: '',
+    binancePayQrUrl: '',
+    usdtInrRate: 115,
   });
 
+  const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'binance'>('upi');
   const [topUpAmount, setTopUpAmount] = useState('100');
   const [utrNumber, setUtrNumber] = useState('');
+  const [binanceTxId, setBinanceTxId] = useState('');
   const [agreeNote, setAgreeNote] = useState(false);
   const [topUpLoading, setTopUpLoading] = useState(false);
   const [topUpError, setTopUpError] = useState<string | null>(null);
   const [topUpSuccess, setTopUpSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedBinance, setCopiedBinance] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
   const [insufficientAlert, setInsufficientAlert] = useState(false);
@@ -59,12 +87,17 @@ export default function WalletPage() {
 
   useEffect(() => {
     loadWallet();
+    const handleCurrencyChange = (e: any) => {
+      if (e.detail?.currency) setCurrency(e.detail.currency);
+    };
+    window.addEventListener('otpwala:currency-change', handleCurrencyChange);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('insufficient') === '1' || params.get('error') === 'insufficient_funds') {
         setInsufficientAlert(true);
       }
     }
+    return () => window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
   }, []);
 
   useEffect(() => {
@@ -131,7 +164,14 @@ export default function WalletPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  async function handleSubmitUpiDeposit(e: React.FormEvent) {
+  const handleCopyBinance = () => {
+    if (!walletConfig.binancePayId) return;
+    navigator.clipboard.writeText(walletConfig.binancePayId);
+    setCopiedBinance(true);
+    setTimeout(() => setCopiedBinance(false), 2000);
+  };
+
+  async function handleSubmitDeposit(e: React.FormEvent) {
     e.preventDefault();
     const amount = parseFloat(topUpAmount);
 
@@ -150,9 +190,16 @@ export default function WalletPage() {
       return;
     }
 
-    if (!utrNumber.trim()) {
-      setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
-      return;
+    if (paymentMethod === 'upi') {
+      if (!utrNumber.trim()) {
+        setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
+        return;
+      }
+    } else {
+      if (!binanceTxId.trim()) {
+        setTopUpError('Please enter your Binance Order ID or Transaction ID');
+        return;
+      }
     }
 
     if (!agreeNote) {
@@ -165,12 +212,23 @@ export default function WalletPage() {
     setTopUpSuccess(null);
 
     try {
-      const data = await topUp(amount, 'upi', utrNumber.trim());
-      setTopUpSuccess(
-        data.data?.message ||
-          `UPI deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`
-      );
-      setUtrNumber('');
+      const refId = paymentMethod === 'upi' ? utrNumber.trim() : binanceTxId.trim();
+      const data = await topUp(amount, paymentMethod, refId);
+      if (paymentMethod === 'upi') {
+        setTopUpSuccess(
+          data.data?.message ||
+            `UPI deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`
+        );
+        setUtrNumber('');
+      } else {
+        const rate = Number(walletConfig.usdtInrRate) || 90;
+        const usdtEst = (amount / rate).toFixed(2);
+        setTopUpSuccess(
+          data.data?.message ||
+            `Binance Pay deposit request of ₹${amount} (~${usdtEst} USDT) submitted! Admin will verify and credit your wallet.`
+        );
+        setBinanceTxId('');
+      }
       await Promise.all([loadWallet(), loadTransactions()]);
     } catch (err: any) {
       setTopUpError(err.message || 'Deposit submission failed. Please try again.');
@@ -182,6 +240,14 @@ export default function WalletPage() {
   const numericAmount = parseFloat(topUpAmount) || walletConfig.minDeposit;
   const upiPayUri = `upi://pay?pa=${walletConfig.upiId}&pn=${encodeURIComponent(walletConfig.upiName)}&am=${numericAmount}&cu=INR&tn=OTPWala%20Deposit`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiPayUri)}`;
+
+  const usdtRate = Number(walletConfig.usdtInrRate) || 90;
+  const usdtAmount = (numericAmount / usdtRate).toFixed(2);
+  const binanceQrUrl = walletConfig.binancePayQrUrl?.trim()
+    ? walletConfig.binancePayQrUrl.trim()
+    : walletConfig.binancePayId
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(walletConfig.binancePayId)}`
+    : '';
 
   const totalPages = Math.ceil(totalTx / limit);
   const visibleTransactions = transactionFilter === 'all'
@@ -202,10 +268,10 @@ export default function WalletPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
-            Wallet & <span className="text-gradient">UPI Deposits</span>
+            Wallet & <span className="text-gradient">Deposits</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Submit a wallet top-up using a supported UPI app and use it after approval
+            Submit a wallet top-up using UPI or Binance Pay (Crypto) and use it after approval
           </p>
         </div>
         <button
@@ -299,13 +365,24 @@ export default function WalletPage() {
             letterSpacing: '-0.02em',
           }}
         >
-          ₹{balance.toFixed(2)}
+          {currency === 'USD' ? `$${(balance / usdtRate).toFixed(2)}` : `₹${balance.toFixed(2)}`}
         </div>
         <div
           style={{
-            fontSize: '0.875rem',
+            fontSize: '1.05rem',
+            color: '#047857',
+            marginTop: '0.25rem',
+            fontWeight: 700,
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          {currency === 'USD' ? `≈ ₹${balance.toFixed(2)} INR` : `≈ $${(balance / usdtRate).toFixed(2)} USD`}
+        </div>
+        <div
+          style={{
+            fontSize: '0.85rem',
             color: '#475569',
-            marginTop: '0.5rem',
+            marginTop: '0.45rem',
             fontWeight: 500,
           }}
         >
@@ -342,35 +419,152 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* UPI Deposit Section */}
+      {/* Deposit Section */}
       <div className="card" style={{ padding: '1.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ZapIcon size={18} color="var(--accent-primary)" />
+            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-sm)', background: paymentMethod === 'binance' ? 'rgba(245, 158, 11, 0.15)' : 'var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {paymentMethod === 'binance' ? <BinanceIcon size={20} /> : <ZapIcon size={18} color="var(--accent-primary)" />}
             </div>
             <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Deposit via UPI</h2>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
+                {paymentMethod === 'binance' ? 'Deposit via Binance Pay (USDT)' : 'Deposit via UPI'}
+              </h2>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Follow the payment details below, then submit your UTR for review.
+                {paymentMethod === 'binance'
+                  ? 'Send USDT using Binance Pay ID or QR, then submit your Order ID for verification.'
+                  : 'Follow the payment details below, then submit your UTR for review.'}
               </span>
             </div>
           </div>
-          <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>
-            UPI Only
+          <span className={`badge ${paymentMethod === 'binance' ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.75rem', fontWeight: 700 }}>
+            {paymentMethod === 'binance' ? 'Crypto / USDT' : 'Instant UPI'}
           </span>
         </div>
 
+        {/* Payment Method Selector */}
+        {walletConfig.binancePayEnabled !== false && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.6rem' }}>
+              Select Payment Method:
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+              {/* UPI Option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentMethod('upi');
+                  setTopUpError(null);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  border: paymentMethod === 'upi' ? '2px solid #2563eb' : '1px solid var(--border-subtle)',
+                  background: paymentMethod === 'upi' ? 'rgba(37, 99, 235, 0.06)' : 'var(--bg-secondary)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: paymentMethod === 'upi' ? '#2563eb' : 'var(--bg-tertiary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <ZapIcon size={18} color={paymentMethod === 'upi' ? '#ffffff' : 'var(--accent-primary)'} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: paymentMethod === 'upi' ? '#1d4ed8' : 'var(--text-primary)' }}>
+                    UPI / QR (INR)
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    GPay, PhonePe, Paytm, BHIM
+                  </div>
+                </div>
+                {paymentMethod === 'upi' && <CheckCircleIcon size={18} color="#2563eb" />}
+              </button>
+
+              {/* Binance Pay Option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentMethod('binance');
+                  setTopUpError(null);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  border: paymentMethod === 'binance' ? '2px solid #f59e0b' : '1px solid var(--border-subtle)',
+                  background: paymentMethod === 'binance' ? 'rgba(245, 158, 11, 0.08)' : 'var(--bg-secondary)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: '#F3BA2F',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <BinanceIcon size={22} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.92rem', color: paymentMethod === 'binance' ? '#b45309' : 'var(--text-primary)' }}>
+                      Binance Pay
+                    </span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#fef3c7', color: '#b45309', border: '1px solid #fcd34d' }}>
+                      USDT
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Binance App • 0 Gas Fee
+                  </div>
+                </div>
+                {paymentMethod === 'binance' && <CheckCircleIcon size={18} color="#f59e0b" />}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Step 1: Amount Selection */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.6rem' }}>
-            1. Select or Enter Amount:
-          </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', margin: 0 }}>
+              1. Select or Enter Amount (INR):
+            </label>
+            {paymentMethod === 'binance' && (
+              <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 600, background: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                Rate: 1 USDT = ₹{usdtRate}
+              </span>
+            )}
+          </div>
 
           {/* Dynamic Admin Suggestions (Up to 5) */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
             {walletConfig.suggestions.slice(0, 5).map((amount) => {
               const isSelected = topUpAmount === String(amount);
+              const estUsdt = (amount / usdtRate).toFixed(2);
               return (
                 <button
                   key={amount}
@@ -388,13 +582,13 @@ export default function WalletPage() {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  ₹{amount}
+                  ₹{amount} {paymentMethod === 'binance' && `(~${estUsdt} USDT)`}
                 </button>
               );
             })}
           </div>
 
-          <div style={{ maxWidth: '320px' }}>
+          <div style={{ maxWidth: '340px' }}>
             <div className="input-group">
               <input
                 type="number"
@@ -412,131 +606,288 @@ export default function WalletPage() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
               <span>Min: ₹{walletConfig.minDeposit}</span>
+              {paymentMethod === 'binance' && (
+                <span style={{ fontWeight: 700, color: '#b45309' }}>≈ {usdtAmount} USDT</span>
+              )}
               <span>Max: ₹{walletConfig.maxDeposit.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
 
-        {/* Step 2: Payment Details (QR & VPA) */}
-        <div
-          style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1rem' }}>
-            2. Scan QR or Pay to Admin UPI ID:
-          </label>
+        {/* Step 2: Payment Details (QR & Details) */}
+        {paymentMethod === 'upi' ? (
+          /* UPI Payment Details */
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1rem' }}>
+              2. Scan QR or Pay to Admin UPI ID:
+            </label>
 
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Dynamic QR Box */}
-            <div
-              style={{
-                background: '#ffffff',
-                padding: '10px',
-                borderRadius: 'var(--radius-md)',
-                display: 'inline-flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-              }}
-            >
-              <img
-                src={qrUrl}
-                alt="UPI Deposit QR Code"
-                width={170}
-                height={170}
-                style={{ display: 'block', borderRadius: '4px' }}
-              />
-              <span style={{ color: '#111827', fontSize: '0.75rem', fontWeight: 700, marginTop: '6px' }}>
-                Scan to Pay ₹{numericAmount}
-              </span>
-            </div>
-
-            {/* UPI Details & Intent */}
-            <div style={{ flex: 1, minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
-                  Payee Business Name
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Dynamic QR Box */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  padding: '10px',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'inline-flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                }}
+              >
+                <img
+                  src={qrUrl}
+                  alt="UPI Deposit QR Code"
+                  width={170}
+                  height={170}
+                  style={{ display: 'block', borderRadius: '4px' }}
+                />
+                <span style={{ color: '#111827', fontSize: '0.75rem', fontWeight: 700, marginTop: '6px' }}>
+                  Scan to Pay ₹{numericAmount}
                 </span>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
-                  {walletConfig.upiName}
-                </div>
               </div>
 
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
-                  Admin UPI ID / VPA
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      background: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-subtle)',
-                      padding: '0.5rem 0.85rem',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.95rem',
-                      fontWeight: 600,
-                      color: 'var(--accent-primary)',
-                      flex: 1,
-                      maxWidth: '280px',
-                    }}
-                  >
-                    {walletConfig.upiId}
+              {/* UPI Details & Intent */}
+              <div style={{ flex: 1, minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                    Payee Business Name
+                  </span>
+                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                    {walletConfig.upiName}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCopyUpi}
-                    className="btn btn-secondary btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                  >
-                    {copied ? <CheckIcon size={14} color="#34d399" /> : <CopyIcon size={14} />}
-                    <span>{copied ? 'Copied!' : 'Copy'}</span>
-                  </button>
                 </div>
-              </div>
 
-              {/* Mobile UPI Intent Button */}
-              <div>
-                <a
-                  href={upiPayUri}
-                  className="btn btn-secondary btn-sm"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                >
-                  <QrCodeIcon size={14} />
-                  <span>Open in UPI App (GPay/PhonePe/Paytm)</span>
-                </a>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                    Admin UPI ID / VPA
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border-subtle)',
+                        padding: '0.5rem 0.85rem',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        color: 'var(--accent-primary)',
+                        flex: 1,
+                        maxWidth: '280px',
+                      }}
+                    >
+                      {walletConfig.upiId}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyUpi}
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      {copied ? <CheckIcon size={14} color="#34d399" /> : <CopyIcon size={14} />}
+                      <span>{copied ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile UPI Intent Button */}
+                <div>
+                  <a
+                    href={upiPayUri}
+                    className="btn btn-secondary btn-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <QrCodeIcon size={14} />
+                    <span>Open in UPI App (GPay/PhonePe/Paytm)</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Binance Pay Details */
+          <div
+            style={{
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, rgba(251, 191, 36, 0.08) 100%), var(--bg-secondary)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
+                2. Send USDT via Binance Pay:
+              </label>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '999px', border: '1px solid #fde68a' }}>
+                Amount to Send: {usdtAmount} USDT
+              </div>
+            </div>
 
-        {/* Step 3: Enter UTR & Submit */}
-        <form onSubmit={handleSubmitUpiDeposit}>
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Binance QR Code */}
+              {binanceQrUrl ? (
+                <div
+                  style={{
+                    background: '#ffffff',
+                    padding: '10px',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                  }}
+                >
+                  <img
+                    src={binanceQrUrl}
+                    alt="Binance Pay QR Code"
+                    width={170}
+                    height={170}
+                    style={{ display: 'block', borderRadius: '4px' }}
+                  />
+                  <span style={{ color: '#111827', fontSize: '0.75rem', fontWeight: 700, marginTop: '6px' }}>
+                    Pay {usdtAmount} USDT
+                  </span>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    width: '170px',
+                    height: '170px',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--bg-tertiary)',
+                    border: '1px dashed var(--border-subtle)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    padding: '1rem',
+                  }}
+                >
+                  <BinanceIcon size={32} />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                    Use Binance Pay ID directly
+                  </span>
+                </div>
+              )}
+
+              {/* Binance Details & Steps */}
+              <div style={{ flex: 1, minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {walletConfig.binancePayNickname && (
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                      Payee Binance Nickname
+                    </span>
+                    <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                      {walletConfig.binancePayNickname}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                    Binance Pay ID
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid rgba(245, 158, 11, 0.4)',
+                        padding: '0.5rem 0.85rem',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '1.05rem',
+                        fontWeight: 700,
+                        color: '#d97706',
+                        flex: 1,
+                        maxWidth: '280px',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {walletConfig.binancePayId || 'Not Configured'}
+                    </div>
+                    {walletConfig.binancePayId && (
+                      <button
+                        type="button"
+                        onClick={handleCopyBinance}
+                        className="btn btn-secondary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        {copiedBinance ? <CheckIcon size={14} color="#34d399" /> : <CopyIcon size={14} />}
+                        <span>{copiedBinance ? 'Copied!' : 'Copy'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* How to Pay Guide */}
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, background: 'rgba(255,255,255,0.03)', padding: '0.65rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>How to pay:</strong>
+                  <ol style={{ margin: '0.3rem 0 0 1.1rem', padding: 0 }}>
+                    <li>Open <strong>Binance App</strong> ➔ tap <strong>Pay</strong> (or scan the QR above).</li>
+                    <li>Choose <strong>Send</strong> ➔ select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
+                    <li>Send exactly <strong>{usdtAmount} USDT</strong> (zero gas fees!).</li>
+                    <li>Copy the <strong>Order ID / TxID</strong> from your payment receipt.</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Enter Reference ID & Submit */}
+        <form onSubmit={handleSubmitDeposit}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
-            3. Enter 12-Digit UTR / UPI Ref ID / Transaction ID / Reference No:
+            {paymentMethod === 'upi'
+              ? '3. Enter 12-Digit UTR / UPI Ref ID / Transaction ID / Reference No:'
+              : '3. Enter Binance Order ID / Transaction ID:'}
           </label>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: '260px' }}>
-              <input
-                type="text"
-                className="input"
-                placeholder="e.g. 429381029481 (Found in your UPI payment receipt)"
-                value={utrNumber}
-                onChange={(e) => {
-                  setUtrNumber(e.target.value);
-                  setTopUpError(null);
-                }}
-                required
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem' }}
-              />
+              {paymentMethod === 'upi' ? (
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. 429381029481 (Found in your UPI payment receipt)"
+                  value={utrNumber}
+                  onChange={(e) => {
+                    setUtrNumber(e.target.value);
+                    setTopUpError(null);
+                  }}
+                  required
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem' }}
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. 293847291029 (Found in Binance payment details)"
+                  value={binanceTxId}
+                  onChange={(e) => {
+                    setBinanceTxId(e.target.value);
+                    setTopUpError(null);
+                  }}
+                  required
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem' }}
+                />
+              )}
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.35rem', lineHeight: 1.4 }}>
-                Open your payment app receipt and look for: <strong>UTR</strong>, <strong>UPI Ref ID</strong>, <strong>Transaction ID</strong>, <strong>Txn ID</strong>, or <strong>Reference No</strong>.
+                {paymentMethod === 'upi' ? (
+                  <>Open your payment app receipt and look for: <strong>UTR</strong>, <strong>UPI Ref ID</strong>, <strong>Transaction ID</strong>, <strong>Txn ID</strong>, or <strong>Reference No</strong>.</>
+                ) : (
+                  <>In your Binance App: Go to <strong>Pay</strong> ➔ <strong>Payment History</strong> ➔ tap the payment ➔ copy the <strong>Order ID</strong> or <strong>Transaction ID</strong>.</>
+                )}
               </span>
             </div>
           </div>
@@ -574,10 +925,18 @@ export default function WalletPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
+                background: paymentMethod === 'binance' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
+                border: paymentMethod === 'binance' ? 'none' : undefined,
               }}
             >
               <CheckIcon size={16} />
-              <span>{topUpLoading ? 'Submitting...' : `Submit Deposit (₹${numericAmount})`}</span>
+              <span>
+                {topUpLoading
+                  ? 'Submitting...'
+                  : paymentMethod === 'binance'
+                  ? `Submit Binance Pay Deposit (₹${numericAmount} / ${usdtAmount} USDT)`
+                  : `Submit Deposit (₹${numericAmount})`}
+              </span>
             </button>
           </div>
         </form>
@@ -609,14 +968,14 @@ export default function WalletPage() {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Recent Deposit Requests</h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Real-time verification status of your UPI UTR submissions</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Real-time verification status of your deposit submissions</span>
           </div>
           <div className="card" style={{ padding: '0.5rem', overflowX: 'auto', marginBottom: '1.75rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.75rem 1rem' }}>Amount</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>UTR / Reference ID</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>UTR / Order ID / Ref</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Status</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Method</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Submitted At</th>
@@ -630,7 +989,7 @@ export default function WalletPage() {
                   const isPending = st === 'pending' || st === 'created';
                   const isApproved = st === 'approved' || st === 'paid';
                   const isRejected = st === 'rejected' || st === 'failed';
-                  const method = req.payment_method || req.gateway || 'UPI';
+                  const method = (req.payment_method || req.gateway || 'UPI').toLowerCase();
 
                   return (
                     <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
@@ -667,7 +1026,9 @@ export default function WalletPage() {
                         )}
                       </td>
                       <td style={{ padding: '0.75rem 1rem' }}>
-                        <span className="badge badge-info">{method.toUpperCase()}</span>
+                        <span className={`badge ${method === 'binance' ? 'badge-warning' : 'badge-info'}`}>
+                          {method === 'binance' ? 'BINANCE PAY' : method.toUpperCase()}
+                        </span>
                       </td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(req.created_at).toLocaleString()}

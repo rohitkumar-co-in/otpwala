@@ -95,6 +95,7 @@ export async function notifyPaymentApprovalRequest(details: {
   userName?: string;
   userId: string;
   createdAt?: string;
+  paymentMethod?: string;
 }): Promise<void> {
   try {
     const config = await getTelegramConfig();
@@ -110,17 +111,21 @@ export async function notifyPaymentApprovalRequest(details: {
     });
 
     const userLabel = details.userName ? `${details.userName} (${details.userEmail})` : details.userEmail;
+    const isBinance = details.paymentMethod?.toLowerCase() === 'binance';
 
     const message = [
-      '🔔 <b>NEW PAYMENT REQUEST FOR APPROVAL</b>',
+      isBinance ? '🔔 <b>NEW BINANCE PAY DEPOSIT FOR APPROVAL</b>' : '🔔 <b>NEW PAYMENT REQUEST FOR APPROVAL</b>',
       '',
       `💰 <b>Amount:</b> ₹${details.amount.toFixed(2)}`,
-      `🧾 <b>UTR / Ref ID:</b> <code>${details.utr}</code>`,
+      `💳 <b>Method:</b> ${isBinance ? 'Binance Pay (Crypto / USDT)' : 'UPI'}`,
+      `${isBinance ? '🧾 <b>Binance Order / TxID:</b>' : '🧾 <b>UTR / Ref ID:</b>'} <code>${details.utr}</code>`,
       `👤 <b>User:</b> ${userLabel}`,
       `🆔 <b>Request ID:</b> <code>${details.requestId}</code>`,
       `⏰ <b>Time:</b> ${timeFormatted} (IST)`,
       '',
-      '👉 <i>Please verify the UTR in your UPI/Bank statement, then approve in the Admin Dashboard to credit the user\'s wallet.</i>',
+      isBinance
+        ? '👉 <i>Please verify the transfer in your Binance App (Pay Transaction History), then approve in the Admin Dashboard to credit the user\'s wallet.</i>'
+        : '👉 <i>Please verify the UTR in your UPI/Bank statement, then approve in the Admin Dashboard to credit the user\'s wallet.</i>',
     ].join('\n');
 
     await sendTelegramMessage(message);
