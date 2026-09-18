@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import {
   getAdminUsers,
   getAdminUserDetails,
+  getAdminUserExport,
   creditUser,
   banUser,
   setUserZeroMarkup,
@@ -16,6 +17,7 @@ import type { AdminFundingSource } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
+import { promptAndDownloadUserData } from '../../lib/dataExport';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -26,6 +28,7 @@ import {
   XIcon,
   TrashIcon,
   EyeIcon,
+  DownloadIcon,
 } from '../ui/Icons';
 
 export default function UserManager() {
@@ -80,6 +83,23 @@ export default function UserManager() {
       console.error('Error fetching user details:', err);
     } finally {
       setInspectLoading(false);
+    }
+  };
+
+  const [exportingUserId, setExportingUserId] = useState<string | null>(null);
+
+  const handleExportUser = async (user: any) => {
+    if (!user || !user.id) return;
+    setExportingUserId(user.id);
+    try {
+      const res = await getAdminUserExport(user.id);
+      const username = (user.email || user.id || 'user').split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '_');
+      await promptAndDownloadUserData(res.data, `otpwala-user-dossier-${username}`);
+    } catch (err: any) {
+      console.error('Error exporting user dossier:', err);
+      toast.error(err.message || 'Failed to export user dossier', 'Export Failed');
+    } finally {
+      setExportingUserId(null);
     }
   };
 
@@ -793,6 +813,22 @@ export default function UserManager() {
                             <span>Details</span>
                           </button>
 
+                          {/* Export user dossier button */}
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleExportUser(u)}
+                            disabled={exportingUserId === u.id}
+                            title="Export complete user data dossier (Profile, Logs, Orders, Transactions, etc.)"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                          >
+                            {exportingUserId === u.id ? (
+                              <RefreshCwIcon size={13} className="spin" />
+                            ) : (
+                              <DownloadIcon size={13} />
+                            )}
+                            <span>Export</span>
+                          </button>
+
                           {/* Credit button */}
                           <button
                             className="btn btn-secondary btn-sm"
@@ -1326,29 +1362,47 @@ export default function UserManager() {
             </div>
 
             {/* Modal Actions */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem', marginTop: '1rem' }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => setInspectTarget(null)}
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => {
-                  const target = inspectTarget;
-                  setInspectTarget(null);
-                  setCreditUserTarget(target);
-                  setCreditAmount(100);
-                  setCreditReason('Manual admin top-up');
-                }}
+                onClick={() => handleExportUser(inspectTarget)}
+                disabled={exportingUserId === inspectTarget.id}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                title="Export complete user dossier (Profile, Logs, Orders, Transactions, Referrals, etc.)"
               >
-                <CreditCardIcon size={14} />
-                <span>Credit User Balance</span>
+                {exportingUserId === inspectTarget.id ? (
+                  <RefreshCwIcon size={14} className="spin" />
+                ) : (
+                  <DownloadIcon size={14} />
+                )}
+                <span>Export User Dossier</span>
               </button>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setInspectTarget(null)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    const target = inspectTarget;
+                    setInspectTarget(null);
+                    setCreditUserTarget(target);
+                    setCreditAmount(100);
+                    setCreditReason('Manual admin top-up');
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <CreditCardIcon size={14} />
+                  <span>Credit User Balance</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -14,6 +14,8 @@ import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
 import { CheckIcon } from '../ui/Icons';
 
+import { promptAndDownloadUserData } from '../../lib/dataExport';
+
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -52,12 +54,8 @@ export default function SettingsPage() {
     setPrivacyBusy('export'); setErrorMsg('');
     try {
       const data = await exportAccountData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url; link.download = `otpwala-data-${new Date().toISOString().slice(0, 10)}.json`; link.click();
-      URL.revokeObjectURL(url); setSuccessMsg('Your account data export was generated.');
-      toast.success('Your account data export was generated.', 'Data Exported');
+      await promptAndDownloadUserData(data, `otpwala-account-data-${user?.email ? user.email.split('@')[0] : 'user'}`);
+      setSuccessMsg('Your account data export was generated.');
     } catch (error: any) {
       setErrorMsg(error.message || 'Unable to export account data.');
       toast.error(error.message || 'Unable to export account data.', 'Export Failed');

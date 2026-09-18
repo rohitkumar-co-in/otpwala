@@ -198,15 +198,30 @@ export const onRequest = async (context: any) => {
       const auth = await authenticateUser(request, env);
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
       const supabase = getSupabaseAdmin(env);
-      const [profile, orders, transactions, tickets] = await Promise.all([
-        supabase.from('profiles').select('id,email,full_name,role,wallet_balance,created_at,updated_at').eq('id', auth.userId).single(),
+      const [profile, securityLogs, orders, transactions, paymentRequests, referralsGiven, tickets] = await Promise.all([
+        supabase.from('profiles').select('id,email,full_name,role,wallet_balance,referral_code,created_at,updated_at,last_login_ip,last_login_isp,last_login_at').eq('id', auth.userId).single(),
+        supabase.from('user_security_logs').select('id,event_type,ip_address,isp,asn,country,region,city,user_agent,created_at').eq('user_id', auth.userId).order('created_at', { ascending: false }).limit(100),
         supabase.from('orders').select('id,service_name,country_name,phone_number,status,sms_code,price_inr,refund_status,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
         supabase.from('wallet_transactions').select('id,type,amount,balance_after,description,status,reference_type,reference_id,created_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+        supabase.from('payment_requests').select('id,payment_method,amount,utr,binance_tx_id,status,created_at,reviewed_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
+        supabase.from('referrals').select('id,referee_id,status,bonus_tier1_amount,bonus_tier2_amount,bonus_tier3_amount,created_at').eq('referrer_id', auth.userId).order('created_at', { ascending: false }),
         supabase.from('support_tickets').select('id,order_id,subject,message,ticket_type,attachment,status,priority,public_reply,created_at,updated_at').eq('user_id', auth.userId).order('created_at', { ascending: false }),
       ]);
       const queryError = profile.error || orders.error || transactions.error || tickets.error;
       if (queryError) throw queryError;
-      return jsonResponse({ success: true, data: { exportedAt: new Date().toISOString(), profile: profile.data, orders: orders.data || [], walletTransactions: transactions.data || [], supportTickets: tickets.data || [] } });
+      return jsonResponse({
+        success: true,
+        data: {
+          exportedAt: new Date().toISOString(),
+          profile: profile.data,
+          securityLogs: securityLogs.data || [],
+          orders: orders.data || [],
+          walletTransactions: transactions.data || [],
+          paymentRequests: paymentRequests.data || [],
+          referrals: referralsGiven.data || [],
+          supportTickets: tickets.data || []
+        }
+      });
     }
 
     if (path === '/api/account/deletion-request' && method === 'POST') {
@@ -1257,6 +1272,68 @@ export const onRequest = async (context: any) => {
             user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId) },
             transactions: txRes.data || [],
             orders: ordersRes.data || [],
+          },
+        });
+      }
+
+      // GET /api/admin/users/:id/export — Complete User Data Dossier Export
+      const userExportMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/export$/);
+      if (userExportMatch && method === 'GET') {
+        const targetId = userExportMatch[1];
+        const supabase = getSupabaseAdmin(env);
+        const { data: profile, error: profileErr } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, wallet_balance, is_banned, referral_code, created_at, updated_at, last_login_ip, last_login_isp, last_login_at')
+          .eq('id', targetId)
+          .maybeSingle();
+
+        if (profileErr || !profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
+
+        let authMeta: any = {};
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(targetId);
+          if (authUser?.user) {
+            authMeta = {
+              email: authUser.user.email || profile.email,
+              phone: authUser.user.phone || null,
+              confirmed_at: authUser.user.email_confirmed_at || null,
+              last_sign_in_at: authUser.user.last_sign_in_at || null,
+              user_metadata: authUser.user.user_metadata || {},
+              app_metadata: authUser.user.app_metadata || {},
+            };
+          }
+        } catch {}
+
+        const [securityLogs, orders, transactions, paymentRequests, referralsGiven, referralsReceived, supportTickets, deletionRequests] = await Promise.all([
+          supabase.from('user_security_logs').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          supabase.from('orders').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          supabase.from('wallet_transactions').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          supabase.from('payment_requests').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(100),
+          supabase.from('referrals').select('*').eq('referrer_id', targetId).order('created_at', { ascending: false }).limit(100),
+          supabase.from('referrals').select('*').eq('referee_id', targetId).order('created_at', { ascending: false }).limit(10),
+          supabase.from('support_tickets').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(100),
+          supabase.from('data_deletion_requests').select('*').eq('user_id', targetId).order('requested_at', { ascending: false }).limit(10),
+        ]);
+
+        return jsonResponse({
+          success: true,
+          data: {
+            exportedAt: new Date().toISOString(),
+            exportedBy: auth.email || auth.userId,
+            profile: {
+              ...profile,
+              auth: authMeta,
+            },
+            securityLogs: securityLogs.data || [],
+            orders: orders.data || [],
+            walletTransactions: transactions.data || [],
+            paymentRequests: paymentRequests.data || [],
+            referrals: {
+              given: referralsGiven.data || [],
+              received: referralsReceived.data || [],
+            },
+            supportTickets: supportTickets.data || [],
+            deletionRequests: deletionRequests.data || [],
           },
         });
       }

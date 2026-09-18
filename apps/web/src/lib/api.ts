@@ -201,6 +201,8 @@ export const getAdminUsers = (limit = 20, offset = 0, search = '') =>
   apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${search}`);
 export const getAdminUserDetails = (userId: string) =>
   apiFetch<{ user: any; transactions: any[]; orders: any[] }>(`/api/admin/users/${userId}/details`);
+export const getAdminUserExport = (userId: string) =>
+  apiFetch<any>(`/api/admin/users/${userId}/export`);
 // Admin-added balance must always state where the money came from:
 //   manual_funding -> money really received (counts as collected cash)
 //   free_grant     -> goodwill balance, no money received (never revenue)
