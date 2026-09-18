@@ -216,17 +216,21 @@ The admin user list derives total spend from non-refunded, non-cancelled order r
 
 ## 8. Order lifecycle
 
-The API/database retains provider lifecycle values such as `waiting`, `code_received`, `completed`, `cancelled`, and `expired`.
+The platform standardizes on the canonical provider lifecycle values: `waiting`, `code_received`, `cancelled`, `refunded`, and `expired`.
 
-The frontend intentionally displays `code_received` and `completed` together as **OTP Received**. This is a presentation label only; no API status was changed.
+- **`waiting`**: Virtual number has been provisioned; actively polling for incoming SMS verification code from upstream provider.
+- **`code_received`**: Verification code delivered from Tiger SMS provider (`STATUS_OK:<code>`); displayed across all customer and admin dashboards with the label **OTP Received** (`badge-success`).
+- **`cancelled`**: Cancelled by the user within the cancellation window or cancelled by the provider.
+- **`refunded`**: Order cost automatically credited back to the customer's wallet balance.
+- **`expired`**: Activation window expired without receiving an SMS code; triggers automatic wallet refund.
 
 Typical flow:
 
-1. User purchases a number.
-2. Wallet is charged and order is `waiting`.
-3. Provider returns an SMS code; order becomes `code_received`.
-4. Frontend shows **OTP Received**.
-5. Cancellation/expiry invokes the refund workflow when eligible.
+1. User selects service and country, then purchases a number.
+2. Wallet balance is deducted atomically and order enters `waiting` status.
+3. Provider delivers the SMS verification code; order transitions to `code_received`.
+4. Customer dashboard displays **OTP Received** with 1-click clipboard copy and audio alert.
+5. If no code is received within the active window, cancellation or expiry invokes the automatic wallet refund workflow.
 
 ## 9. Support workflow
 
