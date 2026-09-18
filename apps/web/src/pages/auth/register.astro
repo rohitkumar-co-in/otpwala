@@ -30,6 +30,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
           <div id="auth-config-loading" style="display: none; color: var(--text-secondary); font-size: 0.85rem; text-align: center; margin-bottom: 1.25rem;">Checking available sign-up methods...</div>
 
+          <!-- Mandatory Terms & Acceptable Use Policy Agreement -->
+          <div id="terms-wrapper" class="terms-agreement-box">
+            <label class="terms-agreement-label">
+              <input
+                type="checkbox"
+                id="agree-terms"
+                class="terms-checkbox"
+              />
+              <span id="terms-label-text">
+                I accept the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/acceptable-use" target="_blank" rel="noopener noreferrer">Acceptable Use Policy</a>
+              </span>
+            </label>
+          </div>
+
           <div id="google-signup-wrapper">
             <button class="btn btn-secondary" style="width: 100%; margin-bottom: 1.5rem;" id="google-signup-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -187,6 +201,55 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .email-pill-box { display: inline-block; max-width: 100%; padding: 0.45rem 1rem; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); border-radius: 9999px; color: var(--accent-primary, #6366f1); font-weight: 600; font-size: 0.92rem; word-break: break-all; }
   .link-btn { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0.25rem; transition: color var(--transition-fast); }
   .link-btn:hover { color: var(--text-primary); }
+  .terms-agreement-box {
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-md, 8px);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid var(--border-subtle);
+    transition: all 0.2s ease;
+  }
+  .terms-agreement-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-size: 0.83rem;
+    line-height: 1.45;
+    cursor: pointer;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .terms-checkbox {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    accent-color: #2563eb;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .terms-agreement-label a {
+    color: var(--accent-primary, #3b82f6);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  .terms-agreement-label a:hover {
+    color: #60a5fa;
+  }
+  @keyframes shake-terms {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+  .terms-error-highlight {
+    border: 1.5px solid #ef4444 !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+    animation: shake-terms 0.35s ease-in-out;
+  }
+  .terms-error-highlight span {
+    color: #f87171 !important;
+    font-weight: 600;
+  }
   @media (max-width: 480px) {
     .auth-page { padding: 1.5rem 1rem; }
     .auth-card { padding: 1.75rem 1.25rem; border-radius: var(--radius-md); }
@@ -237,6 +300,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const regClosedNotice  = document.getElementById('registration-closed-notice');
   const emailDisabledNotice = document.getElementById('email-signup-disabled-notice');
   const authConfigLoading = document.getElementById('auth-config-loading');
+  const agreeTerms = document.getElementById('agree-terms');
+  const termsWrapper = document.getElementById('terms-wrapper');
 
   function showErr(el, msg) { el.innerHTML = msg; el.style.display = 'block'; }
   function hideErr(el) { el.style.display = 'none'; el.textContent = ''; }
@@ -244,6 +309,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     stepEmail.style.display    = step === 'email'    ? 'block' : 'none';
     stepOtp.style.display      = step === 'otp'      ? 'block' : 'none';
     stepPassword.style.display = step === 'password' ? 'block' : 'none';
+  }
+
+  function validateTerms() {
+    if (!agreeTerms || !agreeTerms.checked) {
+      if (termsWrapper) {
+        termsWrapper.classList.remove('terms-error-highlight');
+        void termsWrapper.offsetWidth; // Trigger DOM reflow for re-triggering animation
+        termsWrapper.classList.add('terms-error-highlight');
+        termsWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      showErr(step1Error, 'Please accept the Terms of Service and Acceptable Use Policy to create an account.');
+      return false;
+    }
+    if (termsWrapper) termsWrapper.classList.remove('terms-error-highlight');
+    return true;
+  }
+
+  if (agreeTerms) {
+    agreeTerms.addEventListener('change', function() {
+      if (agreeTerms.checked) {
+        if (termsWrapper) termsWrapper.classList.remove('terms-error-highlight');
+        if (step1Error && step1Error.textContent.includes('Terms of Service')) {
+          hideErr(step1Error);
+        }
+      }
+    });
   }
 
   async function checkSessionAndRedirect() {
@@ -299,6 +390,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   emailForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     hideErr(step1Error);
+    if (!validateTerms()) return;
     if (!authConfig.allowRegistration) { showErr(step1Error, 'Registrations are currently closed by administrator.'); return; }
     if (!authConfig.allowEmailSignup)  { showErr(step1Error, 'Standard email registration is currently paused.'); return; }
 
@@ -494,6 +586,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   if (googleBtn) {
     googleBtn.addEventListener('click', async function() {
+      if (!validateTerms()) return;
       if (!authConfig.allowRegistration || !authConfig.allowGoogleLogin) { showErr(step1Error, 'Google sign up is currently disabled.'); return; }
       try {
         await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/auth/callback' } });

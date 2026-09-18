@@ -97,6 +97,7 @@ export default function WalletPage() {
   const [utrNumber, setUtrNumber] = useState('');
   const [binanceTxId, setBinanceTxId] = useState('');
   const [agreeNote, setAgreeNote] = useState(false);
+  const [agreeNoteError, setAgreeNoteError] = useState(false);
   const [topUpLoading, setTopUpLoading] = useState(false);
   const [topUpError, setTopUpError] = useState<string | null>(null);
   const [topUpSuccess, setTopUpSuccess] = useState<string | null>(null);
@@ -209,6 +210,13 @@ export default function WalletPage() {
 
   async function handleSubmitDeposit(e: React.FormEvent) {
     e.preventDefault();
+    if (!agreeNote) {
+      setAgreeNoteError(true);
+      setTopUpError('Please agree to the Refund & Payments policy and the deposit note to continue.');
+      const el = document.getElementById('wallet-terms-wrapper');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     const rate = Number(walletConfig.usdtInrRate) || 115;
     let finalAmountInr = 0;
     let displayUsdt = '';
@@ -1123,20 +1131,48 @@ export default function WalletPage() {
             <span style={{ lineHeight: 1.4 }}>By depositing, you confirm that wallet funds are intended for on-platform use. For an unauthorized, duplicate, or incorrectly credited payment, contact support promptly with the transaction reference.</span>
           </div>
 
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            <input 
-              type="checkbox" 
-              checked={agreeNote}
-              onChange={(e) => setAgreeNote(e.target.checked)}
-              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3b82f6' }}
-            />
-            I agree to the above written note
-          </label>
+          <div
+            id="wallet-terms-wrapper"
+            style={{
+              marginTop: '1rem',
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              border: agreeNoteError ? '1.5px solid #ef4444' : '1.5px solid transparent',
+              background: agreeNoteError ? 'rgba(239, 68, 68, 0.12)' : 'transparent',
+              boxShadow: agreeNoteError ? '0 0 0 3px rgba(239, 68, 68, 0.25)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: agreeNoteError ? '#f87171' : 'var(--text-primary)' }}>
+              <input 
+                type="checkbox" 
+                checked={agreeNote}
+                onChange={(e) => {
+                  setAgreeNote(e.target.checked);
+                  if (e.target.checked) setAgreeNoteError(false);
+                }}
+                style={{ width: '17px', height: '17px', cursor: 'pointer', accentColor: '#3b82f6', flexShrink: 0 }}
+              />
+              <span>
+                I agree to{' '}
+                <a
+                  href="/refund-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 700 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Refund &amp; Payments
+                </a>{' '}
+                and the above written note
+              </span>
+            </label>
+          </div>
 
           <div style={{ marginTop: '1rem' }}>
             <button
               type="submit"
-              disabled={topUpLoading || !agreeNote}
+              disabled={topUpLoading}
               className="btn btn-primary"
               style={{
                 height: '46px',
@@ -1148,6 +1184,7 @@ export default function WalletPage() {
                 gap: '0.5rem',
                 background: paymentMethod === 'binance' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
                 border: paymentMethod === 'binance' ? 'none' : undefined,
+                opacity: topUpLoading ? 0.7 : 1,
               }}
             >
               <CheckIcon size={16} />
