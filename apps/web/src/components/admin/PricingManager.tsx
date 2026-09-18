@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAdminPricing, saveAdminPricing, deleteAdminPricing, getServices, getCountries, getAdminSettings, saveAdminSettingsBatch } from '../../lib/api';
 import { toast } from '../../lib/toast';
+import { showConfirm } from '../../lib/confirm';
 import {
   CalculatorIcon,
   RefreshCwIcon,
@@ -200,7 +201,14 @@ export default function PricingManager() {
   };
 
   const handleDeleteRule = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this pricing rule?')) return;
+    const confirmed = await showConfirm({
+      title: 'Delete Pricing Rule',
+      message: 'Are you sure you want to delete this custom pricing rule? Default platform markup will apply instead.',
+      confirmText: 'Delete Rule',
+      cancelText: 'Keep Rule',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setError(null);
     setSuccess(null);
     try {

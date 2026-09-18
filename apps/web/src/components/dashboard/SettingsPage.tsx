@@ -11,6 +11,7 @@ import {
 } from '../../lib/api';
 import MfaPanel from './MfaPanel';
 import { toast } from '../../lib/toast';
+import { showConfirm } from '../../lib/confirm';
 import { CheckIcon } from '../ui/Icons';
 
 export default function SettingsPage() {
@@ -65,7 +66,14 @@ export default function SettingsPage() {
   }
 
   async function submitDeletionRequest() {
-    if (!window.confirm('Submit an account deletion request for admin review? Financial records may need to be retained where legally required.')) return;
+    const confirmed = await showConfirm({
+      title: 'Request Account Deletion',
+      message: 'Submit an account deletion request for admin review? Financial records and transaction ledgers will be retained in accordance with legal and regulatory compliance.',
+      confirmText: 'Request Account Deletion',
+      cancelText: 'Keep Account',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setPrivacyBusy('delete'); setErrorMsg('');
     try {
       await requestAccountDeletion();

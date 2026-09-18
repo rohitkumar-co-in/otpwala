@@ -20,6 +20,7 @@ import {
 } from '../ui/Icons';
 import { renderServiceIcon } from '../otp/BuyNumber';
 import { toast } from '../../lib/toast';
+import { showConfirm } from '../../lib/confirm';
 
 export default function CatalogManager() {
   const [activeTab, setActiveTab] = useState<'services' | 'countries'>('services');
@@ -157,7 +158,14 @@ export default function CatalogManager() {
   };
 
   const handleBatchAction = async (action: string, description: string) => {
-    if (!confirm(`Are you sure you want to: ${description}?`)) return;
+    const confirmed = await showConfirm({
+      title: 'Confirm Catalog Update',
+      message: `Are you sure you want to ${description}? This will update the catalog visibility for all users immediately.`,
+      confirmText: 'Apply Batch Update',
+      cancelText: 'Cancel',
+      type: 'warning',
+    });
+    if (!confirmed) return;
     setActionLoading(action);
     setError(null);
     setSuccess(null);

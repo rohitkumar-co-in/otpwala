@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import { toast } from '../../lib/toast';
+import { showConfirm } from '../../lib/confirm';
 import {
   ServerIcon,
   DollarIcon,
@@ -151,7 +152,13 @@ export default function AdminDashboard() {
   };
 
   const handleRejectPayment = async (requestId: string, amount: number) => {
-    const confirmReject = window.confirm(`Are you sure you want to reject this ₹${amount.toFixed(2)} deposit request?`);
+    const confirmReject = await showConfirm({
+      title: 'Reject Deposit Request',
+      message: `Are you sure you want to reject this ₹${amount.toFixed(2)} deposit request? The user will be notified of the rejection.`,
+      confirmText: 'Reject Deposit',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
     if (!confirmReject) return;
     setActionLoading(requestId);
     setError(null);

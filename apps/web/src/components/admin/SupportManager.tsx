@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAdminSupportTickets, updateAdminSupportTicket, replyToAdminSupportTicket, getAdminDataDeletionRequests, processAdminDataDeletionRequest } from '../../lib/api';
+import { showConfirm } from '../../lib/confirm';
 
 export default function SupportManager() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -20,7 +21,16 @@ export default function SupportManager() {
     catch (e: any) { setError(e.message || 'Unable to update ticket.'); } finally { setBusy(''); }
   }
   async function processDeletion(id: string, decision: 'approve'|'reject') {
-    if (decision === 'approve' && !window.confirm('Erase this user’s login and eligible personal data? Financial ledger and order accounting records will be retained in pseudonymized form.')) return;
+    if (decision === 'approve') {
+      const confirmed = await showConfirm({
+        title: 'Approve Data Erasure',
+        message: 'Erase this user’s login and eligible personal data? Financial ledger and order accounting records will be retained in pseudonymized form for regulatory compliance.',
+        confirmText: 'Approve & Erase Data',
+        cancelText: 'Cancel',
+        type: 'danger',
+      });
+      if (!confirmed) return;
+    }
     setBusy(id); setError('');
     try { await processAdminDataDeletionRequest(id, decision, deletionNotes[id] || ''); await loadDeletions(); }
     catch (e: any) { setError(e.message || 'Unable to process data erasure request.'); } finally { setBusy(''); }

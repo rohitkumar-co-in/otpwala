@@ -78,9 +78,23 @@ export default function ReferEarnPage() {
       await navigator.clipboard.writeText(referralUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
+      toast.success('Referral link copied to clipboard!', 'Link Copied');
     } catch {
-      // Fallback
-      prompt('Copy your referral link:', referralUrl);
+      // Fallback without browser prompt
+      const ta = document.createElement('textarea');
+      ta.value = referralUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+        toast.success('Referral link copied to clipboard!', 'Link Copied');
+      } catch {
+        toast.info(referralUrl, 'Your Referral Link');
+      } finally {
+        ta.remove();
+      }
     }
   };
 
@@ -89,8 +103,22 @@ export default function ReferEarnPage() {
       await navigator.clipboard.writeText(referralCode);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2500);
+      toast.success(`Referral code ${referralCode} copied!`, 'Code Copied');
     } catch {
-      prompt('Copy your referral code:', referralCode);
+      const ta = document.createElement('textarea');
+      ta.value = referralCode;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2500);
+        toast.success(`Referral code ${referralCode} copied!`, 'Code Copied');
+      } catch {
+        toast.info(referralCode, 'Your Referral Code');
+      } finally {
+        ta.remove();
+      }
     }
   };
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { showConfirm } from '../../lib/confirm';
 
 export default function MfaPanel() {
   const [factor, setFactor] = useState<any>(null);
@@ -38,7 +39,14 @@ export default function MfaPanel() {
   }
 
   async function cancelPendingEnrollment() {
-    if (!pendingFactor || !window.confirm('Cancel the incomplete authenticator setup? You can start again afterwards.')) return;
+    if (!pendingFactor) return;
+    const confirmed = await showConfirm({
+      title: 'Cancel Authenticator Setup?',
+      message: 'Cancel the incomplete authenticator setup? You can start the setup process again at any time.',
+      confirmText: 'Cancel Setup',
+      type: 'warning',
+    });
+    if (!confirmed) return;
     setBusy(true); setMessage('');
     const { error } = await supabase.auth.mfa.unenroll({ factorId: pendingFactor.id });
     if (error) setMessage(error.message); else { setPendingFactor(null); setMessage('Incomplete authenticator setup was cancelled. You can start again.'); }
@@ -57,7 +65,15 @@ export default function MfaPanel() {
   }
 
   async function removeMfa() {
-    if (!factor || !window.confirm('Remove authenticator protection from this account?')) return;
+    if (!factor) return;
+    const confirmed = await showConfirm({
+      title: 'Remove 2FA Protection?',
+      message: 'Are you sure you want to remove authenticator protection from this account? Your account will be less secure.',
+      confirmText: 'Remove Protection',
+      cancelText: 'Keep Active',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setBusy(true); setMessage('');
     const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
     if (error) setMessage(error.message); else { setFactor(null); setMessage('Two-factor authentication was removed.'); }

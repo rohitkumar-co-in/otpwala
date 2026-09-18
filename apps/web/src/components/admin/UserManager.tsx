@@ -15,6 +15,7 @@ import {
 import type { AdminFundingSource } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
 import { toast } from '../../lib/toast';
+import { showConfirm } from '../../lib/confirm';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -163,7 +164,13 @@ export default function UserManager() {
   // ─── Single Ban / Unban ───
   const handleToggleBan = async (user: any) => {
     const action = user.is_banned ? 'unban' : 'ban';
-    if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return;
+    const confirmed = await showConfirm({
+      title: user.is_banned ? 'Unban User Account' : 'Ban User Account',
+      message: `Are you sure you want to ${action} ${user.email}? ${user.is_banned ? 'They will be allowed to log in and use the platform again.' : 'They will be immediately blocked from signing in and making orders.'}`,
+      confirmText: user.is_banned ? 'Unban User' : 'Ban User',
+      type: user.is_banned ? 'info' : 'danger',
+    });
+    if (!confirmed) return;
 
     const newBanned = !user.is_banned;
     setActionLoading(user.id);
@@ -222,7 +229,13 @@ export default function UserManager() {
   const handleToggleRole = async (user: any) => {
     const isPromoting = user.role !== 'admin' && user.role !== 'superadmin';
     const action = isPromoting ? 'promote' : 'demote';
-    if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return;
+    const confirmed = await showConfirm({
+      title: isPromoting ? 'Promote to Admin' : 'Demote from Admin',
+      message: `Are you sure you want to ${action} ${user.email}? ${isPromoting ? 'They will gain full access to administrative tools and platform settings.' : 'Their administrative privileges will be revoked.'}`,
+      confirmText: isPromoting ? 'Promote to Admin' : 'Demote User',
+      type: isPromoting ? 'warning' : 'danger',
+    });
+    if (!confirmed) return;
 
     setActionLoading(`role-${user.id}`);
     setError(null);
@@ -305,7 +318,13 @@ export default function UserManager() {
   const handleBulkBan = async (banned: boolean) => {
     if (selectedUserIds.length === 0) return;
     const actionLabel = banned ? 'ban' : 'unban';
-    if (!confirm(`Are you sure you want to ${actionLabel} ${selectedUserIds.length} selected user(s)?`)) return;
+    const confirmed = await showConfirm({
+      title: banned ? 'Bulk Ban Users' : 'Bulk Unban Users',
+      message: `Are you sure you want to ${actionLabel} ${selectedUserIds.length} selected user(s)?`,
+      confirmText: banned ? 'Ban Selected' : 'Unban Selected',
+      type: banned ? 'danger' : 'info',
+    });
+    if (!confirmed) return;
 
     setBulkActionLoading(true);
     setError(null);
@@ -331,7 +350,13 @@ export default function UserManager() {
   const handleBulkRole = async (isPromoting: boolean) => {
     if (selectedUserIds.length === 0) return;
     const actionLabel = isPromoting ? 'promote to admin' : 'demote to standard user';
-    if (!confirm(`Are you sure you want to ${actionLabel} ${selectedUserIds.length} selected user(s)?`)) return;
+    const confirmed = await showConfirm({
+      title: isPromoting ? 'Bulk Promote Users' : 'Bulk Demote Users',
+      message: `Are you sure you want to ${actionLabel} ${selectedUserIds.length} selected user(s)?`,
+      confirmText: isPromoting ? 'Promote Selected' : 'Demote Selected',
+      type: isPromoting ? 'warning' : 'danger',
+    });
+    if (!confirmed) return;
 
     setBulkActionLoading(true);
     setError(null);
