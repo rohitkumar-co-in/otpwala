@@ -306,15 +306,15 @@ export default function WalletPage() {
       if (paymentMethod === 'upi') {
         setTopUpSuccess(
           data.data?.message ||
-            (currency === 'USD'
-              ? `UPI deposit request of $${displayUsdt} (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
-              : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`)
+          (currency === 'USD'
+            ? `UPI deposit request of $${displayUsdt} (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
+            : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`)
         );
         setUtrNumber('');
       } else {
         setTopUpSuccess(
           data.data?.message ||
-            `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
+          `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
         );
         setBinanceTxId('');
       }
@@ -662,8 +662,8 @@ export default function WalletPage() {
               {paymentMethod === 'binance'
                 ? '1. Select or Enter Amount in USDT / USD:'
                 : currency === 'USD'
-                ? '1. Select or Enter Amount (INR / USD):'
-                : '1. Select or Enter Amount (INR):'}
+                  ? '1. Select or Enter Amount (INR / USD):'
+                  : '1. Select or Enter Amount (INR):'}
             </label>
             {paymentMethod === 'binance' ? (
               <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 700, background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #fde68a' }}>
@@ -1076,7 +1076,7 @@ export default function WalletPage() {
                     <li>Open <strong>Binance App</strong> ➔ tap <strong>Pay</strong> (or scan the QR above).</li>
                     <li>Choose <strong>Send</strong> ➔ select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
                     <li>Send exactly <strong>{usdtAmount} USDT</strong> (≈ ₹{numericAmount.toFixed(2)}) (zero gas fees!).</li>
-                    <li>Copy the numeric <strong>Order ID</strong> (e.g. <code>430406788154015744</code>) from your payment receipt.</li>
+                    <li>Copy the numeric <strong>Order ID</strong> (e.g. <code>430406748854015744</code>) from your payment receipt.</li>
                   </ol>
                 </div>
               </div>
@@ -1101,7 +1101,7 @@ export default function WalletPage() {
                   pattern="[0-9]{12}"
                   maxLength={12}
                   className="input"
-                  placeholder="e.g. 129815979728 (12-digit UPI Reference ID)"
+                  placeholder="e.g. 128255979728 (12-digit UPI Reference ID)"
                   value={utrNumber}
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
@@ -1166,8 +1166,8 @@ export default function WalletPage() {
             }}
           >
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.55rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: agreeNoteError ? '#f87171' : 'var(--text-primary)' }}>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={agreeNote}
                 onChange={(e) => {
                   setAgreeNote(e.target.checked);
@@ -1214,8 +1214,8 @@ export default function WalletPage() {
                 {topUpLoading
                   ? 'Submitting...'
                   : paymentMethod === 'binance'
-                  ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
-                  : (currency === 'USD'
+                    ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
+                    : (currency === 'USD'
                       ? `Submit Deposit ($${usdtAmount} / ≈ ₹${numericAmount})`
                       : `Submit Deposit (₹${numericAmount})`)}
               </span>
@@ -1364,32 +1364,32 @@ export default function WalletPage() {
                   const isDebit = tx.type === 'deduction';
                   const amount = Math.abs(parseFloat(tx.amount) || 0);
                   return (
-                  <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <span className={`badge ${isDebit ? 'badge-secondary' : 'badge-success'}`}>
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.75rem 1rem',
-                        fontWeight: 700,
-                        fontFamily: 'var(--font-mono)',
-                        color: isDebit ? 'var(--error)' : 'var(--success)',
-                      }}
-                    >
-                      {isDebit ? '−' : '+'}{currency === 'USD' ? `$${(amount / usdtRate).toFixed(2)}` : `₹${amount.toFixed(2)}`}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-                      {currency === 'USD' ? `$${(parseFloat(tx.balance_after || 0) / usdtRate).toFixed(2)}` : `₹${parseFloat(tx.balance_after || 0).toFixed(2)}`}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
-                      {tx.description || '—'}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {new Date(tx.created_at).toLocaleString()}
-                    </td>
-                  </tr>
+                    <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '0.75rem 1rem' }}>
+                        <span className={`badge ${isDebit ? 'badge-secondary' : 'badge-success'}`}>
+                          {tx.type}
+                        </span>
+                      </td>
+                      <td
+                        style={{
+                          padding: '0.75rem 1rem',
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-mono)',
+                          color: isDebit ? 'var(--error)' : 'var(--success)',
+                        }}
+                      >
+                        {isDebit ? '−' : '+'}{currency === 'USD' ? `$${(amount / usdtRate).toFixed(2)}` : `₹${amount.toFixed(2)}`}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                        {currency === 'USD' ? `$${(parseFloat(tx.balance_after || 0) / usdtRate).toFixed(2)}` : `₹${parseFloat(tx.balance_after || 0).toFixed(2)}`}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
+                        {tx.description || '—'}
+                      </td>
+                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        {new Date(tx.created_at).toLocaleString()}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
