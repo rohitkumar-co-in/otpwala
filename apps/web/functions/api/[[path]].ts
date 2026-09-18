@@ -634,7 +634,7 @@ export const onRequest = async (context: any) => {
 
       const body = await request.json().catch(() => ({}));
       const amount = parseFloat(body.amount ?? body.amount_inr ?? 0);
-      const utr = String(body.utr || body.transactionId || body.gateway_payment_id || '').trim();
+      const utr = String(body.utr || body.transactionId || body.gateway_payment_id || '').trim().replace(/\s+/g, '');
       const rawMethod = String(body.method || body.paymentMethod || body.gateway || 'upi').trim().toLowerCase();
       const isBinance = rawMethod.includes('binance');
       const cleanPaymentMethod = isBinance ? 'binance' : 'upi';
@@ -644,10 +644,20 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: false, error: 'Invalid deposit amount' }, 400);
       }
 
-      if (!isBinance && !/^\d{12}$/.test(utr)) {
-        return jsonResponse({ success: false, error: 'Enter a valid 12-digit UTR / reference number' }, 400);
-      } else if (isBinance && utr.length < 3) {
-        return jsonResponse({ success: false, error: 'Enter a valid Binance Order ID or Transaction ID' }, 400);
+      if (!isBinance) {
+        if (!/^\d{12}$/.test(utr)) {
+          return jsonResponse({
+            success: false,
+            error: 'Enter a valid 12-digit numeric UPI reference ID / UTR (e.g. 129815979728)'
+          }, 400);
+        }
+      } else {
+        if (!/^\d+$/.test(utr)) {
+          return jsonResponse({
+            success: false,
+            error: 'Enter a valid numeric Binance Pay Order ID (digits only, e.g. 430406788154015744)'
+          }, 400);
+        }
       }
 
       const supabase = getSupabaseAdmin(env);

@@ -241,8 +241,13 @@ export default function WalletPage() {
         setTopUpError(`Maximum deposit amount is ${maxUsdt} USDT (≈ ₹${Math.round(maxUsdt * rate).toLocaleString('en-IN')})`);
         return;
       }
-      if (!binanceTxId.trim()) {
-        setTopUpError('Please enter your Binance Order ID or Transaction ID');
+      const cleanBinance = binanceTxId.trim().replace(/\s+/g, '');
+      if (!cleanBinance) {
+        setTopUpError('Please enter your Binance Pay Order ID from your payment receipt');
+        return;
+      }
+      if (!/^\d+$/.test(cleanBinance)) {
+        setTopUpError('Please enter a valid numeric Binance Pay Order ID (digits only, e.g. 430406788154015744)');
         return;
       }
     } else {
@@ -270,14 +275,24 @@ export default function WalletPage() {
         );
         return;
       }
-      if (!utrNumber.trim()) {
-        setTopUpError('Please enter the 12-digit UTR, Transaction ID, or Reference Number from your payment receipt');
+      const cleanUtr = utrNumber.trim().replace(/\s+/g, '');
+      if (!cleanUtr) {
+        setTopUpError('Please enter the 12-digit UPI reference ID / UTR from your payment receipt');
+        return;
+      }
+      if (!/^\d{12}$/.test(cleanUtr)) {
+        setTopUpError('Please enter a valid 12-digit numeric UPI reference ID / UTR (e.g. 129815979728)');
         return;
       }
     }
 
     if (!agreeNote) {
-      setTopUpError('Please agree to the note before submitting your deposit request.');
+      setAgreeNoteError(true);
+      setTopUpError('Please agree to the Refund & Payments policy and the deposit note to continue.');
+      const termsBox = document.getElementById('wallet-terms-wrapper');
+      if (termsBox) {
+        termsBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -286,7 +301,7 @@ export default function WalletPage() {
     setTopUpSuccess(null);
 
     try {
-      const refId = paymentMethod === 'upi' ? utrNumber.trim() : binanceTxId.trim();
+      const refId = paymentMethod === 'upi' ? utrNumber.trim().replace(/\s+/g, '') : binanceTxId.trim().replace(/\s+/g, '');
       const data = await topUp(finalAmountInr, paymentMethod, refId);
       if (paymentMethod === 'upi') {
         setTopUpSuccess(
@@ -1061,7 +1076,7 @@ export default function WalletPage() {
                     <li>Open <strong>Binance App</strong> ➔ tap <strong>Pay</strong> (or scan the QR above).</li>
                     <li>Choose <strong>Send</strong> ➔ select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
                     <li>Send exactly <strong>{usdtAmount} USDT</strong> (≈ ₹{numericAmount.toFixed(2)}) (zero gas fees!).</li>
-                    <li>Copy the <strong>Order ID / TxID</strong> from your payment receipt.</li>
+                    <li>Copy the numeric <strong>Order ID</strong> (e.g. <code>430406788154015744</code>) from your payment receipt.</li>
                   </ol>
                 </div>
               </div>
@@ -1073,8 +1088,8 @@ export default function WalletPage() {
         <form onSubmit={handleSubmitDeposit}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
             {paymentMethod === 'upi'
-              ? '3. Enter 12-Digit UTR / UPI Ref ID / Transaction ID / Reference No:'
-              : '3. Enter Binance Order ID / Transaction ID:'}
+              ? '3. Enter 12-Digit UPI Reference ID / UTR:'
+              : '3. Enter Binance Pay Order ID:'}
           </label>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -1082,11 +1097,15 @@ export default function WalletPage() {
               {paymentMethod === 'upi' ? (
                 <input
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{12}"
+                  maxLength={12}
                   className="input"
-                  placeholder="e.g. 429381029481 (Found in your UPI payment receipt)"
+                  placeholder="e.g. 129815979728 (12-digit UPI Reference ID)"
                   value={utrNumber}
                   onChange={(e) => {
-                    setUtrNumber(e.target.value);
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                    setUtrNumber(digits);
                     setTopUpError(null);
                   }}
                   required
@@ -1095,11 +1114,14 @@ export default function WalletPage() {
               ) : (
                 <input
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]+"
                   className="input"
-                  placeholder="e.g. 293847291029 (Found in Binance payment details)"
+                  placeholder="e.g. 430406788154015744 (Binance Pay Order ID)"
                   value={binanceTxId}
                   onChange={(e) => {
-                    setBinanceTxId(e.target.value);
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setBinanceTxId(digits);
                     setTopUpError(null);
                   }}
                   required
@@ -1108,9 +1130,9 @@ export default function WalletPage() {
               )}
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.35rem', lineHeight: 1.4 }}>
                 {paymentMethod === 'upi' ? (
-                  <>Open your payment app receipt and look for: <strong>UTR</strong>, <strong>UPI Ref ID</strong>, <strong>Transaction ID</strong>, <strong>Txn ID</strong>, or <strong>Reference No</strong>.</>
+                  <>Open your UPI payment app receipt and copy the <strong>12-digit UPI Ref ID / UTR</strong> (e.g. <code>129815979728</code>).</>
                 ) : (
-                  <>In your Binance App: Go to <strong>Pay</strong> ➔ <strong>Payment History</strong> ➔ tap the payment ➔ copy the <strong>Order ID</strong> or <strong>Transaction ID</strong>.</>
+                  <>In your Binance App: Go to <strong>Pay</strong> ➔ <strong>Payment History</strong> ➔ tap the payment ➔ copy the numeric <strong>Order ID</strong> (e.g. <code>430406788154015744</code>).</>
                 )}
               </span>
             </div>

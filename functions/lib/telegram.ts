@@ -258,7 +258,7 @@ export async function notifyPaymentApprovalRequest(
       '',
       `💰 <b>Amount:</b> ₹${details.amount.toFixed(2)}`,
       `💳 <b>Method:</b> ${isBinance ? 'Binance Pay (Crypto / USDT)' : 'UPI'}`,
-      `${isBinance ? '🧾 <b>Binance Order / TxID:</b>' : '🧾 <b>UTR / Ref ID:</b>'} <code>${details.utr}</code>`,
+      `${isBinance ? '🧾 <b>Binance Order ID:</b>' : '🧾 <b>UPI Ref / UTR:</b>'} <code>${details.utr}</code>`,
       `👤 <b>User:</b> ${userLabel}`,
       `🆔 <b>Request ID:</b> <code>${details.requestId}</code>`,
       `⏰ <b>Time:</b> ${timeFormatted} (IST)`,

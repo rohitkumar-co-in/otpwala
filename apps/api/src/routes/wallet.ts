@@ -232,14 +232,23 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
     }
 
     // Validate reference
-    if (!utr || String(utr).trim().length < 3) {
-      res.status(400).json({
-        success: false,
-        error: isBinance
-          ? 'Please enter the Binance Order ID or Transaction ID from your payment receipt'
-          : 'Please enter the UTR or Reference Number from your payment receipt',
-      });
-      return;
+    const cleanUtr = String(utr || '').trim().replace(/\s+/g, '');
+    if (!isBinance) {
+      if (!/^\d{12}$/.test(cleanUtr)) {
+        res.status(400).json({
+          success: false,
+          error: 'Please enter a valid 12-digit numeric UPI reference ID / UTR (e.g. 129815979728)',
+        });
+        return;
+      }
+    } else {
+      if (!/^\d+$/.test(cleanUtr)) {
+        res.status(400).json({
+          success: false,
+          error: 'Please enter a valid numeric Binance Pay Order ID (digits only, e.g. 430406788154015744)',
+        });
+        return;
+      }
     }
 
     let request: any = null;
@@ -250,7 +259,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
       .insert({
         user_id: req.userId,
         amount: amountNum,
-        transaction_id: utr ? String(utr).trim() : null,
+        transaction_id: cleanUtr || null,
         payment_method: paymentMethod,
         status: 'pending',
       })
