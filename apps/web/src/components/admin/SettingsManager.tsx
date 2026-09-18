@@ -44,8 +44,8 @@ export default function SettingsManager() {
   const [suggestion1, setSuggestion1] = useState('50');
   const [suggestion2, setSuggestion2] = useState('100');
   const [suggestion3, setSuggestion3] = useState('200');
-  const [suggestion4, setSuggestion4] = useState('500');
-  const [suggestion5, setSuggestion5] = useState('1000');
+  const [suggestion4, setSuggestion4] = useState('300');
+  const [suggestion5, setSuggestion5] = useState('500');
 
   // Category 5: UPI & Support
   const [upiId, setUpiId] = useState('otpwala@upi');
@@ -118,13 +118,13 @@ export default function SettingsManager() {
       }
       if (s.max_deposit_inr) setMaxDeposit(s.max_deposit_inr);
 
-      const rawSugg = s.deposit_suggestions || '50,100,200,500,1000';
+      const rawSugg = s.deposit_suggestions || '50,100,200,300,500';
       const parts = rawSugg.split(',').map((p: string) => p.trim());
       setSuggestion1(parts[0] || '50');
       setSuggestion2(parts[1] || '100');
       setSuggestion3(parts[2] || '200');
-      setSuggestion4(parts[3] || '500');
-      setSuggestion5(parts[4] || '1000');
+      setSuggestion4(parts[3] || '300');
+      setSuggestion5(parts[4] || '500');
 
       if (s.upi_id) setUpiId(s.upi_id);
       if (s.upi_merchant_name) setUpiName(s.upi_merchant_name);
@@ -802,7 +802,7 @@ export default function SettingsManager() {
                   value={suggestion4}
                   onChange={(e) => setSuggestion4(e.target.value)}
                   className="input input-sm"
-                  placeholder="₹500"
+                  placeholder="₹300"
                   style={{ width: '100%' }}
                 />
               </div>
@@ -815,7 +815,7 @@ export default function SettingsManager() {
                   value={suggestion5}
                   onChange={(e) => setSuggestion5(e.target.value)}
                   className="input input-sm"
-                  placeholder="₹1000"
+                  placeholder="₹500"
                   style={{ width: '100%' }}
                 />
               </div>

@@ -28,7 +28,7 @@ export async function getWalletConfig(): Promise<WalletConfig> {
   const maxDeposit = parseFloat(map.get('max_deposit_inr') || '50000') || 50000;
 
   // Amount suggestions (up to 5)
-  const rawSuggestions = map.get('deposit_suggestions') || '50,100,200,500,1000';
+  const rawSuggestions = map.get('deposit_suggestions') || '50,100,200,300,500';
   let suggestions: number[] = [];
   try {
     if (typeof rawSuggestions === 'string' && rawSuggestions.startsWith('[')) {
@@ -40,13 +40,13 @@ export async function getWalletConfig(): Promise<WalletConfig> {
         .filter((n: number) => !isNaN(n) && n > 0);
     }
   } catch {
-    suggestions = [50, 100, 200, 500, 1000];
+    suggestions = [50, 100, 200, 300, 500];
   }
 
   // Ensure up to 5 suggestions
   suggestions = suggestions.slice(0, 5);
   if (suggestions.length === 0) {
-    suggestions = [50, 100, 200, 500, 1000];
+    suggestions = [50, 100, 200, 300, 500];
   }
 
   const upiId = (map.get('upi_id') as string) || 'otpwala@upi';

@@ -76,7 +76,7 @@ export default function WalletPage() {
   const [walletConfig, setWalletConfig] = useState<WalletConfig>({
     minDeposit: 50,
     maxDeposit: 50000,
-    suggestions: [50, 100, 200, 500, 1000],
+    suggestions: [50, 100, 200, 300, 500],
     upiId: 'otpwala@upi',
     upiName: 'OTPWala Services',
     binancePayEnabled: true,
@@ -295,7 +295,12 @@ export default function WalletPage() {
   const usdtRate = Number(walletConfig.usdtInrRate) || 115;
   const numericUpiAmount = parseFloat(upiAmount) || walletConfig.minDeposit;
   const numericBinanceUsdt = parseFloat(binanceAmount) || Number((walletConfig.minDeposit / usdtRate).toFixed(2));
-  const calculatedInr = Number((numericBinanceUsdt * usdtRate).toFixed(2));
+
+  // If binanceAmount matches an exact configured suggestion, preserve exact INR (e.g. ₹300 instead of ₹300.15)
+  const matchedSuggestion = walletConfig.suggestions.find(
+    (amt) => (amt / usdtRate).toFixed(2) === binanceAmount
+  );
+  const calculatedInr = matchedSuggestion !== undefined ? matchedSuggestion : Number((numericBinanceUsdt * usdtRate).toFixed(2));
 
   const numericAmount = paymentMethod === 'binance' ? calculatedInr : numericUpiAmount;
   const usdtAmount = paymentMethod === 'binance' ? numericBinanceUsdt.toFixed(2) : (numericUpiAmount / usdtRate).toFixed(2);
@@ -644,19 +649,19 @@ export default function WalletPage() {
             )}
           </div>
 
-          {/* Dynamic Suggestions */}
+          {/* Dynamic Suggestions (Displays all 5 Admin-configured quick chips) */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
             {paymentMethod === 'binance' ? (
-              /* Binance USD Suggestions (USD Priority First, Rupees Equivalent on Right) */
-              [1, 2, 5, 10, 20].map((usdVal) => {
-                const inrEquiv = Math.round(usdVal * usdtRate);
-                const isSelected = binanceAmount === String(usdVal);
+              /* Binance USD Suggestions from walletConfig.suggestions (USD Priority First, Rupees Equivalent on Right) */
+              walletConfig.suggestions.slice(0, 5).map((inrVal) => {
+                const usdVal = (inrVal / usdtRate).toFixed(2);
+                const isSelected = binanceAmount === usdVal || parseFloat(binanceAmount) === parseFloat(usdVal);
                 return (
                   <button
-                    key={usdVal}
+                    key={inrVal}
                     type="button"
                     onClick={() => {
-                      setBinanceAmount(String(usdVal));
+                      setBinanceAmount(usdVal);
                       setTopUpError(null);
                     }}
                     className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
@@ -670,7 +675,7 @@ export default function WalletPage() {
                       borderColor: isSelected ? '#d97706' : undefined,
                     }}
                   >
-                    ${usdVal} (≈ ₹{inrEquiv.toLocaleString('en-IN')})
+                    ${usdVal} (≈ ₹{inrVal})
                   </button>
                 );
               })
@@ -1094,11 +1099,16 @@ export default function WalletPage() {
               </span>
             </div>
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.08)', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.08)', padding: '0.75rem 0.95rem', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
             <InfoIcon size={18} color="#3b82f6" aria-hidden="true" />
-            <span style={{ lineHeight: 1.45 }}>
-              <strong>Note:</strong> Your balance will be added in <strong>under 5 minutes to 2 hours</strong> after payment verification. If it takes longer than that, please message <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>@OTPWalaSupport</a> on Telegram with your Transaction ID and screenshot for faster payment approval.
-            </span>
+            <div style={{ lineHeight: 1.5 }}>
+              <div>
+                <strong>Note:</strong> Your balance will be added in <strong>under 5 minutes to 2 hours</strong> after payment verification. If it takes longer than that, please message <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>@OTPWalaSupport</a> on Telegram with your Transaction ID and screenshot for faster payment approval.
+              </div>
+              <div style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: '#1e40af', fontWeight: 600 }}>
+                🕒 10 AM to 10 PM IST timing — outside of this time it can take a bit longer to approve.
+              </div>
+            </div>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '0.6rem', display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
             <AlertCircleIcon size={16} color="#f87171" aria-hidden="true" />

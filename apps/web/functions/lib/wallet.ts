@@ -83,10 +83,31 @@ export async function getWalletConfig(env?: any) {
   const catalogRate = parseFloat(map.get('custom_dollar_rate') || map.get('usd_to_inr_rate') || '115') || 115;
   const usdtInrRate = parseFloat(map.get('usdt_inr_rate') || String(catalogRate)) || catalogRate;
 
+  // Dynamic Amount suggestions (up to 5) configured in Admin Settings
+  const rawSuggestions = map.get('deposit_suggestions') || '50,100,200,300,500';
+  let suggestions: number[] = [];
+  try {
+    if (typeof rawSuggestions === 'string' && rawSuggestions.startsWith('[')) {
+      suggestions = JSON.parse(rawSuggestions);
+    } else if (typeof rawSuggestions === 'string') {
+      suggestions = rawSuggestions
+        .split(',')
+        .map((s: string) => parseFloat(s.trim()))
+        .filter((n: number) => !isNaN(n) && n > 0);
+    }
+  } catch {
+    suggestions = [50, 100, 200, 300, 500];
+  }
+
+  suggestions = suggestions.slice(0, 5);
+  if (suggestions.length === 0) {
+    suggestions = [50, 100, 200, 300, 500];
+  }
+
   return {
     minDeposit,
     maxDeposit,
-    suggestions: [50, 100, 200, 500, 1000],
+    suggestions,
     upiId,
     upiName,
     binancePayEnabled,
