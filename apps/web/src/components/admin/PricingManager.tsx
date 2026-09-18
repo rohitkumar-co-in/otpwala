@@ -109,6 +109,7 @@ export default function PricingManager() {
         tiger_default_rate: tigerDefaultRate.toString(),
         custom_dollar_rate: calcExchangeRate.toString(),
         usd_to_inr_rate: effectiveRate.toString(),
+        usdt_inr_rate: effectiveRate.toString(),
         default_markup_percentage: calcMarkupValue.toString(),
         default_markup_percent: calcMarkupValue.toString(),
         default_markup_type: calcMarkupType,

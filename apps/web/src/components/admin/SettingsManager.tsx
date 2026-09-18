@@ -113,8 +113,11 @@ export default function SettingsManager() {
         setRateMode(s.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom');
       }
       if (s.tiger_default_rate) setTigerDefaultRate(s.tiger_default_rate);
-      if (s.custom_dollar_rate) setCustomDollarRate(s.custom_dollar_rate);
-      else if (s.usd_to_inr_rate) setCustomDollarRate(s.usd_to_inr_rate);
+      const unifiedDollarRate = s.custom_dollar_rate || s.usd_to_inr_rate || s.usdt_inr_rate;
+      if (unifiedDollarRate) {
+        setCustomDollarRate(unifiedDollarRate);
+        setUsdtInrRate(unifiedDollarRate);
+      }
 
       if (s.usd_to_inr_rate) setUsdToInr(s.usd_to_inr_rate);
       if (s.default_markup_percentage || s.default_markup_percent) {
@@ -283,7 +286,7 @@ export default function SettingsManager() {
         binance_pay_id: binancePayId.trim(),
         binance_pay_nickname: binancePayNickname.trim(),
         binance_pay_qr_url: binancePayQrUrl.trim(),
-        usdt_inr_rate: usdtInrRate.trim() || '90',
+        usdt_inr_rate: effectiveRate,
         binance_min_deposit_usdt: binanceMinDeposit.trim() || '1',
         binance_max_deposit_usdt: binanceMaxDeposit.trim() || '500',
         binance_deposit_suggestions: validBinanceSuggestions || String(parsedBinanceMin),
@@ -598,14 +601,14 @@ export default function SettingsManager() {
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <DollarIcon size={20} color="#3b82f6" />
-                <span>Dollar Exchange Rate &amp; Pricing Margins</span>
+                <span>Master Dollar &amp; USDT Exchange Rate</span>
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
-                Base exchange rate applied to upstream USD costs and global fallback margin
+                Single unified rate for 1 USD / 1 USDT in INR. Automatically applied to SMS number pricing, Binance Pay USDT wallet deposits, and dual currency displays.
               </p>
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Effective Rate: <strong style={{ color: 'var(--accent-primary)', fontSize: '0.95rem' }}>1 USD = ₹{rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}</strong>
+              Master Rate: <strong style={{ color: 'var(--accent-primary)', fontSize: '0.95rem' }}>1 USD / USDT = ₹{rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}</strong>
             </div>
           </div>
 
@@ -1028,24 +1031,33 @@ export default function SettingsManager() {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                USDT to INR Exchange Rate (₹ per 1 USDT)
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
+                  USDT Exchange Rate (₹ per 1 USDT)
+                </label>
+                <span className="badge badge-accent" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                  Unified with Master USD Rate
+                </span>
+              </div>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>₹</span>
+                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#10b981' }}>₹</span>
                 <input
                   type="number"
-                  step="0.1"
+                  step="any"
                   min="1"
-                  value={usdtInrRate}
-                  onChange={(e) => setUsdtInrRate(e.target.value)}
+                  value={rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}
+                  onChange={(e) => {
+                    setRateMode('custom');
+                    setCustomDollarRate(e.target.value);
+                    setUsdtInrRate(e.target.value);
+                  }}
                   className="input"
                   style={{ width: '100%', paddingLeft: '2rem', fontWeight: 700 }}
-                  placeholder="90"
+                  placeholder="115"
                 />
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Rate used to calculate required USDT: e.g. at ₹105/USDT, ₹525 = 5.00 USDT.
+                1 USDT = $1.00 USD (≈ ₹{rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}). Changing this sets the single unified rate across numbers, crypto deposits, and wallet.
               </span>
             </div>
 
