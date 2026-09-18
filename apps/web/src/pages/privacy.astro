@@ -136,10 +136,10 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
                 <h3>B. Wallet & Payment Data</h3>
                 <p>When you add funds to your wallet:</p>
                 <ul>
-                  <li>Transaction amount and currency (INR)</li>
-                  <li>Payment method used (e.g., UPI)</li>
-                  <li>Bank/UPI transaction reference numbers (UTR) for reconciliation</li>
-                  <li><em>Note: We do NOT collect or store your UPI PIN, banking passwords, or card CVVs.</em></li>
+                  <li>Transaction amount and currency (USD primary, INR secondary)</li>
+                  <li>Payment method used (e.g., Instant UPI or Binance Pay / USDT)</li>
+                  <li>Payment reconciliation identifiers (Bank UTR number for UPI, or Binance Order ID / TxID transaction hash for cryptocurrency deposits)</li>
+                  <li><em>Security Guarantee: We NEVER collect, access, or store your UPI PIN, banking passwords, card CVVs, cryptocurrency private keys, wallet seed phrases, or Binance account credentials.</em></li>
                 </ul>
               </div>
 
@@ -209,7 +209,7 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
             <p>We do not sell, license, or trade your personal information. Information is only shared under strict circumstances:</p>
             <ul>
               <li><strong>Telecommunications Infrastructure:</strong> OTPWala processes the service and country selection required to allocate a number. Your personal identity, email, and Google account information are not attached to number-allocation requests.</li>
-              <li><strong>Payment Gateways & Banking Partners:</strong> When processing deposits, transaction details are handled securely by authorized banking and UPI infrastructure providers.</li>
+              <li><strong>Payment Gateways & Digital Asset Partners:</strong> When processing deposits, transaction details are handled securely by authorized banking, UPI infrastructure providers, and digital asset networks (including the Binance Pay API ecosystem).</li>
               <li><strong>Legal & Regulatory Authorities:</strong> We may disclose data if required by a court order, applicable law, subpoena, or governmental regulatory authority to comply with legal obligations or prevent unlawful conduct.</li>
             </ul>
           </section>

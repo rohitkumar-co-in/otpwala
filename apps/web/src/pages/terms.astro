@@ -112,14 +112,14 @@ const { canonical = 'https://otpwala.me/terms' } = Astro.props;
             </div>
             <h2>4. Wallet, Pricing & Strict No-Refund Policy</h2>
             <p>
-              OTPWala operates on a prepaid wallet model. Users deposit funds in Indian Rupees (INR) using supported payment methods (such as UPI) to maintain a positive account balance before ordering numbers.
+              OTPWala operates on a prepaid wallet model supporting dual-currency display (USD primary, INR secondary). Users deposit funds using supported payment methods, including <strong>Binance Pay (Crypto / USDT)</strong> and <strong>Instant UPI (INR)</strong>, to maintain a positive account balance before ordering numbers.
             </p>
 
             <div class="rules-grid">
               <div class="rule-card">
-                <h3>A. Transparent Pricing</h3>
+                <h3>A. Transparent Pricing & Currency Conversion</h3>
                 <p>
-                  Prices for numbers vary by service and country based on carrier availability and platform markup. The total final price in INR is explicitly displayed before you confirm your purchase. Once confirmed, the price is deducted from your wallet balance.
+                  Prices for virtual numbers vary by service and country based on carrier availability and platform markup. Total final prices are explicitly displayed in your active selected currency (USD or INR) with dual-currency approximate equivalents before you confirm your purchase. Once confirmed, the order price is deducted from your wallet balance.
                 </p>
               </div>
 
@@ -133,21 +133,24 @@ const { canonical = 'https://otpwala.me/terms' } = Astro.props;
               <div class="rule-card" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04);">
                 <h3 style="color: #b91c1c;">C. Strict No-Refund Policy on Wallet Deposits</h3>
                 <p>
-                  Subject to applicable law and any mandatory consumer or payment-service rights, wallet top-ups are intended for on-platform use and are not cash-withdrawable or transferable. A completed top-up is generally final after it has been verified and credited. If a payment was unauthorized, duplicated, incorrectly credited, or affected by a technical error, contact support promptly with the payment reference so we can investigate and apply any correction or remedy required by law. We do not waive rights that cannot legally be waived.
+                  Subject to applicable law and any mandatory consumer or payment-service rights, wallet top-ups are intended solely for on-platform use and are not cash-withdrawable or transferable. A completed top-up is generally final after it has been verified and credited.
+                </p>
+                <p style="margin-top: 0.5rem;">
+                  <strong>Cryptocurrency & Binance Pay Irreversibility:</strong> Due to the immutable, digital nature of blockchain and cryptocurrency transfers, all Binance Pay (USDT) deposits are strictly irreversible once transmitted. Crypto deposits cannot be reversed, refunded in cryptocurrency, or converted into external cash withdrawals. If a payment was unauthorized, duplicated, incorrectly credited, or affected by a technical error, contact support promptly with the payment reference (UTR or Binance Order ID) so we can investigate and apply any correction or remedy required by law.
                 </p>
               </div>
 
               <div class="rule-card">
                 <h3>D. Non-Transferability</h3>
                 <p>
-                  Wallet balances are non-transferable between different user accounts, cannot be exchanged for cash, and remain locked to the registered account for on-platform utilization.
+                  Wallet balances are non-transferable between different user accounts, cannot be exchanged for cash or external cryptocurrency, and remain locked to the registered account for on-platform utilization.
                 </p>
               </div>
 
               <div class="rule-card">
                 <h3>E. Refer & Earn Bonus Terms</h3>
                 <p>
-                  Referrers receive commission bonuses on their referred friend's <strong>1st, 2nd, and 3rd completed deposits</strong> according to the active platform percentages configured by administration (e.g., 20% on 1st deposit, 5% on 2nd, 5% on 3rd). <strong>Crucial Eligibility Rule:</strong> The 2nd and 3rd deposit bonuses can strictly only be awarded if deposited within <strong>30 days of the referred user's account creation</strong>. Deposits made beyond 30 days or subsequent deposits (4th deposit onwards) are not eligible for referral bonuses. Users may claim a friend's referral code from the Refer &amp; Earn dashboard strictly within <strong>24 hours of account registration</strong>; after 24 hours or once claimed, the referral code permanently locks and cannot be modified. All referral earnings are credited directly to your OTPWala prepaid balance. <strong>Referral bonus funds cannot be withdrawn or converted to external fiat cash</strong> and may strictly be used only to purchase virtual number services on OTPWala. Self-referrals or creating duplicate accounts to farm referral commissions is strictly prohibited and results in immediate account forfeiture.
+                  Referrers receive commission bonuses on their referred friend's <strong>1st, 2nd, and 3rd completed deposits</strong> according to the active platform percentages configured by administration (e.g., 20% on 1st deposit, 5% on 2nd, 5% on 3rd). <strong>Crucial Eligibility Rule:</strong> The 2nd and 3rd deposit bonuses can strictly only be awarded if deposited within <strong>30 days of the referred user's account creation</strong>. Deposits made beyond 30 days or subsequent deposits (4th deposit onwards) are not eligible for referral bonuses. Users may claim a friend's referral code from the Refer &amp; Earn dashboard strictly within <strong>24 hours of account registration</strong>; after 24 hours or once claimed, the referral code permanently locks and cannot be modified. All referral earnings are credited directly to your OTPWala prepaid balance. <strong>Referral bonus funds cannot be withdrawn or converted to external fiat cash or cryptocurrency</strong> and may strictly be used only to purchase virtual number services on OTPWala. Self-referrals or creating duplicate accounts to farm referral commissions is strictly prohibited and results in immediate account forfeiture.
                 </p>
               </div>
             </div>
@@ -161,7 +164,7 @@ const { canonical = 'https://otpwala.me/terms' } = Astro.props;
             </p>
             <ul class="danger-list">
               <li><strong>Illegal Activities:</strong> Any unlawful purpose, including fraud, money laundering, extortion, terrorism, or violation of local, national, or international laws.</li>
-              <li><strong>Financial & Banking Fraud:</strong> Creating illicit bank accounts, conducting unauthorized payment transactions, or defrauding financial institutions.</li>
+              <li><strong>Financial & Banking Fraud:</strong> Creating illicit bank accounts, conducting unauthorized payment transactions, or defrauding financial institutions or cryptocurrency exchanges.</li>
               <li><strong>Spam & Harassment:</strong> Generating bulk automated accounts for unsolicited marketing, bulk spamming, phishing campaigns, or harassing individuals.</li>
               <li><strong>Telemarketing & Scam Operations:</strong> Any activity designed to deceive, impersonate government agencies, or operate phone scams.</li>
               <li><strong>Circumvention of Platform Bans:</strong> Evading law enforcement bans, court orders, or system restrictions imposed on criminal actors.</li>
@@ -185,9 +188,9 @@ const { canonical = 'https://otpwala.me/terms' } = Astro.props;
               We use proportionate technical and operational controls to protect users, payment partners, telecommunications providers, and third-party platforms. These controls may include rate limits, device and network signals, duplicate-account detection, referral-abuse checks, payment-reference reconciliation, manual review, and order or wallet restrictions.
             </p>
             <ul>
-              <li><strong>Authorized payments only:</strong> You must use a payment method and bank or UPI account that you are authorized to use. Do not submit altered receipts, reused UTRs, false disputes, or payment details belonging to another person.</li>
+              <li><strong>Authorized payments only:</strong> You must use a payment method and bank, UPI, or Binance account that you are legally authorized to use. Do not submit altered receipts, reused UTRs, fabricated Binance Order IDs / TxIDs, false disputes, or payment details belonging to another person.</li>
               <li><strong>Chargebacks and disputes:</strong> Contact support first for a billing or technical issue. A knowingly false chargeback, payment reversal, or fabricated proof may result in account restriction and evidence being supplied to the payment provider.</li>
-              <li><strong>Cooperation:</strong> We may request reasonable information needed to verify ownership of an account or payment. We will not ask for your UPI PIN, card CVV, or banking password.</li>
+              <li><strong>Cooperation:</strong> We may request reasonable information needed to verify ownership of an account or payment. We will never ask for your UPI PIN, card CVV, banking password, cryptocurrency private keys, seed phrase, or Binance account password.</li>
               <li><strong>Lawful requests:</strong> We may preserve or disclose relevant records when required by law, court order, payment-network rules, or a legitimate investigation.</li>
               <li><strong>Appeals:</strong> If an automated or manual review restricts your account, contact support with the relevant order or payment reference. We may keep restrictions in place while we assess security and legal risk.</li>
             </ul>
