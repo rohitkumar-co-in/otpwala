@@ -1486,8 +1486,8 @@ export default function BuyNumber() {
                         )}
                       </td>
                       <td>
-                        <span className={`badge badge-${ro.status === 'code_received' || ro.status === 'completed' ? 'success' : ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
-                          {ro.status === 'code_received' ? 'Received' : ro.status}
+                        <span className={`badge badge-${ro.status === 'code_received' ? 'success' : ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
+                          {ro.status === 'code_received' ? 'OTP Received' : ro.status}
                         </span>
                       </td>
                       <td style={{ fontWeight: 600 }}>{formatDualPrice(parseFloat(ro.sell_price_inr || 0), currency, usdRate).full}</td>
