@@ -1267,7 +1267,7 @@ export default function SettingsManager() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
                   <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
-                      📸 1. Export from Binance &amp; Crop 1:1
+                      Step 1: Export from Binance &amp; Crop 1:1
                     </div>
                     <ol style={{ margin: 0, paddingLeft: '1.15rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                       <li>Open <strong>Binance App</strong> &rarr; tap <strong>Pay</strong> &rarr; <strong>Receive</strong>.</li>
@@ -1278,7 +1278,7 @@ export default function SettingsManager() {
 
                   <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
-                      ☁️ 2. Upload to Cloudflare Pages or Supabase
+                      Step 2: Upload to Cloudflare Pages or Supabase
                     </div>
                     <ul style={{ margin: 0, paddingLeft: '1.15rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                       <li>
@@ -1330,7 +1330,7 @@ export default function SettingsManager() {
               ) : (
                 <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: binancePayEnabled ? '#ef4444' : 'var(--text-muted)', fontWeight: binancePayEnabled ? 600 : 400 }}>
                   {binancePayEnabled
-                    ? '⚠️ Official Binance Pay QR URL is mandatory. Please upload your 1:1 cropped QR image and paste the URL above.'
+                    ? 'Official Binance Pay QR URL is mandatory. Please upload your 1:1 cropped QR image and paste the URL above.'
                     : 'Enter the URL of your 1:1 cropped Binance QR image.'}
                 </div>
               )}

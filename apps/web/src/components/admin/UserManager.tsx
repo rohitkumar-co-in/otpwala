@@ -93,8 +93,9 @@ export default function UserManager() {
     setExportingUserId(user.id);
     try {
       const res = await getAdminUserExport(user.id);
+      const payload = res?.data !== undefined ? res.data : res;
       const username = (user.email || user.id || 'user').split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '_');
-      await promptAndDownloadUserData(res.data, `otpwala-user-dossier-${username}`);
+      await promptAndDownloadUserData(payload, `otpwala-user-dossier-${username}`);
     } catch (err: any) {
       console.error('Error exporting user dossier:', err);
       toast.error(err.message || 'Failed to export user dossier', 'Export Failed');

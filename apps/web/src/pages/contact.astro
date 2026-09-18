@@ -86,9 +86,9 @@ const contactPageSchema = {
             <span class="status-title">Support Desk Active</span>
           </div>
           <div class="status-timing">
-            <span>🕒 Daily: <strong>10:00 AM – 10:00 PM IST</strong> (UTC +5:30)</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Daily: <strong>10:00 AM – 10:00 PM IST</strong> (UTC +5:30)</span>
             <span class="sep">•</span>
-            <span>⚡ Typical Telegram response: <strong>5 – 15 minutes</strong></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Typical Telegram response: <strong>5 – 15 minutes</strong></span>
           </div>
         </div>
       </div>
@@ -503,7 +503,7 @@ ${msg}`;
       const text = getFormattedMessage();
       try {
         await navigator.clipboard.writeText(text);
-        showAlert('✓ Message copied to clipboard! You can paste it into Telegram or your email.', 'success');
+        showAlert('Message copied to clipboard! You can paste it into Telegram or your email.', 'success');
       } catch {
         showAlert('Could not access clipboard. Please copy your text manually.', 'error');
       }

@@ -1106,8 +1106,8 @@ export default function WalletPage() {
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45, background: 'rgba(255,255,255,0.03)', padding: '0.65rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <strong style={{ color: 'var(--text-primary)' }}>How to pay:</strong>
                   <ol style={{ margin: '0.3rem 0 0 1.1rem', padding: 0 }}>
-                    <li>Open <strong>Binance App</strong> ➔ tap <strong>Pay</strong> (or scan the QR above).</li>
-                    <li>Choose <strong>Send</strong> ➔ select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
+                    <li>Open <strong>Binance App</strong> → tap <strong>Pay</strong> (or scan the QR above).</li>
+                    <li>Choose <strong>Send</strong> → select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
                     <li>Send exactly <strong>{usdtAmount} USDT</strong> (≈ ₹{numericAmount.toFixed(2)}) (zero gas fees!).</li>
                     <li>Copy the numeric <strong>Order ID</strong> (e.g. <code>430406748854015744</code>) from your payment receipt.</li>
                   </ol>
@@ -1165,7 +1165,7 @@ export default function WalletPage() {
                 {paymentMethod === 'upi' ? (
                   <>Open your UPI payment app receipt and copy the <strong>12-digit UPI Ref ID / UTR</strong> (e.g. <code>129815979728</code>).</>
                 ) : (
-                  <>In your Binance App: Go to <strong>Pay</strong> ➔ <strong>Payment History</strong> ➔ tap the payment ➔ copy the numeric <strong>Order ID</strong> (e.g. <code>430406788154015744</code>).</>
+                  <>In your Binance App: Go to <strong>Pay</strong> → <strong>Payment History</strong> → tap the payment → copy the numeric <strong>Order ID</strong> (e.g. <code>430406788154015744</code>).</>
                 )}
               </span>
             </div>
@@ -1176,8 +1176,9 @@ export default function WalletPage() {
               <div>
                 <strong>Note:</strong> Your balance will be added in <strong>under 5 minutes to 2 hours</strong> after payment verification. If it takes longer than that, please message <a href="https://t.me/OTPWalaSupport" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>@OTPWalaSupport</a> on Telegram with your Transaction ID and screenshot for faster payment approval.
               </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: '#1e40af', fontWeight: 600 }}>
-                🕒 10 AM to 10 PM IST timing — outside of this time it can take a bit longer to approve.
+              <div style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: '#1e40af', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ClockIcon size={13} color="#1e40af" />
+                <span>10 AM to 10 PM IST timing — outside of this time it can take a bit longer to approve.</span>
               </div>
             </div>
           </div>

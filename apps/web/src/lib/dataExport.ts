@@ -35,18 +35,27 @@ function formatDate(isoStr: string | null | undefined): string {
   }
 }
 
+function normalizeData(rawInput: any): Record<string, any> {
+  if (!rawInput) return {};
+  if (typeof rawInput === 'object' && rawInput.data && typeof rawInput.data === 'object' && !Array.isArray(rawInput.data)) {
+    return rawInput.data;
+  }
+  return typeof rawInput === 'object' ? rawInput : {};
+}
+
 /**
  * Generate a standalone, publication-quality HTML document with embedded CSS
  * suitable for offline viewing in any web browser or printing as a PDF statement.
  */
-export function generateHtmlReport(data: any, title = 'Account Data & Security Dossier'): string {
-  const profile = data.profile || {};
-  const orders = Array.isArray(data.orders) ? data.orders : [];
-  const transactions = Array.isArray(data.walletTransactions) ? data.walletTransactions : [];
-  const securityLogs = Array.isArray(data.securityLogs) ? data.securityLogs : [];
-  const paymentRequests = Array.isArray(data.paymentRequests) ? data.paymentRequests : [];
-  const supportTickets = Array.isArray(data.supportTickets) ? data.supportTickets : [];
-  const referrals = data.referrals?.given || (Array.isArray(data.referrals) ? data.referrals : []);
+export function generateHtmlReport(rawInput: any, title = 'Account Data & Security Dossier'): string {
+  const data = normalizeData(rawInput);
+  const profile = (data && data.profile) || {};
+  const orders = Array.isArray(data?.orders) ? data.orders : [];
+  const transactions = Array.isArray(data?.walletTransactions) ? data.walletTransactions : [];
+  const securityLogs = Array.isArray(data?.securityLogs) ? data.securityLogs : [];
+  const paymentRequests = Array.isArray(data?.paymentRequests) ? data.paymentRequests : [];
+  const supportTickets = Array.isArray(data?.supportTickets) ? data.supportTickets : [];
+  const referrals = data?.referrals?.given || (Array.isArray(data?.referrals) ? data.referrals : []);
 
   const totalSpent = transactions
     .filter((t: any) => t.type === 'deduction' && t.status === 'completed')
@@ -56,7 +65,7 @@ export function generateHtmlReport(data: any, title = 'Account Data & Security D
     .filter((t: any) => t.type === 'topup' && t.status === 'completed')
     .reduce((sum: number, t: any) => sum + parseFloat(t.amount || 0), 0);
 
-  const exportDate = formatDate(data.exportedAt || new Date().toISOString());
+  const exportDate = formatDate(data?.exportedAt || new Date().toISOString());
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -212,7 +221,11 @@ export function generateHtmlReport(data: any, title = 'Account Data & Security D
     <!-- Top Header -->
     <div class="header">
       <div class="header-brand">
-        <div class="brand-logo">⚡</div>
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
         <div>
           <h1>${escapeHtml(title)}</h1>
           <p>Official OTPWala User Audit &amp; Data Archive · Exported ${exportDate}</p>
@@ -486,19 +499,21 @@ export function generateHtmlReport(data: any, title = 'Account Data & Security D
 /**
  * Generate a clean, properly structured JSON string
  */
-export function generateJsonExport(data: any): string {
+export function generateJsonExport(rawInput: any): string {
+  const data = normalizeData(rawInput);
   return JSON.stringify(data, null, 2);
 }
 
 /**
  * Generate a formatted CSV spreadsheet string
  */
-export function generateCsvExport(data: any): string {
+export function generateCsvExport(rawInput: any): string {
+  const data = normalizeData(rawInput);
   const lines: string[] = [];
 
   lines.push('--- ACCOUNT PROFILE ---');
   lines.push('Field,Value');
-  const profile = data.profile || {};
+  const profile = (data && data.profile) || {};
   lines.push(`User ID,"${profile.id || ''}"`);
   lines.push(`Email,"${profile.email || ''}"`);
   lines.push(`Full Name,"${profile.full_name || profile.name || ''}"`);
@@ -552,7 +567,8 @@ export function downloadFile(content: string, filename: string, mimeType: string
  * 2. CSV Spreadsheet
  * 3. Raw JSON Archive
  */
-export function promptAndDownloadUserData(data: any, defaultBaseName: string): Promise<void> {
+export function promptAndDownloadUserData(rawInput: any, defaultBaseName: string): Promise<void> {
+  const data = normalizeData(rawInput);
   return new Promise((resolve) => {
     if (typeof document === 'undefined') return resolve();
 
@@ -590,7 +606,7 @@ export function promptAndDownloadUserData(data: any, defaultBaseName: string): P
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(37, 99, 235, 0.1); color: #2563eb; display: flex; align-items: center; justify-content: center;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
@@ -608,7 +624,15 @@ export function promptAndDownloadUserData(data: any, defaultBaseName: string): P
         <!-- Option 1: Interactive HTML Report (Recommended) -->
         <button id="export-html" type="button" style="display: flex; align-items: center; justify-content: space-between; padding: 0.95rem 1.15rem; background: rgba(37, 99, 235, 0.05); border: 1.5px solid #2563eb; border-radius: 12px; cursor: pointer; text-align: left; transition: all 0.15s ease;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.4rem;">📄</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(37, 99, 235, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
             <div>
               <div style="font-weight: 700; font-size: 0.92rem; color: #1e40af; display: flex; align-items: center; gap: 0.4rem;">
                 <span>HTML Report &amp; PDF</span>
@@ -623,7 +647,15 @@ export function promptAndDownloadUserData(data: any, defaultBaseName: string): P
         <!-- Option 2: Excel / CSV Spreadsheet -->
         <button id="export-csv" type="button" style="display: flex; align-items: center; justify-content: space-between; padding: 0.95rem 1.15rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; text-align: left; transition: all 0.15s ease;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.4rem;">📊</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+              </svg>
+            </div>
             <div>
               <div style="font-weight: 700; font-size: 0.92rem; color: #0f172a;">Spreadsheet Archive (.csv)</div>
               <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;">Best for Excel, Google Sheets, or spreadsheet calculations.</div>
@@ -635,7 +667,12 @@ export function promptAndDownloadUserData(data: any, defaultBaseName: string): P
         <!-- Option 3: Raw JSON Archive -->
         <button id="export-json" type="button" style="display: flex; align-items: center; justify-content: space-between; padding: 0.95rem 1.15rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; text-align: left; transition: all 0.15s ease;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.4rem;">💾</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(217, 119, 6, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </div>
             <div>
               <div style="font-weight: 700; font-size: 0.92rem; color: #0f172a;">Raw Data Archive (.json)</div>
               <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;">Machine-readable structured backup for developers or database import.</div>

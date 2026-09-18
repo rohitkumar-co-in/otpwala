@@ -54,7 +54,8 @@ export default function SettingsPage() {
     setPrivacyBusy('export'); setErrorMsg('');
     try {
       const data = await exportAccountData();
-      await promptAndDownloadUserData(data, `otpwala-account-data-${user?.email ? user.email.split('@')[0] : 'user'}`);
+      const payload = data?.data !== undefined ? data.data : data;
+      await promptAndDownloadUserData(payload, `otpwala-account-data-${user?.email ? user.email.split('@')[0] : 'user'}`);
       setSuccessMsg('Your account data export was generated.');
     } catch (error: any) {
       setErrorMsg(error.message || 'Unable to export account data.');
@@ -1265,7 +1266,7 @@ export default function SettingsPage() {
                         title="Copy IP address"
                       >
                         {copiedIp === item.ip_address ? (
-                          <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>✓</span>
+                          <CheckIcon size={12} color="#10b981" />
                         ) : (
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
