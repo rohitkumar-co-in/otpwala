@@ -400,3 +400,56 @@ OTPWala features an automated multi-tier network fraud detection system designed
 2. **Toast Notifications**:
    - Powered by `toast` in `apps/web/src/lib/toast.ts`.
    - Displays animated, non-blocking toast alerts on payment approvals, ticket replies, setting saves, and ledger refreshes.
+
+## 20. Admin audit trail & interactive payload inspector
+
+1. **Structured Columns & Visual Hierarchy**:
+   - Located at `/admin/audit` (`AuditLogManager.tsx`).
+   - Replaced fragile unconstrained auto-tables with explicit column dimensions:
+     - **Timestamp**: Formatted date with a dedicated time and clock indicator.
+     - **Actor**: User avatar badge, registered email, and full name.
+     - **Action**: Category-coded badges (purple for `settings.*`, emerald for `wallet.*`, red for `user.ban`/deletion, sky for `support.*`).
+     - **Target**: Entity type pill and mono-spaced truncated target ID.
+     - **Details / Payload Preview**: Human-readable summaries (e.g. badges for updated configuration keys, formatted monetary values for balance credits) with an interactive inspect trigger.
+     - **IP Address**: Client IP with a 1-click clipboard copy button.
+     - **Inspect**: Dedicated button opening the full record inspector.
+2. **Interactive Payload Inspection Modal**:
+   - Centered glassmorphism modal displaying complete record metadata, actor identity, target entity, and client IP.
+   - Formatted, syntax-highlighted JSON viewer (`JSON.stringify(log.metadata, null, 2)`).
+   - 1-click **Copy JSON** button with animated status feedback.
+   - 1-click **Download JSON** file export button.
+3. **Category Quick-Filter Chips & Audit Export**:
+   - Instant filter chips for `All Actions`, `Settings`, `Wallet & Funds`, `Users & Roles`, and `Support`.
+   - Dedicated search input with clear button.
+   - "Export Trail" button to download all audit records as a compliance JSON document.
+
+## 21. CI/CD pipeline & automated production safeguards
+
+1. **GitHub Actions Workflow (`.github/workflows/verify.yml`)**:
+   - Powered by the official `pnpm/action-setup@v4` action using locked pnpm `11.19.0`.
+   - Node 22 runtime with native pnpm store dependency caching.
+   - Runs frozen-lockfile installation, dependency vulnerability auditing, and automated verification.
+2. **Verification Pipeline (`npm run verify:production`)**:
+   - Builds static Astro routes (`apps/web`).
+   - Builds and type-checks the API (`apps/api`).
+   - Executes unit test suites (`functions/lib/*.test.ts`).
+   - Enforces production guardrails (`scripts/production-guardrails.mjs`).
+   - Runs automated smoke checks (`scripts/smoke-production.mjs`) with Cloudflare WAF tolerance.
+
+## 22. Vector icon design system (zero emojis)
+
+1. **Pure SVG Vector Standard**:
+   - All visual indicators, brand marks, and action controls across the application use lightweight, accessible SVG vector graphics.
+   - Completely eliminates platform emojis (such as unicode clock, lightning, document, and spreadsheet symbols) in favor of curated vector components:
+     - `ZapIcon`
+     - `ClockIcon`
+     - `CheckIcon` / `CheckCircleIcon`
+     - `AlertCircleIcon`
+     - `ShieldIcon`
+     - `EyeIcon`
+     - `CopyIcon`
+     - `DownloadIcon`
+     - `SettingsIcon`
+     - `DollarIcon`
+     - `UsersIcon`
+   - Guarantees visual consistency across iOS, Android, macOS, Windows, and Linux devices.

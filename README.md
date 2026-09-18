@@ -1,4 +1,4 @@
-# ⚡ OTPWala
+# OTPWala
 
 > High-speed virtual number marketplace for instant SMS & OTP verification powered by **Astro.js**, **React Islands**, **Cloudflare Pages Functions (Edge)**, **Express.js API**, **Supabase (PostgreSQL)**, and **Tiger SMS Provider API**.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 Architecture Overview
+## Architecture Overview
 
 ```
                           ┌──────────────────────┐
@@ -29,10 +29,10 @@
 
 ---
 
-## ✨ Key Features & Capabilities
+## Key Features & Capabilities
 
 ### 1. Lightning Fast Astro Frontend (`apps/web`)
-- **Astro SSG/SSR Architecture**: Blazing fast load times with modern glassmorphism dark aesthetic and responsive layouts.
+- **Astro SSG/SSR Architecture**: Blazing fast load times with modern glassmorphism dark aesthetic, responsive layouts, and pure SVG vector icons (zero platform emojis).
 - **Interactive React Islands (`client:load`)**:
   - **Live Buy Flow**: Real-time service picker (WhatsApp, Telegram, Google, Instagram, 100+ services), country selector (190+ countries), and instant pricing quotes in ₹ INR / $ USD.
   - **Real-Time OTP Room**: Live order status polling, countdown timer, sound alerts, 1-click clipboard copy for phone numbers and SMS verification codes, and automatic refunds for expired/cancelled orders.
@@ -56,7 +56,7 @@
 - **Interactive Standalone HTML Report (`.html`) — Best Format**:
   - Double-click to open in any web browser without third-party software.
   - Formatted like an executive bank audit statement with OTPWALA branding, summary stat cards, and styled tables.
-  - Includes a 1-click **"🖨️ Print / Save as PDF"** button with dedicated `@media print` styling for clean white-paper PDF saving.
+  - Includes a 1-click **"Print / Save as PDF"** button with dedicated `@media print` styling for clean white-paper PDF saving.
 - **Multi-Section CSV Spreadsheet (`.csv`)**: Formatted for import into Microsoft Excel or Google Sheets.
 - **Structured JSON Archive (`.json`)**: Formatted indented machine-readable backup for developer restoration.
 - **Admin Full User Dossier (`/admin/users`)**: 1-click download of any user's complete historical profile, IP/ISP login history, order history with SMS codes, wallet ledger, payment requests, referrals, and support tickets.
@@ -73,12 +73,12 @@
 - **Catalog Controls (`/admin/catalog`)**: Enable or disable services and countries with 1-click toggles and batch actions.
 - **Order Audit Log (`/admin/orders`)**: Comprehensive platform audit log with phone numbers, OTP codes, provider cost vs selling price, and profit margins.
 - **Support & Privacy Erasure Queue (`/admin/support`)**: Support tickets with threaded replies, internal admin notes, and data erasure approval workflows.
-- **Audit Trail (`/admin/audit`)**: Immutable log of privileged administrator actions with search, filters, and refresh toasts.
+- **Admin Audit Trail (`/admin/audit`)**: Immutable log of privileged administrator actions with structured columns, categorized color-coded action badges, live payload previews, interactive JSON inspection modal with 1-click copy and file download, and full JSON audit trail export.
 - **System Settings (`/admin/settings`)**: Currency FX rates, USD/INR conversion, payment gateway credentials, Telegram bot token, webhook configuration, and maintenance mode toggles.
 
 ---
 
-## 🚀 Quick Setup Guide
+## Quick Setup Guide
 
 ### 1. Prerequisites
 - Node.js >= 20.0.0 (Recommended 22+)
@@ -118,7 +118,7 @@ UPDATE profiles SET role = 'admin' WHERE email = 'your-email@example.com';
 
 ---
 
-## 🏃 Running the Application
+## Running the Application
 
 ### Start Development Server:
 ```bash
@@ -140,7 +140,7 @@ pnpm dev:web
 
 ---
 
-## 🧪 Testing & Verification
+## Testing & Verification
 
 ```bash
 # Run unit tests
@@ -155,8 +155,9 @@ npm run build:web
 
 ---
 
-## 🛡️ Security & Privacy Compliance
+## Security & Privacy Compliance
 - **Server-Side Secret Isolation**: Provider API keys, service-role keys, and Telegram tokens are strictly isolated in server/edge runtimes and are **never** exposed in client bundles.
 - **Single-Device Protection**: Automatic invalidation of displaced sessions protects user accounts against concurrent unauthorized use.
 - **Pseudonymized Data Erasure**: Compliant with data privacy standards; user account deletion erases authentication and personal data while preserving legally mandated financial accounting records in pseudonymized form.
 - **Zero Browser Popups**: All user confirmation flows are rendered within custom accessible styled dialogs.
+- **Vector Design System**: All icons throughout the platform use crisp SVG vector graphics, completely eliminating emojis for a clean, consistent enterprise look.
