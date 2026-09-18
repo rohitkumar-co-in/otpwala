@@ -49,6 +49,30 @@ export async function getWalletConfig(): Promise<WalletConfig> {
     suggestions = [50, 100, 200, 300, 500];
   }
 
+  const binanceMinDeposit = parseFloat(map.get('binance_min_deposit_usdt') || '1') || 1;
+  const binanceMaxDeposit = parseFloat(map.get('binance_max_deposit_usdt') || '500') || 500;
+
+  // Dynamic Binance USDT suggestions (up to 5) configured in Admin Settings
+  const rawBinanceSuggestions = map.get('binance_deposit_suggestions') || '1,2,5,10,20';
+  let binanceSuggestions: number[] = [];
+  try {
+    if (typeof rawBinanceSuggestions === 'string' && rawBinanceSuggestions.startsWith('[')) {
+      binanceSuggestions = JSON.parse(rawBinanceSuggestions);
+    } else if (typeof rawBinanceSuggestions === 'string') {
+      binanceSuggestions = rawBinanceSuggestions
+        .split(',')
+        .map((s: string) => parseFloat(s.trim()))
+        .filter((n: number) => !isNaN(n) && n > 0);
+    }
+  } catch {
+    binanceSuggestions = [1, 2, 5, 10, 20];
+  }
+
+  binanceSuggestions = binanceSuggestions.slice(0, 5);
+  if (binanceSuggestions.length === 0) {
+    binanceSuggestions = [1, 2, 5, 10, 20];
+  }
+
   const upiId = (map.get('upi_id') as string) || 'otpwala@upi';
   const upiName = (map.get('upi_merchant_name') as string) || 'OTPWala';
 
@@ -71,6 +95,9 @@ export async function getWalletConfig(): Promise<WalletConfig> {
     binancePayQrUrl,
     usdtInrRate,
     usdToInrRate: catalogRate,
+    binanceMinDeposit,
+    binanceMaxDeposit,
+    binanceSuggestions,
   };
 }
 
@@ -181,17 +208,28 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    if (!amountNum || amountNum < config.minDeposit || amountNum > config.maxDeposit) {
+    const rawMethod = String(method || 'upi').toLowerCase();
+    const isBinance = rawMethod.includes('binance');
+    const paymentMethod = isBinance ? 'binance' : 'upi';
+
+    if (isBinance) {
+      const binanceRate = config.usdtInrRate || 115;
+      const minInr = (config.binanceMinDeposit || 1) * binanceRate - 0.5;
+      const maxInr = (config.binanceMaxDeposit || 500) * binanceRate + 0.5;
+      if (!amountNum || amountNum < minInr || amountNum > maxInr) {
+        res.status(400).json({
+          success: false,
+          error: `Deposit amount must be between ${config.binanceMinDeposit} and ${config.binanceMaxDeposit} USDT (≈ ₹${Math.round((config.binanceMinDeposit || 1) * binanceRate)} - ₹${Math.round((config.binanceMaxDeposit || 500) * binanceRate).toLocaleString('en-IN')})`,
+        });
+        return;
+      }
+    } else if (!amountNum || amountNum < config.minDeposit || amountNum > config.maxDeposit) {
       res.status(400).json({
         success: false,
         error: `Amount must be between ₹${config.minDeposit} and ₹${config.maxDeposit.toLocaleString('en-IN')}`,
       });
       return;
     }
-
-    const rawMethod = String(method || 'upi').toLowerCase();
-    const isBinance = rawMethod.includes('binance');
-    const paymentMethod = isBinance ? 'binance' : 'upi';
 
     // Validate reference
     if (!utr || String(utr).trim().length < 3) {

@@ -652,8 +652,18 @@ export const onRequest = async (context: any) => {
 
       const supabase = getSupabaseAdmin(env);
       const walletConfig = await getWalletConfig(env);
-      if (amount < walletConfig.minDeposit || amount > walletConfig.maxDeposit) {
-        return jsonResponse({ success: false, error: `Deposit amount must be between ₹${walletConfig.minDeposit} and ₹${walletConfig.maxDeposit}` }, 400);
+      if (isBinance) {
+        const binanceRate = walletConfig.usdtInrRate || 115;
+        const minInr = (walletConfig.binanceMinDeposit || 1) * binanceRate - 0.5;
+        const maxInr = (walletConfig.binanceMaxDeposit || 500) * binanceRate + 0.5;
+        if (amount < minInr || amount > maxInr) {
+          return jsonResponse({
+            success: false,
+            error: `Deposit amount must be between ${walletConfig.binanceMinDeposit} and ${walletConfig.binanceMaxDeposit} USDT (≈ ₹${Math.round((walletConfig.binanceMinDeposit || 1) * binanceRate)} - ₹${Math.round((walletConfig.binanceMaxDeposit || 500) * binanceRate).toLocaleString('en-IN')})`
+          }, 400);
+        }
+      } else if (amount < walletConfig.minDeposit || amount > walletConfig.maxDeposit) {
+        return jsonResponse({ success: false, error: `Deposit amount must be between ₹${walletConfig.minDeposit} and ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}` }, 400);
       }
 
       const { data: duplicateUtr } = await supabase.from('payment_requests').select('id').ilike('transaction_id', utr).maybeSingle();

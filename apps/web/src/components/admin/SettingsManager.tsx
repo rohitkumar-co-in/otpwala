@@ -58,6 +58,13 @@ export default function SettingsManager() {
   const [binancePayNickname, setBinancePayNickname] = useState('');
   const [binancePayQrUrl, setBinancePayQrUrl] = useState('');
   const [usdtInrRate, setUsdtInrRate] = useState('90');
+  const [binanceMinDeposit, setBinanceMinDeposit] = useState('1');
+  const [binanceMaxDeposit, setBinanceMaxDeposit] = useState('500');
+  const [binanceSuggestion1, setBinanceSuggestion1] = useState('1');
+  const [binanceSuggestion2, setBinanceSuggestion2] = useState('2');
+  const [binanceSuggestion3, setBinanceSuggestion3] = useState('5');
+  const [binanceSuggestion4, setBinanceSuggestion4] = useState('10');
+  const [binanceSuggestion5, setBinanceSuggestion5] = useState('20');
 
   // Telegram Bot Notifications for Payment Approvals
   const [telegramBotToken, setTelegramBotToken] = useState('');
@@ -90,7 +97,7 @@ export default function SettingsManager() {
 
       const s = settingsData || {};
       setSettings(s);
-      
+
       if (balData && balData.balance !== undefined) {
         setTigerBalance(balData);
         setTigerStatus('online');
@@ -135,6 +142,16 @@ export default function SettingsManager() {
       if (s.binance_pay_nickname) setBinancePayNickname(s.binance_pay_nickname);
       if (s.binance_pay_qr_url) setBinancePayQrUrl(s.binance_pay_qr_url);
       if (s.usdt_inr_rate) setUsdtInrRate(s.usdt_inr_rate);
+      if (s.binance_min_deposit_usdt) setBinanceMinDeposit(s.binance_min_deposit_usdt);
+      if (s.binance_max_deposit_usdt) setBinanceMaxDeposit(s.binance_max_deposit_usdt);
+
+      const rawBinanceSugg = s.binance_deposit_suggestions || '1,2,5,10,20';
+      const binanceParts = rawBinanceSugg.split(',').map((p: string) => p.trim());
+      setBinanceSuggestion1(binanceParts[0] || '1');
+      setBinanceSuggestion2(binanceParts[1] || '2');
+      setBinanceSuggestion3(binanceParts[2] || '5');
+      setBinanceSuggestion4(binanceParts[3] || '10');
+      setBinanceSuggestion5(binanceParts[4] || '20');
 
       if (s.telegram_bot_token) setTelegramBotToken(s.telegram_bot_token);
       if (s.telegram_admin_chat_id) setTelegramAdminChatId(s.telegram_admin_chat_id);
@@ -211,6 +228,26 @@ export default function SettingsManager() {
 
     const effectiveRate = rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate;
 
+    const parsedBinanceMin = parseFloat(binanceMinDeposit) || 1;
+    const parsedBinanceMax = parseFloat(binanceMaxDeposit) || 500;
+    if (parsedBinanceMax < parsedBinanceMin) {
+      setError('Binance Maximum Deposit must be greater than or equal to Minimum Deposit.');
+      setSavingKey(null);
+      return;
+    }
+
+    const validBinanceSuggestions = [
+      binanceSuggestion1,
+      binanceSuggestion2,
+      binanceSuggestion3,
+      binanceSuggestion4,
+      binanceSuggestion5,
+    ]
+      .map((s) => s.trim())
+      .filter((s) => s !== '' && !isNaN(Number(s)) && Number(s) >= parsedBinanceMin && Number(s) <= parsedBinanceMax)
+      .slice(0, 5)
+      .join(',');
+
     if (binancePayEnabled) {
       if (!binancePayId.trim()) {
         setError('Binance Pay ID is required when Binance Pay is enabled.');
@@ -247,6 +284,9 @@ export default function SettingsManager() {
         binance_pay_nickname: binancePayNickname.trim(),
         binance_pay_qr_url: binancePayQrUrl.trim(),
         usdt_inr_rate: usdtInrRate.trim() || '90',
+        binance_min_deposit_usdt: binanceMinDeposit.trim() || '1',
+        binance_max_deposit_usdt: binanceMaxDeposit.trim() || '500',
+        binance_deposit_suggestions: validBinanceSuggestions || String(parsedBinanceMin),
         telegram_bot_token: telegramBotToken.trim(),
         telegram_admin_chat_id: telegramAdminChatId.trim(),
         telegram_notifications_enabled: String(telegramNotificationsEnabled),
@@ -295,7 +335,7 @@ export default function SettingsManager() {
           document.querySelectorAll('[data-brand-separator]').forEach((el) => {
             el.textContent = finalSep;
           });
-        } catch {}
+        } catch { }
       }
 
       setUsdToInr(effectiveRate);
@@ -399,7 +439,7 @@ export default function SettingsManager() {
 
       {/* Main Settings Form */}
       <form onSubmit={handleSaveAll} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
+
         {/* BRANDING, TITLE SEPARATOR & HOMEPAGE TAB SLOGAN */}
         <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #6366f1' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -1005,8 +1045,123 @@ export default function SettingsManager() {
                 />
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Rate used to calculate required USDT: e.g. at ₹90/USDT, ₹500 = 5.56 USDT.
+                Rate used to calculate required USDT: e.g. at ₹105/USDT, ₹525 = 5.00 USDT.
               </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Minimum Binance Deposit (USDT / $)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#b45309' }}>$</span>
+                <input
+                  type="number"
+                  step="any"
+                  min="0.1"
+                  required
+                  value={binanceMinDeposit}
+                  onChange={(e) => setBinanceMinDeposit(e.target.value)}
+                  className="input"
+                  style={{ width: '100%', paddingLeft: '2rem', fontWeight: 700 }}
+                  placeholder="1"
+                />
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Minimum USDT users can deposit (e.g. 1 USDT ≈ ₹{Math.round((parseFloat(binanceMinDeposit) || 1) * (parseFloat(usdtInrRate) || 90))}).
+              </span>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                Maximum Binance Deposit (USDT / $)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#b45309' }}>$</span>
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  required
+                  value={binanceMaxDeposit}
+                  onChange={(e) => setBinanceMaxDeposit(e.target.value)}
+                  className="input"
+                  style={{ width: '100%', paddingLeft: '2rem', fontWeight: 700 }}
+                  placeholder="500"
+                />
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
+                Maximum USDT limit per deposit request (e.g. {binanceMaxDeposit} USDT ≈ ₹{Math.round((parseFloat(binanceMaxDeposit) || 500) * (parseFloat(usdtInrRate) || 90)).toLocaleString('en-IN')}).
+              </span>
+            </div>
+
+            {/* Binance Suggested Amounts (5 Quick Chips) */}
+            <div style={{ gridColumn: '1 / -1', paddingTop: '1rem', borderTop: '1px solid rgba(245, 158, 11, 0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Binance Suggested Deposit Amounts (5 Quick Chips in USDT / $)
+                </label>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Quick-select pills displayed on the customer Binance Pay deposit tab
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.75rem' }}>
+                {[
+                  { label: 'Slot 1 (USDT)', val: binanceSuggestion1, setVal: setBinanceSuggestion1, placeholder: '1' },
+                  { label: 'Slot 2 (USDT)', val: binanceSuggestion2, setVal: setBinanceSuggestion2, placeholder: '2' },
+                  { label: 'Slot 3 (USDT)', val: binanceSuggestion3, setVal: setBinanceSuggestion3, placeholder: '5' },
+                  { label: 'Slot 4 (USDT)', val: binanceSuggestion4, setVal: setBinanceSuggestion4, placeholder: '10' },
+                  { label: 'Slot 5 (USDT)', val: binanceSuggestion5, setVal: setBinanceSuggestion5, placeholder: '20' },
+                ].map((slot, i) => (
+                  <div key={i}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.2rem' }}>
+                      {slot.label}
+                    </span>
+                    <input
+                      type="number"
+                      step="any"
+                      min={binanceMinDeposit || '0.1'}
+                      max={binanceMaxDeposit || undefined}
+                      value={slot.val}
+                      onChange={(e) => slot.setVal(e.target.value)}
+                      className="input input-sm"
+                      placeholder={`$${slot.placeholder}`}
+                      style={{ width: '100%', fontWeight: 600 }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Binance Live Pill Preview */}
+              <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pill Preview:</span>
+                {[binanceSuggestion1, binanceSuggestion2, binanceSuggestion3, binanceSuggestion4, binanceSuggestion5]
+                  .filter((s) => s && !isNaN(Number(s)) && Number(s) >= Number(binanceMinDeposit) && Number(s) <= Number(binanceMaxDeposit))
+                  .slice(0, 5)
+                  .map((amt, idx) => {
+                    const usdtNum = parseFloat(amt);
+                    const rateNum = parseFloat(usdtInrRate) || 90;
+                    const inrEq = Math.round(usdtNum * rateNum);
+                    return (
+                      <span
+                        key={idx}
+                        className="badge"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%)',
+                          color: '#d97706',
+                          border: '1px solid rgba(245, 158, 11, 0.4)',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                        }}
+                      >
+                        ${amt} (≈ ₹{inrEq.toLocaleString('en-IN')})
+                      </span>
+                    );
+                  })}
+              </div>
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>

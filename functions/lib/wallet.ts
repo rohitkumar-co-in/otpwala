@@ -83,6 +83,9 @@ export async function getWalletConfig(env?: any) {
   const catalogRate = parseFloat(map.get('custom_dollar_rate') || map.get('usd_to_inr_rate') || '115') || 115;
   const usdtInrRate = parseFloat(map.get('usdt_inr_rate') || String(catalogRate)) || catalogRate;
 
+  const binanceMinDeposit = parseFloat(map.get('binance_min_deposit_usdt') || '1') || 1;
+  const binanceMaxDeposit = parseFloat(map.get('binance_max_deposit_usdt') || '500') || 500;
+
   // Dynamic Amount suggestions (up to 5) configured in Admin Settings
   const rawSuggestions = map.get('deposit_suggestions') || '50,100,200,300,500';
   let suggestions: number[] = [];
@@ -104,6 +107,27 @@ export async function getWalletConfig(env?: any) {
     suggestions = [50, 100, 200, 300, 500];
   }
 
+  // Dynamic Binance USDT suggestions (up to 5) configured in Admin Settings
+  const rawBinanceSuggestions = map.get('binance_deposit_suggestions') || '1,2,5,10,20';
+  let binanceSuggestions: number[] = [];
+  try {
+    if (typeof rawBinanceSuggestions === 'string' && rawBinanceSuggestions.startsWith('[')) {
+      binanceSuggestions = JSON.parse(rawBinanceSuggestions);
+    } else if (typeof rawBinanceSuggestions === 'string') {
+      binanceSuggestions = rawBinanceSuggestions
+        .split(',')
+        .map((s: string) => parseFloat(s.trim()))
+        .filter((n: number) => !isNaN(n) && n > 0);
+    }
+  } catch {
+    binanceSuggestions = [1, 2, 5, 10, 20];
+  }
+
+  binanceSuggestions = binanceSuggestions.slice(0, 5);
+  if (binanceSuggestions.length === 0) {
+    binanceSuggestions = [1, 2, 5, 10, 20];
+  }
+
   return {
     minDeposit,
     maxDeposit,
@@ -116,5 +140,8 @@ export async function getWalletConfig(env?: any) {
     binancePayQrUrl,
     usdtInrRate,
     usdToInrRate: catalogRate,
+    binanceMinDeposit,
+    binanceMaxDeposit,
+    binanceSuggestions,
   };
 }

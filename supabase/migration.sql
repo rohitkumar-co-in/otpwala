@@ -163,7 +163,10 @@ INSERT INTO public.settings (key, value) VALUES
     ('binance_pay_id',                  '""'),
     ('binance_pay_nickname',            '""'),
     ('binance_pay_qr_url',              '""'),
-    ('usdt_inr_rate',                   '"90"')
+    ('usdt_inr_rate',                   '"90"'),
+    ('binance_min_deposit_usdt',        '"1"'),
+    ('binance_max_deposit_usdt',        '"500"'),
+    ('binance_deposit_suggestions',     '"1,2,5,10,20"')
 ON CONFLICT (key) DO NOTHING;
 
 -- ─── 6. PAYMENT REQUESTS (UPI manual top-up) ────────────────────

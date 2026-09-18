@@ -27,6 +27,9 @@ interface WalletConfig {
   binancePayNickname?: string;
   binancePayQrUrl?: string;
   usdtInrRate?: number;
+  binanceMinDeposit?: number;
+  binanceMaxDeposit?: number;
+  binanceSuggestions?: number[];
 }
 
 const BinanceIcon = ({ size = 20, style }: { size?: number; style?: React.CSSProperties }) => (
@@ -150,17 +153,25 @@ export default function WalletPage() {
         const suggestions = (walletData.config.suggestions || [])
           .map(Number)
           .filter((amount: number) => Number.isFinite(amount) && amount >= minDeposit && amount <= maxDeposit);
+
+        const binanceMinDeposit = Number(walletData.config.binanceMinDeposit) || 1;
+        const binanceMaxDeposit = Math.max(binanceMinDeposit, Number(walletData.config.binanceMaxDeposit) || 500);
+        const binanceSuggestions = (walletData.config.binanceSuggestions || [1, 2, 5, 10, 20])
+          .map(Number)
+          .filter((amount: number) => Number.isFinite(amount) && amount >= binanceMinDeposit && amount <= binanceMaxDeposit);
+
         const safeConfig = {
           ...walletData.config,
           minDeposit,
           maxDeposit,
           suggestions: suggestions.length > 0 ? suggestions : [minDeposit],
+          binanceMinDeposit,
+          binanceMaxDeposit,
+          binanceSuggestions: binanceSuggestions.length > 0 ? binanceSuggestions : [binanceMinDeposit],
         };
         setWalletConfig(safeConfig);
         setUpiAmount(String(safeConfig.suggestions[0] || 100));
-        const rate = Number(safeConfig.usdtInrRate) || 115;
-        const defaultUsdt = Math.max(1, Math.round((safeConfig.suggestions[0] || 100) / rate));
-        setBinanceAmount(String(defaultUsdt));
+        setBinanceAmount(String(safeConfig.binanceSuggestions[0] || 1));
       }
     } catch (err: any) {
       console.error('Wallet error:', err);
@@ -211,15 +222,15 @@ export default function WalletPage() {
       finalAmountInr = Number((usdtVal * rate).toFixed(2));
       displayUsdt = usdtVal.toFixed(2);
 
-      const minUsdt = Number((walletConfig.minDeposit / rate).toFixed(2));
-      const maxUsdt = Number((walletConfig.maxDeposit / rate).toFixed(2));
+      const minUsdt = walletConfig.binanceMinDeposit || 1;
+      const maxUsdt = walletConfig.binanceMaxDeposit || 500;
 
       if (usdtVal < minUsdt) {
-        setTopUpError(`Minimum deposit amount is $${minUsdt} USDT (≈ ₹${walletConfig.minDeposit})`);
+        setTopUpError(`Minimum deposit amount is ${minUsdt} USDT (≈ ₹${Math.round(minUsdt * rate).toLocaleString('en-IN')})`);
         return;
       }
       if (usdtVal > maxUsdt) {
-        setTopUpError(`Maximum deposit amount is $${maxUsdt} USDT (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`);
+        setTopUpError(`Maximum deposit amount is ${maxUsdt} USDT (≈ ₹${Math.round(maxUsdt * rate).toLocaleString('en-IN')})`);
         return;
       }
       if (!binanceTxId.trim()) {
@@ -294,13 +305,8 @@ export default function WalletPage() {
 
   const usdtRate = Number(walletConfig.usdtInrRate) || 115;
   const numericUpiAmount = parseFloat(upiAmount) || walletConfig.minDeposit;
-  const numericBinanceUsdt = parseFloat(binanceAmount) || Number((walletConfig.minDeposit / usdtRate).toFixed(2));
-
-  // If binanceAmount matches an exact configured suggestion, preserve exact INR (e.g. ₹300 instead of ₹300.15)
-  const matchedSuggestion = walletConfig.suggestions.find(
-    (amt) => (amt / usdtRate).toFixed(2) === binanceAmount
-  );
-  const calculatedInr = matchedSuggestion !== undefined ? matchedSuggestion : Number((numericBinanceUsdt * usdtRate).toFixed(2));
+  const numericBinanceUsdt = parseFloat(binanceAmount) || (walletConfig.binanceMinDeposit || 1);
+  const calculatedInr = Number((numericBinanceUsdt * usdtRate).toFixed(2));
 
   const numericAmount = paymentMethod === 'binance' ? calculatedInr : numericUpiAmount;
   const usdtAmount = paymentMethod === 'binance' ? numericBinanceUsdt.toFixed(2) : (numericUpiAmount / usdtRate).toFixed(2);
@@ -652,16 +658,16 @@ export default function WalletPage() {
           {/* Dynamic Suggestions (Displays all 5 Admin-configured quick chips) */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
             {paymentMethod === 'binance' ? (
-              /* Binance USD Suggestions from walletConfig.suggestions (USD Priority First, Rupees Equivalent on Right) */
-              walletConfig.suggestions.slice(0, 5).map((inrVal) => {
-                const usdVal = (inrVal / usdtRate).toFixed(2);
-                const isSelected = binanceAmount === usdVal || parseFloat(binanceAmount) === parseFloat(usdVal);
+              /* Binance USDT Suggestions (USD/USDT Priority First, Rupees Equivalent on Right) */
+              (walletConfig.binanceSuggestions || [1, 2, 5, 10, 20]).slice(0, 5).map((usdtVal) => {
+                const isSelected = parseFloat(binanceAmount) === usdtVal;
+                const inrVal = Math.round(usdtVal * usdtRate);
                 return (
                   <button
-                    key={inrVal}
+                    key={usdtVal}
                     type="button"
                     onClick={() => {
-                      setBinanceAmount(usdVal);
+                      setBinanceAmount(String(usdtVal));
                       setTopUpError(null);
                     }}
                     className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
@@ -675,7 +681,7 @@ export default function WalletPage() {
                       borderColor: isSelected ? '#d97706' : undefined,
                     }}
                   >
-                    ${usdVal} (≈ ₹{inrVal})
+                    ${usdtVal} (≈ ₹{inrVal.toLocaleString('en-IN')})
                   </button>
                 );
               })
@@ -701,7 +707,7 @@ export default function WalletPage() {
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    {currency === 'USD' ? `$${estUsdt} (~₹${amount})` : `₹${amount} (~$${estUsdt})`}
+                    {currency === 'USD' ? `$${estUsdt} (≈ ₹${amount})` : `₹${amount} (≈ $${estUsdt})`}
                   </button>
                 );
               })
@@ -734,6 +740,8 @@ export default function WalletPage() {
                       setBinanceAmount(e.target.value);
                       setTopUpError(null);
                     }}
+                    min={walletConfig.binanceMinDeposit || 1}
+                    max={walletConfig.binanceMaxDeposit || 500}
                     style={{ fontSize: '1.1rem', fontWeight: 700, paddingLeft: '28px', width: '100%' }}
                   />
                   <span
@@ -782,17 +790,17 @@ export default function WalletPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem', flexWrap: 'wrap', gap: '0.25rem' }}>
               {paymentMethod === 'binance' ? (
                 <>
-                  <span>Min: ${(walletConfig.minDeposit / usdtRate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})</span>
+                  <span>Min: ${walletConfig.binanceMinDeposit || 1} (≈ ₹{Math.round((walletConfig.binanceMinDeposit || 1) * usdtRate).toLocaleString('en-IN')})</span>
                   <span style={{ fontWeight: 700, color: '#b45309' }}>
-                    ≈ ₹{calculatedInr.toFixed(2)} INR
+                    ≈ ₹{calculatedInr.toFixed(2)}
                   </span>
-                  <span>Max: ${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})</span>
+                  <span>Max: ${walletConfig.binanceMaxDeposit || 500} (≈ ₹{Math.round((walletConfig.binanceMaxDeposit || 500) * usdtRate).toLocaleString('en-IN')})</span>
                 </>
               ) : (
                 <>
                   <span>
                     {currency === 'USD'
-                      ? `Min: $${(walletConfig.minDeposit / usdtRate).toFixed(2)} (₹${walletConfig.minDeposit})`
+                      ? `Min: $${(walletConfig.minDeposit / usdtRate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})`
                       : `Min: ₹${walletConfig.minDeposit}`}
                   </span>
                   <span style={{ fontWeight: 700, color: '#2563eb' }}>
@@ -800,7 +808,7 @@ export default function WalletPage() {
                   </span>
                   <span>
                     {currency === 'USD'
-                      ? `Max: $${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
+                      ? `Max: $${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
                       : `Max: ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`}
                   </span>
                 </>
@@ -960,7 +968,7 @@ export default function WalletPage() {
                     Pay {usdtAmount} USDT
                   </span>
                   <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600, marginTop: '2px' }}>
-                    ≈ ₹{numericAmount.toFixed(2)} INR
+                    ≈ ₹{numericAmount.toFixed(2)}
                   </span>
                 </div>
               ) : (
