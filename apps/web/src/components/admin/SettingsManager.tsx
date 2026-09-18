@@ -211,6 +211,19 @@ export default function SettingsManager() {
 
     const effectiveRate = rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate;
 
+    if (binancePayEnabled) {
+      if (!binancePayId.trim()) {
+        setError('Binance Pay ID is required when Binance Pay is enabled.');
+        setSavingKey(null);
+        return;
+      }
+      if (!binancePayQrUrl.trim()) {
+        setError('Official Binance Pay QR Image URL is mandatory when Binance Pay is enabled. Please upload your official 1:1 cropped Binance QR code and provide the URL.');
+        setSavingKey(null);
+        return;
+      }
+    }
+
     try {
       await saveAdminSettingsBatch({
         brand_name: brandName.trim() || 'OTPWala',
@@ -996,21 +1009,106 @@ export default function SettingsManager() {
               </span>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Custom Binance Pay QR Image URL (Optional)
-              </label>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0 }}>
+                  Official Binance Pay QR Image URL <span style={{ color: '#ef4444' }}>* (Mandatory)</span>
+                </label>
+                <span className="badge badge-warning" style={{ fontSize: '0.7rem', fontWeight: 700 }}>
+                  1:1 Square Crop Required
+                </span>
+              </div>
+
+              {/* Comprehensive Binance QR Instruction & Hosting Guide */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(251, 191, 36, 0.09) 100%)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  borderRadius: '10px',
+                  padding: '1rem 1.15rem',
+                  marginBottom: '0.85rem',
+                  fontSize: '0.825rem',
+                  lineHeight: 1.55,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700, color: '#b45309', marginBottom: '0.45rem' }}>
+                  <AlertCircleIcon size={16} color="#d97706" />
+                  <span>Important: Use Official Binance QR Code Only (Crop in 1:1)</span>
+                </div>
+                <p style={{ margin: '0 0 0.65rem 0', color: 'var(--text-secondary)' }}>
+                  Auto-generated numerical QR codes are rejected by the Binance App scanner with an <em>"Invalid QR Code"</em> error. You <strong>must</strong> export your real, official QR code directly from Binance:
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                      📸 1. Export from Binance &amp; Crop 1:1
+                    </div>
+                    <ol style={{ margin: 0, paddingLeft: '1.15rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                      <li>Open <strong>Binance App</strong> &rarr; tap <strong>Pay</strong> &rarr; <strong>Receive</strong>.</li>
+                      <li>Save or take a screenshot of your personal Binance Pay QR code.</li>
+                      <li><strong>Crop the image to a strict 1:1 square ratio</strong> (centered around the QR pattern and Binance logo).</li>
+                    </ol>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                      ☁️ 2. Upload to Cloudflare Pages or Supabase
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: '1.15rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                      <li>
+                        <strong>Cloudflare Pages:</strong> Drop your cropped 1:1 image file into <code>apps/web/public/binance-qr.png</code> and enter <code>/binance-qr.png</code> below.
+                      </li>
+                      <li>
+                        <strong>Supabase Storage:</strong> Upload your 1:1 image to a public bucket in your Supabase project (e.g. <code>brand-assets</code>) and paste the public HTTPS URL below.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               <input
-                type="url"
+                type="text"
                 value={binancePayQrUrl}
                 onChange={(e) => setBinancePayQrUrl(e.target.value)}
                 className="input"
-                style={{ width: '100%' }}
-                placeholder="https://.../my-binance-qr.png"
+                style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}
+                placeholder="https://.../binance-qr.png or /binance-qr.png"
+                required={binancePayEnabled}
               />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Leave empty to automatically display a generated QR code for your Pay ID.
-              </span>
+
+              {/* Real-time 1:1 Image Preview */}
+              {binancePayQrUrl.trim() ? (
+                <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ width: '90px', height: '90px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #f59e0b', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '4px' }}>
+                    <img
+                      src={binancePayQrUrl.trim()}
+                      alt="Official Binance QR Preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', aspectRatio: '1/1' }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) parent.innerHTML = '<span style="font-size:0.68rem; color:#ef4444; font-weight:600; text-align:center;">Failed to load image</span>';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <CheckCircleIcon size={16} />
+                      <span>Official 1:1 QR Image Preview Active</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
+                      This official QR code will be displayed to users in the Top-Up / Wallet page for direct scanning in the Binance App.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: binancePayEnabled ? '#ef4444' : 'var(--text-muted)', fontWeight: binancePayEnabled ? 600 : 400 }}>
+                  {binancePayEnabled
+                    ? '⚠️ Official Binance Pay QR URL is mandatory. Please upload your 1:1 cropped QR image and paste the URL above.'
+                    : 'Enter the URL of your 1:1 cropped Binance QR image.'}
+                </div>
+              )}
             </div>
           </div>
         </div>

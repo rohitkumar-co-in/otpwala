@@ -277,11 +277,8 @@ export default function WalletPage() {
 
   const usdtRate = Number(walletConfig.usdtInrRate) || 90;
   const usdtAmount = (numericAmount / usdtRate).toFixed(2);
-  const binanceQrUrl = walletConfig.binancePayQrUrl?.trim()
-    ? walletConfig.binancePayQrUrl.trim()
-    : walletConfig.binancePayId
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(walletConfig.binancePayId)}`
-    : '';
+  // Only use the official uploaded Binance QR code image (never auto-generate pseudo-QRs which fail on Binance App)
+  const binanceQrUrl = walletConfig.binancePayQrUrl?.trim() || '';
 
   const totalPages = Math.ceil(totalTx / limit);
   const visibleTransactions = transactionFilter === 'all'
@@ -804,44 +801,51 @@ export default function WalletPage() {
                 <div
                   style={{
                     background: '#ffffff',
-                    padding: '10px',
+                    padding: '12px',
                     borderRadius: 'var(--radius-md)',
                     display: 'inline-flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
                   }}
                 >
                   <img
                     src={binanceQrUrl}
-                    alt="Binance Pay QR Code"
-                    width={170}
-                    height={170}
-                    style={{ display: 'block', borderRadius: '4px' }}
+                    alt="Official Binance Pay QR Code"
+                    width={180}
+                    height={180}
+                    style={{ display: 'block', borderRadius: '4px', objectFit: 'contain', aspectRatio: '1/1' }}
                   />
-                  <span style={{ color: '#111827', fontSize: '0.75rem', fontWeight: 700, marginTop: '6px' }}>
+                  <span style={{ color: '#111827', fontSize: '0.78rem', fontWeight: 700, marginTop: '8px' }}>
                     Pay {usdtAmount} USDT
+                  </span>
+                  <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 500, marginTop: '2px' }}>
+                    Official Binance QR (1:1)
                   </span>
                 </div>
               ) : (
                 <div
                   style={{
-                    width: '170px',
-                    height: '170px',
+                    width: '180px',
+                    height: '180px',
                     borderRadius: 'var(--radius-md)',
                     background: 'var(--bg-tertiary)',
-                    border: '1px dashed var(--border-subtle)',
+                    border: '1px dashed rgba(245, 158, 11, 0.4)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     textAlign: 'center',
-                    padding: '1rem',
+                    padding: '1.25rem',
                   }}
                 >
                   <BinanceIcon size={44} />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                    Use Binance Pay ID directly
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.6rem' }}>
+                    Use Binance Pay ID
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem', lineHeight: 1.35 }}>
+                    Open Binance App &rarr; Pay &rarr; Send to Pay ID below
                   </span>
                 </div>
               )}
