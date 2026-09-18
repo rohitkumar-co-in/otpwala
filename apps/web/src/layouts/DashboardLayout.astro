@@ -145,7 +145,7 @@ const formattedTitle = formatPageTitle(title);
             </svg>
           </span>
           <span style="flex: 1;">Wallet</span>
-          <span class="badge badge-success" id="sidebar-wallet-badge" style="font-size: 0.72rem; padding: 0.15rem 0.45rem;">₹0.00</span>
+          <span class="badge badge-success" id="sidebar-wallet-badge" style="font-size: 0.72rem; padding: 0.15rem 0.45rem;">$0.00</span>
         </a>
 
         <a href="/dashboard/refer" class={`nav-item ${activeNav === 'refer' ? 'active' : ''}`} id="nav-refer">
@@ -205,11 +205,11 @@ const formattedTitle = formatPageTitle(title);
           <!-- Currency Toggle Switcher -->
           <div class="currency-toggle-wrapper" id="currency-toggle-container" title="Switch Universal Currency Display">
             <div class="currency-toggle-pill" role="group" aria-label="Currency Selector">
-              <button type="button" class="currency-btn active" id="btn-curr-inr" data-currency="INR">
-                <span>₹ INR</span>
-              </button>
-              <button type="button" class="currency-btn" id="btn-curr-usd" data-currency="USD">
+              <button type="button" class="currency-btn active" id="btn-curr-usd" data-currency="USD">
                 <span>$ USD</span>
+              </button>
+              <button type="button" class="currency-btn" id="btn-curr-inr" data-currency="INR">
+                <span>₹ INR</span>
               </button>
             </div>
           </div>
@@ -219,7 +219,7 @@ const formattedTitle = formatPageTitle(title);
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
             </svg>
-            <span id="wallet-amount" style="font-weight: 700; font-family: var(--font-mono); font-size: 0.84rem;">₹0.00</span>
+            <span id="wallet-amount" style="font-weight: 700; font-family: var(--font-mono); font-size: 0.84rem;">$0.00</span>
           </a>
 
           <div class="system-status-pill" id="dashboard-health-pill" title="Service, country, and pricing data are loaded from the live catalog">
@@ -849,7 +849,7 @@ const formattedTitle = formatPageTitle(title);
 
       // Universal Currency Management
       function getActiveCurrency() {
-        return localStorage.getItem('otpwala_currency') || 'INR';
+        return localStorage.getItem('otpwala_currency') || 'USD';
       }
 
       function updateCurrencyButtons(curr: string) {

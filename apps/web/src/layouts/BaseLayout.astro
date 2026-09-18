@@ -298,11 +298,11 @@ const breadcrumbSchema = {
         <!-- Universal Currency Toggle -->
         <div class="currency-toggle-wrapper" id="public-currency-toggle" title="Switch Currency Display">
           <div class="currency-toggle-pill" role="group" aria-label="Currency Selector">
-            <button type="button" class="currency-btn active" id="pub-btn-curr-inr" data-currency="INR">
-              <span>₹ INR</span>
-            </button>
-            <button type="button" class="currency-btn" id="pub-btn-curr-usd" data-currency="USD">
+            <button type="button" class="currency-btn active" id="pub-btn-curr-usd" data-currency="USD">
               <span>$ USD</span>
+            </button>
+            <button type="button" class="currency-btn" id="pub-btn-curr-inr" data-currency="INR">
+              <span>₹ INR</span>
             </button>
           </div>
         </div>
@@ -701,7 +701,7 @@ const breadcrumbSchema = {
 
     // Universal Currency Management for Public Site
     function initPublicCurrency() {
-      const curr = localStorage.getItem('otpwala_currency') || 'INR';
+      const curr = localStorage.getItem('otpwala_currency') || 'USD';
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
 

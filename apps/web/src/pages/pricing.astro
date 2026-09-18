@@ -769,26 +769,40 @@ const pricingFaqSchema = {
             return;
           }
 
+          const activeCurr = localStorage.getItem('otpwala_currency') || 'USD';
+          const rate = 115;
+          const headerPricing = activeCurr === 'USD' ? 'Pricing ($ USD)' : 'Pricing (₹ INR)';
+
           let html = `
             <table style="width:100%; border-collapse: collapse; margin-bottom: 1.5rem; background: var(--bg-main); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-subtle);">
               <thead>
                 <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-subtle);">
                   <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Country</th>
-                  <th style="padding: 0.75rem 1rem; text-align: right; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Pricing (₹)</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">${headerPricing}</th>
                 </tr>
               </thead>
               <tbody>
           `;
           
           result.data.forEach((c: any) => {
-            const price = c.priceInr ? parseFloat(c.priceInr).toFixed(2) : '-';
+            const numPrice = c.priceInr ? parseFloat(c.priceInr) : 0;
+            let formatted = '-';
+            if (numPrice > 0) {
+              const usdVal = (numPrice / rate).toFixed(2);
+              const inrVal = numPrice.toFixed(2);
+              if (activeCurr === 'USD') {
+                formatted = `$${usdVal} <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">(≈ ₹${inrVal})</span>`;
+              } else {
+                formatted = `₹${inrVal} <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">(≈ $${usdVal})</span>`;
+              }
+            }
             html += `
               <tr style="border-bottom: 1px solid var(--border-subtle);">
                 <td style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
                   <img src="${c.flagUrl || '/icons/services/default.svg'}" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="if(!this.src.endsWith('/icons/services/default.svg')) this.src='/icons/services/default.svg'">
                   <span style="font-weight: 500;">${c.name}</span>
                 </td>
-                <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">₹${price}</td>
+                <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">${formatted}</td>
               </tr>
             `;
           });

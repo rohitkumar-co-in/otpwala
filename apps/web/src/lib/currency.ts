@@ -6,15 +6,15 @@ const CURRENCY_KEY = 'otpwala_currency';
 export const DEFAULT_USD_TO_INR_RATE = 115;
 
 /**
- * Get active currency from localStorage (defaults to INR)
+ * Get active currency from localStorage (defaults to USD)
  */
 export function getActiveCurrency(): Currency {
-  if (typeof window === 'undefined') return 'INR';
+  if (typeof window === 'undefined') return 'USD';
   try {
     const saved = localStorage.getItem(CURRENCY_KEY);
-    return saved === 'USD' ? 'USD' : 'INR';
+    return saved === 'INR' ? 'INR' : 'USD';
   } catch {
-    return 'INR';
+    return 'USD';
   }
 }
 

@@ -855,7 +855,7 @@ export default function BuyNumber() {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.65rem' }}>
           {[
             { id: 'all', label: `All Countries (${allCountries.length || countries.length})` },
-            { id: 'cheap', label: currency === 'USD' ? `Budget (< $0.50)` : `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
+            { id: 'cheap', label: currency === 'USD' ? `Budget (< $0.50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` : `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
           ].map((tab) => (
             <button
               key={tab.id}
