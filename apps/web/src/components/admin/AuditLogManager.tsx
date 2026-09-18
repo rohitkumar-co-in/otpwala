@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react';
 import { getAdminAuditLogs } from '../../lib/api';
-import { RefreshCwIcon, AlertCircleIcon } from '../ui/Icons';
+import { toast } from '../../lib/toast';
+import { RefreshCwIcon, AlertCircleIcon, CheckIcon } from '../ui/Icons';
 
 export default function AuditLogManager() {
   const [logs, setLogs] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [action, setAction] = useState('');
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState('');
 
-  const load = async () => {
+  const load = async (isManual = false) => {
     setLoading(true);
     setError('');
     try {
       const data = await getAdminAuditLogs(100, 0, action);
       setLogs(data.logs || []);
       setTotal(data.total || 0);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Audit trail refreshed.', 'Audit Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Unable to load audit records');
+      if (isManual) {
+        toast.error(err.message || 'Unable to load audit records', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -33,7 +43,31 @@ export default function AuditLogManager() {
     <form onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
       <input className="input" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Filter action, e.g. wallet.credit" aria-label="Filter audit action" style={{ minWidth: 260 }} />
       <button className="btn btn-primary btn-sm" type="submit" disabled={loading}>Filter</button>
-      <button className="btn btn-secondary btn-sm" type="button" onClick={load} disabled={loading}><RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} /> Refresh</button>
+      <button
+        className="btn btn-secondary btn-sm"
+        type="button"
+        onClick={() => load(true)}
+        disabled={loading}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          borderColor: recentRefresh ? '#10b981' : undefined,
+          color: recentRefresh ? '#34d399' : undefined,
+        }}
+      >
+        {recentRefresh ? (
+          <>
+            <CheckIcon size={14} color="#34d399" />
+            <span>Refreshed!</span>
+          </>
+        ) : (
+          <>
+            <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </>
+        )}
+      </button>
     </form>
     {error && <div className="alert alert-error"><AlertCircleIcon size={18} /> {error}</div>}
     <div className="card" style={{ padding: '1rem', overflowX: 'auto' }}>

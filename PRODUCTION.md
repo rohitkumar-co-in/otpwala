@@ -32,6 +32,8 @@
 - Duplicate UTR submissions: blocked by the unique database index.
 - Provider/API health and balance: review separately; a positive balance does not prove API health.
 - Low provider-balance Telegram alerts use the Admin Settings threshold and are limited to two IST windows per day.
+- Referral fraud alerts: Review `public.referral_fraud_logs` periodically for repeated IP/subnet collision attempts.
+- Security & compliance logs: `public.user_security_logs` stores edge telemetry (IP, ISP, ASN, location) for audit trails and account rights requests.
 
 ## Release verification
 

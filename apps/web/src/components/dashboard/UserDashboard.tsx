@@ -212,9 +212,9 @@ function ActiveOrderCard({ order }: { order: any }) {
           <SmartphoneIcon size={18} color="var(--accent-primary)" />
         </div>
         <div>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.service_name} — {order.country_name}</div>
+          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.service_name} — {order.country_name || 'Virtual Number'}</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            {order.phone_number}
+            {formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}
           </div>
         </div>
       </div>

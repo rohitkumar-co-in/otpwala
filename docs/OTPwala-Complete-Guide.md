@@ -27,28 +27,38 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 ### Customer features
 
 - Email OTP, password, and Google login.
+- Single-device active session enforcement with concurrent device protection.
+- Live session command center showing Public IP, telecom carrier / ISP name, ASN, and geo location.
 - TOTP authenticator MFA after password, email OTP, and Google login.
 - Service and country catalog with live provider pricing.
-- Wallet balance, top-up requests, ledger history, and refunds.
-- Virtual-number purchase and live OTP polling.
+- Wallet balance, top-up requests, ledger history with running balance after each transaction, and auto-refunds.
+- Strict 12-digit numeric UPI UTR and numeric Binance Pay Order ID validation on deposits.
+- Virtual-number purchase and live OTP polling with audio alert and 1-click clipboard copy.
 - Order history with phone number formatted as `+country dialing code national number`.
 - Automatic refund after eligible cancellation, provider failure, or expiry.
+- Multi-tier referral earnings with automated network fraud protection.
 - Support tickets with General Help, Payment Issue, Order/OTP Issue, Bug Report, and Account Security types.
 - Optional bug-report image attachment (PNG/JPG/WEBP/GIF, maximum 1.5 MB).
 - Threaded replies while a ticket is open.
 - Resolved and closed tickets are final and cannot receive replies.
-- Account data export and deletion request for admin review.
+- Formatted user data export (Standalone HTML Report with 1-click Print to PDF, CSV Spreadsheet, and JSON Archive).
+- Account deletion request with in-site confirmation modal (zero browser popups).
 
 ### Admin features
 
 - Dashboard health, provider balance, financial integrity, order, and revenue views.
-- Order audit with service, country, country ID, phone number, OTP, sale price, provider cost, and gross profit.
+- 1-click payment deposit approval/rejection with in-site confirmation dialogs.
+- Order audit with service, country, phone number, OTP, sale price, provider cost, and gross profit.
 - Pricing rules by global fallback, service, country, or service+country.
-- Catalog visibility controls.
-- Top-up approval/rejection and manual wallet credits with audit notes.
-- User search, ban/unban, details, and erasure workflow.
+- Catalog visibility controls with 1-click batch actions.
+- Top-up approval/rejection and manual wallet credits declaring funding sources (cash vs free grant).
+- User search, details inspect modal with running balance ledger, ban/unban, promote/demote, and zero-markup toggle.
+- Full user dossier export (1-click download of all user profile data, IP/ISP security logs, orders, ledger, payment requests, and tickets).
+- Multi-tier referral fraud logs and automated network collision protection.
 - Support queue with status, priority, internal notes, threaded replies, and ticket-type context.
+- Super Admin privacy & data erasure queue with in-site modal confirmations.
 - Immutable wallet ledger, reconciliation, audit log, operational alerts, retention controls, and RLS protections.
+- Universal in-site toast notification engine on all refresh, save, and update actions.
 
 ## 3. Prerequisites
 
@@ -324,3 +334,65 @@ Use PNG, JPG, WEBP, or GIF under 1.5 MB and confirm the final support migration 
 - Do not delete financial records to “fix” a display issue; correct the reporting query.
 - Treat deletion approval, refunds, pricing changes, and provider funding as deliberate administrative actions.
 - Keep a successful CI run and production health check for every release.
+
+## 16. Referral fraud prevention engine
+
+OTPWala features an automated multi-tier network fraud detection system designed to eliminate self-referrals and multi-accounting exploitation on shared networks:
+
+1. **Exact IP Collision (`score: 100`)**:
+   - Rejects referral attribution if the referee's current IP matches the referrer's `signup_ip` or `last_login_ip`.
+2. **IPv6 Cellular Subnet Matching (`score: 85`)**:
+   - Indian mobile operators (Reliance Jio, Bharti Airtel, Vodafone Idea) dynamically provision a `/64` IPv6 prefix to an individual device or mobile hotspot.
+   - Evaluates the first 4 blocks of IPv6 (`/64` prefix). Matches indicate the accounts are connected to the exact same cellular subscription or hotspot.
+3. **IPv4 Local Network Matching (`score: 60`)**:
+   - Evaluates the first 3 octets (`/24` prefix) to detect shared residential routers, local cyber cafes, or local proxies.
+4. **Historical Telemetry Matching (`score: 75`)**:
+   - Checks `public.user_security_logs` to verify whether the referrer has ever authenticated from the referee's IP or vice-versa.
+5. **Enforcement**:
+   - Fraudulent referral links are blocked with clear feedback.
+   - Any deposits on suspicious accounts have referral bonus generation suppressed.
+   - Detailed forensic evidence is recorded in `public.referral_fraud_logs`.
+
+## 17. Single-device session protection & edge compliance telemetry
+
+1. **Single-Device Protection**:
+   - Users are restricted to one active device session at any time.
+   - During login (`register-session`), a UUID v4 session identifier is recorded in the user profile and stored in the client's `localStorage`.
+   - API endpoints verify the active session token. If the user logs in from another computer or browser, the displaced device receives an immediate session invalidation notification (`concurrent_session`) and is logged out cleanly.
+2. **Zero-Cost Edge Compliance Telemetry**:
+   - Handled directly at the Cloudflare edge in `functions/api/[[path]].ts` without paid external geo-IP services:
+     - Public IP: `cf-connecting-ip`
+     - Network Operator / ISP: `request.cf.asOrganization`
+     - Autonomous System: `request.cf.asn`
+     - Location: `request.cf.city`, `request.cf.region`, `request.cf.country`
+     - Client signature: `user-agent`
+   - Logged to `public.user_security_logs` on signup, login, password reset, and OAuth callback.
+
+## 18. Universal formatted user data export engine
+
+1. **Interactive Standalone HTML Report (`.html`) — Recommended Format**:
+   - Offline-capable self-contained HTML file viewable in any browser without third-party software.
+   - Features executive bank-statement styling, metric summary cards, and tabular sections for:
+     - Profile details & verification status
+     - Security & IP/ISP telemetry logs
+     - Phone/OTP order history with SMS codes received
+     - Complete wallet transaction ledger with running balance after each entry
+     - Payment deposit requests with 12-digit UTR / Binance Order IDs
+     - Referral history and earnings
+     - Support ticket history
+   - Built-in **1-click "Print / Save to PDF"** button with specialized `@media print` styles for clean white-paper PDF output.
+2. **Spreadsheet CSV (`.csv`)**:
+   - Structured multi-section CSV format for direct analysis in Microsoft Excel or Google Sheets.
+3. **Structured JSON (`.json`)**:
+   - Formatted indented machine-readable backup for developer restoration and audits.
+4. **Admin User Dossier Export**:
+   - Accessible via the **Export** button on each row in `/admin/users` or via the **Export User Dossier** button inside the user details inspect modal.
+
+## 19. In-site modal & toast notification framework
+
+1. **Zero Browser-Level Popups**:
+   - `showConfirm` in `apps/web/src/lib/confirm.ts` replaces standard browser `confirm()`, `alert()`, and `prompt()`.
+   - Renders high-end frosted glass backdrop dialogs with accessible keyboard controls (`Escape` key, backdrop click).
+2. **Toast Notifications**:
+   - Powered by `toast` in `apps/web/src/lib/toast.ts`.
+   - Displays animated, non-blocking toast alerts on payment approvals, ticket replies, setting saves, and ledger refreshes.

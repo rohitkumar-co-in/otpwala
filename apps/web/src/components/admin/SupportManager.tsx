@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAdminSupportTickets, updateAdminSupportTicket, replyToAdminSupportTicket, getAdminDataDeletionRequests, processAdminDataDeletionRequest } from '../../lib/api';
 import { showConfirm } from '../../lib/confirm';
+import { toast } from '../../lib/toast';
 
 export default function SupportManager() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -17,8 +18,14 @@ export default function SupportManager() {
   const edit = (id: string, key: string, value: string) => setTickets((rows) => rows.map((r) => r.id === id ? { ...r, [key]: value } : r));
   async function save(t: any) {
     setBusy(t.id); setError('');
-    try { await updateAdminSupportTicket(t.id, t.status, t.priority, t.admin_notes || '', t.public_reply || ''); await load(); }
-    catch (e: any) { setError(e.message || 'Unable to update ticket.'); } finally { setBusy(''); }
+    try {
+      await updateAdminSupportTicket(t.id, t.status, t.priority, t.admin_notes || '', t.public_reply || '');
+      toast.success('Support ticket updated successfully.', 'Ticket Updated');
+      await load();
+    } catch (e: any) {
+      setError(e.message || 'Unable to update ticket.');
+      toast.error(e.message || 'Unable to update ticket.', 'Update Failed');
+    } finally { setBusy(''); }
   }
   async function processDeletion(id: string, decision: 'approve'|'reject') {
     if (decision === 'approve') {
@@ -32,14 +39,27 @@ export default function SupportManager() {
       if (!confirmed) return;
     }
     setBusy(id); setError('');
-    try { await processAdminDataDeletionRequest(id, decision, deletionNotes[id] || ''); await loadDeletions(); }
-    catch (e: any) { setError(e.message || 'Unable to process data erasure request.'); } finally { setBusy(''); }
+    try {
+      await processAdminDataDeletionRequest(id, decision, deletionNotes[id] || '');
+      toast.success(decision === 'approve' ? 'Data erasure approved and processed.' : 'Data erasure request rejected.', 'Request Processed');
+      await loadDeletions();
+    } catch (e: any) {
+      setError(e.message || 'Unable to process data erasure request.');
+      toast.error(e.message || 'Unable to process data erasure request.', 'Action Failed');
+    } finally { setBusy(''); }
   }
   async function reply(t: any) {
     const text = (replies[t.id] || '').trim(); if (!text) return;
     setBusy(t.id); setError('');
-    try { await replyToAdminSupportTicket(t.id, text); setReplies((all) => ({ ...all, [t.id]: '' })); setFilter('open'); }
-    catch (e: any) { setError(e.message || 'Unable to send reply.'); } finally { setBusy(''); }
+    try {
+      await replyToAdminSupportTicket(t.id, text);
+      toast.success('Reply sent to customer.', 'Reply Sent');
+      setReplies((all) => ({ ...all, [t.id]: '' }));
+      setFilter('open');
+    } catch (e: any) {
+      setError(e.message || 'Unable to send reply.');
+      toast.error(e.message || 'Unable to send reply.', 'Reply Failed');
+    } finally { setBusy(''); }
   }
   return <div style={{ display: 'grid', gap: '1rem' }}>
     <div><h1 style={{ margin: 0, fontSize: '1.75rem' }}>Support Queue</h1><p style={{ color: 'var(--text-secondary)' }}>Review, reply to, assign, and resolve customer issues.</p></div>

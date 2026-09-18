@@ -105,6 +105,8 @@ apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
 apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
 apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
+apps/api/supabase/migrations/20260918233000_user_security_logs.sql
+apps/api/supabase/migrations/20260918234500_referral_fraud_detection.sql
 ```
 
 Run each file once and wait for success before running the next file. Never rerun a migration blindly.

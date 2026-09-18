@@ -80,6 +80,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { recordAuthSession } from '../../lib/api';
+  import { registerCurrentSession } from '../../lib/sessionManager';
 
   const titleEl = document.getElementById('callback-title');
   const subEl   = document.getElementById('callback-sub');
@@ -161,9 +162,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     } catch (e) {}
 
-    // Record session telemetry for security compliance
+    // Record session telemetry for security compliance & single-device protection
     if (session?.access_token) {
       try {
+        await registerCurrentSession(session.access_token);
         await recordAuthSession(isNew ? 'signup' : 'oauth_login');
       } catch (e) {}
     }
