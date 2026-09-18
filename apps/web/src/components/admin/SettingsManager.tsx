@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAdminSettings, saveAdminSettingsBatch, getAdminTigerBalance, testTelegramNotification } from '../../lib/api';
 import { TelegramIcon } from '../ui/BrandIcons';
+import { toast } from '../../lib/toast';
 import {
   ServerIcon,
   DollarIcon,
@@ -11,6 +12,7 @@ import {
   RefreshCwIcon,
   AlertCircleIcon,
   CheckCircleIcon,
+  CheckIcon,
   XIcon,
   ZapIcon,
   TagIcon,
@@ -22,6 +24,8 @@ export default function SettingsManager() {
   const [tigerStatus, setTigerStatus] = useState<'online' | 'error' | 'checking'>('checking');
   const [checkingTiger, setCheckingTiger] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
+  const [recentSave, setRecentSave] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -171,8 +175,17 @@ export default function SettingsManager() {
       if (s.referral_bonus_tier2_percent) setRefTier2(s.referral_bonus_tier2_percent);
       if (s.referral_bonus_tier3_percent) setRefTier3(s.referral_bonus_tier3_percent);
       if (s.referral_bonus_window_days) setRefWindowDays(s.referral_bonus_window_days);
+
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('System settings & gateway status refreshed successfully.', 'Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load platform settings');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load platform settings', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -191,13 +204,16 @@ export default function SettingsManager() {
         setTigerBalance(bal);
         setTigerStatus('online');
         setSuccess('Tiger SMS Provider connection verified! Upstream API is operational.');
+        toast.success(`Tiger SMS API is online! Upstream balance: $${parseFloat(bal.balance || 0).toFixed(2)}`, 'Gateway Online');
       } else {
         setTigerStatus('error');
         setError('Tiger SMS API returned unexpected response or zero balance');
+        toast.error('Tiger SMS API returned unexpected response or zero balance', 'Gateway Issue');
       }
     } catch (err: any) {
       setTigerStatus('error');
       setError(err.message || 'Tiger SMS API check failed: Unable to connect');
+      toast.error(err.message || 'Tiger SMS API check failed: Unable to connect', 'Gateway Error');
     } finally {
       setCheckingTiger(false);
     }
@@ -343,8 +359,12 @@ export default function SettingsManager() {
 
       setUsdToInr(effectiveRate);
       setSuccess(`All system settings successfully saved! Brand: "${brandName}", Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%, Referral Window: ${refWindowDays} days.`);
+      setRecentSave(true);
+      setTimeout(() => setRecentSave(false), 2500);
+      toast.success(`All system settings successfully saved! Brand: "${brandName}", Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%`, 'Settings Saved');
     } catch (err: any) {
       setError(err.message || 'Failed to save settings');
+      toast.error(err.message || 'Failed to save settings', 'Save Failed');
     } finally {
       setSavingKey(null);
     }
@@ -353,10 +373,12 @@ export default function SettingsManager() {
   const handleTestTelegram = async () => {
     if (!telegramBotToken.trim()) {
       setError('Please enter your Telegram Bot Token before testing.');
+      toast.warning('Please enter your Telegram Bot Token before testing.', 'Missing Token');
       return;
     }
     if (!telegramAdminChatId.trim()) {
       setError('Please enter your Telegram User ID / Chat ID before testing.');
+      toast.warning('Please enter your Telegram User ID / Chat ID before testing.', 'Missing Chat ID');
       return;
     }
 
@@ -369,11 +391,13 @@ export default function SettingsManager() {
         success: true,
         message: res?.message || 'Test alert message successfully dispatched to Telegram!',
       });
+      toast.success(res?.message || 'Test alert message successfully dispatched to Telegram!', 'Telegram Alert Sent');
     } catch (err: any) {
       setTelegramTestResult({
         success: false,
         message: err.message || 'Telegram test failed. Please check your token and chat ID.',
       });
+      toast.error(err.message || 'Telegram test failed. Please check your token and chat ID.', 'Telegram Error');
     } finally {
       setTestingTelegram(false);
     }
@@ -395,12 +419,29 @@ export default function SettingsManager() {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={loadSettings}
+            onClick={() => loadSettings(true)}
             disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              borderColor: recentRefresh ? '#10b981' : undefined,
+              color: recentRefresh ? '#34d399' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-            <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            {recentRefresh ? (
+              <>
+                <CheckIcon size={14} color="#34d399" />
+                <span>Refreshed!</span>
+              </>
+            ) : (
+              <>
+                <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+                <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+              </>
+            )}
           </button>
           <button
             type="button"
@@ -408,10 +449,27 @@ export default function SettingsManager() {
             onClick={() => handleSaveAll()}
             disabled={savingKey === 'all'}
             title="Saves all configuration on this page across all categories"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontWeight: 600,
+              backgroundColor: recentSave ? '#10b981' : undefined,
+              borderColor: recentSave ? '#10b981' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <SaveIcon size={14} />
-            <span>{savingKey === 'all' ? 'Saving All Settings...' : 'Save All Settings'}</span>
+            {recentSave ? (
+              <>
+                <CheckIcon size={14} />
+                <span>Saved!</span>
+              </>
+            ) : (
+              <>
+                <SaveIcon size={14} />
+                <span>{savingKey === 'all' ? 'Saving All Settings...' : 'Save All Settings'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -1790,10 +1848,27 @@ export default function SettingsManager() {
             type="submit"
             className="btn btn-primary btn-lg"
             disabled={savingKey === 'all'}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: 700,
+              backgroundColor: recentSave ? '#10b981' : undefined,
+              borderColor: recentSave ? '#10b981' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <SaveIcon size={18} />
-            <span>{savingKey === 'all' ? 'Saving All Settings...' : 'Save All Settings'}</span>
+            {recentSave ? (
+              <>
+                <CheckIcon size={18} />
+                <span>Saved Successfully!</span>
+              </>
+            ) : (
+              <>
+                <SaveIcon size={18} />
+                <span>{savingKey === 'all' ? 'Saving All Settings...' : 'Save All Settings'}</span>
+              </>
+            )}
           </button>
         </div>
       </form>

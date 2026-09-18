@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAdminPricing, saveAdminPricing, deleteAdminPricing, getServices, getCountries, getAdminSettings, saveAdminSettingsBatch } from '../../lib/api';
+import { toast } from '../../lib/toast';
 import {
   CalculatorIcon,
   RefreshCwIcon,
@@ -31,6 +32,8 @@ export default function PricingManager() {
   const [services, setServices] = useState<any[]>([]);
   const [countries, setCountries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
+  const [recentSave, setRecentSave] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingRate, setSavingRate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,8 +94,16 @@ export default function PricingManager() {
       if (settingsData?.default_markup_type) {
         setCalcMarkupType(settingsData.default_markup_type === 'fixed' ? 'fixed' : 'percentage');
       }
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Pricing rules, catalog & exchange rates refreshed.', 'Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load pricing rules');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load pricing rules', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -118,8 +129,15 @@ export default function PricingManager() {
       setSuccess(
         `All pricing settings saved successfully! Dollar exchange rate set to ₹${effectiveRate.toFixed(2)} and default profit margin set to ${calcMarkupValue}${calcMarkupType === 'percentage' ? '%' : '₹'}. Pricing cache refreshed!`
       );
+      setRecentSave(true);
+      setTimeout(() => setRecentSave(false), 2500);
+      toast.success(
+        `Dollar rate set to ₹${effectiveRate.toFixed(2)}, baseline margin set to ${calcMarkupValue}${calcMarkupType === 'percentage' ? '%' : '₹'}.`,
+        'Baseline Pricing Saved'
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to save pricing settings');
+      toast.error(err.message || 'Failed to save pricing settings', 'Save Failed');
     } finally {
       setSavingRate(false);
     }
@@ -145,13 +163,12 @@ export default function PricingManager() {
   const openEditModal = (rule: any) => {
     setEditingRule(rule);
     setFormData({
-      id: rule.id,
-      service_code: rule.service_code || null,
-      country_code: rule.country_code !== null ? Number(rule.country_code) : null,
-      markup_type: rule.markup_type || 'percentage',
-      markup_value: parseFloat(rule.markup_value) || 0,
+      service_code: rule.service_code,
+      country_code: rule.country_code,
+      markup_type: rule.markup_type,
+      markup_value: parseFloat(rule.markup_value),
       priority: rule.priority || 0,
-      is_active: rule.is_active !== false,
+      is_active: rule.is_active,
     });
     setShowModal(true);
   };
@@ -163,6 +180,7 @@ export default function PricingManager() {
     setSuccess(null);
     try {
       await saveAdminPricing({
+        ...(editingRule?.id ? { id: editingRule.id } : {}),
         ...formData,
         service_code: formData.service_code === '' ? null : formData.service_code,
         country_code: formData.country_code === null || (formData.country_code as any) === '' ? null : Number(formData.country_code),
@@ -170,10 +188,12 @@ export default function PricingManager() {
         priority: Number(formData.priority),
       });
       setSuccess('Pricing rule saved successfully!');
+      toast.success('Custom pricing override rule saved successfully!', 'Rule Saved');
       setShowModal(false);
       await loadData();
     } catch (err: any) {
       setError(err.message || 'Failed to save rule');
+      toast.error(err.message || 'Failed to save rule', 'Save Failed');
     } finally {
       setSaving(false);
     }
@@ -186,9 +206,11 @@ export default function PricingManager() {
     try {
       await deleteAdminPricing(id);
       setSuccess('Rule deleted successfully!');
+      toast.success('Rule deleted successfully.', 'Rule Deleted');
       await loadData();
     } catch (err: any) {
       setError(err.message || 'Failed to delete rule');
+      toast.error(err.message || 'Failed to delete rule', 'Delete Failed');
     }
   };
 
@@ -198,9 +220,11 @@ export default function PricingManager() {
         ...rule,
         is_active: !rule.is_active,
       });
+      toast.success(`Rule ${!rule.is_active ? 'activated' : 'paused'} successfully.`, 'Rule Status Updated');
       await loadData();
     } catch (err: any) {
       setError(err.message || 'Failed to update rule status');
+      toast.error(err.message || 'Failed to update rule status', 'Update Error');
     }
   };
 
@@ -228,12 +252,29 @@ export default function PricingManager() {
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             className="btn btn-secondary btn-sm"
-            onClick={loadData}
+            onClick={() => loadData(true)}
             disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              borderColor: recentRefresh ? '#10b981' : undefined,
+              color: recentRefresh ? '#34d399' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-            <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            {recentRefresh ? (
+              <>
+                <CheckIcon size={14} color="#34d399" />
+                <span>Refreshed!</span>
+              </>
+            ) : (
+              <>
+                <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+                <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+              </>
+            )}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <span>+</span>
@@ -245,10 +286,27 @@ export default function PricingManager() {
             onClick={handleSavePricingSettings}
             disabled={savingRate}
             title="Saves the global fallback dollar rate and markup percentage to platform settings"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontWeight: 600,
+              backgroundColor: recentSave ? '#10b981' : undefined,
+              borderColor: recentSave ? '#10b981' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <SaveIcon size={14} />
-            <span>{savingRate ? 'Saving...' : 'Save Baseline Rate & Margin'}</span>
+            {recentSave ? (
+              <>
+                <CheckIcon size={14} />
+                <span>Saved!</span>
+              </>
+            ) : (
+              <>
+                <SaveIcon size={14} />
+                <span>{savingRate ? 'Saving...' : 'Save Baseline Rate & Margin'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
+import { toast } from '../../lib/toast';
 import { getActiveCurrency, formatDualPrice, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
 import {
   ShoppingCartIcon,
@@ -67,27 +68,7 @@ function playNotificationSound() {
 }
 
 function showSuccessToast(message: string) {
-  if (typeof document === 'undefined') return;
-
-  let container = document.querySelector('.toast-container') as HTMLElement | null;
-  if (!container) {
-    container = document.createElement('div');
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.setAttribute('role', 'status');
-  toast.style.borderColor = 'rgba(16, 185, 129, 0.55)';
-  toast.style.color = '#34d399';
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  window.setTimeout(() => {
-    toast.remove();
-    if (container && !container.children.length) container.remove();
-  }, 6000);
+  toast.success(message, 'Order Update');
 }
 
 export function renderServiceIcon(serviceOrCode: any, size = 26) {

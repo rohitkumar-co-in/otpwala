@@ -3,6 +3,7 @@ import { getOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
+import { toast } from '../../lib/toast';
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -10,6 +11,7 @@ export default function OrderHistory() {
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
@@ -53,14 +55,22 @@ export default function OrderHistory() {
     return () => clearInterval(interval);
   }, [hasWaitingOrders, page, statusFilter]);
 
-  async function loadOrders() {
+  async function loadOrders(isManual = false) {
     setLoading(true);
     try {
       const data = await getOrders(limit, page * limit, statusFilter || undefined);
       setOrders(data.orders || []);
       setTotal(data.total || 0);
-    } catch (err) {
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Order history refreshed.', 'Orders Refreshed');
+      }
+    } catch (err: any) {
       console.error('Error loading orders:', err);
+      if (isManual) {
+        toast.error(err?.message || 'Failed to refresh orders', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +86,7 @@ export default function OrderHistory() {
           My Orders
         </h2>
         
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {['', 'waiting', 'code_received', 'cancelled'].map(s => (
             <button
               key={s}
@@ -86,6 +96,33 @@ export default function OrderHistory() {
               {s === '' ? 'All' : s === 'code_received' ? 'OTP Received' : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => loadOrders(true)}
+            disabled={loading}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              borderColor: recentRefresh ? '#10b981' : undefined,
+              color: recentRefresh ? '#34d399' : undefined,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {recentRefresh ? (
+              <>
+                <CheckIcon size={14} color="#34d399" />
+                <span>Refreshed!</span>
+              </>
+            ) : (
+              <>
+                <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+                <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 

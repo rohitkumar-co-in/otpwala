@@ -6,11 +6,13 @@ import {
 } from '../../lib/api';
 import type { AdminFundingSource } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
+import { toast } from '../../lib/toast';
 import {
   SearchIcon,
   RefreshCwIcon,
   CreditCardIcon,
   CheckCircleIcon,
+  CheckIcon,
   XIcon,
 } from '../ui/Icons';
 
@@ -21,6 +23,7 @@ export default function RechargeManager() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -61,7 +64,7 @@ export default function RechargeManager() {
     }
   };
 
-  const loadRecharges = async () => {
+  const loadRecharges = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -69,8 +72,16 @@ export default function RechargeManager() {
       setRecharges(data?.recharges || []);
       setTotal(data?.total || 0);
       loadSummary();
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Recharge records and ledger refreshed.', 'Ledger Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load recharges');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load recharges', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,17 +113,18 @@ export default function RechargeManager() {
     setSuccess(null);
     try {
       await creditUser(creditUserTarget.user_id, creditAmount, creditReason, creditFundingSource);
-      setSuccess(
-        creditFundingSource === 'free_grant'
-          ? `Added ${inr(Math.abs(creditAmount))} free funds to ${creditUserTarget.email} (not counted as revenue).`
-          : `Recorded ${inr(Math.abs(creditAmount))} manual funding for ${creditUserTarget.email} as collected cash.`
-      );
+      const msg = creditFundingSource === 'free_grant'
+        ? `Added ${inr(Math.abs(creditAmount))} free funds to ${creditUserTarget.email} (not counted as revenue).`
+        : `Recorded ${inr(Math.abs(creditAmount))} manual funding for ${creditUserTarget.email} as collected cash.`;
+      setSuccess(msg);
+      toast.success(msg, 'Wallet Credited');
       setCreditUserTarget(null);
       setCreditReason('Manual Admin Credit');
       setCreditFundingSource('');
       await loadRecharges();
     } catch (err: any) {
       setError(err.message || 'Failed to update user balance');
+      toast.error(err.message || 'Failed to update user balance', 'Credit Failed');
     } finally {
       setCrediting(false);
     }
@@ -144,8 +156,22 @@ export default function RechargeManager() {
             </div>
             <button type="submit" className="btn btn-secondary btn-sm">Search</button>
           </form>
-          <button className="btn btn-ghost btn-sm btn-icon" onClick={loadRecharges} title="Refresh" aria-label="Refresh recharge records" disabled={loading}>
-            <RefreshCwIcon size={16} className={loading ? 'spin' : ''} />
+          <button
+            className="btn btn-ghost btn-sm btn-icon"
+            onClick={() => loadRecharges(true)}
+            title="Refresh"
+            aria-label="Refresh recharge records"
+            disabled={loading}
+            style={{
+              borderColor: recentRefresh ? '#10b981' : undefined,
+              color: recentRefresh ? '#34d399' : undefined,
+            }}
+          >
+            {recentRefresh ? (
+              <CheckIcon size={16} color="#34d399" />
+            ) : (
+              <RefreshCwIcon size={16} className={loading ? 'spin' : ''} />
+            )}
           </button>
         </div>
       </div>

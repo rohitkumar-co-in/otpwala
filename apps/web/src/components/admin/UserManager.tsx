@@ -14,12 +14,14 @@ import {
 } from '../../lib/api';
 import type { AdminFundingSource } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
+import { toast } from '../../lib/toast';
 import {
   SearchIcon,
   RefreshCwIcon,
   CreditCardIcon,
   AlertCircleIcon,
   CheckCircleIcon,
+  CheckIcon,
   XIcon,
   TrashIcon,
   EyeIcon,
@@ -33,6 +35,7 @@ export default function UserManager() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -81,7 +84,7 @@ export default function UserManager() {
 
   const limit = 15;
 
-  const loadUsers = async () => {
+  const loadUsers = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -90,8 +93,16 @@ export default function UserManager() {
       setTotal(data?.total || 0);
       // Clean up selection of users no longer in list
       setSelectedUserIds((prev) => prev.filter((id) => (data?.users || []).some((u: any) => u.id === id)));
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('User accounts and balances refreshed.', 'Users Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load users', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -134,15 +145,16 @@ export default function UserManager() {
     setSuccess(null);
     try {
       await creditUser(creditUserTarget.id, creditAmount, creditReason, creditFundingSource);
-      setSuccess(
-        creditFundingSource === 'free_grant'
-          ? `Added ₹${creditAmount} free funds to ${creditUserTarget.email} (not counted as revenue).`
-          : `Recorded ₹${creditAmount} manual funding for ${creditUserTarget.email} as collected cash.`
-      );
+      const msg = creditFundingSource === 'free_grant'
+        ? `Added ₹${creditAmount} free funds to ${creditUserTarget.email} (not counted as revenue).`
+        : `Recorded ₹${creditAmount} manual funding for ${creditUserTarget.email} as collected cash.`;
+      setSuccess(msg);
+      toast.success(msg, 'Wallet Credited');
       setCreditUserTarget(null);
       await loadUsers();
     } catch (err: any) {
       setError(err.message || 'Failed to credit user');
+      toast.error(err.message || 'Failed to credit user', 'Credit Failed');
     } finally {
       setCrediting(false);
     }
@@ -390,12 +402,29 @@ export default function UserManager() {
         </div>
         <button
           className="btn btn-secondary btn-sm"
-          onClick={loadUsers}
+          onClick={() => loadUsers(true)}
           disabled={loading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            borderColor: recentRefresh ? '#10b981' : undefined,
+            color: recentRefresh ? '#34d399' : undefined,
+            transition: 'all 0.2s ease',
+          }}
         >
-          <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+          {recentRefresh ? (
+            <>
+              <CheckIcon size={14} color="#34d399" />
+              <span>Refreshed!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            </>
+          )}
         </button>
       </div>
 

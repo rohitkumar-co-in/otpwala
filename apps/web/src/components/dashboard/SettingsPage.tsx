@@ -10,11 +10,15 @@ import {
   type LoginHistoryData,
 } from '../../lib/api';
 import MfaPanel from './MfaPanel';
+import { toast } from '../../lib/toast';
+import { CheckIcon } from '../ui/Icons';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [recentPasswordSave, setRecentPasswordSave] = useState(false);
+  const [recentHistoryRefresh, setRecentHistoryRefresh] = useState(false);
 
   // Login history & security telemetry state
   const [loginHistoryData, setLoginHistoryData] = useState<LoginHistoryData | null>(null);
@@ -52,27 +56,47 @@ export default function SettingsPage() {
       const link = document.createElement('a');
       link.href = url; link.download = `otpwala-data-${new Date().toISOString().slice(0, 10)}.json`; link.click();
       URL.revokeObjectURL(url); setSuccessMsg('Your account data export was generated.');
-    } catch (error: any) { setErrorMsg(error.message || 'Unable to export account data.'); }
+      toast.success('Your account data export was generated.', 'Data Exported');
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Unable to export account data.');
+      toast.error(error.message || 'Unable to export account data.', 'Export Failed');
+    }
     finally { setPrivacyBusy(''); }
   }
 
   async function submitDeletionRequest() {
     if (!window.confirm('Submit an account deletion request for admin review? Financial records may need to be retained where legally required.')) return;
     setPrivacyBusy('delete'); setErrorMsg('');
-    try { await requestAccountDeletion(); setDeletionRequests(await getAccountDeletionRequests()); setSuccessMsg('Your account deletion request was submitted for privacy review.'); }
-    catch (error: any) { setErrorMsg(error.message || 'Unable to submit deletion request.'); }
+    try {
+      await requestAccountDeletion();
+      setDeletionRequests(await getAccountDeletionRequests());
+      setSuccessMsg('Your account deletion request was submitted for privacy review.');
+      toast.success('Your account deletion request was submitted for privacy review.', 'Request Submitted');
+    }
+    catch (error: any) {
+      setErrorMsg(error.message || 'Unable to submit deletion request.');
+      toast.error(error.message || 'Unable to submit deletion request.', 'Request Failed');
+    }
     finally { setPrivacyBusy(''); }
   }
 
-  async function loadLoginHistory() {
+  async function loadLoginHistory(isManual = false) {
     setHistoryLoading(true);
     setHistoryError('');
     try {
       const res = await getLoginHistory(20);
       setLoginHistoryData(res);
+      if (isManual) {
+        setRecentHistoryRefresh(true);
+        setTimeout(() => setRecentHistoryRefresh(false), 2500);
+        toast.success('Security audit trail & network telemetry refreshed.', 'Telemetry Refreshed');
+      }
     } catch (err: any) {
       console.warn('Failed to load login history:', err);
       setHistoryError(err.message || 'Unable to load login history.');
+      if (isManual) {
+        toast.error(err.message || 'Unable to load login history.', 'Refresh Failed');
+      }
     } finally {
       setHistoryLoading(false);
     }
@@ -137,12 +161,16 @@ export default function SettingsPage() {
     setSuccessMsg('');
 
     if (newPassword.length < 8) {
-      setErrorMsg('New password must be at least 8 characters long.');
+      const msg = 'New password must be at least 8 characters long.';
+      setErrorMsg(msg);
+      toast.error(msg, 'Invalid Password');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMsg('New password and confirmation password do not match.');
+      const msg = 'New password and confirmation password do not match.';
+      setErrorMsg(msg);
+      toast.error(msg, 'Password Mismatch');
       return;
     }
 
@@ -157,7 +185,9 @@ export default function SettingsPage() {
         });
 
         if (verifyErr) {
-          setErrorMsg('Current password is incorrect. Please try again.');
+          const msg = 'Current password is incorrect. Please try again.';
+          setErrorMsg(msg);
+          toast.error(msg, 'Verification Failed');
           setSubmitting(false);
           return;
         }
@@ -169,18 +199,25 @@ export default function SettingsPage() {
       });
 
       if (updateErr) {
-        setErrorMsg(updateErr.message || 'Failed to update password.');
+        const msg = updateErr.message || 'Failed to update password.';
+        setErrorMsg(msg);
+        toast.error(msg, 'Update Failed');
         return;
       }
 
       // Success
       setSuccessMsg('Your password has been changed successfully!');
+      setRecentPasswordSave(true);
+      setTimeout(() => setRecentPasswordSave(false), 2500);
+      toast.success('Your password has been changed successfully!', 'Password Changed');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setStrengthScore(0);
     } catch (err: any) {
-      setErrorMsg(err.message || 'An unexpected error occurred while changing password.');
+      const msg = err.message || 'An unexpected error occurred while changing password.';
+      setErrorMsg(msg);
+      toast.error(msg, 'Password Error');
     } finally {
       setSubmitting(false);
     }
@@ -524,12 +561,20 @@ export default function SettingsPage() {
                   justifyContent: 'center',
                   gap: '0.5rem',
                   padding: '0.75rem',
+                  backgroundColor: recentPasswordSave ? '#10b981' : undefined,
+                  borderColor: recentPasswordSave ? '#10b981' : undefined,
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {submitting ? (
                   <>
                     <div className="spinner spinner-sm"></div>
                     <span>Updating Password...</span>
+                  </>
+                ) : recentPasswordSave ? (
+                  <>
+                    <CheckIcon size={16} />
+                    <span>Password Updated!</span>
                   </>
                 ) : (
                   <>
@@ -671,30 +716,47 @@ export default function SettingsPage() {
 
           <button
             type="button"
-            onClick={loadLoginHistory}
+            onClick={() => loadLoginHistory(true)}
             disabled={historyLoading}
             className="btn btn-secondary btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.95rem' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.45rem 0.95rem',
+              borderColor: recentHistoryRefresh ? '#10b981' : undefined,
+              color: recentHistoryRefresh ? '#34d399' : undefined,
+              transition: 'all 0.2s ease',
+            }}
             title="Refresh login history"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{
-                animation: historyLoading ? 'spin 1s linear infinite' : 'none',
-              }}
-            >
-              <polyline points="23 4 23 10 17 10" />
-              <polyline points="1 20 1 14 7 14" />
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-            </svg>
-            <span>{historyLoading ? 'Refreshing…' : 'Refresh Logs'}</span>
+            {recentHistoryRefresh ? (
+              <>
+                <CheckIcon size={14} color="#34d399" />
+                <span>Refreshed!</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    animation: historyLoading ? 'spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+                <span>{historyLoading ? 'Refreshing…' : 'Refresh Logs'}</span>
+              </>
+            )}
           </button>
         </div>
 

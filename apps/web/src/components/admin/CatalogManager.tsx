@@ -19,6 +19,7 @@ import {
   CheckCircleIcon,
 } from '../ui/Icons';
 import { renderServiceIcon } from '../otp/BuyNumber';
+import { toast } from '../../lib/toast';
 
 export default function CatalogManager() {
   const [activeTab, setActiveTab] = useState<'services' | 'countries'>('services');
@@ -32,8 +33,9 @@ export default function CatalogManager() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [recentRefresh, setRecentRefresh] = useState(false);
 
-  const loadCatalog = async () => {
+  const loadCatalog = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -41,8 +43,16 @@ export default function CatalogManager() {
       setServices(data.services || []);
       setCountries(data.countries || []);
       setStats(data.stats || null);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Catalog services and countries refreshed.', 'Catalog Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load catalog settings');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load catalog settings', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -214,12 +224,29 @@ export default function CatalogManager() {
         </div>
         <button
           className="btn btn-secondary btn-sm"
-          onClick={loadCatalog}
+          onClick={() => loadCatalog(true)}
           disabled={loading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            borderColor: recentRefresh ? '#10b981' : undefined,
+            color: recentRefresh ? '#34d399' : undefined,
+            transition: 'all 0.2s ease',
+          }}
         >
-          <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+          {recentRefresh ? (
+            <>
+              <CheckIcon size={14} color="#34d399" />
+              <span>Refreshed!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            </>
+          )}
         </button>
       </div>
 

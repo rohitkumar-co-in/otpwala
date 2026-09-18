@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAdminOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
+import { toast } from '../../lib/toast';
 import {
   RefreshCwIcon,
   CopyIcon,
@@ -19,20 +20,29 @@ export default function OrderManager() {
     return requested || 'all';
   });
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const limit = 20;
 
-  const loadOrders = async () => {
+  const loadOrders = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
       const data = await getAdminOrders(limit, page * limit, statusFilter);
       setOrders(data?.orders || []);
       setTotal(data?.total || 0);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Order audit logs refreshed.', 'Orders Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load order logs');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load order logs', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -66,12 +76,29 @@ export default function OrderManager() {
         </div>
         <button
           className="btn btn-secondary btn-sm"
-          onClick={loadOrders}
+          onClick={() => loadOrders(true)}
           disabled={loading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            borderColor: recentRefresh ? '#10b981' : undefined,
+            color: recentRefresh ? '#34d399' : undefined,
+            transition: 'all 0.2s ease',
+          }}
         >
-          <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+          {recentRefresh ? (
+            <>
+              <CheckIcon size={14} color="#34d399" />
+              <span>Refreshed!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            </>
+          )}
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
+import { toast } from '../../lib/toast';
 import {
   ServerIcon,
   DollarIcon,
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
   const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const loadData = async () => {
+  const loadData = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -79,8 +81,16 @@ export default function AdminDashboard() {
         });
 
       await Promise.allSettled([fetchStats, fetchOrders, fetchPayments]);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Admin dashboard metrics and requests refreshed.', 'Dashboard Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load admin overview');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load admin overview', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,10 +112,13 @@ export default function AdminDashboard() {
     setSuccessMsg(null);
     try {
       const result = await runAdminReconciliation();
-      setSuccessMsg(`Reconciliation complete: ${result.scanned} scanned, ${result.delivered} delivered, ${result.refunded} refunded, ${result.failed} failed.`);
+      const msg = `Reconciliation complete: ${result.scanned} scanned, ${result.delivered} delivered, ${result.refunded} refunded, ${result.failed} failed.`;
+      setSuccessMsg(msg);
+      toast.success(msg, 'Reconciliation Complete');
       await loadData();
     } catch (err: any) {
       setError(err.message || 'Reconciliation failed');
+      toast.error(err.message || 'Reconciliation failed', 'Reconciliation Failed');
     } finally {
       setReconciling(false);
     }
@@ -117,7 +130,9 @@ export default function AdminDashboard() {
     setSuccessMsg(null);
     try {
       await approvePaymentRequest(requestId);
-      setSuccessMsg(`Approved top-up of ₹${amount.toFixed(2)} successfully!`);
+      const msg = `Approved top-up of ₹${amount.toFixed(2)} successfully!`;
+      setSuccessMsg(msg);
+      toast.success(msg, 'Payment Approved');
       setPaymentRequests((prev) =>
         prev.map((r) => (r.id === requestId ? { ...r, status: 'approved' } : r))
       );
@@ -129,6 +144,7 @@ export default function AdminDashboard() {
       if (newRequests) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to approve payment');
+      toast.error(err.message || 'Failed to approve payment', 'Approval Failed');
     } finally {
       setActionLoading(null);
     }
@@ -142,7 +158,9 @@ export default function AdminDashboard() {
     setSuccessMsg(null);
     try {
       await rejectPaymentRequest(requestId);
-      setSuccessMsg(`Deposit request of ₹${amount.toFixed(2)} was rejected.`);
+      const msg = `Deposit request of ₹${amount.toFixed(2)} was rejected.`;
+      setSuccessMsg(msg);
+      toast.info(msg, 'Payment Rejected');
       setPaymentRequests((prev) =>
         prev.map((r) => (r.id === requestId ? { ...r, status: 'rejected' } : r))
       );
@@ -154,6 +172,7 @@ export default function AdminDashboard() {
       if (newRequests) setPaymentRequests(newRequests);
     } catch (err: any) {
       setError(err.message || 'Failed to reject payment');
+      toast.error(err.message || 'Failed to reject payment', 'Rejection Failed');
     } finally {
       setActionLoading(null);
     }
@@ -165,30 +184,48 @@ export default function AdminDashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>
-            Admin <span className="text-gradient">Overview</span>
+            Admin <span className="text-gradient">Dashboard</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Live platform metrics, Tiger SMS provider sync, and pending tasks
+            Live platform metrics, payment verification queue, and automated background reconciliation
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             className="btn btn-secondary btn-sm"
             onClick={handleReconcile}
             disabled={reconciling}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Scan orders waiting for SMS and auto-deliver or refund expired items"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-subtle)' }}
           >
             <RefreshCwIcon size={14} className={reconciling ? 'animate-spin' : ''} />
-            <span>{reconciling ? 'Reconciling...' : 'Run Reconciliation'}</span>
+            <span>{reconciling ? 'Reconciling...' : 'Auto-Reconcile Orders'}</span>
           </button>
           <button
             className="btn btn-secondary btn-sm"
-            onClick={loadData}
+            onClick={() => loadData(true)}
             disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              borderColor: recentRefresh ? '#10b981' : undefined,
+              color: recentRefresh ? '#34d399' : undefined,
+              transition: 'all 0.2s ease',
+            }}
           >
-            <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-            <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            {recentRefresh ? (
+              <>
+                <CheckIcon size={14} color="#34d399" />
+                <span>Refreshed!</span>
+              </>
+            ) : (
+              <>
+                <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+                <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+              </>
+            )}
           </button>
           <a href="/admin/pricing" className="btn btn-primary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <TagIcon size={14} />

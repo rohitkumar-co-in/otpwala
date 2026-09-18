@@ -15,6 +15,7 @@ import {
   CreditCardIcon,
 } from '../ui/Icons';
 import { getActiveCurrency, type Currency } from '../../lib/currency';
+import { toast } from '../../lib/toast';
 
 interface WalletConfig {
   minDeposit: number;
@@ -105,6 +106,8 @@ export default function WalletPage() {
   const [copiedBinance, setCopiedBinance] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [recentRefresh, setRecentRefresh] = useState(false);
+  const [recentDepositSubmit, setRecentDepositSubmit] = useState(false);
   const [insufficientAlert, setInsufficientAlert] = useState(false);
 
   const limit = 15;
@@ -130,10 +133,19 @@ export default function WalletPage() {
     loadTransactions();
   }, [page]);
 
-  async function handleRefresh() {
+  async function handleRefresh(isManual = false) {
     setRefreshing(true);
     try {
       await Promise.all([loadWallet(), loadTransactions()]);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Wallet balance & transaction history refreshed.', 'Wallet Refreshed');
+      }
+    } catch (err: any) {
+      if (isManual) {
+        toast.error(err?.message || 'Failed to refresh wallet', 'Refresh Failed');
+      }
     } finally {
       setRefreshing(false);
     }
@@ -303,24 +315,29 @@ export default function WalletPage() {
     try {
       const refId = paymentMethod === 'upi' ? utrNumber.trim().replace(/\s+/g, '') : binanceTxId.trim().replace(/\s+/g, '');
       const data = await topUp(finalAmountInr, paymentMethod, refId);
-      if (paymentMethod === 'upi') {
-        setTopUpSuccess(
-          data.data?.message ||
+      const succMsg = paymentMethod === 'upi'
+        ? (data.data?.message ||
           (currency === 'USD'
             ? `UPI deposit request of $${displayUsdt} (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
-            : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`)
-        );
+            : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`))
+        : (data.data?.message ||
+          `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`);
+      
+      setTopUpSuccess(succMsg);
+      setRecentDepositSubmit(true);
+      setTimeout(() => setRecentDepositSubmit(false), 2500);
+      toast.success(succMsg, 'Deposit Request Submitted');
+
+      if (paymentMethod === 'upi') {
         setUtrNumber('');
       } else {
-        setTopUpSuccess(
-          data.data?.message ||
-          `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
-        );
         setBinanceTxId('');
       }
       await Promise.all([loadWallet(), loadTransactions()]);
     } catch (err: any) {
-      setTopUpError(err.message || 'Deposit submission failed. Please try again.');
+      const errMsg = err.message || 'Deposit submission failed. Please try again.';
+      setTopUpError(errMsg);
+      toast.error(errMsg, 'Deposit Submission Failed');
     } finally {
       setTopUpLoading(false);
     }
@@ -367,12 +384,28 @@ export default function WalletPage() {
         </div>
         <button
           className="btn btn-secondary btn-sm"
-          onClick={handleRefresh}
+          onClick={() => handleRefresh(true)}
           disabled={refreshing}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            borderColor: recentRefresh ? '#10b981' : undefined,
+            color: recentRefresh ? '#34d399' : undefined,
+            transition: 'all 0.2s ease',
+          }}
         >
-          <RefreshCwIcon size={14} className={refreshing ? 'animate-spin' : ''} />
-          <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          {recentRefresh ? (
+            <>
+              <CheckIcon size={14} color="#34d399" />
+              <span>Refreshed!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCwIcon size={14} className={refreshing ? 'animate-spin' : ''} />
+              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -1204,20 +1237,28 @@ export default function WalletPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                background: paymentMethod === 'binance' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : undefined,
-                border: paymentMethod === 'binance' ? 'none' : undefined,
+                background: recentDepositSubmit
+                  ? '#10b981'
+                  : paymentMethod === 'binance'
+                  ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                  : undefined,
+                border: paymentMethod === 'binance' && !recentDepositSubmit ? 'none' : undefined,
+                borderColor: recentDepositSubmit ? '#10b981' : undefined,
                 opacity: topUpLoading ? 0.7 : 1,
+                transition: 'all 0.2s ease',
               }}
             >
               <CheckIcon size={16} />
               <span>
                 {topUpLoading
                   ? 'Submitting...'
-                  : paymentMethod === 'binance'
-                    ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
-                    : (currency === 'USD'
-                      ? `Submit Deposit ($${usdtAmount} / ≈ ₹${numericAmount})`
-                      : `Submit Deposit (₹${numericAmount})`)}
+                  : recentDepositSubmit
+                    ? 'Deposit Submitted!'
+                    : paymentMethod === 'binance'
+                      ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
+                      : (currency === 'USD'
+                        ? `Submit Deposit ($${usdtAmount} / ≈ ₹${numericAmount})`
+                        : `Submit Deposit (₹${numericAmount})`)}
               </span>
             </button>
           </div>

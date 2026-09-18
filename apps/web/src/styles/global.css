@@ -983,9 +983,12 @@ tr:hover td {
     padding-inline: 0.75rem !important;
   }
 
-  .toast-container {
-    left: 0.75rem;
-    right: 0.75rem;
+  .toast-container,
+  #otpwala-toast-root {
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   .toast {

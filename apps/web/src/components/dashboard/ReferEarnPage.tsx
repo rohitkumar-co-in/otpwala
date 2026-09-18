@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getReferralStats, claimReferralCode, type ReferralStatsData } from '../../lib/api';
-import { UsersIcon, CheckCircleIcon, AlertCircleIcon, RefreshCwIcon, LockIcon, HourglassIcon, GiftIcon, TargetIcon, ZapIcon, InfoIcon } from '../ui/Icons';
+import { UsersIcon, CheckCircleIcon, CheckIcon, AlertCircleIcon, RefreshCwIcon, LockIcon, HourglassIcon, GiftIcon, TargetIcon, ZapIcon, InfoIcon } from '../ui/Icons';
+import { toast } from '../../lib/toast';
 
 export default function ReferEarnPage() {
   const [data, setData] = useState<ReferralStatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -15,14 +17,22 @@ export default function ReferEarnPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [claimSuccess, setClaimSuccess] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
       const res = await getReferralStats();
       setData(res);
+      if (isManual) {
+        setRecentRefresh(true);
+        setTimeout(() => setRecentRefresh(false), 2500);
+        toast.success('Referral statistics and earnings updated.', 'Stats Refreshed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load referral statistics');
+      if (isManual) {
+        toast.error(err.message || 'Failed to load referral statistics', 'Refresh Failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -41,11 +51,15 @@ export default function ReferEarnPage() {
     setClaimSuccess(null);
     try {
       const res = await claimReferralCode(code);
-      setClaimSuccess(res.message || `Referral code ${code} claimed successfully!`);
+      const msg = res.message || `Referral code ${code} claimed successfully!`;
+      setClaimSuccess(msg);
+      toast.success(msg, 'Referral Code Claimed');
       setClaimInputCode('');
       await loadData();
     } catch (err: any) {
-      setClaimError(err.message || 'Failed to claim referral code');
+      const errMsg = err.message || 'Failed to claim referral code';
+      setClaimError(errMsg);
+      toast.error(errMsg, 'Claim Failed');
     } finally {
       setClaimLoading(false);
     }
@@ -99,12 +113,29 @@ export default function ReferEarnPage() {
         </div>
         <button
           className="btn btn-secondary btn-sm"
-          onClick={loadData}
+          onClick={() => loadData(true)}
           disabled={loading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: loading ? 'not-allowed' : 'pointer' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            borderColor: recentRefresh ? '#10b981' : undefined,
+            color: recentRefresh ? '#34d399' : undefined,
+            transition: 'all 0.2s ease',
+          }}
         >
-          <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+          {recentRefresh ? (
+            <>
+              <CheckIcon size={14} color="#34d399" />
+              <span>Refreshed!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+            </>
+          )}
         </button>
       </div>
 
