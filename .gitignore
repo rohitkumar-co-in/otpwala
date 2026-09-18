@@ -3,7 +3,10 @@ dist/
 .env
 .env.local
 .astro/
+.wrangler/
+.turbo/
 *.log
 .DS_Store
 Thumbs.db
 supabse-cred
+
