@@ -994,6 +994,120 @@ export const onRequest = async (context: any) => {
       }
     }
 
+    // ─── User Session & Security Compliance (IP, ISP, Telemetry) ───
+    if (path === '/api/auth/record-session' && method === 'POST') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+
+      const cf = (request as any).cf || {};
+      const ip = request.headers.get('cf-connecting-ip') || 
+                 request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                 '127.0.0.1';
+      const isp = cf.asOrganization || (cf.asn ? `AS${cf.asn}` : 'Unknown Provider');
+      const country = cf.country || null;
+      const region = cf.region || null;
+      const city = cf.city || null;
+      const asn = cf.asn ? parseInt(cf.asn, 10) : null;
+      const userAgent = request.headers.get('user-agent') || 'Unknown Client';
+
+      const body = await request.json().catch(() => ({}));
+      const rawEvent = String(body.event || 'login').toLowerCase();
+      const eventType = ['signup', 'oauth_login', 'password_reset', 'session_refresh'].includes(rawEvent)
+        ? rawEvent
+        : 'login';
+
+      const supabase = getSupabaseAdmin(env);
+
+      // 1. Log immutable audit entry for compliance & forensic history
+      try {
+        await supabase.from('user_security_logs').insert({
+          user_id: auth.userId,
+          event_type: eventType,
+          ip_address: ip,
+          isp,
+          asn,
+          country,
+          region,
+          city,
+          user_agent: userAgent,
+        });
+      } catch (e: any) {
+        console.warn('Failed to insert security log:', e);
+      }
+
+      // 2. Update profiles table with latest active network & initial signup telemetry
+      const updatePayload: Record<string, any> = {
+        last_login_ip: ip,
+        last_login_isp: isp,
+        last_login_country: country,
+        last_login_city: city,
+        last_login_at: new Date().toISOString(),
+      };
+
+      if (eventType === 'signup') {
+        updatePayload.signup_ip = ip;
+        updatePayload.signup_isp = isp;
+        updatePayload.signup_country = country;
+        updatePayload.signup_city = city;
+      }
+
+      try {
+        await supabase.from('profiles').update(updatePayload).eq('id', auth.userId);
+      } catch (e: any) {
+        console.warn('Failed to update profile IP:', e);
+      }
+
+      return jsonResponse({
+        success: true,
+        data: {
+          ip,
+          isp,
+          country,
+          city,
+          region,
+          asn,
+          event: eventType,
+        }
+      });
+    }
+
+    if (path === '/api/auth/login-history' && method === 'GET') {
+      const auth = await authenticateUser(request, env);
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+
+      const limit = Math.min(parseInt(url.searchParams.get('limit') || '25', 10), 100);
+      const supabase = getSupabaseAdmin(env);
+
+      const { data, error } = await supabase
+        .from('user_security_logs')
+        .select('id, event_type, ip_address, isp, asn, country, region, city, user_agent, created_at')
+        .eq('user_id', auth.userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      // Also get current request IP & ISP so user can see "Current Session"
+      const cf = (request as any).cf || {};
+      const currentIp = request.headers.get('cf-connecting-ip') || 
+                        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                        '127.0.0.1';
+      const currentIsp = cf.asOrganization || (cf.asn ? `AS${cf.asn}` : 'Current Provider');
+
+      return jsonResponse({
+        success: true,
+        data: {
+          current: {
+            ip: currentIp,
+            isp: currentIsp,
+            country: cf.country || null,
+            city: cf.city || null,
+          },
+          history: data || [],
+        },
+      });
+    }
+
     // ─── Admin Routes ───
     if (path.startsWith('/api/admin/')) {
       const auth = await authenticateUser(request, env);

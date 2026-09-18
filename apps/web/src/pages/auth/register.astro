@@ -260,7 +260,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { validateAllowedEmail } from '../../lib/emailValidation';
-  import { getAuthConfig } from '../../lib/api';
+  import { getAuthConfig, recordAuthSession } from '../../lib/api';
 
   let currentEmail = '';
   let currentName = '';
@@ -541,6 +541,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       // Password set — allow normal redirect
       pendingPasswordSetup = false;
       const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        recordAuthSession('signup').catch(() => {});
+      }
       if (currentReferralCode && session?.access_token) {
         try {
           let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');

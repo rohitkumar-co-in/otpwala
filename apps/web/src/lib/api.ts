@@ -330,3 +330,39 @@ export const claimReferralCode = (referralCode: string) =>
     method: 'POST',
     body: JSON.stringify({ referralCode }),
   });
+
+// ─── User Security & Login History (IP, ISP & Telemetry) ───
+export interface UserSecurityLog {
+  id: string;
+  event_type: 'signup' | 'login' | 'oauth_login' | 'password_reset' | 'session_refresh';
+  ip_address: string;
+  isp: string | null;
+  asn: number | null;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
+export interface LoginHistoryData {
+  current: {
+    ip: string;
+    isp: string;
+    country: string | null;
+    city: string | null;
+  };
+  history: UserSecurityLog[];
+}
+
+export const recordAuthSession = (event: 'signup' | 'login' | 'oauth_login' | 'password_reset' | 'session_refresh' = 'login') =>
+  apiFetch<any>('/api/auth/record-session', {
+    method: 'POST',
+    body: JSON.stringify({ event }),
+  }).catch((e) => {
+    console.warn('Auth session recording failed:', e);
+    return null;
+  });
+
+export const getLoginHistory = (limit = 25) =>
+  apiFetch<LoginHistoryData>(`/api/auth/login-history?limit=${limit}`);

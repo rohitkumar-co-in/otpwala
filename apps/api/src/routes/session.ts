@@ -180,5 +180,125 @@ router.post('/check-email', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+/**
+ * POST /api/auth/record-session
+ * Records user IP, ISP, ASN, and device telemetry for security compliance
+ */
+router.post('/record-session', async (req: Request, res: Response): Promise<void> => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ success: false, error: 'Unauthorized' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
+    if (userErr || !user) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const ip = (req.headers['cf-connecting-ip'] as string) ||
+               (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+               req.socket.remoteAddress || '127.0.0.1';
+    const isp = (req.headers['cf-asorganization'] as string) || 'Standard Network';
+    const country = (req.headers['cf-ipcountry'] as string) || null;
+    const userAgent = (req.headers['user-agent'] as string) || 'Unknown Client';
+    const { event } = req.body || {};
+    const rawEvent = String(event || 'login').toLowerCase();
+    const eventType = ['signup', 'oauth_login', 'password_reset', 'session_refresh'].includes(rawEvent)
+      ? rawEvent
+      : 'login';
+
+    try {
+      await supabaseAdmin.from('user_security_logs').insert({
+        user_id: user.id,
+        event_type: eventType,
+        ip_address: ip,
+        isp,
+        country,
+        user_agent: userAgent,
+      });
+    } catch (e: any) {
+      console.warn('user_security_logs insert error:', e);
+    }
+
+    const updatePayload: Record<string, any> = {
+      last_login_ip: ip,
+      last_login_isp: isp,
+      last_login_country: country,
+      last_login_at: new Date().toISOString(),
+    };
+    if (eventType === 'signup') {
+      updatePayload.signup_ip = ip;
+      updatePayload.signup_isp = isp;
+      updatePayload.signup_country = country;
+    }
+
+    try {
+      await supabaseAdmin.from('profiles').update(updatePayload).eq('id', user.id);
+    } catch (e: any) {
+      console.warn('profile update error:', e);
+    }
+
+    res.json({ success: true, data: { ip, isp, country, event: eventType } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/auth/login-history
+ * Returns the recent sign-in & security logs for the authenticated user
+ */
+router.get('/login-history', async (req: Request, res: Response): Promise<void> => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ success: false, error: 'Unauthorized' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
+    if (userErr || !user) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const limit = Math.min(parseInt((req.query.limit as string) || '25', 10), 100);
+    const { data, error } = await supabaseAdmin
+      .from('user_security_logs')
+      .select('id, event_type, ip_address, isp, asn, country, region, city, user_agent, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    const currentIp = (req.headers['cf-connecting-ip'] as string) ||
+                      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+                      req.socket.remoteAddress || '127.0.0.1';
+    const currentIsp = (req.headers['cf-asorganization'] as string) || 'Current Network';
+    const currentCountry = (req.headers['cf-ipcountry'] as string) || null;
+
+    res.json({
+      success: true,
+      data: {
+        current: {
+          ip: currentIp,
+          isp: currentIsp,
+          country: currentCountry,
+          city: null,
+        },
+        history: data || [],
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default router;
 

@@ -79,6 +79,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { recordAuthSession } from '../../lib/api';
 
   const titleEl = document.getElementById('callback-title');
   const subEl   = document.getElementById('callback-sub');
@@ -159,6 +160,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         }
       }
     } catch (e) {}
+
+    // Record session telemetry for security compliance
+    if (session?.access_token) {
+      try {
+        await recordAuthSession(isNew ? 'signup' : 'oauth_login');
+      } catch (e) {}
+    }
 
     try {
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();

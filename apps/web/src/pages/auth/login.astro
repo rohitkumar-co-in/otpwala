@@ -416,7 +416,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { validateAllowedEmail } from '../../lib/emailValidation';
-  import { getAuthConfig } from '../../lib/api';
+  import { getAuthConfig, recordAuthSession } from '../../lib/api';
   import { registerCurrentSession, clearLocalSessionId, getOrWaitForSession } from '../../lib/sessionManager';
 
   // ─── Instant Session Check ───
@@ -664,6 +664,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         await registerCurrentSession(session.access_token);
+        recordAuthSession('login').catch(() => {});
       }
 
       const { data: profile } = await supabase

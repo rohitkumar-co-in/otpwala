@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { getLocalSessionId } from '../../lib/sessionManager';
-import { exportAccountData, requestAccountDeletion, getAccountDeletionRequests } from '../../lib/api';
+import {
+  exportAccountData,
+  requestAccountDeletion,
+  getAccountDeletionRequests,
+  getLoginHistory,
+  type UserSecurityLog,
+  type LoginHistoryData,
+} from '../../lib/api';
 import MfaPanel from './MfaPanel';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Login history & security telemetry state
+  const [loginHistoryData, setLoginHistoryData] = useState<LoginHistoryData | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [copiedIp, setCopiedIp] = useState<string | null>(null);
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -51,9 +64,31 @@ export default function SettingsPage() {
     finally { setPrivacyBusy(''); }
   }
 
+  async function loadLoginHistory() {
+    setHistoryLoading(true);
+    setHistoryError('');
+    try {
+      const res = await getLoginHistory(20);
+      setLoginHistoryData(res);
+    } catch (err: any) {
+      console.warn('Failed to load login history:', err);
+      setHistoryError(err.message || 'Unable to load login history.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  function handleCopyIp(ip: string) {
+    if (!ip) return;
+    navigator.clipboard.writeText(ip);
+    setCopiedIp(ip);
+    setTimeout(() => setCopiedIp(null), 2000);
+  }
+
   useEffect(() => {
     loadUserData();
     getAccountDeletionRequests().then(setDeletionRequests).catch(() => {});
+    loadLoginHistory();
   }, []);
 
   useEffect(() => {
@@ -520,6 +555,416 @@ export default function SettingsPage() {
         </div>
 
       </div>
+
+      {/* Card 3: Login Activity & Security History (Compliance & Forensic Audit) */}
+      <div className="card-glass" style={{ padding: 'clamp(1.25rem, 2.5vw, 1.85rem)', borderRadius: 'var(--radius-lg, 16px)', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '11px',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.18))',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--accent-primary, #6366f1)',
+              flexShrink: 0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  Login Activity &amp; Security History
+                </h2>
+                <span style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  padding: '0.15rem 0.55rem',
+                  borderRadius: '9999px',
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  color: 'var(--accent-primary, #6366f1)',
+                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                }}>
+                  Compliance Audit
+                </span>
+              </div>
+              <p style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0' }}>
+                Verified telemetry of authorized sign-ins including public IP, Internet Service Provider (ISP), and geographical origin for SaaS safety and regulatory requirements.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadLoginHistory}
+            disabled={historyLoading}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.85rem' }}
+            title="Refresh login history"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                animation: historyLoading ? 'spin 1s linear infinite' : 'none',
+              }}
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            <span>{historyLoading ? 'Refreshing…' : 'Refresh'}</span>
+          </button>
+        </div>
+
+        {/* Current Active Session Highlight Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05))',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          borderRadius: 'var(--radius-md, 12px)',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1rem',
+          alignItems: 'center',
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 10px #10b981',
+                display: 'inline-block',
+              }} />
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Current Active Session
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{
+                fontFamily: 'monospace',
+                fontSize: '1rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                background: 'rgba(0, 0, 0, 0.06)',
+                padding: '0.15rem 0.5rem',
+                borderRadius: '6px',
+              }}>
+                {loginHistoryData?.current?.ip || profile?.last_login_ip || 'Detecting IP...'}
+              </span>
+              {(loginHistoryData?.current?.ip || profile?.last_login_ip) && (
+                <button
+                  type="button"
+                  onClick={() => handleCopyIp(loginHistoryData?.current?.ip || profile?.last_login_ip)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: copiedIp === (loginHistoryData?.current?.ip || profile?.last_login_ip) ? '#10b981' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    padding: '0.2rem',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                  title="Copy IP address"
+                >
+                  {copiedIp === (loginHistoryData?.current?.ip || profile?.last_login_ip) ? (
+                    <span>Copied!</span>
+                  ) : (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>
+              Network / ISP
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginTop: '0.2rem' }}>
+              {loginHistoryData?.current?.isp || profile?.last_login_isp || 'Standard Network'}
+            </span>
+          </div>
+
+          <div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>
+              Location &amp; Region
+            </span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block', marginTop: '0.2rem' }}>
+              {[loginHistoryData?.current?.city, loginHistoryData?.current?.country].filter(Boolean).join(', ') || profile?.last_login_country || 'Current Region'}
+            </span>
+          </div>
+
+          <div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>
+              Session Protection
+            </span>
+            <span style={{
+              fontSize: '0.78rem',
+              color: '#10b981',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              marginTop: '0.2rem',
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Isolated Single-Session Active
+            </span>
+          </div>
+        </div>
+
+        {/* History Table or States */}
+        {historyError && (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            color: 'var(--error, #ef4444)',
+            padding: '0.85rem 1rem',
+            borderRadius: 'var(--radius-md, 8px)',
+            fontSize: '0.85rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <span>{historyError}</span>
+            <button
+              type="button"
+              onClick={loadLoginHistory}
+              style={{ background: 'none', border: 'none', color: 'var(--error)', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.82rem' }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {historyLoading && !loginHistoryData ? (
+          <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div className="spinner spinner-sm" style={{ margin: '0 auto 0.75rem' }} />
+            <span style={{ fontSize: '0.85rem' }}>Loading verified login logs…</span>
+          </div>
+        ) : !loginHistoryData?.history || loginHistoryData.history.length === 0 ? (
+          <div style={{
+            padding: '2.5rem 1.5rem',
+            textAlign: 'center',
+            background: 'rgba(0, 0, 0, 0.02)',
+            borderRadius: 'var(--radius-md, 10px)',
+            border: '1px dashed var(--border-subtle, #e2e8f0)',
+          }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" style={{ margin: '0 auto 0.75rem' }}>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>
+              No historical login events logged yet
+            </h4>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Future sign-ins, IP addresses, and ISP telemetry will be audited and displayed here.
+            </p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle, #e2e8f0)', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>Event</th>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>Network / ISP</th>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>IP Address</th>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>Location</th>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>Device / Browser</th>
+                  <th style={{ padding: '0.75rem 0.5rem', fontWeight: 600, textAlign: 'right' }}>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loginHistoryData.history.map((item: UserSecurityLog) => {
+                  const badge = getEventBadge(item.event_type);
+                  const dev = parseDeviceAndBrowser(item.user_agent);
+                  const isCurrent = item.ip_address === (loginHistoryData.current?.ip || profile?.last_login_ip);
+                  return (
+                    <tr
+                      key={item.id}
+                      style={{
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                        transition: 'background 0.15s ease',
+                      }}
+                    >
+                      {/* Event Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          padding: '0.2rem 0.55rem',
+                          borderRadius: '9999px',
+                          color: badge.color,
+                          background: badge.bg,
+                          border: `1px solid ${badge.border}`,
+                        }}>
+                          {badge.label}
+                        </span>
+                        {isCurrent && (
+                          <span style={{
+                            marginLeft: '0.4rem',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            color: '#10b981',
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            padding: '0.15rem 0.4rem',
+                            borderRadius: '4px',
+                          }}>
+                            Active
+                          </span>
+                        )}
+                      </td>
+
+                      {/* ISP / Carrier Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', maxWidth: '200px' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.isp || 'Standard Network'}>
+                          {item.isp || 'Standard Network'}
+                        </div>
+                        {item.asn && (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                            AS{item.asn}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* IP Address Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.83rem', color: 'var(--text-primary)' }}>
+                            {item.ip_address}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIp(item.ip_address)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: copiedIp === item.ip_address ? '#10b981' : 'var(--text-muted)',
+                              cursor: 'pointer',
+                              padding: '0.15rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                            title="Copy IP"
+                          >
+                            {copiedIp === item.ip_address ? (
+                              <span style={{ fontSize: '0.7rem' }}>✓</span>
+                            ) : (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Location Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: 'var(--text-primary)' }}>
+                          {[item.city, item.country].filter(Boolean).join(', ') || 'Unknown'}
+                        </span>
+                      </td>
+
+                      {/* Device & Browser Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          {dev.browser} on {dev.os}
+                        </span>
+                      </td>
+
+                      {/* Timestamp Column */}
+                      <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        {formatLogTimestamp(item.created_at)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
+}
+
+function parseDeviceAndBrowser(ua?: string | null): { browser: string; os: string } {
+  if (!ua) return { browser: 'Browser', os: 'Device' };
+  
+  let browser = 'Browser';
+  if (ua.includes('Edg/')) browser = 'Edge';
+  else if (ua.includes('Chrome/')) browser = 'Chrome';
+  else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
+  else if (ua.includes('Firefox/')) browser = 'Firefox';
+  else if (ua.includes('OPR/') || ua.includes('Opera/')) browser = 'Opera';
+
+  let os = 'Device';
+  if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone')) os = 'iPhone';
+  else if (ua.includes('iPad')) os = 'iPad';
+  else if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Mac OS') || ua.includes('Macintosh')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+
+  return { browser, os };
+}
+
+function getEventBadge(eventType: string) {
+  switch (eventType) {
+    case 'signup':
+      return { label: 'Account Created', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.3)' };
+    case 'oauth_login':
+      return { label: 'Google Sign In', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)', border: 'rgba(139, 92, 246, 0.3)' };
+    case 'session_refresh':
+      return { label: 'Session Refresh', color: '#64748b', bg: 'rgba(100, 116, 139, 0.15)', border: 'rgba(100, 116, 139, 0.3)' };
+    case 'password_reset':
+      return { label: 'Password Reset', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.3)' };
+    case 'login':
+    default:
+      return { label: 'Standard Sign In', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.3)' };
+  }
+}
+
+function formatLogTimestamp(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return dateStr;
+  }
 }

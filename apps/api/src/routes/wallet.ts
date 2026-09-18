@@ -18,6 +18,9 @@ export interface WalletConfig {
   binancePayQrUrl?: string;
   usdtInrRate?: number;
   usdToInrRate?: number;
+  binanceMinDeposit?: number;
+  binanceMaxDeposit?: number;
+  binanceSuggestions?: number[];
 }
 
 export async function getWalletConfig(): Promise<WalletConfig> {
