@@ -267,6 +267,8 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
     v_code TEXT;
+    v_ref_code TEXT;
+    v_referrer_id UUID;
 BEGIN
     v_code := upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8));
     INSERT INTO public.profiles (id, email, full_name, referral_code)
@@ -277,6 +279,18 @@ BEGIN
         v_code
     )
     ON CONFLICT (id) DO NOTHING;
+
+    -- Link referral automatically if code provided in metadata on signup
+    v_ref_code := upper(trim(COALESCE(NEW.raw_user_meta_data->>'referral_code', '')));
+    IF v_ref_code <> '' THEN
+        SELECT id INTO v_referrer_id FROM public.profiles WHERE upper(referral_code) = v_ref_code LIMIT 1;
+        IF v_referrer_id IS NOT NULL AND v_referrer_id <> NEW.id THEN
+            INSERT INTO public.referrals (referrer_id, referred_id, referral_code)
+            VALUES (v_referrer_id, NEW.id, v_ref_code)
+            ON CONFLICT (referred_id) DO NOTHING;
+        END IF;
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

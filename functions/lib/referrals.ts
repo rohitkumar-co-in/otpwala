@@ -18,13 +18,47 @@ export async function getReferralStats(userId: string, env?: any) {
 
   let referralCode = codesMap[userId];
   if (!referralCode) {
+    for (const [k, v] of Object.entries(codesMap)) {
+      if (v === userId) {
+        referralCode = k;
+        break;
+      }
+    }
+  }
+
+  // Check profiles table for existing referral_code
+  if (!referralCode) {
+    try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', userId)
+        .maybeSingle();
+      if (userProfile?.referral_code) {
+        referralCode = userProfile.referral_code.trim().toUpperCase();
+        codesMap[userId] = referralCode;
+        codesMap[referralCode] = userId;
+        await supabase.from('settings').upsert({
+          key: 'referral_codes_map',
+          value: JSON.stringify(codesMap),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch {}
+  }
+
+  if (!referralCode) {
     referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
     codesMap[userId] = referralCode;
+    codesMap[referralCode] = userId;
     await supabase.from('settings').upsert({
       key: 'referral_codes_map',
       value: JSON.stringify(codesMap),
       updated_at: new Date().toISOString(),
     });
+    try {
+      await supabase.from('profiles').update({ referral_code: referralCode }).eq('id', userId);
+    } catch {}
   }
 
   const { data: registryData } = await supabase
@@ -67,9 +101,12 @@ export async function getReferralStats(userId: string, env?: any) {
   const isReferred = !!myReferralRecord;
   let myReferrerCode: string | null = null;
   if (myReferralRecord) {
-    for (const [code, uid] of Object.entries(codesMap)) {
-      if (uid === myReferralRecord.referrerId) {
-        myReferrerCode = code;
+    for (const [k, v] of Object.entries(codesMap)) {
+      if (v === myReferralRecord.referrerId) {
+        myReferrerCode = k;
+        break;
+      } else if (k === myReferralRecord.referrerId) {
+        myReferrerCode = typeof v === 'string' ? v : null;
         break;
       }
     }
@@ -144,16 +181,52 @@ export async function attributeReferral(userId: string, referralCode: string, en
     }
   } catch {}
 
+  const cleanCode = referralCode.trim().toUpperCase();
   let referrerId: string | null = null;
-  for (const [uid, code] of Object.entries(codesMap)) {
-    if (code.toLowerCase() === referralCode.toLowerCase()) {
-      referrerId = uid;
-      break;
+
+  // 1. Try direct lookup if codesMap has code as key
+  if (codesMap[cleanCode]) {
+    referrerId = codesMap[cleanCode];
+  }
+
+  // 2. Try lookup if codesMap has userId as key and code as value
+  if (!referrerId) {
+    for (const [uid, code] of Object.entries(codesMap)) {
+      if (typeof code === 'string' && code.toUpperCase() === cleanCode) {
+        referrerId = uid;
+        break;
+      }
     }
   }
 
-  if (!referrerId || referrerId === userId) {
-    return { success: false, message: 'Invalid or self referral code' };
+  // 3. Fallback: check profiles table by referral_code
+  if (!referrerId) {
+    try {
+      const { data: refProfile } = await supabase
+        .from('profiles')
+        .select('id, referral_code')
+        .ilike('referral_code', cleanCode)
+        .maybeSingle();
+
+      if (refProfile?.id) {
+        referrerId = refProfile.id;
+        codesMap[cleanCode] = referrerId;
+        codesMap[referrerId] = cleanCode;
+        await supabase.from('settings').upsert({
+          key: 'referral_codes_map',
+          value: JSON.stringify(codesMap),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch {}
+  }
+
+  if (!referrerId) {
+    return { success: false, message: 'Invalid referral code.' };
+  }
+
+  if (referrerId === userId) {
+    return { success: false, message: 'You cannot claim your own referral code.' };
   }
 
   const { data: registryData } = await supabase
@@ -170,7 +243,7 @@ export async function attributeReferral(userId: string, referralCode: string, en
   } catch {}
 
   if (allReferrals.some((r: any) => r.referredUserId === userId)) {
-    return { success: false, message: 'User already referred' };
+    return { success: false, message: 'A referral code has already been claimed on this account.' };
   }
 
   const { data: profile } = await supabase
@@ -193,5 +266,20 @@ export async function attributeReferral(userId: string, referralCode: string, en
     updated_at: new Date().toISOString(),
   });
 
-  return { success: true, referrerCode: referralCode };
+  // Sync to public.referrals table if available
+  try {
+    await supabase
+      .from('referrals')
+      .upsert({
+        referrer_id: referrerId,
+        referred_id: userId,
+        referral_code: cleanCode,
+        deposit_count: 0,
+        bonus_paid_1: false,
+        bonus_paid_2: false,
+        bonus_paid_3: false,
+      }, { onConflict: 'referred_id' });
+  } catch {}
+
+  return { success: true, referrerCode: cleanCode };
 }

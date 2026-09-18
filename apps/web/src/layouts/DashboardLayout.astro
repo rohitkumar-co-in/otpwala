@@ -683,9 +683,13 @@ const formattedTitle = formatPageTitle(title);
       // 5. Check pending referral attribution
       try {
         const pendingRef = localStorage.getItem('otpwala_ref_code');
-        if (pendingRef) {
-          const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
-          await fetch(
+        if (pendingRef && session?.access_token) {
+          let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const host = window.location.hostname;
+          if (!apiUrl && (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.'))) {
+            apiUrl = 'http://localhost:3001';
+          }
+          const res = await fetch(
             apiUrl + '/api/referrals/attribute',
             {
               method: 'POST',
@@ -697,7 +701,15 @@ const formattedTitle = formatPageTitle(title);
               body: JSON.stringify({ referralCode: pendingRef }),
             }
           );
-          localStorage.removeItem('otpwala_ref_code');
+          if (res.ok) {
+            localStorage.removeItem('otpwala_ref_code');
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = String(errData?.error || errData?.message || '').toLowerCase();
+            if (errMsg.includes('self') || errMsg.includes('already') || errMsg.includes('expired')) {
+              localStorage.removeItem('otpwala_ref_code');
+            }
+          }
         }
       } catch {}
 

@@ -443,10 +443,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         showErr(step3Error, error.message || 'Failed to set password.');
         return;
       }
-      if (currentReferralCode) { try { localStorage.setItem('otpwala_ref_code', currentReferralCode); } catch(ex) {} }
+      if (currentReferralCode) {
+        try { localStorage.setItem('otpwala_ref_code', currentReferralCode); } catch(ex) {}
+      }
       // Password set — allow normal redirect
       pendingPasswordSetup = false;
       const { data: { session } } = await supabase.auth.getSession();
+      if (currentReferralCode && session?.access_token) {
+        try {
+          let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : (import.meta.env.PUBLIC_API_URL || '');
+          const host = window.location.hostname;
+          if (!apiUrl && (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.'))) {
+            apiUrl = 'http://localhost:3001';
+          }
+          const attrRes = await fetch(apiUrl + '/api/referrals/attribute', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ referralCode: currentReferralCode }),
+          });
+          if (attrRes.ok) {
+            localStorage.removeItem('otpwala_ref_code');
+          }
+        } catch (e) {}
+      }
       if (session && session.user) {
         try {
           const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();

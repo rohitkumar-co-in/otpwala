@@ -126,10 +126,26 @@ async function saveCodesMap(map: Record<string, string>): Promise<void> {
 export async function getUserReferralCode(userId: string): Promise<string> {
   const codesMap = await getCodesMap();
 
-  // Check if code already exists for this user
+  // Check if code already exists for this user in codesMap
   for (const [code, uid] of Object.entries(codesMap)) {
     if (uid === userId) return code;
   }
+
+  // Check if profile already has a referral_code in Supabase profiles table
+  try {
+    const { data: userProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('referral_code')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (userProfile?.referral_code) {
+      const existingCode = userProfile.referral_code.trim().toUpperCase();
+      codesMap[existingCode] = userId;
+      await saveCodesMap(codesMap);
+      return existingCode;
+    }
+  } catch {}
 
   // Derive unique clean code: REF + first 6 chars of clean UUID
   const cleanId = userId.replace(/-/g, '').toUpperCase();
@@ -142,6 +158,15 @@ export async function getUserReferralCode(userId: string): Promise<string> {
 
   codesMap[code] = userId;
   await saveCodesMap(codesMap);
+
+  // Also sync to profiles table if not present
+  try {
+    await supabaseAdmin
+      .from('profiles')
+      .update({ referral_code: code })
+      .eq('id', userId);
+  } catch {}
+
   return code;
 }
 
@@ -162,7 +187,34 @@ export async function attributeReferral(
 
   const cleanCode = referralCode.trim().toUpperCase();
   const codesMap = await getCodesMap();
-  const referrerId = codesMap[cleanCode];
+  let referrerId = codesMap[cleanCode];
+
+  // If not found in codesMap, check profiles table
+  if (!referrerId) {
+    try {
+      const { data: refProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id, referral_code')
+        .ilike('referral_code', cleanCode)
+        .maybeSingle();
+
+      if (refProfile?.id) {
+        referrerId = refProfile.id;
+        codesMap[cleanCode] = referrerId;
+        await saveCodesMap(codesMap);
+      }
+    } catch {}
+  }
+
+  // Also check if codesMap was stored in reverse format { [uid]: code }
+  if (!referrerId) {
+    for (const [key, val] of Object.entries(codesMap)) {
+      if (typeof val === 'string' && val.toUpperCase() === cleanCode) {
+        referrerId = key;
+        break;
+      }
+    }
+  }
 
   // Disallow non-existent code
   if (!referrerId) {
@@ -226,6 +278,22 @@ export async function attributeReferral(
   });
 
   await saveRegistry(registry);
+
+  // Sync to public.referrals table if available
+  try {
+    await supabaseAdmin
+      .from('referrals')
+      .upsert({
+        referrer_id: referrerId,
+        referred_id: referredUserId,
+        referral_code: cleanCode,
+        deposit_count: 0,
+        bonus_paid_1: false,
+        bonus_paid_2: false,
+        bonus_paid_3: false,
+      }, { onConflict: 'referred_id' });
+  } catch {}
+
   return {
     success: true,
     message: `Referral code ${cleanCode} successfully linked! It is now permanently locked to your account.`,

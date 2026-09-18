@@ -137,6 +137,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (subEl)   subEl.textContent   = 'Good to see you. Taking you to your dashboard...';
     }
 
+    // Pending referral attribution on Google sign-in/up
+    try {
+      const pendingRef = localStorage.getItem('otpwala_ref_code');
+      if (pendingRef && session?.access_token) {
+        let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined ? (window as any).__PUBLIC_API_URL__ : '';
+        const host = window.location.hostname;
+        if (!apiUrl && (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.'))) {
+          apiUrl = 'http://localhost:3001';
+        }
+        const attrRes = await fetch(apiUrl + '/api/referrals/attribute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ referralCode: pendingRef }),
+        });
+        if (attrRes.ok) {
+          localStorage.removeItem('otpwala_ref_code');
+        }
+      }
+    } catch (e) {}
+
     try {
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
       if (profile && (profile.role === 'admin' || profile.role === 'superadmin')) { window.location.href = '/admin'; return; }
