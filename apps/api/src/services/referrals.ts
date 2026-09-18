@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { creditBalance } from './wallet.js';
+import { evaluateReferralFraud } from './referral-fraud.js';
 
 export interface ReferralRecord {
   referrerId: string;
@@ -179,7 +180,8 @@ export async function getUserReferralCode(userId: string): Promise<string> {
  */
 export async function attributeReferral(
   referredUserId: string,
-  referralCode: string
+  referralCode: string,
+  clientContext?: { ip?: string | null; isp?: string | null; userAgent?: string | null }
 ): Promise<{ success: boolean; message: string; referrerCode?: string }> {
   if (!referralCode || !referredUserId) {
     return { success: false, message: 'Referral code is required.' };
@@ -260,6 +262,40 @@ export async function attributeReferral(
     };
   }
 
+  // Evaluate referral anti-fraud rules (IP, IPv6 /64 prefix, security logs, loops, velocity)
+  const clientIp = clientContext?.ip || '127.0.0.1';
+  const clientIsp = clientContext?.isp || null;
+  const clientUserAgent = clientContext?.userAgent || null;
+
+  const fraudResult = await evaluateReferralFraud(
+    referrerId,
+    referredUserId,
+    clientIp,
+    clientIsp,
+    clientUserAgent,
+    supabaseAdmin
+  );
+
+  if (!fraudResult.allowed || fraudResult.status === 'blocked') {
+    try {
+      await supabaseAdmin.from('referral_fraud_logs').insert({
+        referrer_id: referrerId,
+        referee_id: referredUserId,
+        fraud_score: fraudResult.score,
+        reasons: fraudResult.reasons,
+        action_taken: 'blocked',
+        ip_address: clientIp,
+        user_agent: clientUserAgent,
+      });
+    } catch {}
+
+    const primaryReason = fraudResult.reasons[0] || 'Security policy violation.';
+    return {
+      success: false,
+      message: `Referral claim rejected by anti-fraud system: ${primaryReason}`,
+    };
+  }
+
   // Fetch referred user's name
   let userName = 'Friend';
   if (profile.full_name?.trim()) {
@@ -291,8 +327,28 @@ export async function attributeReferral(
         bonus_paid_1: false,
         bonus_paid_2: false,
         bonus_paid_3: false,
+        fraud_status: fraudResult.status,
+        fraud_score: fraudResult.score,
+        fraud_reasons: fraudResult.reasons,
+        attribution_ip: clientIp,
+        attribution_isp: clientIsp,
+        attribution_user_agent: clientUserAgent,
       }, { onConflict: 'referred_id' });
   } catch {}
+
+  if (fraudResult.status === 'suspicious') {
+    try {
+      await supabaseAdmin.from('referral_fraud_logs').insert({
+        referrer_id: referrerId,
+        referee_id: referredUserId,
+        fraud_score: fraudResult.score,
+        reasons: fraudResult.reasons,
+        action_taken: 'flagged_suspicious',
+        ip_address: clientIp,
+        user_agent: clientUserAgent,
+      });
+    } catch {}
+  }
 
   return {
     success: true,
@@ -325,6 +381,32 @@ export async function processReferralDepositBonus(depositingUserId: string, depo
   const referrerId = referral.referrerId;
 
   if (!referrerId || referrerId === depositingUserId) return;
+
+  // Block bonus payout if flagged as fraudulent or suspicious
+  try {
+    const { data: refRecord } = await supabaseAdmin
+      .from('referrals')
+      .select('fraud_status, fraud_reasons')
+      .eq('referred_id', depositingUserId)
+      .maybeSingle();
+
+    if (refRecord?.fraud_status && refRecord.fraud_status !== 'clean') {
+      console.warn(`[Referral Fraud API] Denying bonus for referee ${depositingUserId} (status: ${refRecord.fraud_status})`);
+      try {
+        await supabaseAdmin.from('referral_fraud_logs').insert({
+          referrer_id: referrerId,
+          referee_id: depositingUserId,
+          fraud_score: 85,
+          reasons: refRecord.fraud_reasons || [`Referral marked as ${refRecord.fraud_status}`],
+          action_taken: 'commission_denied',
+          ip_address: '0.0.0.0',
+        });
+      } catch {}
+      return;
+    }
+  } catch (err) {
+    console.warn('[Referral Fraud API] Error checking fraud status:', err);
+  }
 
   const currentCount = (referral.depositCount || 0) + 1;
   referral.depositCount = currentCount;

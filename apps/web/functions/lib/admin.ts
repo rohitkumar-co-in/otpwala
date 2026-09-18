@@ -4,6 +4,7 @@ import { creditBalance } from './wallet';
 import serviceIcons from '../data/tigerServiceIcons.json';
 import countryFlags from '../data/countryFlags.json';
 import { assertValidAdminCredit, assertValidAdminFundingSource, resolveAdminCreditLedgerType, adminFundingLedgerTypes } from './policies';
+import { processReferralDepositBonus } from './referrals';
 
 export async function logAdminAction(
   actorId: string,
@@ -361,6 +362,27 @@ export async function approvePaymentRequest(id: string, actorId = 'system', env?
     if (error.message?.includes('already_approved')) throw new Error('This payment request has already been approved and credited.');
     throw new Error(error.message || 'Payment approval failed');
   }
+
+  // Fetch payment request details to trigger referral bonus if applicable
+  try {
+    const { data: reqData } = await supabase
+      .from('payment_requests')
+      .select('user_id, amount, amount_inr')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (reqData && reqData.user_id) {
+      const depositAmount = parseFloat(reqData.amount ?? reqData.amount_inr ?? 0);
+      if (depositAmount > 0) {
+        await processReferralDepositBonus(reqData.user_id, depositAmount, env).catch((err) => {
+          console.warn('[Admin Approve] Referral bonus processing error:', err);
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[Admin Approve] Failed checking referral bonus for request:', id, err);
+  }
+
   return { success: true, transactionId: data?.[0]?.transaction_id, balanceAfter: data?.[0]?.balance_after };
 }
 

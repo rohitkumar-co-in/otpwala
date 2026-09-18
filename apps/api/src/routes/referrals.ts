@@ -41,7 +41,14 @@ router.post('/attribute', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    const result = await attributeReferral(req.userId, referralCode);
+    const ip = (req.headers['cf-connecting-ip'] as string) ||
+      ((req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()) ||
+      req.ip ||
+      '127.0.0.1';
+    const isp = (req.headers['cf-as-organization'] as string) || null;
+    const userAgent = (req.headers['user-agent'] as string) || null;
+
+    const result = await attributeReferral(req.userId, referralCode, { ip, isp, userAgent });
     if (!result.success) {
       res.status(400).json({ success: false, error: result.message });
       return;
@@ -75,7 +82,14 @@ router.post('/claim', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    const result = await attributeReferral(req.userId, referralCode);
+    const ip = (req.headers['cf-connecting-ip'] as string) ||
+      ((req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()) ||
+      req.ip ||
+      '127.0.0.1';
+    const isp = (req.headers['cf-as-organization'] as string) || null;
+    const userAgent = (req.headers['user-agent'] as string) || null;
+
+    const result = await attributeReferral(req.userId, referralCode, { ip, isp, userAgent });
     if (!result.success) {
       res.status(400).json({ success: false, error: result.message });
       return;

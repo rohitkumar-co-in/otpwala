@@ -842,7 +842,14 @@ export const onRequest = async (context: any) => {
       const { referralCode } = body;
       if (!referralCode) return jsonResponse({ success: false, error: 'referralCode required' }, 400);
 
-      const result = await attributeReferral(auth.userId, referralCode, env);
+      const cf = (request as any).cf || {};
+      const clientIp = request.headers.get('cf-connecting-ip') || 
+                       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                       '127.0.0.1';
+      const clientIsp = cf.asOrganization || (cf.asn ? `AS${cf.asn}` : undefined);
+      const userAgent = request.headers.get('user-agent') || undefined;
+
+      const result = await attributeReferral(auth.userId, referralCode, { ip: clientIp, isp: clientIsp, userAgent }, env);
       return jsonResponse(result);
     }
 
@@ -854,7 +861,14 @@ export const onRequest = async (context: any) => {
       const { referralCode } = body;
       if (!referralCode) return jsonResponse({ success: false, error: 'Referral code is required' }, 400);
 
-      const result = await attributeReferral(auth.userId, referralCode, env);
+      const cf = (request as any).cf || {};
+      const clientIp = request.headers.get('cf-connecting-ip') || 
+                       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                       '127.0.0.1';
+      const clientIsp = cf.asOrganization || (cf.asn ? `AS${cf.asn}` : undefined);
+      const userAgent = request.headers.get('user-agent') || undefined;
+
+      const result = await attributeReferral(auth.userId, referralCode, { ip: clientIp, isp: clientIsp, userAgent }, env);
       if (!result.success) return jsonResponse({ success: false, error: (result as any).message || 'Failed to link referral' }, 400);
       return jsonResponse({ success: true, data: { attributed: true }, message: (result as any).message });
     }
