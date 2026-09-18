@@ -1082,10 +1082,15 @@ export default function SettingsPage() {
         ) : (
           /* Modern Card List Feed (Zero Horizontal Scrollbars, Perfect on All Devices) */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {loginHistoryData.history.map((item: UserSecurityLog) => {
+            {loginHistoryData.history.map((item: UserSecurityLog, idx: number) => {
               const badge = getEventBadge(item.event_type);
               const dev = parseDeviceAndBrowser(item.user_agent);
-              const isCurrent = item.ip_address === (loginHistoryData.current?.ip || profile?.last_login_ip);
+              // Only the single latest sign-in (index 0) is the active current session
+              const isCurrent = idx === 0 && (
+                !loginHistoryData.current?.ip ||
+                item.ip_address === loginHistoryData.current?.ip ||
+                item.ip_address === profile?.last_login_ip
+              );
               return (
                 <div
                   key={item.id}
