@@ -150,8 +150,16 @@ export async function buyNumber(
     .select()
     .single();
 
-  if (error) {
+  if (error || !order) {
     console.error('Failed to create order record:', error);
+    try { await tigerSms.setStatus(activationId, 8); } catch {}
+    await creditBalance(
+      userId,
+      sellPriceInr,
+      'refund',
+      `Refund: Order creation failed (${serviceName})`
+    );
+    throw new OrderError('ORDER_CREATION_FAILED', 'Failed to record order. Wallet refunded.');
   }
 
   // 7. Update user stats
@@ -162,7 +170,7 @@ export async function buyNumber(
   }
 
   return {
-    orderId: order?.id || '',
+    orderId: order.id,
     activationId,
     phoneNumber,
     priceInr: sellPriceInr,
@@ -195,30 +203,7 @@ export async function checkOrderStatus(
     return formatOrderStatus(order as Order);
   }
 
-  // Check 20-minute validity timeout (1200 seconds)
-  const elapsedSec = (Date.now() - new Date(order.created_at).getTime()) / 1000;
-  if (order.status === 'waiting' && elapsedSec > 1200) {
-    // Attempt best-effort cancellation upstream
-    try {
-      await tigerSms.setStatus(order.activation_id, 8);
-    } catch {
-      // Ignore upstream error if already expired
-    }
-
-    await refundOrderAtomically(
-      orderId,
-      'expired',
-      `Auto-refund: Order expired without SMS (${order.service_name})`
-    );
-
-    return formatOrderStatus({
-      ...order,
-      status: 'expired',
-      tiger_status: 'EXPIRED',
-    } as Order);
-  }
-
-  // Poll Tiger SMS for latest status
+  // 1. Poll Tiger SMS for latest status first
   try {
     const v1Status = await tigerSms.getStatus(order.activation_id);
 
@@ -261,6 +246,30 @@ export async function checkOrderStatus(
     console.error('Tiger SMS status poll failed:', e?.message || e);
   }
 
+  // 2. Check 20-minute validity timeout (1200 seconds) ONLY after checking if OTP arrived
+  const elapsedSec = (Date.now() - new Date(order.created_at).getTime()) / 1000;
+  if (order.status === 'waiting' && elapsedSec > 1200) {
+    // Attempt best-effort cancellation upstream
+    try {
+      await tigerSms.setStatus(order.activation_id, 8);
+    } catch {
+      // Ignore upstream error if already expired
+    }
+
+    await refundOrderAtomically(
+      orderId,
+      'expired',
+      `Auto-refund: Order expired without SMS (${order.service_name})`
+    );
+
+    return formatOrderStatus({
+      ...order,
+      status: 'expired',
+      tiger_status: 'EXPIRED',
+    } as Order);
+  }
+
+  // 3. While in active waiting period (< 20 mins): DO NOTHING, no refund!
   return formatOrderStatus(order as Order);
 }
 
@@ -418,32 +427,7 @@ export async function getOrderHistory(
 
   if (error) throw new Error('Failed to fetch orders');
 
-  const orders = data as Order[];
-  const now = Date.now();
-
-  // Auto-expire waiting orders > 20 mins before returning them
-  for (let i = 0; i < orders.length; i++) {
-    const order = orders[i];
-    if (order.status === 'waiting') {
-      const elapsedSec = (now - new Date(order.created_at).getTime()) / 1000;
-      if (elapsedSec > 1200) {
-        await refundOrderAtomically(
-          order.id,
-          'expired',
-          `Auto-refund: Order expired without SMS (${order.service_name})`
-        );
-        
-        // Update local object so UI reflects it immediately
-        order.status = 'expired';
-        order.tiger_status = 'EXPIRED';
-
-        // Best effort upstream cancel in background (don't block request)
-        tigerSms.setStatus(order.activation_id, 8).catch(() => {});
-      }
-    }
-  }
-
-  return { orders, total: count || 0 };
+  return { orders: (data || []) as Order[], total: count || 0 };
 }
 
 function formatOrderStatus(order: Order): OrderStatusResponse {

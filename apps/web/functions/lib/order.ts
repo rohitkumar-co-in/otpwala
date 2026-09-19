@@ -246,9 +246,16 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
   }
 
   const expiryTime = order.expires_at ? new Date(order.expires_at).getTime() : new Date(order.created_at).getTime() + 20 * 60 * 1000;
-  if (statusResult.status === 'waiting' && Number.isFinite(expiryTime) && Date.now() >= expiryTime) {
-    const tigerStatus = await tiger.setStatus(order.activation_id, 8);
-    if (tigerStatus === 'ACCESS_CANCEL') {
+  if ((statusResult.status === 'waiting' || statusResult.status === 'no_activation') && Number.isFinite(expiryTime) && Date.now() >= expiryTime) {
+    let cancelled = false;
+    try {
+      const tigerStatus = await tiger.setStatus(order.activation_id, 8);
+      if (tigerStatus === 'ACCESS_CANCEL') cancelled = true;
+    } catch {
+      // If already expired/cancelled upstream on Tiger
+      if (statusResult.status === 'no_activation') cancelled = true;
+    }
+    if (cancelled) {
       await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
       return {
         orderId: order.id,
