@@ -228,6 +228,10 @@ export async function checkOrderStatus(
     }
 
     if (v1Status.status === 'ACCESS_CANCEL') {
+      if (order.status === 'code_received' || order.sms_code) {
+        return formatOrderStatus(order as Order);
+      }
+
       await refundOrderAtomically(
         orderId,
         'cancelled',
@@ -288,7 +292,7 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
     throw new OrderError('ORDER_NOT_FOUND', 'Order not found');
   }
 
-  if (!['waiting', 'code_received'].includes(order.status)) {
+  if (order.status !== 'waiting' || order.sms_code) {
     throw new OrderError('INVALID_STATUS', 'Cannot cancel order in current status');
   }
 
@@ -389,18 +393,6 @@ export async function retryOrder(orderId: string, userId: string): Promise<void>
     }
     throw new OrderError('RETRY_FAILED', 'Failed to request another SMS');
   }
-
-  // Reset SMS fields, keep waiting
-  await supabaseAdmin
-    .from('orders')
-    .update({
-      sms_code: null,
-      sms_text: null,
-      status: 'waiting',
-      tiger_status: 'STATUS_WAIT_CODE',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', orderId);
 }
 
 /**

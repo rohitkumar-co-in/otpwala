@@ -231,6 +231,21 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
   }
 
   if (statusResult.status === 'cancelled' && order.status !== 'cancelled') {
+    if (order.status === 'code_received' || order.sms_code) {
+      return {
+        orderId: order.id,
+        status: 'code_received',
+        phoneNumber: order.phone_number,
+        smsCode: order.sms_code,
+        smsText: order.sms_text,
+        serviceCode: order.service_code,
+        serviceName: order.service_name,
+        countryName: order.country_name,
+        priceInr: order.sell_price_inr,
+        createdAt: order.created_at,
+      };
+    }
+
     await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled (${order.service_name})`);
 
     return {
@@ -291,7 +306,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
-  if (order.status !== 'waiting') {
+  if (order.status !== 'waiting' || order.sms_code) {
     throw new Error('Order cannot be cancelled in its current status');
   }
 
@@ -329,6 +344,9 @@ export async function retryOrder(orderId: string, userId: string, env?: any) {
   const order = await findOrder(supabase, orderId, userId);
 
   if (!order) throw new Error('Order not found');
+  if (!['waiting', 'code_received'].includes(order.status)) {
+    throw new Error('Cannot retry order in current status');
+  }
 
   await tiger.setStatus(order.activation_id, 3);
   return { success: true };
