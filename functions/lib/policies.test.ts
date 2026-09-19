@@ -59,6 +59,6 @@ test('expired provider statuses always resolve deterministically', () => {
   assert.equal(classifyExpiredProviderStatus('access_cancel'), 'refund');
   assert.equal(classifyExpiredProviderStatus('status_cancel'), 'refund');
   assert.equal(classifyExpiredProviderStatus('no_activation'), 'refund');
-  assert.equal(classifyExpiredProviderStatus('completed'), 'refund');
+  assert.equal(classifyExpiredProviderStatus('completed'), 'deliver');
   assert.equal(classifyExpiredProviderStatus('unexpected'), 'unsupported');
 });

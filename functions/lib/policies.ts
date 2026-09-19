@@ -47,8 +47,8 @@ export function adminFundingLedgerTypes(source: string) {
 }
 
 export function classifyExpiredProviderStatus(status: string) {
-  if (status === 'code_received' || status === 'status_ok' || status.startsWith('status_wait_retry')) return 'deliver' as const;
+  if (status === 'code_received' || status === 'status_ok' || status === 'completed' || status.startsWith('status_wait_retry')) return 'deliver' as const;
   if (status === 'waiting' || status === 'status_wait_code') return 'cancel_and_refund' as const;
-  if (['cancelled', 'completed', 'status_finish', 'no_activation', 'access_cancel', 'status_cancel'].includes(status)) return 'refund' as const;
+  if (['cancelled', 'status_finish', 'no_activation', 'access_cancel', 'status_cancel'].includes(status)) return 'refund' as const;
   return 'unsupported' as const;
 }

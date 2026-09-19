@@ -346,7 +346,7 @@ export async function completeOrder(orderId: string, userId: string): Promise<vo
   await supabaseAdmin
     .from('orders')
     .update({
-      status: 'completed',
+      status: 'code_received',
       tiger_status: 'ACCESS_ACTIVATION',
       updated_at: new Date().toISOString(),
     })

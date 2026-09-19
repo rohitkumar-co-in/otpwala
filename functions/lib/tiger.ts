@@ -111,7 +111,7 @@ export class TigerSmsClient {
       return { status: 'code_received', code, text: `Your code is ${code}` };
     }
     if (response === 'STATUS_CANCEL' || response === 'ACCESS_CANCEL') return { status: 'cancelled' };
-    if (response === 'STATUS_ACCESS' || response === 'ACCESS_ACTIVATION') return { status: 'completed' };
+    if (response === 'STATUS_ACCESS' || response === 'ACCESS_ACTIVATION') return { status: 'code_received' };
     if (response === 'NO_ACTIVATION') return { status: 'no_activation' };
     return { status: response.toLowerCase() };
   }

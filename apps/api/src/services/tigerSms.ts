@@ -194,6 +194,9 @@ class TigerSmsClient {
     if (text === 'ACCESS_CANCEL' || text === 'STATUS_CANCEL') {
       return { status: 'ACCESS_CANCEL' };
     }
+    if (text === 'STATUS_ACCESS' || text === 'ACCESS_ACTIVATION') {
+      return { status: 'STATUS_ACCESS' };
+    }
     if (text === 'NO_ACTIVATION') {
       throw new TigerSmsError('NO_ACTIVATION', 'Activation not found');
     }
