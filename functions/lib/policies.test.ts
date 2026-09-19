@@ -50,9 +50,15 @@ test('recharge source filter only ever selects funding credits', () => {
 
 test('expired provider statuses always resolve deterministically', () => {
   assert.equal(classifyExpiredProviderStatus('code_received'), 'deliver');
+  assert.equal(classifyExpiredProviderStatus('status_ok'), 'deliver');
+  assert.equal(classifyExpiredProviderStatus('status_wait_retry'), 'deliver');
+  assert.equal(classifyExpiredProviderStatus('status_wait_retry:8522'), 'deliver');
   assert.equal(classifyExpiredProviderStatus('waiting'), 'cancel_and_refund');
-  assert.equal(classifyExpiredProviderStatus('status_wait_retry'), 'cancel_and_refund');
+  assert.equal(classifyExpiredProviderStatus('status_wait_code'), 'cancel_and_refund');
   assert.equal(classifyExpiredProviderStatus('cancelled'), 'refund');
+  assert.equal(classifyExpiredProviderStatus('access_cancel'), 'refund');
+  assert.equal(classifyExpiredProviderStatus('status_cancel'), 'refund');
+  assert.equal(classifyExpiredProviderStatus('no_activation'), 'refund');
   assert.equal(classifyExpiredProviderStatus('completed'), 'refund');
   assert.equal(classifyExpiredProviderStatus('unexpected'), 'unsupported');
 });

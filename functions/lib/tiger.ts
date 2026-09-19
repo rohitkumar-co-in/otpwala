@@ -100,13 +100,19 @@ export class TigerSmsClient {
     if (response === 'STATUS_WAIT_CODE') {
       return { status: 'waiting' };
     }
-    const match = response.match(/^STATUS_OK:(.+)$/);
-    if (match) {
-      const code = match[1];
+    const okMatch = response.match(/^STATUS_OK:(.+)$/);
+    if (okMatch) {
+      const code = okMatch[1];
       return { status: 'code_received', code, text: `Your code is ${code}` };
     }
-    if (response === 'STATUS_CANCEL') return { status: 'cancelled' };
-    if (response === 'STATUS_ACCESS') return { status: 'completed' };
+    const retryMatch = response.match(/^STATUS_WAIT_RETRY:(.+)$/);
+    if (retryMatch) {
+      const code = retryMatch[1];
+      return { status: 'code_received', code, text: `Your code is ${code}` };
+    }
+    if (response === 'STATUS_CANCEL' || response === 'ACCESS_CANCEL') return { status: 'cancelled' };
+    if (response === 'STATUS_ACCESS' || response === 'ACCESS_ACTIVATION') return { status: 'completed' };
+    if (response === 'NO_ACTIVATION') return { status: 'no_activation' };
     return { status: response.toLowerCase() };
   }
 

@@ -211,6 +211,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
         status: 'code_received',
         sms_code: statusResult.code,
         sms_text: statusResult.text || '',
+        tiger_status: 'STATUS_OK',
         updated_at: new Date().toISOString(),
       })
       .eq('id', order.id);

@@ -145,6 +145,7 @@ export async function buyNumber(
       sell_price_inr: sellPriceInr,
       status: 'waiting',
       tiger_status: 'STATUS_WAIT_CODE',
+      expires_at: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
     })
     .select()
     .single();
@@ -219,44 +220,44 @@ export async function checkOrderStatus(
 
   // Poll Tiger SMS for latest status
   try {
-    const status = await tigerSms.getStatusV2(order.activation_id);
+    const v1Status = await tigerSms.getStatus(order.activation_id);
 
-    if (status?.sms && status.sms.code) {
-      // SMS received — update order
+    if ((v1Status.status === 'STATUS_OK' || v1Status.status === 'STATUS_WAIT_RETRY') && v1Status.code) {
       await supabaseAdmin
         .from('orders')
         .update({
-          sms_code: status.sms.code,
-          sms_text: status.sms.text,
+          sms_code: v1Status.code,
+          sms_text: `Your code is ${v1Status.code}`,
           status: 'code_received',
-          tiger_status: 'STATUS_OK',
+          tiger_status: v1Status.status,
           updated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
 
       return formatOrderStatus({
         ...order,
-        sms_code: status.sms.code,
-        sms_text: status.sms.text,
+        sms_code: v1Status.code,
+        sms_text: `Your code is ${v1Status.code}`,
         status: 'code_received',
       } as Order);
     }
-  } catch (e: any) {
-    // If upstream says activation was cancelled/not found, auto-refund
-    if (e?.code === 'ACCESS_CANCEL' || e?.code === 'NO_ACTIVATION') {
+
+    if (v1Status.status === 'ACCESS_CANCEL') {
       await refundOrderAtomically(
         orderId,
-        'expired',
+        'cancelled',
         `Auto-refund: Activation cancelled upstream (${order.service_name})`
       );
 
       return formatOrderStatus({
         ...order,
-        status: 'expired',
+        status: 'cancelled',
         tiger_status: 'ACCESS_CANCEL',
       } as Order);
     }
-    // If Tiger SMS fails temporarily, return current DB status
+  } catch (e: any) {
+    // If Tiger SMS fails temporarily or returns transient error, keep current status
+    // NEVER refund while in the active waiting period unless explicitly cancelled or expired
     console.error('Tiger SMS status poll failed:', e?.message || e);
   }
 

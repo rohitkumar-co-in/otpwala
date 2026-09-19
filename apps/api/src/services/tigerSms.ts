@@ -191,7 +191,7 @@ class TigerSmsClient {
     if (text.startsWith('STATUS_OK:')) {
       return { status: 'STATUS_OK', code: text.split(':')[1] };
     }
-    if (text === 'ACCESS_CANCEL') {
+    if (text === 'ACCESS_CANCEL' || text === 'STATUS_CANCEL') {
       return { status: 'ACCESS_CANCEL' };
     }
     if (text === 'NO_ACTIVATION') {
