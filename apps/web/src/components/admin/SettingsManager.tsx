@@ -18,12 +18,25 @@ import {
   TagIcon,
 } from '../ui/Icons';
 
+const getCachedSettings = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('otpwala_admin_settings_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function SettingsManager() {
-  const [settings, setSettings] = useState<Record<string, string>>({});
-  const [tigerBalance, setTigerBalance] = useState<any>(null);
-  const [tigerStatus, setTigerStatus] = useState<'online' | 'error' | 'checking'>('checking');
+  const cached = getCachedSettings();
+  const cachedS = cached?.settings || {};
+  const [settings, setSettings] = useState<Record<string, string>>(cachedS);
+  const [tigerBalance, setTigerBalance] = useState<any>(cached?.bal || null);
+  const [tigerStatus, setTigerStatus] = useState<'online' | 'error' | 'checking'>(cached?.bal ? 'online' : 'checking');
   const [checkingTiger, setCheckingTiger] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
+  const [hasLoaded, setHasLoaded] = useState(Boolean(cached));
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [recentSave, setRecentSave] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -31,64 +44,66 @@ export default function SettingsManager() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Category 1: Brand & Slogan Configuration
-  const [brandName, setBrandName] = useState('OTPWala');
-  const [titleSeparator, setTitleSeparator] = useState('—');
-  const [brandSlogan, setBrandSlogan] = useState('Instant Virtual Numbers for SMS Verification');
+  const [brandName, setBrandName] = useState(cachedS.brand_name || 'OTPWala');
+  const [titleSeparator, setTitleSeparator] = useState(cachedS.title_separator || '—');
+  const [brandSlogan, setBrandSlogan] = useState(cachedS.brand_slogan || 'Instant Virtual Numbers for SMS Verification');
 
   // Category 3: Currency & Pricing
-  const [rateMode, setRateMode] = useState<'tiger_default' | 'custom'>('custom');
-  const [tigerDefaultRate, setTigerDefaultRate] = useState('85.00');
-  const [customDollarRate, setCustomDollarRate] = useState('86.50');
-  const [usdToInr, setUsdToInr] = useState('86.50');
-  const [defaultMarkup, setDefaultMarkup] = useState('25');
+  const cachedRateMode = cachedS.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom';
+  const cachedUnifiedRate = cachedS.custom_dollar_rate || cachedS.usd_to_inr_rate || cachedS.usdt_inr_rate || '86.50';
+  const [rateMode, setRateMode] = useState<'tiger_default' | 'custom'>(cachedRateMode);
+  const [tigerDefaultRate, setTigerDefaultRate] = useState(cachedS.tiger_default_rate || '85.00');
+  const [customDollarRate, setCustomDollarRate] = useState(cachedUnifiedRate);
+  const [usdToInr, setUsdToInr] = useState(cachedS.usd_to_inr_rate || cachedUnifiedRate);
+  const [defaultMarkup, setDefaultMarkup] = useState(cachedS.default_markup_percentage || cachedS.default_markup_percent || '25');
 
   // Category 4: Wallet Limits & Suggestions
-  const [minDeposit, setMinDeposit] = useState('50');
-  const [maxDeposit, setMaxDeposit] = useState('50000');
-  const [suggestion1, setSuggestion1] = useState('50');
-  const [suggestion2, setSuggestion2] = useState('100');
-  const [suggestion3, setSuggestion3] = useState('200');
-  const [suggestion4, setSuggestion4] = useState('300');
-  const [suggestion5, setSuggestion5] = useState('500');
+  const [minDeposit, setMinDeposit] = useState(cachedS.min_deposit_inr || cachedS.min_topup_amount || '50');
+  const [maxDeposit, setMaxDeposit] = useState(cachedS.max_deposit_inr || '50000');
+  const [suggestion1, setSuggestion1] = useState(cachedS.deposit_suggestion_1 || '50');
+  const [suggestion2, setSuggestion2] = useState(cachedS.deposit_suggestion_2 || '100');
+  const [suggestion3, setSuggestion3] = useState(cachedS.deposit_suggestion_3 || '200');
+  const [suggestion4, setSuggestion4] = useState(cachedS.deposit_suggestion_4 || '300');
+  const [suggestion5, setSuggestion5] = useState(cachedS.deposit_suggestion_5 || '500');
 
   // Category 5: UPI & Support
-  const [upiId, setUpiId] = useState('otpwala@upi');
-  const [upiName, setUpiName] = useState('OTPWala Services');
-  const [supportTelegram, setSupportTelegram] = useState('@OTPWalaSupport');
+  const [upiId, setUpiId] = useState(cachedS.upi_id || 'otpwala@upi');
+  const [upiName, setUpiName] = useState(cachedS.upi_merchant_name || 'OTPWala Services');
+  const [supportTelegram, setSupportTelegram] = useState(cachedS.support_telegram || '@OTPWalaSupport');
 
   // Binance Pay Configuration
-  const [binancePayEnabled, setBinancePayEnabled] = useState(true);
-  const [binancePayId, setBinancePayId] = useState('');
-  const [binancePayNickname, setBinancePayNickname] = useState('');
-  const [binancePayQrUrl, setBinancePayQrUrl] = useState('');
-  const [usdtInrRate, setUsdtInrRate] = useState('90');
-  const [binanceMinDeposit, setBinanceMinDeposit] = useState('1');
-  const [binanceMaxDeposit, setBinanceMaxDeposit] = useState('500');
-  const [binanceSuggestion1, setBinanceSuggestion1] = useState('1');
-  const [binanceSuggestion2, setBinanceSuggestion2] = useState('2');
-  const [binanceSuggestion3, setBinanceSuggestion3] = useState('5');
-  const [binanceSuggestion4, setBinanceSuggestion4] = useState('10');
-  const [binanceSuggestion5, setBinanceSuggestion5] = useState('20');
+  const [binancePayEnabled, setBinancePayEnabled] = useState(cachedS.binance_pay_enabled !== 'false');
+  const [binancePayId, setBinancePayId] = useState(cachedS.binance_pay_id || '');
+  const [binancePayNickname, setBinancePayNickname] = useState(cachedS.binance_pay_nickname || '');
+  const [binancePayQrUrl, setBinancePayQrUrl] = useState(cachedS.binance_pay_qr_url || '');
+  const [usdtInrRate, setUsdtInrRate] = useState(cachedS.usdt_inr_rate || cachedUnifiedRate);
+  const [binanceMinDeposit, setBinanceMinDeposit] = useState(cachedS.binance_min_deposit_usdt || '1');
+  const [binanceMaxDeposit, setBinanceMaxDeposit] = useState(cachedS.binance_max_deposit_usdt || '500');
+  const [binanceSuggestion1, setBinanceSuggestion1] = useState(cachedS.binance_suggestion_1 || '1');
+  const [binanceSuggestion2, setBinanceSuggestion2] = useState(cachedS.binance_suggestion_2 || '2');
+  const [binanceSuggestion3, setBinanceSuggestion3] = useState(cachedS.binance_suggestion_3 || '5');
+  const [binanceSuggestion4, setBinanceSuggestion4] = useState(cachedS.binance_suggestion_4 || '10');
+  const [binanceSuggestion5, setBinanceSuggestion5] = useState(cachedS.binance_suggestion_5 || '20');
 
   // Telegram Bot Notifications for Payment Approvals
-  const [telegramBotToken, setTelegramBotToken] = useState('');
-  const [telegramAdminChatId, setTelegramAdminChatId] = useState('');
-  const [providerLowBalanceThreshold, setProviderLowBalanceThreshold] = useState('5');
-  const [telegramNotificationsEnabled, setTelegramNotificationsEnabled] = useState(true);
+  const [telegramBotToken, setTelegramBotToken] = useState(cachedS.telegram_bot_token || '');
+  const [telegramAdminChatId, setTelegramAdminChatId] = useState(cachedS.telegram_admin_chat_id || '');
+  const [providerLowBalanceThreshold, setProviderLowBalanceThreshold] = useState(cachedS.provider_low_balance_threshold || '5');
+  const [telegramNotificationsEnabled, setTelegramNotificationsEnabled] = useState(cachedS.telegram_notifications_enabled !== 'false');
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramTestResult, setTelegramTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Category 6: Referral Tiers & Window
-  const [refTier1, setRefTier1] = useState('20');
-  const [refTier2, setRefTier2] = useState('5');
-  const [refTier3, setRefTier3] = useState('5');
-  const [refWindowDays, setRefWindowDays] = useState('30');
+  const [refTier1, setRefTier1] = useState(cachedS.referral_bonus_tier1_percent || '20');
+  const [refTier2, setRefTier2] = useState(cachedS.referral_bonus_tier2_percent || '5');
+  const [refTier3, setRefTier3] = useState(cachedS.referral_bonus_tier3_percent || '5');
+  const [refWindowDays, setRefWindowDays] = useState(cachedS.referral_bonus_window_days || '30');
 
   // Category 7: Access & Maintenance
-  const [maintenanceMode, setMaintenanceMode] = useState('false');
-  const [allowEmailSignup, setAllowEmailSignup] = useState(true);
-  const [allowGoogleLogin, setAllowGoogleLogin] = useState(true);
-  const [allowRegistration, setAllowRegistration] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(cachedS.maintenance_mode || 'false');
+  const [allowEmailSignup, setAllowEmailSignup] = useState(cachedS.allow_email_signup !== 'false');
+  const [allowGoogleLogin, setAllowGoogleLogin] = useState(cachedS.allow_google_login !== 'false');
+  const [allowRegistration, setAllowRegistration] = useState(cachedS.allow_registration !== 'false');
 
   const loadSettings = async () => {
     setLoading(true);
@@ -176,6 +191,11 @@ export default function SettingsManager() {
       if (s.referral_bonus_tier3_percent) setRefTier3(s.referral_bonus_tier3_percent);
       if (s.referral_bonus_window_days) setRefWindowDays(s.referral_bonus_window_days);
 
+      try {
+        sessionStorage.setItem('otpwala_admin_settings_cache', JSON.stringify({ settings: s, bal: balData }));
+      } catch {}
+      setHasLoaded(true);
+
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);
@@ -188,6 +208,7 @@ export default function SettingsManager() {
       }
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -498,6 +519,25 @@ export default function SettingsManager() {
         </div>
       )}
 
+      {/* Loading banner when fetching fresh configuration */}
+      {loading && !hasLoaded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          padding: '0.85rem 1.25rem',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--text-secondary)',
+          fontSize: '0.85rem',
+          marginBottom: '0.5rem',
+        }}>
+          <RefreshCwIcon size={16} className="animate-spin" color="var(--accent-primary)" />
+          <span>Loading your saved platform configuration &amp; live provider status...</span>
+        </div>
+      )}
+
       {/* Main Settings Form */}
       <form onSubmit={handleSaveAll} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
@@ -612,7 +652,12 @@ export default function SettingsManager() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Tiger SMS Gateway Connectivity</h2>
-                  {tigerStatus === 'online' ? (
+                  {loading && tigerStatus === 'checking' ? (
+                    <span className="badge badge-secondary" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px', background: '#6366f1' }}></span>
+                      <span>Verifying Gateway...</span>
+                    </span>
+                  ) : tigerStatus === 'online' ? (
                     <span className="badge badge-success" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                       <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px' }}></span>
                       <span>Up &amp; Operational</span>
@@ -636,7 +681,11 @@ export default function SettingsManager() {
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tiger Account Balance</div>
                 <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#34d399', fontFamily: 'var(--font-display)' }}>
-                  ${parseFloat(tigerBalance?.balance || 0).toFixed(2)}
+                  {loading && !tigerBalance ? (
+                    <span style={{ fontSize: '1.25rem', color: 'var(--text-muted)' }}>...</span>
+                  ) : (
+                    `$${parseFloat(tigerBalance?.balance || 0).toFixed(2)}`
+                  )}
                 </div>
               </div>
               <button
@@ -666,7 +715,9 @@ export default function SettingsManager() {
               </p>
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Master Rate: <strong style={{ color: 'var(--accent-primary)', fontSize: '0.95rem' }}>1 USD / USDT = ₹{rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}</strong>
+              Master Rate: <strong style={{ color: 'var(--accent-primary)', fontSize: '0.95rem' }}>
+                {loading && !hasLoaded ? 'Loading...' : `1 USD / USDT = ₹${rateMode === 'tiger_default' ? tigerDefaultRate : customDollarRate}`}
+              </strong>
             </div>
           </div>
 
@@ -703,7 +754,7 @@ export default function SettingsManager() {
                   />
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399', marginBottom: '0.25rem' }}>
-                  ₹{tigerDefaultRate} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 1 USD</span>
+                  {loading && !hasLoaded ? '...' : `₹${tigerDefaultRate}`} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 1 USD</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Standard upstream baseline rate from Tiger SMS provider.
@@ -735,7 +786,7 @@ export default function SettingsManager() {
                   />
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '0.25rem' }}>
-                  ₹{customDollarRate} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 1 USD</span>
+                  {loading && !hasLoaded ? '...' : `₹${customDollarRate}`} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 1 USD</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Manual override. Define your custom exchange conversion rate.

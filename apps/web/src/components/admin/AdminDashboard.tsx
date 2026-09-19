@@ -20,13 +20,25 @@ import {
   XIcon,
 } from '../ui/Icons';
 
+const getCachedDashboard = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('otpwala_admin_dashboard_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [recentOrdersTotal, setRecentOrdersTotal] = useState(0);
-  const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
+  const cachedData = getCachedDashboard();
+  const [stats, setStats] = useState<any>(cachedData?.stats || null);
+  const [recentOrders, setRecentOrders] = useState<any[]>(cachedData?.orders || []);
+  const [recentOrdersTotal, setRecentOrdersTotal] = useState(cachedData?.ordersTotal || 0);
+  const [paymentRequests, setPaymentRequests] = useState<any[]>(cachedData?.payments || []);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedData?.stats);
+  const [hasLoaded, setHasLoaded] = useState(Boolean(cachedData?.stats));
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -48,10 +60,14 @@ export default function AdminDashboard() {
     setOrdersLoading(true);
     try {
       const data = await getAdminOrders(8, 0);
-      setRecentOrders(data?.orders || []);
-      setRecentOrdersTotal(data?.total || 0);
+      const orders = data?.orders || [];
+      const total = data?.total || 0;
+      setRecentOrders(orders);
+      setRecentOrdersTotal(total);
+      return { orders, total };
     } catch (err) {
       console.warn('Dashboard orders warning:', err);
+      return null;
     } finally {
       setOrdersLoading(false);
     }
@@ -61,20 +77,31 @@ export default function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
+      let freshStats: any = null;
+      let freshOrders: any = null;
+      let freshPayments: any = null;
+
       const fetchStats = getAdminDashboard()
         .then((data) => {
-          if (data) setStats(data);
+          if (data) {
+            setStats(data);
+            freshStats = data;
+          }
         })
         .catch((err) => {
           console.warn('Dashboard stats warning:', err);
           setError(err?.message || 'Unable to load dashboard metrics.');
         });
 
-      const fetchOrders = loadRecentOrders();
+      const fetchOrders = loadRecentOrders().then((res) => {
+        if (res) freshOrders = res;
+      });
 
       const fetchPayments = getAdminPaymentRequests()
         .then((data) => {
-          setPaymentRequests(data || []);
+          const list = data || [];
+          setPaymentRequests(list);
+          freshPayments = list;
         })
         .catch((err) => {
           console.warn('Dashboard payments warning:', err);
@@ -82,6 +109,18 @@ export default function AdminDashboard() {
         });
 
       await Promise.allSettled([fetchStats, fetchOrders, fetchPayments]);
+
+      try {
+        const toCache = {
+          stats: freshStats || stats,
+          orders: freshOrders?.orders || recentOrders,
+          ordersTotal: freshOrders?.total ?? recentOrdersTotal,
+          payments: freshPayments || paymentRequests,
+        };
+        sessionStorage.setItem('otpwala_admin_dashboard_cache', JSON.stringify(toCache));
+      } catch {}
+
+      setHasLoaded(true);
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);
@@ -94,6 +133,7 @@ export default function AdminDashboard() {
       }
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -265,7 +305,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {stats && parseFloat(stats.tigerBalance || 0) < 1.0 && (
+      {stats && stats.providerAvailable !== false && stats.tigerBalance !== null && parseFloat(stats.tigerBalance || 0) < 1.0 && (
         <div style={{
           padding: '0.85rem 1.15rem',
           background: 'rgba(245, 158, 11, 0.1)',
@@ -366,23 +406,52 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {/* Tiger SMS Balance & Status */}
-        <div className="card glass-card" style={{ padding: '1.25rem', borderLeft: `4px solid ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? '#10b981' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : '#ef4444'}` }}>
+        <div className="card glass-card" style={{
+          padding: '1.25rem',
+          borderLeft: `4px solid ${
+            !stats
+              ? 'var(--border-subtle)'
+              : stats.providerAvailable === false
+              ? '#ef4444'
+              : parseFloat(stats.tigerBalance || 0) >= 1.0
+              ? '#10b981'
+              : parseFloat(stats.tigerBalance || 0) > 0
+              ? '#f59e0b'
+              : '#ef4444'
+          }`,
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Tiger SMS API
             </span>
-            <span className={`badge ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
-              <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px', background: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : '#f59e0b' }}></span>
-              <span>{parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'Up & Operational' : 'Low Balance'}</span>
-            </span>
+            {!stats ? (
+              <span className="badge badge-secondary" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
+                <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px', background: 'var(--accent-primary)' }}></span>
+                <span>Connecting...</span>
+              </span>
+            ) : stats.providerAvailable === false ? (
+              <span className="badge badge-error" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
+                <span className="status-dot" style={{ width: '6px', height: '6px', background: 'var(--error)' }}></span>
+                <span>Unavailable</span>
+              </span>
+            ) : (
+              <span className={`badge ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}>
+                <span className="status-dot active pulse-dot" style={{ width: '6px', height: '6px', background: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : '#f59e0b' }}></span>
+                <span>{parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'Up & Operational' : 'Low Balance'}</span>
+              </span>
+            )}
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--text-primary)' : '#f59e0b' }}>
-            {loading && !stats ? '...' : `$${parseFloat(stats?.tigerBalance || 0).toFixed(2)}`}
+          <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: !stats ? 'var(--text-muted)' : stats.providerAvailable === false ? 'var(--error)' : parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--text-primary)' : '#f59e0b' }}>
+            {!stats ? '...' : stats.providerAvailable === false ? 'Offline' : `$${parseFloat(stats?.tigerBalance || 0).toFixed(2)}`}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', fontSize: '0.75rem' }}>
-            <span className={`status-dot ${parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'active' : ''}`} style={{ background: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)' }}></span>
-            <span style={{ color: parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)', fontWeight: 600 }}>
-              {parseFloat(stats?.tigerBalance || 0) >= 1.0
+            <span className={`status-dot ${!stats ? 'active pulse-dot' : parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'active' : ''}`} style={{ background: !stats ? 'var(--accent-primary)' : stats.providerAvailable === false ? 'var(--error)' : parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)' }}></span>
+            <span style={{ color: !stats ? 'var(--text-muted)' : stats.providerAvailable === false ? 'var(--error)' : parseFloat(stats?.tigerBalance || 0) >= 1.0 ? 'var(--success)' : parseFloat(stats?.tigerBalance || 0) > 0 ? '#f59e0b' : 'var(--error)', fontWeight: 600 }}>
+              {!stats
+                ? 'Verifying upstream gateway connectivity...'
+                : stats.providerAvailable === false
+                ? `Provider Unreachable (${stats.providerError || 'Connection error'})`
+                : parseFloat(stats?.tigerBalance || 0) >= 1.0
                 ? 'Upstream Provider Connected & Healthy'
                 : parseFloat(stats?.tigerBalance || 0) > 0
                 ? 'Low Balance — Top Up Tiger SMS'
@@ -400,13 +469,19 @@ export default function AdminDashboard() {
             <DollarIcon size={20} color="#34d399" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: '#34d399' }}>
-            {loading && !stats ? '...' : `₹${parseFloat(stats?.cashCollected ?? stats?.totalTopups ?? 0).toFixed(2)}`}
+            {!stats ? '...' : `₹${parseFloat(cashCollected || 0).toFixed(2)}`}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
-            UPI ₹{parseFloat(stats?.totalTopups || 0).toFixed(2)} ({stats?.topupCount || 0})
-            {' · '}Manual ₹{parseFloat(stats?.manualFunding || 0).toFixed(2)} ({stats?.manualFundingCount || 0})
-            <br />
-            Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.cashCollectedToday || 0).toFixed(2)}</strong>
+            {!stats ? (
+              <span>Calculating collected funds...</span>
+            ) : (
+              <>
+                UPI ₹{parseFloat(stats?.totalTopups || 0).toFixed(2)} ({stats?.topupCount || 0})
+                {' · '}Manual ₹{parseFloat(stats?.manualFunding || 0).toFixed(2)} ({stats?.manualFundingCount || 0})
+                <br />
+                Today: <strong style={{ color: 'var(--text-primary)' }}>₹{parseFloat(stats?.cashCollectedToday || 0).toFixed(2)}</strong>
+              </>
+            )}
           </div>
         </div>
 
@@ -419,11 +494,11 @@ export default function AdminDashboard() {
             <SmartphoneIcon size={20} color="#60a5fa" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)' }}>
-            {loading && !stats ? '...' : (stats?.totalOrders || 0)}
+            {!stats ? '...' : (stats?.totalOrders || 0)}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
-            <span>Today: <strong style={{ color: 'var(--text-primary)' }}>{stats?.ordersToday || 0}</strong></span>
-            <span>Live waiting: <strong style={{ color: '#60a5fa' }}>{stats?.activeOrders || 0}</strong></span>
+            <span>Today: <strong style={{ color: 'var(--text-primary)' }}>{!stats ? '...' : (stats?.ordersToday || 0)}</strong></span>
+            <span>Live waiting: <strong style={{ color: '#60a5fa' }}>{!stats ? '...' : (stats?.activeOrders || 0)}</strong></span>
           </div>
         </div>
 
@@ -436,7 +511,7 @@ export default function AdminDashboard() {
             <UsersIcon size={20} color="#c084fc" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)' }}>
-            {loading && !stats ? '...' : (stats?.totalUsers || 0)}
+            {!stats ? '...' : (stats?.totalUsers || 0)}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
             <a href="/admin/users" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>

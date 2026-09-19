@@ -22,12 +22,24 @@ import { renderServiceIcon } from '../otp/BuyNumber';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
 
+const getCachedCatalog = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('otpwala_admin_catalog_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function CatalogManager() {
+  const cached = getCachedCatalog();
   const [activeTab, setActiveTab] = useState<'services' | 'countries'>('services');
-  const [services, setServices] = useState<any[]>([]);
-  const [countries, setCountries] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<any[]>(cached?.services || []);
+  const [countries, setCountries] = useState<any[]>(cached?.countries || []);
+  const [stats, setStats] = useState<any>(cached?.stats || null);
+  const [loading, setLoading] = useState(!cached?.services && !cached?.countries);
+  const [hasLoaded, setHasLoaded] = useState(Boolean(cached?.services || cached?.countries));
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'enabled' | 'disabled'>('all');
   const [sortBy, setSortBy] = useState<'featured' | 'name_asc' | 'name_desc'>('featured');
@@ -44,6 +56,16 @@ export default function CatalogManager() {
       setServices(data.services || []);
       setCountries(data.countries || []);
       setStats(data.stats || null);
+
+      try {
+        sessionStorage.setItem('otpwala_admin_catalog_cache', JSON.stringify({
+          services: data.services || [],
+          countries: data.countries || [],
+          stats: data.stats || null,
+        }));
+      } catch {}
+      setHasLoaded(true);
+
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);
@@ -56,6 +78,7 @@ export default function CatalogManager() {
       }
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -282,6 +305,25 @@ export default function CatalogManager() {
         </div>
       )}
 
+      {/* Loading banner when fetching fresh configuration */}
+      {loading && !hasLoaded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          padding: '0.85rem 1.25rem',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--text-secondary)',
+          fontSize: '0.85rem',
+          marginBottom: '0.5rem',
+        }}>
+          <RefreshCwIcon size={16} className="animate-spin" color="var(--accent-primary)" />
+          <span>Loading SMS catalog services &amp; countries...</span>
+        </div>
+      )}
+
       {/* Metrics & Overview */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
         <div
@@ -302,10 +344,10 @@ export default function CatalogManager() {
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
             <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-primary)' }}>
-              {activeServicesCount}
+              {loading && !hasLoaded ? '...' : activeServicesCount}
             </span>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              / {services.length} Enabled
+              {loading && !hasLoaded ? 'Loading...' : `/ ${services.length} Enabled`}
             </span>
           </div>
           <div style={{ marginTop: '0.5rem', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden' }}>
@@ -337,10 +379,10 @@ export default function CatalogManager() {
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
             <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: '#34d399' }}>
-              {activeCountriesCount}
+              {loading && !hasLoaded ? '...' : activeCountriesCount}
             </span>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              / {countries.length} Enabled
+              {loading && !hasLoaded ? 'Loading...' : `/ ${countries.length} Enabled`}
             </span>
           </div>
           <div style={{ marginTop: '0.5rem', height: '6px', background: 'var(--bg-tertiary)', borderRadius: '999px', overflow: 'hidden' }}>

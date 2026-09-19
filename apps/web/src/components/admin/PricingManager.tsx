@@ -28,11 +28,30 @@ interface PricingRule {
   is_active: boolean;
 }
 
+const getCachedPricing = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('otpwala_admin_pricing_cache');
+    if (raw) return JSON.parse(raw);
+    const settingsRaw = sessionStorage.getItem('otpwala_admin_settings_cache');
+    if (settingsRaw) {
+      const parsed = JSON.parse(settingsRaw);
+      return { settings: parsed.settings };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export default function PricingManager() {
-  const [rules, setRules] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
-  const [countries, setCountries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCachedPricing();
+  const cachedS = cached?.settings || {};
+  const [rules, setRules] = useState<any[]>(cached?.rules || []);
+  const [services, setServices] = useState<any[]>(cached?.services || []);
+  const [countries, setCountries] = useState<any[]>(cached?.countries || []);
+  const [loading, setLoading] = useState(!cached?.settings && !cached?.rules);
+  const [hasLoaded, setHasLoaded] = useState(Boolean(cached?.settings || cached?.rules));
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [recentSave, setRecentSave] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,13 +73,23 @@ export default function PricingManager() {
 
   // Profit Calculator state
   const [calcBaseUsd, setCalcBaseUsd] = useState<number>(0.25);
-  const [rateMode, setRateMode] = useState<'tiger_default' | 'custom'>('custom');
-  const [tigerDefaultRate, setTigerDefaultRate] = useState<number>(85.0);
-  const [calcExchangeRate, setCalcExchangeRate] = useState<number>(86.5);
-  const [calcMarkupType, setCalcMarkupType] = useState<'percentage' | 'fixed'>('percentage');
-  const [calcMarkupValue, setCalcMarkupValue] = useState<number>(25);
+  const [rateMode, setRateMode] = useState<'tiger_default' | 'custom'>(
+    cachedS.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom'
+  );
+  const [tigerDefaultRate, setTigerDefaultRate] = useState<number>(
+    parseFloat(cachedS.tiger_default_rate) || 85.0
+  );
+  const [calcExchangeRate, setCalcExchangeRate] = useState<number>(
+    parseFloat(cachedS.custom_dollar_rate || cachedS.usd_to_inr_rate) || 86.5
+  );
+  const [calcMarkupType, setCalcMarkupType] = useState<'percentage' | 'fixed'>(
+    cachedS.default_markup_type === 'fixed' ? 'fixed' : 'percentage'
+  );
+  const [calcMarkupValue, setCalcMarkupValue] = useState<number>(
+    parseFloat(cachedS.default_markup_percentage || cachedS.default_markup_percent || cachedS.default_markup_value) || 25
+  );
 
-  const loadData = async () => {
+  const loadData = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -95,6 +124,17 @@ export default function PricingManager() {
       if (settingsData?.default_markup_type) {
         setCalcMarkupType(settingsData.default_markup_type === 'fixed' ? 'fixed' : 'percentage');
       }
+
+      try {
+        sessionStorage.setItem('otpwala_admin_pricing_cache', JSON.stringify({
+          rules: pricingData || [],
+          services: servicesData || [],
+          countries: countriesData || [],
+          settings: settingsData || {},
+        }));
+      } catch {}
+      setHasLoaded(true);
+
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);
@@ -107,6 +147,7 @@ export default function PricingManager() {
       }
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -127,6 +168,31 @@ export default function PricingManager() {
         default_markup_type: calcMarkupType,
         default_markup_value: calcMarkupValue.toString(),
       });
+
+      try {
+        const updatedSettings = {
+          ...(cached?.settings || {}),
+          dollar_rate_mode: rateMode,
+          tiger_default_rate: tigerDefaultRate.toString(),
+          custom_dollar_rate: calcExchangeRate.toString(),
+          usd_to_inr_rate: effectiveRate.toString(),
+          usdt_inr_rate: effectiveRate.toString(),
+          default_markup_percentage: calcMarkupValue.toString(),
+          default_markup_percent: calcMarkupValue.toString(),
+          default_markup_type: calcMarkupType,
+          default_markup_value: calcMarkupValue.toString(),
+        };
+        sessionStorage.setItem('otpwala_admin_pricing_cache', JSON.stringify({
+          rules,
+          services,
+          countries,
+          settings: updatedSettings,
+        }));
+        sessionStorage.setItem('otpwala_admin_settings_cache', JSON.stringify({
+          settings: updatedSettings,
+        }));
+      } catch {}
+
       setSuccess(
         `All pricing settings saved successfully! Dollar exchange rate set to ₹${effectiveRate.toFixed(2)} and default profit margin set to ${calcMarkupValue}${calcMarkupType === 'percentage' ? '%' : '₹'}. Pricing cache refreshed!`
       );
@@ -340,6 +406,25 @@ export default function PricingManager() {
           <button className="btn btn-ghost btn-sm" onClick={() => setSuccess(null)}>
             <XIcon size={14} />
           </button>
+        </div>
+      )}
+
+      {/* Loading banner when fetching fresh configuration */}
+      {loading && !hasLoaded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          padding: '0.85rem 1.25rem',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--text-secondary)',
+          fontSize: '0.85rem',
+          marginBottom: '0.5rem',
+        }}>
+          <RefreshCwIcon size={16} className="animate-spin" color="var(--accent-primary)" />
+          <span>Loading pricing rules, services catalog &amp; saved rates...</span>
         </div>
       )}
 

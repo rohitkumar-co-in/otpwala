@@ -16,13 +16,25 @@ import {
   XIcon,
 } from '../ui/Icons';
 
+const getCachedRecharges = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('otpwala_admin_recharges_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function RechargeManager() {
-  const [recharges, setRecharges] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
+  const cached = getCachedRecharges();
+  const [recharges, setRecharges] = useState<any[]>(cached?.recharges || []);
+  const [total, setTotal] = useState(cached?.total || 0);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached?.recharges);
+  const [hasLoaded, setHasLoaded] = useState(Boolean(cached?.recharges));
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -36,7 +48,7 @@ export default function RechargeManager() {
 
   // Balance-sheet view: which funding source is being listed, and platform totals.
   const [sourceFilter, setSourceFilter] = useState<'all' | 'upi' | 'manual' | 'free'>('all');
-  const [summary, setSummary] = useState<any>(null);
+  const [summary, setSummary] = useState<any>(cached?.summary || null);
 
   const SOURCE_FILTERS: { key: 'all' | 'upi' | 'manual' | 'free'; label: string }[] = [
     { key: 'all', label: 'All funding' },
@@ -51,27 +63,49 @@ export default function RechargeManager() {
     return { label: 'Manual Funding', className: 'badge-primary' };
   };
 
-  const inr = (value: any) => `₹${parseFloat(value || 0).toFixed(2)}`;
+  const inr = (value: any) => {
+    if (value === undefined || value === null) return '...';
+    return `₹${parseFloat(value || 0).toFixed(2)}`;
+  };
 
   const limit = 20;
 
   const loadSummary = async () => {
     try {
       const data = await getAdminFundingSummary();
-      if (data) setSummary(data);
+      if (data) {
+        setSummary(data);
+        return data;
+      }
     } catch (err) {
       console.warn('Funding summary warning:', err);
     }
+    return null;
   };
 
   const loadRecharges = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAdminRecharges(limit, page * limit, search, sourceFilter);
-      setRecharges(data?.recharges || []);
-      setTotal(data?.total || 0);
-      loadSummary();
+      const [rechargesData, summaryData] = await Promise.all([
+        getAdminRecharges(limit, page * limit, search, sourceFilter),
+        getAdminFundingSummary().catch(() => null),
+      ]);
+      const list = rechargesData?.recharges || [];
+      const totalCount = rechargesData?.total || 0;
+      setRecharges(list);
+      setTotal(totalCount);
+      if (summaryData) setSummary(summaryData);
+
+      try {
+        sessionStorage.setItem('otpwala_admin_recharges_cache', JSON.stringify({
+          recharges: list,
+          total: totalCount,
+          summary: summaryData || summary,
+        }));
+      } catch {}
+      setHasLoaded(true);
+
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);
@@ -84,6 +118,7 @@ export default function RechargeManager() {
       }
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -195,31 +230,70 @@ export default function RechargeManager() {
         </div>
       )}
 
+      {/* Loading banner when fetching fresh configuration */}
+      {loading && !hasLoaded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          padding: '0.85rem 1.25rem',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--text-secondary)',
+          fontSize: '0.85rem',
+          marginBottom: '1rem',
+        }}>
+          <RefreshCwIcon size={16} className="animate-spin" color="var(--accent-primary)" />
+          <span>Loading recharge ledger records &amp; funding summary...</span>
+        </div>
+      )}
+
       {/* Balance-sheet view: what was really collected vs granted for free */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
           <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Cash collected (real money)</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399', marginTop: '0.3rem' }}>{inr(summary?.cashCollected)}</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399', marginTop: '0.3rem' }}>
+            {!summary && loading ? '...' : inr(summary?.cashCollected)}
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
-            UPI top-ups {inr(summary?.totalTopups)} ({summary?.topupCount || 0})
-            <br />
-            Manual funding {inr(summary?.manualFunding)} ({summary?.manualFundingCount || 0})
+            {!summary && loading ? (
+              <span>Calculating collected funds...</span>
+            ) : (
+              <>
+                UPI top-ups {inr(summary?.totalTopups)} ({summary?.topupCount || 0})
+                <br />
+                Manual funding {inr(summary?.manualFunding)} ({summary?.manualFundingCount || 0})
+              </>
+            )}
           </div>
         </div>
 
         <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #a855f7' }}>
           <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Free funds granted (not revenue)</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc', marginTop: '0.3rem' }}>{inr(summary?.freeFunds)}</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c084fc', marginTop: '0.3rem' }}>
+            {!summary && loading ? '...' : inr(summary?.freeFunds)}
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
-            {summary?.freeFundsCount || 0} admin grant(s) · today {inr(summary?.freeFundsToday)}
+            {!summary && loading ? (
+              <span>Calculating free funds...</span>
+            ) : (
+              `${summary?.freeFundsCount || 0} admin grant(s) · today ${inr(summary?.freeFundsToday)}`
+            )}
           </div>
         </div>
 
         <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #64748b' }}>
           <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Customer wallet liability</div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.3rem' }}>{inr(summary?.walletLiability)}</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.3rem' }}>
+            {!summary && loading ? '...' : inr(summary?.walletLiability)}
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
-            Today collected: {inr(summary?.cashCollectedToday)}
+            {!summary && loading ? (
+              <span>Calculating liability...</span>
+            ) : (
+              `Today collected: ${inr(summary?.cashCollectedToday)}`
+            )}
           </div>
         </div>
       </div>

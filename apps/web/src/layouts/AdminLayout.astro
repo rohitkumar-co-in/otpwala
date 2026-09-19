@@ -398,36 +398,45 @@ const formattedTitle = formatPageTitle(title);
         }
       });
 
-      // 4. Check Tiger SMS upstream status for Admin
+      // 4. Check Tiger SMS upstream status for Admin with instant session cache
+      const applyTigerStatusUI = (data: any) => {
+        const badge = document.getElementById('tiger-status-badge');
+        const dot = document.getElementById('tiger-status-dot');
+        const text = document.getElementById('tiger-status-text');
+        if (!text || !badge || !dot) return;
+        if (data && data.balance !== undefined) {
+          text.textContent = `Tiger SMS: Up & Operational`;
+          badge.style.background = 'rgba(16, 185, 129, 0.1)';
+          badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+          badge.style.color = '#34d399';
+          dot.className = 'status-dot active pulse-dot';
+          dot.style.background = '#10b981';
+        } else {
+          text.textContent = 'Tiger SMS: Offline / Issue';
+          badge.style.background = 'rgba(239, 68, 68, 0.1)';
+          badge.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+          badge.style.color = '#f87171';
+          dot.className = 'status-dot';
+          dot.style.background = '#ef4444';
+        }
+      };
+
+      try {
+        const cachedTiger = sessionStorage.getItem('otpwala_admin_tiger_status');
+        if (cachedTiger) {
+          applyTigerStatusUI(JSON.parse(cachedTiger));
+        }
+      } catch {}
+
       const checkTigerStatus = async () => {
         try {
           const data = await getAdminTigerBalance();
-          const badge = document.getElementById('tiger-status-badge');
-          const dot = document.getElementById('tiger-status-dot');
-          const text = document.getElementById('tiger-status-text');
           if (data && data.balance !== undefined) {
-            if (text) text.textContent = `Tiger SMS: Up & Operational`;
-            if (badge) {
-              badge.style.background = 'rgba(16, 185, 129, 0.1)';
-              badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
-              badge.style.color = '#34d399';
-            }
-            if (dot) {
-              dot.className = 'status-dot active pulse-dot';
-              dot.style.background = '#10b981';
-            }
-          } else {
-            if (text) text.textContent = 'Tiger SMS: Offline / Issue';
-            if (badge) {
-              badge.style.background = 'rgba(239, 68, 68, 0.1)';
-              badge.style.borderColor = 'rgba(239, 68, 68, 0.25)';
-              badge.style.color = '#f87171';
-            }
-            if (dot) {
-              dot.className = 'status-dot';
-              dot.style.background = '#ef4444';
-            }
+            try {
+              sessionStorage.setItem('otpwala_admin_tiger_status', JSON.stringify(data));
+            } catch {}
           }
+          applyTigerStatusUI(data);
         } catch {
           const badge = document.getElementById('tiger-status-badge');
           const dot = document.getElementById('tiger-status-dot');
