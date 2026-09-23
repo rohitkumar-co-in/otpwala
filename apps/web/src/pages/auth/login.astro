@@ -483,9 +483,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         `;
       }
       if ((profile?.role === 'admin' || profile?.role === 'superadmin')) {
+        try { localStorage.setItem('otpwala_profile_role', profile.role); } catch {}
         window.location.href = '/admin';
         return;
       }
+      try { localStorage.removeItem('otpwala_profile_role'); } catch {}
       window.location.href = '/dashboard';
     }
   }
@@ -674,9 +676,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         .single();
 
       if ((profile?.role === 'admin' || profile?.role === 'superadmin')) {
+        try { localStorage.setItem('otpwala_profile_role', profile.role); } catch {}
         window.location.href = '/admin';
         return;
       }
+      try { localStorage.removeItem('otpwala_profile_role'); } catch {}
     } catch (err: any) {
       if (String(err?.message || '').toLowerCase().includes('two-factor') || String(err?.message || '').toLowerCase().includes('authenticator')) {
         showError(err.message);

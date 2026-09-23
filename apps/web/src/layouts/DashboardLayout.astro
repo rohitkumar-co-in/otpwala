@@ -677,6 +677,14 @@ const formattedTitle = formatPageTitle(title);
       }
     });
 
+    // Show the admin entry immediately for a recently verified admin role.
+    // The live profile query below remains authoritative and can hide it again.
+    const cachedRole = typeof localStorage !== 'undefined' ? localStorage.getItem('otpwala_profile_role') : null;
+    if (cachedRole === 'admin' || cachedRole === 'superadmin') {
+      document.getElementById('nav-admin')?.style.setProperty('display', 'flex');
+      document.getElementById('dropdown-admin-link')?.style.setProperty('display', 'flex');
+    }
+
     // Check auth & load user info
     (async () => {
       // 0. Synchronous instant check from localStorage (0ms)
@@ -816,8 +824,15 @@ const formattedTitle = formatPageTitle(title);
         dropdownRole.textContent = (existingProfile?.role === 'admin' || existingProfile?.role === 'superadmin') ? 'Administrator' : 'Customer';
       }
       if ((existingProfile?.role === 'admin' || existingProfile?.role === 'superadmin')) {
+        try { localStorage.setItem('otpwala_profile_role', existingProfile.role); } catch {}
         const adminLink = document.getElementById('dropdown-admin-link');
         if (adminLink) adminLink.style.display = 'flex';
+        const sidebarAdminLink = document.getElementById('nav-admin');
+        if (sidebarAdminLink) sidebarAdminLink.style.display = 'flex';
+      } else {
+        try { localStorage.removeItem('otpwala_profile_role'); } catch {}
+        document.getElementById('nav-admin')?.style.setProperty('display', 'none');
+        document.getElementById('dropdown-admin-link')?.style.setProperty('display', 'none');
       }
 
       // User dropdown menu interaction
