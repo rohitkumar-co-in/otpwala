@@ -349,7 +349,7 @@ router.post('/users/:id/ban', async (req: AuthenticatedRequest, res) => {
  * Retired: the Pages API runs the reviewed data-erasure workflow, which
  * pseudonymizes personal data while retaining financial records.
  */
-router.delete('/users/:id', async (req: AuthenticatedRequest, res) => {
+router.post('/users/:id/purge', async (req: AuthenticatedRequest, res) => {
   try {
     if (req.userRole !== 'superadmin') {
       res.status(403).json({ success: false, error: 'Only Super Admin can purge user data.' });
@@ -429,7 +429,7 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-router.post('/users/bulk-delete', async (req: AuthenticatedRequest, res) => {
+router.post('/users/bulk-purge', async (req: AuthenticatedRequest, res) => {
   try {
     if (req.userRole !== 'superadmin') { res.status(403).json({ success: false, error: 'Only Super Admin can purge user data.' }); return; }
     const { userIds, mode = 'history' } = req.body || {};

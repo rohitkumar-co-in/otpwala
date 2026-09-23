@@ -1387,11 +1387,11 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, message: body.banned ? 'User banned' : 'User unbanned' });
       }
 
-      // DELETE /api/admin/users/:id
-      const userDeleteMatch = path.match(/^\/api\/admin\/users\/([^\/]+)$/);
-      if (userDeleteMatch && method === 'DELETE') {
+      // POST /api/admin/users/:id/purge
+      const userPurgeMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/purge$/);
+      if (userPurgeMatch && method === 'POST') {
         if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
-        const targetUserId = userDeleteMatch[1];
+        const targetUserId = userPurgeMatch[1];
         const body = await request.json().catch(() => ({}));
         const purgeMode = String(body.mode || 'history');
         if (!['complete', 'history'].includes(purgeMode)) return jsonResponse({ success: false, error: 'Purge mode must be complete or history.' }, 400);
@@ -1430,7 +1430,7 @@ export const onRequest = async (context: any) => {
       }
 
       // POST /api/admin/users/bulk-delete
-      if (path === '/api/admin/users/bulk-delete' && method === 'POST') {
+      if (path === '/api/admin/users/bulk-purge' && method === 'POST') {
         if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
         const body = await request.json().catch(() => ({}));
         const { userIds } = body;

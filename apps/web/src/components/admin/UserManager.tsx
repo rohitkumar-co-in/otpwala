@@ -10,7 +10,7 @@ import {
   setUserZeroMarkup,
   purgeUser,
   bulkBanUsers,
-  bulkDeleteUsers,
+  bulkPurgeUsers,
   promoteAdmin,
   demoteAdmin,
 } from '../../lib/api';
@@ -53,7 +53,7 @@ export default function UserManager() {
   const [crediting, setCrediting] = useState(false);
 
   // Single delete confirmation modal state
-  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [purgeTarget, setPurgeTarget] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [purgeMode, setPurgeMode] = useState<UserPurgeMode>('history');
   const [purgeConfirmation, setPurgeConfirmation] = useState('');
@@ -63,7 +63,7 @@ export default function UserManager() {
   // Bulk selection state
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [showBulkPurgeModal, setShowBulkPurgeModal] = useState(false);
 
   // Row ban action state
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -304,12 +304,12 @@ export default function UserManager() {
   };
 
   // ─── Single User Purge (Prerequisite: User must be banned first!) ───
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
+  const handleConfirmPurge = async () => {
+    if (!purgeTarget) return;
 
-    if (!deleteTarget.is_banned) {
-      setError('User must be banned first before deletion.');
-      setDeleteTarget(null);
+    if (!purgeTarget.is_banned) {
+      setError('User must be banned first before purge.');
+      setPurgeTarget(null);
       return;
     }
     const expectedConfirmation = purgeMode === 'complete' ? 'PURGE COMPLETELY' : 'PURGE WITH HISTORY';
@@ -322,13 +322,13 @@ export default function UserManager() {
     setError(null);
     setSuccess(null);
     try {
-      await purgeUser(deleteTarget.id, purgeMode);
-      setSuccess(purgeMode === 'history' ? `User data for ${deleteTarget.email} was purged and a non-personal history summary was retained.` : `All data for ${deleteTarget.email} was purged completely.`);
+      await purgeUser(purgeTarget.id, purgeMode);
+      setSuccess(purgeMode === 'history' ? `User data for ${purgeTarget.email} was purged and a non-personal history summary was retained.` : `All data for ${purgeTarget.email} was purged completely.`);
       
       // Optimistic update: instantly remove from UI
-      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
-      setSelectedUserIds((prev) => prev.filter((id) => id !== deleteTarget.id));
-      setDeleteTarget(null);
+      setUsers((prev) => prev.filter((u) => u.id !== purgeTarget.id));
+      setSelectedUserIds((prev) => prev.filter((id) => id !== purgeTarget.id));
+      setPurgeTarget(null);
       setPurgeConfirmation('');
       if (purgeMode === 'history') {
         getAdminUserPurgeHistory().then((data) => setPurgeHistory(data || [])).catch(() => {});
@@ -439,7 +439,7 @@ export default function UserManager() {
     setSuccess(null);
     try {
       const idsToDelete = selectedBannedUsers.map((u) => u.id);
-      await bulkDeleteUsers(idsToDelete);
+      await bulkPurgeUsers(idsToDelete);
       
       // Optimistic update: instantly remove from UI
       const idSet = new Set(idsToDelete);
@@ -447,9 +447,9 @@ export default function UserManager() {
       
       setSuccess(`${idsToDelete.length} banned user account(s) anonymized; required financial records retained.`);
       setSelectedUserIds([]);
-      setShowBulkDeleteModal(false);
+      setShowBulkPurgeModal(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to erase selected users');
+      setError(err.message || 'Failed to purge selected users');
     } finally {
       setDeleting(false);
     }
@@ -645,8 +645,8 @@ export default function UserManager() {
               <button
                 className="btn btn-sm"
                 disabled={bulkActionLoading}
-                onClick={() => setShowBulkDeleteModal(true)}
-                title="Permanently delete selected banned users"
+                onClick={() => setShowBulkPurgeModal(true)}
+                title="Purge selected banned users"
                 style={{
                   background: '#dc2626',
                   color: '#ffffff',
@@ -656,7 +656,7 @@ export default function UserManager() {
                 }}
               >
                 <TrashIcon size={13} style={{ display: 'inline', marginRight: '4px' }} />
-                Erase Selected ({selectedBannedUsers.length})
+                Purge Selected ({selectedBannedUsers.length})
               </button>
             )}
           </div>
@@ -891,7 +891,7 @@ export default function UserManager() {
                             <button
                               className="btn btn-sm"
                               onClick={() => {
-                                setDeleteTarget(u);
+                                setPurgeTarget(u);
                                 setPurgeMode('history');
                                 setPurgeConfirmation('');
                               }}
@@ -1053,7 +1053,7 @@ export default function UserManager() {
       )}
 
       {/* Single User Delete Confirmation Modal */}
-      {deleteTarget && (
+      {purgeTarget && (
         <div className="modal-backdrop" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -1072,7 +1072,7 @@ export default function UserManager() {
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Purge all account data for <strong>{deleteTarget.email}</strong>?
+              Purge all account data for <strong>{purgeTarget.email}</strong>?
             </p>
 
             <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1rem' }}>
@@ -1113,7 +1113,7 @@ export default function UserManager() {
                 type="button"
                 className="btn btn-secondary btn-sm"
                 disabled={deleting}
-                onClick={() => setDeleteTarget(null)}
+                onClick={() => setPurgeTarget(null)}
               >
                 No, Cancel
               </button>
@@ -1121,7 +1121,7 @@ export default function UserManager() {
                 type="button"
                 className="btn btn-sm"
                 disabled={deleting}
-                onClick={handleConfirmDelete}
+                onClick={handleConfirmPurge}
                 style={{
                   background: '#dc2626',
                   color: '#ffffff',
@@ -1138,7 +1138,7 @@ export default function UserManager() {
       )}
 
       {/* Bulk Delete Confirmation Modal */}
-      {showBulkDeleteModal && (
+      {showBulkPurgeModal && (
         <div className="modal-backdrop" style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -1157,7 +1157,7 @@ export default function UserManager() {
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1rem' }}>
-              Erase eligible personal data for <strong>{selectedBannedUsers.length}</strong> banned user(s)?
+              Purge data for <strong>{selectedBannedUsers.length}</strong> banned user(s)?
             </p>
 
             {selectedUnbannedCount > 0 && (
@@ -1192,7 +1192,7 @@ export default function UserManager() {
                 type="button"
                 className="btn btn-secondary btn-sm"
                 disabled={deleting}
-                onClick={() => setShowBulkDeleteModal(false)}
+                onClick={() => setShowBulkPurgeModal(false)}
               >
                 No, Cancel
               </button>
@@ -1209,7 +1209,7 @@ export default function UserManager() {
                   padding: '0.5rem 1.1rem',
                 }}
               >
-                {deleting ? 'Erasing...' : `Erase ${selectedBannedUsers.length} User(s)`}
+                {deleting ? 'Purging...' : `Purge ${selectedBannedUsers.length} User(s)`}
               </button>
             </div>
           </div>

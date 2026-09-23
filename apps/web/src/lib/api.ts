@@ -224,7 +224,7 @@ export const setUserZeroMarkup = (userId: string, hasZeroMarkup: boolean) =>
   });
 export type UserPurgeMode = 'complete' | 'history';
 export const purgeUser = (userId: string, mode: UserPurgeMode) =>
-  apiFetch<any>(`/api/admin/users/${userId}`, { method: 'DELETE', body: JSON.stringify({ mode }) });
+  apiFetch<any>(`/api/admin/users/${userId}/purge`, { method: 'POST', body: JSON.stringify({ mode }) });
 export const getAdminUserPurgeHistory = () =>
   apiFetch<any[]>('/api/admin/user-purge-history');
 export const bulkBanUsers = (userIds: string[], banned: boolean) =>
@@ -232,8 +232,8 @@ export const bulkBanUsers = (userIds: string[], banned: boolean) =>
     method: 'POST',
     body: JSON.stringify({ userIds, banned }),
   });
-export const bulkDeleteUsers = (userIds: string[], mode: UserPurgeMode = 'history') =>
-  apiFetch<any>('/api/admin/users/bulk-delete', {
+export const bulkPurgeUsers = (userIds: string[], mode: UserPurgeMode = 'history') =>
+  apiFetch<any>('/api/admin/users/bulk-purge', {
     method: 'POST',
     body: JSON.stringify({ userIds, mode }),
   });
