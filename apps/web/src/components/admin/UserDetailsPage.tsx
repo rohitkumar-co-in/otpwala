@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAdminUserDetails } from '../../lib/api';
-import { RefreshCwIcon, ArrowLeftIcon } from '../ui/Icons';
+import { RefreshCwIcon, ArrowLeftIcon, CopyIcon, CheckIcon } from '../ui/Icons';
 
 type Tab = 'orders' | 'deposits' | 'tickets';
 
@@ -10,6 +10,7 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
   const [tab, setTab] = useState<Tab>('orders');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -40,6 +41,16 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
 
   const user = details?.user || {};
   const rows = details?.[tab] || [];
+  const displayName = user.name || user.full_name || 'Anonymous User';
+  const displayId = user.id || userId;
+
+  const copyUserId = async () => {
+    try {
+      await navigator.clipboard.writeText(displayId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {}
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -47,29 +58,25 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
         <ArrowLeftIcon size={14} /> Back to Users
       </a>
 
-      <section className="card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'var(--font-display)' }}>{user.name || user.full_name || 'Anonymous User'}</h1>
-            <div style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{user.email || 'No email'}</div>
+      <section className="card" style={{ padding: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(37, 99, 235, 0.12)', color: '#2563eb', fontWeight: 800, fontSize: '1.15rem' }}>{displayName[0]?.toUpperCase() || 'U'}</div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'var(--font-display)' }}>{displayName}</h1>
+              <div style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{user.email || 'No email'}</div>
+            </div>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
             <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginTop: '1.25rem' }}>
-          {[
-            ['Name', user.name || user.full_name || 'Not set'],
-            ['Email', user.email || 'Not set'],
-            ['Date Joined', user.created_at ? new Date(user.created_at).toLocaleString('en-IN') : 'Not available'],
-            ['User ID', user.id || userId],
-            ['Last Login', user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('en-IN') : 'Never'],
-          ].map(([label, value]) => (
-            <div key={label} style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.75rem', minWidth: 0 }}>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>{label}</div>
-              <div style={{ marginTop: '0.25rem', fontWeight: 650, fontSize: '0.82rem', overflowWrap: 'anywhere', fontFamily: label === 'User ID' ? 'var(--font-mono)' : undefined }}>{value}</div>
-            </div>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.75rem', marginTop: '1.35rem' }}>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0 }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Name</div><div style={{ marginTop: '0.25rem', fontWeight: 700, overflowWrap: 'anywhere' }}>{displayName}</div></div>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0 }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Email</div><div style={{ marginTop: '0.25rem', fontWeight: 650, overflowWrap: 'anywhere' }}>{user.email || 'Not set'}</div></div>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0 }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Date Joined</div><div style={{ marginTop: '0.25rem', fontWeight: 650 }}>{user.created_at ? new Date(user.created_at).toLocaleString('en-IN') : 'Not available'}</div></div>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0 }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Last Login</div><div style={{ marginTop: '0.25rem', fontWeight: 650 }}>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('en-IN') : 'Never'}</div></div>
+          <div style={{ gridColumn: '1 / -1', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0, background: 'var(--bg-glass)' }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>User ID</div><div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}><code style={{ fontSize: '0.78rem', overflowWrap: 'anywhere', flex: 1 }}>{displayId}</code><button type="button" className="btn btn-ghost btn-sm" onClick={copyUserId} title="Copy user ID" aria-label="Copy user ID" style={{ padding: '0.25rem', color: copied ? 'var(--success)' : 'var(--text-muted)' }}>{copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}</button></div></div>
         </div>
       </section>
 
