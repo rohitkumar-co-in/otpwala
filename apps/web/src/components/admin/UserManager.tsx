@@ -41,6 +41,7 @@ export default function UserManager() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [userSort, setUserSort] = useState<'recent' | 'alphabetical' | 'deposited'>('recent');
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +125,7 @@ export default function UserManager() {
     }
   };
 
-  const limit = 15;
+  const limit = pageSize;
 
   const loadUsers = async (isManual = false) => {
     setLoading(true);
@@ -566,6 +567,15 @@ export default function UserManager() {
             <option value="recent">Recently Joined</option>
             <option value="alphabetical">Alphabetical</option>
             <option value="deposited">Most Deposited</option>
+          </select>
+          <select
+            aria-label="Users per page"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+            className="input"
+            style={{ width: 'auto', minWidth: '145px' }}
+          >
+            {[25, 50, 100, 200].map((size) => <option key={size} value={size}>{size} users</option>)}
           </select>
           {search && (
             <button
