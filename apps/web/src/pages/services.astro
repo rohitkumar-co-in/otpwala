@@ -158,7 +158,14 @@ const servicesFaqSchema = {
       </div>
 
       <!-- Services Grid -->
+      <section class="popular-services-section" aria-labelledby="popular-services-title">
+        <h2 id="popular-services-title" class="catalog-hub-title">Popular services</h2>
+        <div id="popular-services-grid" class="popular-services-grid" aria-live="polite"><p class="text-secondary">Loading popular services...</p></div>
+      </section>
+
       <div class="services-container">
+        <h2 class="catalog-hub-title">All services</h2>
+        <nav id="service-alpha" class="catalog-alpha" aria-label="Service initials"></nav>
         <div class="services-grid" id="services-grid" aria-live="polite">
           <p class="text-secondary">Loading live services…</p>
         </div>
@@ -437,6 +444,14 @@ const servicesFaqSchema = {
     grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     gap: 1.5rem;
   }
+  .catalog-hub-title { margin: 2rem 0 1rem; color: #0f172a; font-size: 1.35rem; font-weight: 800; }
+  .popular-services-section { margin-top: 1.5rem; }
+  .popular-services-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem; }
+  .popular-services-grid .service-card { min-height: 145px; padding: 1rem; }
+  .popular-services-grid .service-desc, .popular-services-grid .card-footer { display: none; }
+  .catalog-alpha { display: flex; flex-wrap: wrap; gap: .3rem; padding: .65rem 0; margin-bottom: .75rem; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+  .catalog-alpha button { min-width: 27px; padding: .25rem .35rem; border: 0; border-radius: 6px; background: transparent; color: #64748b; font-size: .75rem; font-weight: 800; cursor: pointer; }
+  .catalog-alpha button:hover, .catalog-alpha button.active { background: #eaf2ff; color: #2563eb; }
   .service-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -576,6 +591,7 @@ const servicesFaqSchema = {
       width: 100%;
       justify-content: center;
     }
+    .popular-services-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 
   /* Features Box */
@@ -788,6 +804,8 @@ const servicesFaqSchema = {
 <script>
   const searchInput = document.getElementById('service-search') as HTMLInputElement;
   const servicesGrid = document.getElementById('services-grid') as HTMLElement;
+  const popularServicesGrid = document.getElementById('popular-services-grid') as HTMLElement;
+  const serviceAlpha = document.getElementById('service-alpha') as HTMLElement;
   const emptyState = document.getElementById('no-services-found') as HTMLElement;
   const exploreButton = document.getElementById('explore-more-services-btn') as HTMLAnchorElement;
   const serviceTotal = document.getElementById('services-total-count') as HTMLElement;
@@ -802,6 +820,22 @@ const servicesFaqSchema = {
       if (matches) visible++;
     });
     if (emptyState) emptyState.style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  function renderServiceAlphabet() {
+    serviceAlpha?.replaceChildren();
+    if (!serviceAlpha) return;
+    const allButton = document.createElement('button');
+    allButton.textContent = 'All';
+    allButton.className = !searchInput.value ? 'active' : '';
+    allButton.onclick = () => { searchInput.value = ''; filterCards(); renderServiceAlphabet(); };
+    serviceAlpha.append(allButton);
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((letter) => {
+      const button = document.createElement('button');
+      button.textContent = letter;
+      button.onclick = () => { searchInput.value = letter; filterCards(); renderServiceAlphabet(); };
+      serviceAlpha.append(button);
+    });
   }
 
   function createServiceCard(service: any) {
@@ -856,19 +890,23 @@ const servicesFaqSchema = {
     return card;
   }
 
-  searchInput?.addEventListener('input', filterCards);
+  searchInput?.addEventListener('input', () => { filterCards(); renderServiceAlphabet(); });
   const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined
     ? (window as any).__PUBLIC_API_URL__
     : (import.meta.env.PUBLIC_API_URL || '');
-  fetch(API_URL + '/api/services?featured=true&summary=true')
+  fetch(API_URL + '/api/services')
     .then((response) => response.json())
     .then((result) => {
       if (!result.success || !Array.isArray(result.data)) throw new Error(result.error || 'Unable to load services');
       if (result.data.length === 0) {
-        servicesGrid.innerHTML = '<p class="text-secondary">Popular services are being updated. Create an account to browse the complete live catalog.</p>';
+        popularServicesGrid.innerHTML = '<p class="text-secondary">Services are being updated.</p>';
+        servicesGrid.innerHTML = '<p class="text-secondary">No services are currently available.</p>';
         if (emptyState) emptyState.style.display = 'none';
       } else {
+        const popular = result.data.filter((service: any) => service.isFeatured).slice(0, 24);
+        popularServicesGrid.replaceChildren(...(popular.length ? popular : result.data.slice(0, 24)).map(createServiceCard));
         servicesGrid.replaceChildren(...result.data.map(createServiceCard));
+        renderServiceAlphabet();
         filterCards();
       }
     })

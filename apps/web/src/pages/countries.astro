@@ -58,6 +58,7 @@ const breadcrumbSchema = {
           </div>
           <span id="country-count" class="catalog-count">Loading...</span>
         </div>
+        <nav id="country-alpha" class="catalog-alpha" aria-label="Country initials"></nav>
         <div id="all-countries" class="all-country-grid" aria-live="polite"><p class="catalog-status">Loading countries...</p></div>
         <button id="load-more-countries" class="btn btn-secondary load-more" type="button" hidden>Load more countries</button>
       </section>
@@ -94,6 +95,9 @@ const breadcrumbSchema = {
   .all-country-section { padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255,255,255,.82); box-shadow: 0 8px 26px rgba(15,23,42,.05); }
   .all-country-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
   .catalog-count { color: #64748b; font-size: .8rem; font-weight: 700; }
+  .catalog-alpha { display: flex; flex-wrap: wrap; gap: .3rem; padding: .65rem 0; margin-bottom: .4rem; border-top: 1px solid #eef2f7; border-bottom: 1px solid #eef2f7; }
+  .catalog-alpha button { min-width: 27px; padding: .25rem .35rem; border: 0; border-radius: 6px; background: transparent; color: #64748b; font-size: .75rem; font-weight: 800; cursor: pointer; }
+  .catalog-alpha button:hover, .catalog-alpha button.active { background: #eaf2ff; color: #2563eb; }
   .all-country-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1.5rem; }
   .all-country-item { display: flex; align-items: center; gap: .6rem; min-height: 46px; border-top: 1px solid #eef2f7; color: #334155; font-size: .84rem; }
   .load-more { display: block; margin: 1rem auto 0; }
@@ -103,19 +107,21 @@ const breadcrumbSchema = {
   .country-footer-cta p { margin: 0; color: #cbd5e1; font-size: .86rem; }
   .country-footer-cta .badge-pill { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #bfdbfe; }
   @media (max-width: 900px) { .popular-country-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .countries-hero { padding-top: 2.25rem; } .popular-country-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .all-country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: .85rem; } .country-footer-cta { align-items: flex-start; flex-direction: column; } .country-footer-cta .btn { width: 100%; justify-content: center; } }
+  @media (max-width: 640px) { .countries-hero { padding-top: 2.25rem; } .popular-country-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .all-country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: .85rem; } .catalog-alpha { gap: .15rem; } .catalog-alpha button { min-width: 24px; } .country-footer-cta { align-items: flex-start; flex-direction: column; } .country-footer-cta .btn { width: 100%; justify-content: center; } }
 </style>
 
 <script>
   type Country = { id: number; name: string; iso?: string; flagUrl?: string };
-  const popularNames = ['Brazil', 'United States', 'Philippines', 'Indonesia', 'South Africa', 'India', 'Canada', 'Mexico', 'France', 'Nigeria', 'Thailand', 'United Kingdom'];
+  const popularNames = ['Brazil', 'United States', 'Philippines', 'Indonesia', 'United Kingdom', 'South Africa', 'India', 'Canada', 'Mexico', 'France', 'Nigeria', 'Thailand', 'Colombia', 'Netherlands', 'Poland', 'Germany', 'Pakistan', 'Turkey', 'Bangladesh', 'Italy', 'Portugal', 'Saudi Arabia', 'Spain', 'Vietnam'];
   const searchInput = document.getElementById('country-search') as HTMLInputElement;
   const popularContainer = document.getElementById('popular-countries') as HTMLElement;
   const allContainer = document.getElementById('all-countries') as HTMLElement;
   const countLabel = document.getElementById('country-count') as HTMLElement;
   const loadMoreButton = document.getElementById('load-more-countries') as HTMLButtonElement;
+  const alphaContainer = document.getElementById('country-alpha') as HTMLElement;
   let countries: Country[] = [];
   let visibleCount = 60;
+  let letterFilter = '';
 
   function flagUrl(country: Country) {
     return country.flagUrl || `/api/catalog/country-flag/${String(country.iso || 'un').toLowerCase()}`;
@@ -138,7 +144,7 @@ const breadcrumbSchema = {
 
   function render() {
     const query = searchInput.value.trim().toLowerCase();
-    const filtered = countries.filter((country) => country.name.toLowerCase().includes(query));
+    const filtered = countries.filter((country) => country.name.toLowerCase().includes(query) && (!letterFilter || country.name.toUpperCase().startsWith(letterFilter)));
     countLabel.textContent = `${filtered.length} countries`;
     popularContainer.replaceChildren();
     const popular = popularNames.map((name) => filtered.find((country) => country.name.toLowerCase() === name.toLowerCase())).filter(Boolean) as Country[];
@@ -150,13 +156,30 @@ const breadcrumbSchema = {
     loadMoreButton.hidden = filtered.length <= visibleCount;
   }
 
-  searchInput.addEventListener('input', () => { visibleCount = 60; render(); });
+  function renderAlphabet() {
+    alphaContainer.replaceChildren();
+    const allButton = document.createElement('button');
+    allButton.textContent = 'All';
+    allButton.className = !letterFilter ? 'active' : '';
+    allButton.onclick = () => { letterFilter = ''; visibleCount = 60; renderAlphabet(); render(); };
+    alphaContainer.append(allButton);
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((letter) => {
+      const button = document.createElement('button');
+      button.textContent = letter;
+      button.className = letterFilter === letter ? 'active' : '';
+      button.onclick = () => { letterFilter = letter; visibleCount = 60; renderAlphabet(); render(); };
+      alphaContainer.append(button);
+    });
+  }
+
+  searchInput.addEventListener('input', () => { letterFilter = ''; visibleCount = 60; renderAlphabet(); render(); });
   loadMoreButton.addEventListener('click', () => { visibleCount += 60; render(); });
 
   try {
     const response = await fetch('/api/countries');
     const payload = await response.json();
     countries = Array.isArray(payload?.data) ? payload.data : [];
+    renderAlphabet();
     render();
   } catch {
     popularContainer.innerHTML = '<p class="catalog-status">Countries are temporarily unavailable.</p>';
