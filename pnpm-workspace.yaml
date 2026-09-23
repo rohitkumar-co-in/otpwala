@@ -4,6 +4,10 @@ packages:
 
 allowBuilds:
   esbuild: true
+  workerd: true
+
+minimumReleaseAgeExclude:
+  - wrangler@4.137.0
 
 overrides:
   qs: '>=6.16.0'
