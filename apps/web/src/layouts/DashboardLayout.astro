@@ -887,6 +887,8 @@ const formattedTitle = formatPageTitle(title);
 
       async function loadCurrencyPreference() {
         try {
+          const localCurrency = localStorage.getItem('otpwala_currency');
+          if (localCurrency === 'INR' || localCurrency === 'USD') return;
           const { data: { session } } = await supabase.auth.getSession();
           const response = await fetch(`${currencyApiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
           const payload = await response.json();
