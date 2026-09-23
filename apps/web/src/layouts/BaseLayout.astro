@@ -297,7 +297,7 @@ const breadcrumbSchema = {
       
       <div class="header-actions flex items-center gap-md">
         <!-- Universal Currency Toggle -->
-        <div class="currency-toggle-wrapper" id="public-currency-toggle" title="Switch Currency Display">
+        <div class="currency-toggle-wrapper" id="public-currency-toggle" title="Switch Currency Display" style="visibility: hidden">
           <div class="currency-toggle-pill" role="group" aria-label="Currency Selector">
             <button type="button" class="currency-btn active" id="pub-btn-curr-usd" data-currency="USD">
               <span>$ USD</span>
@@ -739,6 +739,8 @@ const breadcrumbSchema = {
       const curr = localStorage.getItem('otpwala_currency') || (navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD');
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
+      const currencyToggle = document.getElementById('public-currency-toggle');
+      const revealCurrencyToggle = () => { if (currencyToggle) currencyToggle.style.visibility = 'visible'; };
 
       async function saveCurrency(currency: string) {
         try {
@@ -754,7 +756,7 @@ const breadcrumbSchema = {
       async function loadCurrency() {
         try {
           const localCurrency = localStorage.getItem('otpwala_currency');
-          if (localCurrency === 'INR' || localCurrency === 'USD') return;
+          if (localCurrency === 'INR' || localCurrency === 'USD') { revealCurrencyToggle(); return; }
           const { data: { session } } = await supabase.auth.getSession();
           const response = await fetch(`${apiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
           const payload = await response.json();
@@ -764,7 +766,7 @@ const breadcrumbSchema = {
             updateBtns(serverCurrency);
             window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: serverCurrency } }));
           }
-        } catch {}
+        } catch {} finally { revealCurrencyToggle(); }
       }
 
       function updateBtns(c: string) {
@@ -778,6 +780,7 @@ const breadcrumbSchema = {
         }
       }
       updateBtns(curr);
+      if (localStorage.getItem('otpwala_currency') === 'INR' || localStorage.getItem('otpwala_currency') === 'USD') revealCurrencyToggle();
 
       btnInr?.addEventListener('click', () => {
         localStorage.setItem('otpwala_currency', 'INR');

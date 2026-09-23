@@ -203,7 +203,7 @@ const formattedTitle = formatPageTitle(title);
         </button>
         <div class="header-right flex items-center gap-md">
           <!-- Currency Toggle Switcher -->
-          <div class="currency-toggle-wrapper" id="currency-toggle-container" title="Switch Universal Currency Display">
+          <div class="currency-toggle-wrapper" id="currency-toggle-container" title="Switch Universal Currency Display" style="visibility: hidden">
             <div class="currency-toggle-pill" role="group" aria-label="Currency Selector">
               <button type="button" class="currency-btn active" id="btn-curr-usd" data-currency="USD">
                 <span>$ USD</span>
@@ -875,6 +875,8 @@ const formattedTitle = formatPageTitle(title);
       const configuredCurrencyApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
       const isLocalCurrencyHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const currencyApiBase = isLocalCurrencyHost ? configuredCurrencyApiBase : '';
+      const currencyToggle = document.getElementById('currency-toggle-container');
+      const revealCurrencyToggle = () => { if (currencyToggle) currencyToggle.style.visibility = 'visible'; };
       async function saveCurrencyPreference(currency: string) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -890,7 +892,7 @@ const formattedTitle = formatPageTitle(title);
       async function loadCurrencyPreference() {
         try {
           const localCurrency = localStorage.getItem('otpwala_currency');
-          if (localCurrency === 'INR' || localCurrency === 'USD') return;
+          if (localCurrency === 'INR' || localCurrency === 'USD') { revealCurrencyToggle(); return; }
           const { data: { session } } = await supabase.auth.getSession();
           const response = await fetch(`${currencyApiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
           const payload = await response.json();
@@ -901,7 +903,7 @@ const formattedTitle = formatPageTitle(title);
             updateDisplayBalance();
             window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency, rate: (window as any).__otpwala_rate || 115 } }));
           }
-        } catch {}
+        } catch {} finally { revealCurrencyToggle(); }
       }
 
       function updateCurrencyButtons(curr: string) {
@@ -934,6 +936,7 @@ const formattedTitle = formatPageTitle(title);
         const curr = getActiveCurrency();
         updateCurrencyButtons(curr);
         updateDisplayBalance();
+        if (localStorage.getItem('otpwala_currency') === 'INR' || localStorage.getItem('otpwala_currency') === 'USD') revealCurrencyToggle();
 
         const btnInr = document.getElementById('btn-curr-inr');
         const btnUsd = document.getElementById('btn-curr-usd');
