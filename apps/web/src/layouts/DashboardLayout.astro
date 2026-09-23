@@ -974,7 +974,9 @@ const formattedTitle = formatPageTitle(title);
 
       // Fetch health status
       try {
-        const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
+        const apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined
+          ? (window as any).__PUBLIC_API_URL__
+          : (import.meta.env.PUBLIC_API_URL || '');
         const healthRes = await fetch(apiUrl + '/api/health');
         const healthData = await healthRes.json();
         

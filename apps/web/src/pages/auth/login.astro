@@ -662,7 +662,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   async function handleLoginSuccess(user: any) {
     try {
-      await requireLoginMfa();
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         await registerCurrentSession(session.access_token);

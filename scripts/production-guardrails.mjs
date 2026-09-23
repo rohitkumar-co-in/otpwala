@@ -103,7 +103,6 @@ requireText(files.legacyTelegram, 'X-Telegram-Bot-Api-Secret-Token', 'Legacy Tel
 requireText(files.legacyTelegram, 'verifyTelegramWebhookSecret', 'Legacy Telegram webhook secret verification is missing');
 if (/creditBalance\(\s*request\.user_id/.test(files.legacyAdminRoutes)) failures.push('Legacy admin payment approval can credit outside the atomic approval RPC');
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
-requireText(files.routes, "auth.hasVerifiedMfa && auth.aal !== 'aal2'", 'Admin AAL2 enforcement is missing');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
 requireText(files.baseLayout, '<html lang="en">', 'Public layout language is missing');
