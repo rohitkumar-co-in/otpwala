@@ -720,8 +720,7 @@ export default function UserManager() {
                     />
                   </th>
                   <th style={{ padding: '0.75rem' }}>User Profile</th>
-                  <th style={{ padding: '0.75rem' }}>Amount Left</th>
-                  <th style={{ padding: '0.75rem' }}>Deposited</th>
+                  <th style={{ padding: '0.75rem' }}>Balance</th>
                   <th style={{ padding: '0.75rem' }}>Role</th>
                   <th style={{ padding: '0.75rem' }}>Pricing Rate</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
@@ -813,25 +812,16 @@ export default function UserManager() {
                         </div>
                       </td>
                       <td style={{ padding: '0.75rem' }}>
-                        <div style={{
-                          display: 'inline-flex',
-                          flexDirection: 'column',
-                          background: 'rgba(16, 185, 129, 0.08)',
-                          border: '1px solid rgba(16, 185, 129, 0.25)',
-                          borderRadius: '8px',
-                          padding: '0.35rem 0.65rem',
-                          minWidth: '95px',
-                        }}>
-                          <div style={{ fontWeight: 800, color: '#10b981', fontSize: '0.95rem' }}>
-                            ₹{parseFloat(u.wallet_balance || 0).toFixed(2)}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(90px, 1fr))', gap: '0.5rem', minWidth: '210px' }}>
+                          <div style={{ padding: '0.4rem 0.55rem', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Remaining</div>
+                            <div style={{ fontWeight: 800, color: '#10b981', fontSize: '0.9rem', marginTop: '0.15rem' }}>₹{parseFloat(u.wallet_balance || 0).toFixed(2)}</div>
                           </div>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.05rem' }}>
-                            {parseFloat(u.total_spent || 0) > 0 ? `₹${parseFloat(u.total_spent || 0).toFixed(2)} spent` : 'Available'}
+                          <div style={{ padding: '0.4rem 0.55rem', background: 'rgba(37, 99, 235, 0.06)', border: '1px solid rgba(37, 99, 235, 0.2)', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Deposited</div>
+                            <div style={{ fontWeight: 800, color: '#2563eb', fontSize: '0.9rem', marginTop: '0.15rem' }}>₹{parseFloat(u.total_deposited || 0).toFixed(2)}</div>
                           </div>
                         </div>
-                      </td>
-                      <td style={{ padding: '0.75rem', fontWeight: 700, color: '#2563eb' }}>
-                        ₹{parseFloat(u.total_deposited || 0).toFixed(2)}
                       </td>
                       <td style={{ padding: '0.75rem' }}>
                         <span className={`badge ${u.role === 'superadmin' ? 'badge-error' : isAdmin ? 'badge-primary' : 'badge-ghost'}`}>
