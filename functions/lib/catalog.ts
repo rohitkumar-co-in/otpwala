@@ -1,6 +1,6 @@
 import serviceIcons from '../data/tigerServiceIcons.json';
 import { TigerSmsClient } from './tiger';
-import { calculateSellPrice } from './pricing';
+import { calculateSellPrices } from './pricing';
 import { getSupabaseAdmin } from './supabase';
 
 // Normalize a service name for icon lookup:
@@ -421,7 +421,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
 
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));
 
-  const results = (await Promise.all(Object.entries(livePrices).map(async ([countryIdStr, serviceObj]) => {
+  const eligiblePrices = Object.entries(livePrices).map(([countryIdStr, serviceObj]) => {
     const countryId = parseInt(countryIdStr, 10);
     if (isNaN(countryId) || disabledCountries.includes(countryId)) return null;
 
@@ -433,7 +433,18 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
 
     if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) return null;
 
-    const priceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryId, userId, env);
+    return { countryId, countryIdStr, costPriceUsd, stock };
+  }).filter(Boolean) as Array<{ countryId: number; countryIdStr: string; costPriceUsd: number; stock: number }>;
+
+  const sellPrices = await calculateSellPrices(
+    eligiblePrices.map(({ countryId, costPriceUsd }) => ({ countryCode: countryId, costPriceUsd })),
+    serviceCode,
+    userId,
+    env,
+  );
+
+  const results = eligiblePrices.map(({ countryId, countryIdStr, costPriceUsd, stock }, index) => {
+    const priceInr = sellPrices[index];
     const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
     const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
     const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
@@ -452,11 +463,11 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
       deliveryRank: deliveryRanks.get(normalizeName(countryMap.get(countryIdStr) || '')) || null,
       isPopular: featuredCountries.includes(countryId),
     };
-  }))).filter(Boolean) as any[];
+  });
 
   results.sort((a, b) => {
     if (a.isHighDelivery !== b.isHighDelivery) return a.isHighDelivery ? -1 : 1;
-    if (a.isHighDelivery && b.isHighDelivery) return a.deliveryRank - b.deliveryRank;
+    if (a.isHighDelivery && b.isHighDelivery) return (a.deliveryRank ?? 0) - (b.deliveryRank ?? 0);
     if (a.isPopular !== b.isPopular) return a.isPopular ? -1 : 1;
     return a.name.localeCompare(b.name);
   });

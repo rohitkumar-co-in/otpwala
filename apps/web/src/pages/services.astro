@@ -810,16 +810,17 @@ const servicesFaqSchema = {
   const exploreButton = document.getElementById('explore-more-services-btn') as HTMLAnchorElement;
   const serviceTotal = document.getElementById('services-total-count') as HTMLElement;
   const countryTotal = document.getElementById('countries-total-count') as HTMLElement;
+  const initialServiceLimit = 60;
+  let loadedServices: any[] = [];
 
-  function filterCards() {
+  function renderServiceCards() {
     const query = searchInput?.value.toLowerCase().trim() || '';
-    let visible = 0;
-    servicesGrid?.querySelectorAll<HTMLElement>('.service-card').forEach((card) => {
-      const matches = !query || (card.dataset.name || '').includes(query);
-      card.style.display = matches ? 'flex' : 'none';
-      if (matches) visible++;
-    });
-    if (emptyState) emptyState.style.display = visible === 0 ? 'block' : 'none';
+    const matches = loadedServices.filter((service) =>
+      !query || String(service.name || '').toLowerCase().includes(query)
+    );
+    const visibleServices = query ? matches : matches.slice(0, initialServiceLimit);
+    servicesGrid?.replaceChildren(...visibleServices.map(createServiceCard));
+    if (emptyState) emptyState.style.display = matches.length === 0 ? 'block' : 'none';
   }
 
   function renderServiceAlphabet() {
@@ -828,12 +829,12 @@ const servicesFaqSchema = {
     const allButton = document.createElement('button');
     allButton.textContent = 'All';
     allButton.className = !searchInput.value ? 'active' : '';
-    allButton.onclick = () => { searchInput.value = ''; filterCards(); renderServiceAlphabet(); };
+    allButton.onclick = () => { searchInput.value = ''; renderServiceCards(); renderServiceAlphabet(); };
     serviceAlpha.append(allButton);
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((letter) => {
       const button = document.createElement('button');
       button.textContent = letter;
-      button.onclick = () => { searchInput.value = letter; filterCards(); renderServiceAlphabet(); };
+      button.onclick = () => { searchInput.value = letter; renderServiceCards(); renderServiceAlphabet(); };
       serviceAlpha.append(button);
     });
   }
@@ -890,7 +891,7 @@ const servicesFaqSchema = {
     return card;
   }
 
-  searchInput?.addEventListener('input', () => { filterCards(); renderServiceAlphabet(); });
+  searchInput?.addEventListener('input', () => { renderServiceCards(); renderServiceAlphabet(); });
   const API_URL = (window as any).__PUBLIC_API_URL__ !== undefined
     ? (window as any).__PUBLIC_API_URL__
     : (import.meta.env.PUBLIC_API_URL || '');
@@ -903,11 +904,11 @@ const servicesFaqSchema = {
         servicesGrid.innerHTML = '<p class="text-secondary">No services are currently available.</p>';
         if (emptyState) emptyState.style.display = 'none';
       } else {
+        loadedServices = result.data;
         const popular = result.data.filter((service: any) => service.isFeatured).slice(0, 24);
         popularServicesGrid.replaceChildren(...(popular.length ? popular : result.data.slice(0, 24)).map(createServiceCard));
-        servicesGrid.replaceChildren(...result.data.map(createServiceCard));
         renderServiceAlphabet();
-        filterCards();
+        renderServiceCards();
       }
     })
     .catch(() => {

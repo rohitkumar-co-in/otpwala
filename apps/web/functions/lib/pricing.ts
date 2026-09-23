@@ -127,6 +127,37 @@ export async function calculateSellPrice(
   return Math.ceil(sellPrice * 2) / 2;
 }
 
+export async function calculateSellPrices(
+  prices: Array<{ costPriceUsd: number; countryCode: number }>,
+  serviceCode: string,
+  userId?: string,
+  env?: any
+): Promise<number[]> {
+  const [settings, rules, zeroUsers] = await Promise.all([
+    getPricingSettings(env),
+    getCachedRules(env),
+    userId ? getCachedZeroUsers(env) : Promise.resolve([]),
+  ]);
+  const { rate, defaultMarkup } = settings;
+  const hasZeroMarkup = Boolean(userId && zeroUsers.includes(userId));
+
+  return prices.map(({ costPriceUsd, countryCode }) => {
+    const costPriceInr = costPriceUsd * rate;
+    if (hasZeroMarkup) return Math.ceil(costPriceInr * 2) / 2;
+
+    let sellPrice = costPriceInr * (1 + defaultMarkup / 100);
+    const exact = rules.find((r: any) => r.service_code === serviceCode && r.country_code === countryCode);
+    const serviceOnly = rules.find((r: any) => r.service_code === serviceCode && r.country_code === null);
+    const countryOnly = rules.find((r: any) => r.service_code === null && r.country_code === countryCode);
+    const rule = exact || serviceOnly || countryOnly;
+
+    if (rule?.markup_type === 'percentage') sellPrice = costPriceInr * (1 + rule.markup_value / 100);
+    if (rule?.markup_type === 'flat') sellPrice = costPriceInr + rule.markup_value;
+    if (rule?.markup_type === 'fixed_price') sellPrice = rule.markup_value;
+    return Math.ceil(sellPrice * 2) / 2;
+  });
+}
+
 export async function getZeroMarkupUsers(env?: any): Promise<string[]> {
   return getCachedZeroUsers(env) as Promise<string[]>;
 }

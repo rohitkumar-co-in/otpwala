@@ -37,7 +37,7 @@ import {
 import { TigerSmsClient } from '../lib/tiger';
 import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket, replyToSupportTicket } from '../lib/support';
 
-function jsonResponse(data: any, status = 200) {
+function jsonResponse(data: any, status = 200, cacheControl = 'no-store') {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -45,7 +45,7 @@ function jsonResponse(data: any, status = 200) {
       'Access-Control-Allow-Origin': 'https://otpwala.me',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-session-id',
-      'Cache-Control': 'no-store',
+      'Cache-Control': cacheControl,
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'Referrer-Policy': 'no-referrer',
@@ -460,7 +460,7 @@ export const onRequest = async (context: any) => {
         });
       }
       const services = await getServices(featuredOnly, env);
-      return jsonResponse({ success: true, data: services });
+      return jsonResponse({ success: true, data: services }, 200, 'public, max-age=30, s-maxage=60, stale-while-revalidate=300');
     }
 
     if (path === '/api/catalog/summary' && method === 'GET') {
@@ -479,7 +479,7 @@ export const onRequest = async (context: any) => {
 
     if (path === '/api/countries' && method === 'GET') {
       const countries = await getCountries(env);
-      return jsonResponse({ success: true, data: countries });
+      return jsonResponse({ success: true, data: countries }, 200, 'public, max-age=60, s-maxage=300, stale-while-revalidate=900');
     }
 
     const serviceCountriesMatch = path.match(/^\/api\/services\/([^\/]+)\/countries$/);
