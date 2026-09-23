@@ -199,8 +199,8 @@ export const updateAdminSupportTicket = (id: string, status: string, priority: s
   apiFetch<any>(`/api/admin/support/tickets/${id}`, { method: 'PUT', body: JSON.stringify({ status, priority, adminNotes, publicReply }) });
 export const replyToAdminSupportTicket = (id: string, reply: string) =>
   apiFetch<any>(`/api/admin/support/tickets/${id}/reply`, { method: 'POST', body: JSON.stringify({ reply }) });
-export const getAdminUsers = (limit = 20, offset = 0, search = '', sort = 'recent') =>
-  apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&sort=${encodeURIComponent(sort)}`);
+export const getAdminUsers = (limit = 20, offset = 0, search = '', sort = 'recent', role = '') =>
+  apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&sort=${encodeURIComponent(sort)}&role=${encodeURIComponent(role)}`);
 export const getAdminUserDetails = (userId: string) =>
   apiFetch<{ user: any; transactions: any[]; orders: any[]; deposits: any[]; tickets: any[] }>(`/api/admin/users/${userId}/details`);
 export const getAdminUserExport = (userId: string) =>

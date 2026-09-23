@@ -41,6 +41,7 @@ export default function UserManager() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [userSort, setUserSort] = useState<'recent' | 'alphabetical' | 'deposited'>('recent');
+  const [userRole, setUserRole] = useState<'' | 'superadmin' | 'admin' | 'user'>('');
   const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [recentRefresh, setRecentRefresh] = useState(false);
@@ -131,7 +132,7 @@ export default function UserManager() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAdminUsers(limit, page * limit, search, userSort);
+      const data = await getAdminUsers(limit, page * limit, search, userSort, userRole);
       setUsers(data?.users || []);
       setTotal(data?.total || 0);
       // Clean up selection of users no longer in list
@@ -172,7 +173,7 @@ export default function UserManager() {
 
   useEffect(() => {
     loadUsers();
-  }, [page, search, userSort]);
+  }, [page, search, userSort, userRole]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -569,6 +570,18 @@ export default function UserManager() {
             <option value="deposited">Most Deposited</option>
           </select>
           <select
+            aria-label="Filter users by role"
+            value={userRole}
+            onChange={(e) => { setUserRole(e.target.value as typeof userRole); setPage(0); }}
+            className="input"
+            style={{ width: 'auto', minWidth: '160px' }}
+          >
+            <option value="">All roles</option>
+            <option value="superadmin">Superadmins</option>
+            <option value="admin">Admins</option>
+            <option value="user">Users</option>
+          </select>
+          <select
             aria-label="Users per page"
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
@@ -577,13 +590,14 @@ export default function UserManager() {
           >
             {[25, 50, 100, 200].map((size) => <option key={size} value={size}>{size} users</option>)}
           </select>
-          {search && (
+          {(search || userRole) && (
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => {
                 setSearchInput('');
                 setSearch('');
+                setUserRole('');
                 setPage(0);
               }}
             >
@@ -679,7 +693,7 @@ export default function UserManager() {
             </button>
             {selectedUserIds.length === 1 && (
               <>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleInspectUser(selectedUsersList[0])} title="Open selected user details"><EyeIcon size={13} /></button>
+                <a href={`/admin/users/details?id=${encodeURIComponent(selectedUsersList[0].id)}`} className="btn btn-secondary btn-sm" title="Open selected user details" aria-label="Open selected user details"><EyeIcon size={13} /></a>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleExportUser(selectedUsersList[0])} disabled={exportingUserId === selectedUsersList[0].id} title="Export selected user"><DownloadIcon size={13} /></button>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreditUserTarget(selectedUsersList[0]); setCreditAmount(100); setCreditReason(''); setCreditFundingSource(''); }} title="Add funds to selected user"><CreditCardIcon size={13} /></button>
               </>

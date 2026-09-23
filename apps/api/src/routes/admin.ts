@@ -109,6 +109,7 @@ router.get('/users', async (req: AuthenticatedRequest, res) => {
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string;
     const sort = String(req.query.sort || 'recent');
+    const role = String(req.query.role || '');
 
     let query = supabaseAdmin
       .from('profiles')
@@ -124,6 +125,7 @@ router.get('/users', async (req: AuthenticatedRequest, res) => {
         query = query.or(`email.ilike.%${trimmedSearch}%,full_name.ilike.%${trimmedSearch}%`);
       }
     }
+    if (['superadmin', 'admin', 'user'].includes(role)) query = query.eq('role', role);
 
     const { data, count, error } = await query;
     if (error) throw error;

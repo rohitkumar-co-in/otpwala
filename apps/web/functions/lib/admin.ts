@@ -87,13 +87,14 @@ export async function getAdminDashboard(env?: any) {
   };
 }
 
-export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: any, sort = 'recent') {
+export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: any, sort = 'recent', role = '') {
   const supabase = getSupabaseAdmin(env);
   let query = supabase.from('profiles').select('*', { count: 'exact' });
 
   if (search) {
     query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
   }
+  if (['superadmin', 'admin', 'user'].includes(role)) query = query.eq('role', role);
 
   const { data, count, error } = await query.order('created_at', { ascending: false });
 

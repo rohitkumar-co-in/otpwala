@@ -1266,7 +1266,9 @@ export const onRequest = async (context: any) => {
         const limit = parseInt(url.searchParams.get('limit') || '20', 10);
         const offset = parseInt(url.searchParams.get('offset') || '0', 10);
         const search = url.searchParams.get('search') || '';
-        const users = await getAdminUsers(limit, offset, search, env);
+        const sort = url.searchParams.get('sort') || 'recent';
+        const role = url.searchParams.get('role') || '';
+        const users = await getAdminUsers(limit, offset, search, env, sort, role);
         return jsonResponse({ success: true, data: users });
       }
 
