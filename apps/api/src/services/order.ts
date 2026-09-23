@@ -260,11 +260,14 @@ export async function checkOrderStatus(
   const elapsedSec = (Date.now() - new Date(order.created_at).getTime()) / 1000;
   if (order.status === 'waiting' && elapsedSec > 1200) {
     // Attempt best-effort cancellation upstream
+    let cancelled = false;
     try {
-      await tigerSms.setStatus(order.activation_id, 8);
+      cancelled = (await tigerSms.setStatus(order.activation_id, 8)) === 'ACCESS_CANCEL';
     } catch {
-      // Ignore upstream error if already expired
+      // Tiger remains the source of truth; do not refund on an unconfirmed cancellation.
     }
+
+    if (!cancelled) return formatOrderStatus(order as Order);
 
     await refundOrderAtomically(
       orderId,

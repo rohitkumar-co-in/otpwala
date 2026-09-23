@@ -197,6 +197,7 @@ export default function BuyNumber() {
   const [priceInfo, setPriceInfo] = useState<any>(null);
   const [order, setOrder] = useState<any>(null);
   const [otpData, setOtpData] = useState<any>(null);
+  const [cancelBlocked, setCancelBlocked] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number>(1200);
   const [loading, setLoading] = useState(false);
   const [buyingCountryId, setBuyingCountryId] = useState<number | null>(null);
@@ -414,6 +415,7 @@ export default function BuyNumber() {
         createdAt: new Date().toISOString(),
       };
       setOrder(newOrder);
+      setCancelBlocked(false);
       setOtpData(null);
       setSecondsLeft(1200);
       setStep('messages');
@@ -471,6 +473,10 @@ export default function BuyNumber() {
 
   async function handleCancel() {
     if (!order) return;
+    if (cancelBlocked) {
+      setError('Tiger SMS does not currently allow cancellation for this activation.');
+      return;
+    }
     const elapsedSeconds = Math.max(0, 1200 - secondsLeft);
     if (elapsedSeconds < 120) {
       setError('Please wait 2 minutes for the OTP before cancelling this number.');
@@ -488,6 +494,11 @@ export default function BuyNumber() {
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
+      if (['EARLY_CANCEL_DENIED', 'WAIT_BEFORE_CANCEL', 'BAD_STATUS'].includes(err?.code)) {
+        setCancelBlocked(true);
+        setError('Tiger SMS does not currently allow cancellation for this activation. No refund was issued.');
+        return;
+      }
       setError(err.message || 'Failed to cancel order');
     } finally {
       setLoading(false);
@@ -1370,7 +1381,7 @@ export default function BuyNumber() {
                     )}
                     <button
                       onClick={handleCancel}
-                      disabled={loading || cancelWaitSeconds > 0}
+                      disabled={loading || cancelWaitSeconds > 0 || cancelBlocked}
                       className="btn btn-danger btn-sm"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
                     >
@@ -1380,6 +1391,8 @@ export default function BuyNumber() {
                           ? 'Cancelling...'
                           : cancelWaitSeconds > 0
                           ? `Cancel available in ${cancelWaitMins}:${cancelWaitRemainder.toString().padStart(2, '0')}`
+                          : cancelBlocked
+                          ? 'Cancellation not allowed by Tiger SMS'
                           : 'Cancel Order & Refund'}
                       </span>
                     </button>

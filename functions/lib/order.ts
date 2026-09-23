@@ -265,7 +265,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
     let cancelled = false;
     try {
       const tigerStatus = await tiger.setStatus(order.activation_id, 8);
-      if (tigerStatus === 'ACCESS_CANCEL') cancelled = true;
+        cancelled = (tigerStatus === 'ACCESS_CANCEL');
     } catch {
       // If already expired/cancelled upstream on Tiger
       if (statusResult.status === 'no_activation') cancelled = true;
