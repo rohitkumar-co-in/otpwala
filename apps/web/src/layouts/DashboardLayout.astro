@@ -872,7 +872,9 @@ const formattedTitle = formatPageTitle(title);
         return navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD';
       }
 
-      const currencyApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      const configuredCurrencyApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      const isLocalCurrencyHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const currencyApiBase = isLocalCurrencyHost ? configuredCurrencyApiBase : '';
       async function saveCurrencyPreference(currency: string) {
         try {
           const { data: { session } } = await supabase.auth.getSession();

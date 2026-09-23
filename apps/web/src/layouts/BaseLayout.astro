@@ -733,7 +733,9 @@ const breadcrumbSchema = {
 
     // Universal Currency Management for Public Site
     function initPublicCurrency() {
-      const apiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      const configuredApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiBase = isLocalHost ? configuredApiBase : '';
       const curr = localStorage.getItem('otpwala_currency') || (navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD');
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
