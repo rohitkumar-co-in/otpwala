@@ -1419,9 +1419,14 @@ export const onRequest = async (context: any) => {
 
       if (path === '/api/admin/user-purge-history' && method === 'GET') {
         if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can view purge history.' }, 403);
-        const { data, error } = await getSupabaseAdmin(env).from('user_purge_history').select('id,user_reference,user_email_hash,purge_mode,orders_count,wallet_transactions_count,payment_requests_count,total_order_sales,total_deposits,purged_at').order('purged_at', { ascending: false }).limit(200);
-        if (error) throw error;
-        return jsonResponse({ success: true, data: data || [] });
+        try {
+          const { data, error } = await getSupabaseAdmin(env).from('user_purge_history').select('id,user_reference,user_email_hash,purge_mode,orders_count,wallet_transactions_count,payment_requests_count,total_order_sales,total_deposits,purged_at').order('purged_at', { ascending: false }).limit(200);
+          if (error) throw error;
+          return jsonResponse({ success: true, data: data || [] });
+        } catch (error: any) {
+          console.error('Admin purge history error:', error);
+          return jsonResponse({ success: false, error: 'Failed to load purge history.' }, 500);
+        }
       }
 
       // POST /api/admin/users/bulk-ban

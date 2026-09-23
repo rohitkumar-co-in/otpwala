@@ -64,6 +64,7 @@ export default function UserManager() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [showBulkPurgeModal, setShowBulkPurgeModal] = useState(false);
+  const [bulkPurgeMode, setBulkPurgeMode] = useState<UserPurgeMode>('history');
 
   // Row ban action state
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -425,27 +426,27 @@ export default function UserManager() {
     }
   };
 
-  // ─── Bulk Delete (Prerequisite: Users must be banned first!) ───
+  // ─── Bulk Purge (Prerequisite: Users must be banned first!) ───
   const selectedUsersList = users.filter((u) => selectedUserIds.includes(u.id));
   const selectedBannedUsers = selectedUsersList.filter((u) => u.is_banned);
   const selectedAdminUsers = selectedUsersList.filter((u) => u.role === 'admin');
   const selectedUnbannedCount = selectedUsersList.length - selectedBannedUsers.length;
 
-  const handleConfirmBulkDelete = async () => {
+  const handleConfirmBulkPurge = async () => {
     if (selectedBannedUsers.length === 0) return;
 
     setDeleting(true);
     setError(null);
     setSuccess(null);
     try {
-      const idsToDelete = selectedBannedUsers.map((u) => u.id);
-      await bulkPurgeUsers(idsToDelete);
+      const idsToPurge = selectedBannedUsers.map((u) => u.id);
+      await bulkPurgeUsers(idsToPurge, bulkPurgeMode);
       
       // Optimistic update: instantly remove from UI
-      const idSet = new Set(idsToDelete);
+      const idSet = new Set(idsToPurge);
       setUsers((prev) => prev.filter((u) => !idSet.has(u.id)));
       
-      setSuccess(`${idsToDelete.length} banned user account(s) anonymized; required financial records retained.`);
+      setSuccess(`${idsToPurge.length} banned user account(s) purged${bulkPurgeMode === 'history' ? ' with history retained' : ' completely'}.`);
       setSelectedUserIds([]);
       setShowBulkPurgeModal(false);
     } catch (err: any) {
@@ -645,7 +646,7 @@ export default function UserManager() {
               <button
                 className="btn btn-sm"
                 disabled={bulkActionLoading}
-                onClick={() => setShowBulkPurgeModal(true)}
+                onClick={() => { setBulkPurgeMode('history'); setShowBulkPurgeModal(true); }}
                 title="Purge selected banned users"
                 style={{
                   background: '#dc2626',
@@ -1068,7 +1069,7 @@ export default function UserManager() {
           <div className="card glass-card" style={{ maxWidth: '440px', width: '100%', padding: '1.75rem', border: '1px solid #ef4444' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ef4444', marginBottom: '1rem' }}>
               <AlertCircleIcon size={24} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Personal-Data Erasure</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm User Purge</h3>
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
@@ -1153,7 +1154,7 @@ export default function UserManager() {
           <div className="card glass-card" style={{ maxWidth: '460px', width: '100%', padding: '1.75rem', border: '1px solid #ef4444' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ef4444', marginBottom: '1rem' }}>
               <AlertCircleIcon size={24} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Bulk Erasure</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Confirm Bulk Purge</h3>
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1rem' }}>
@@ -1170,7 +1171,7 @@ export default function UserManager() {
                 color: '#b45309',
                 marginBottom: '1rem',
               }}>
-                <strong>Notice:</strong> {selectedUnbannedCount} active/unbanned user(s) in your selection will be skipped because users must be banned first before deletion.
+                <strong>Notice:</strong> {selectedUnbannedCount} active/unbanned user(s) in your selection will be skipped because users must be banned first.
               </div>
             )}
 
@@ -1187,6 +1188,17 @@ export default function UserManager() {
               <strong>Important:</strong> Authentication and all user records will be purged. Every selected account must be suspended first.
             </div>
 
+            <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1.25rem' }}>
+              <label style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', padding: '0.7rem', border: `1px solid ${bulkPurgeMode === 'history' ? '#f59e0b' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="bulk-purge-mode" checked={bulkPurgeMode === 'history'} onChange={() => setBulkPurgeMode('history')} />
+                <span><strong>Keep purge history</strong><br /><small>Delete selected users and retain non-personal summaries.</small></span>
+              </label>
+              <label style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', padding: '0.7rem', border: `1px solid ${bulkPurgeMode === 'complete' ? '#dc2626' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="bulk-purge-mode" checked={bulkPurgeMode === 'complete'} onChange={() => setBulkPurgeMode('complete')} />
+                <span><strong>Complete purge</strong><br /><small>Delete selected users without retaining purge summaries.</small></span>
+              </label>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 type="button"
@@ -1200,7 +1212,7 @@ export default function UserManager() {
                 type="button"
                 className="btn btn-sm"
                 disabled={deleting}
-                onClick={handleConfirmBulkDelete}
+                onClick={handleConfirmBulkPurge}
                 style={{
                   background: '#dc2626',
                   color: '#ffffff',
