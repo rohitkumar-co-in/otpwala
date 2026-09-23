@@ -25,6 +25,8 @@ npm run verify:production
 
 The build synchronizes the shared Pages Functions source into the web project before running Astro. Do not edit generated copies to fix behavior; update the source implementation and rebuild.
 
+The wallet page and dashboard navigation use the same authenticated wallet response. Wallet refreshes publish the current balance to the navigation, so an approved deposit is reflected without a full page reload.
+
 ## Deployment
 
 GitHub `main` is connected to the `otpwala` Cloudflare Pages project. A successful push triggers a production deployment. Required server-side variables belong in Cloudflare Pages environment settings, never in client code or committed files:
@@ -37,6 +39,17 @@ GitHub `main` is connected to the `otpwala` Cloudflare Pages project. A successf
 - `CRON_SECRET`
 
 Keep `.env`, `.env.local`, and `supabse-cred/` local and ignored.
+
+For a direct deployment:
+
+```bash
+npm --prefix apps/web run build
+Push-Location apps/web
+npx wrangler pages deploy dist --project-name=otpwala --commit-dirty=true
+Pop-Location
+```
+
+The reconciliation Worker is deployed separately with `npx wrangler deploy --config workers/wrangler.jsonc`.
 
 ## Financial data boundary
 

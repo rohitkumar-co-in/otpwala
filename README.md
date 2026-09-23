@@ -36,7 +36,7 @@
 - **Interactive React Islands (`client:load`)**:
   - **Live Buy Flow**: Real-time service picker (WhatsApp, Telegram, Google, Instagram, 100+ services), country selector (190+ countries), and instant pricing quotes in ₹ INR / $ USD.
   - **Real-Time OTP Room**: Live order status polling, countdown timer, sound alerts, 1-click clipboard copy for phone numbers and SMS verification codes, and automatic refunds for expired/cancelled orders.
-  - **User Wallet (`/dashboard/wallet`)**: Live balance display, quick deposit presets, transaction ledger with running balance after every entry, and strict payment reference validation (strictly 12-digit numeric UPI UTR and numeric Binance Pay Order IDs).
+  - **User Wallet (`/dashboard/wallet`)**: Live balance display shared with dashboard navigation, quick deposit presets, transaction ledger with running balance after every entry, and strict payment reference validation (strictly 12-digit numeric UPI UTR and numeric Binance Pay Order IDs).
   - **Order History (`/dashboard/orders`)**: Filter orders by status (`waiting`, `code_received`, `completed`, `cancelled`, `expired`) with in-place refresh feedback and toast notifications.
   - **Account Settings & Security (`/dashboard/settings`)**: Two-Factor Authentication (TOTP Authenticator app), active session command center with live IP and ISP carrier telemetry, single-device session protection, formatted data export, and in-site account deletion requests.
 
@@ -110,6 +110,7 @@ PUBLIC_API_URL=http://localhost:3001
 ### 4. Database Setup (Supabase)
 - For a new Supabase project: Run [`supabase/otpwala-standalone.sql`](./supabase/otpwala-standalone.sql) once in the SQL Editor.
 - For an existing project: Apply migrations in [`apps/api/supabase/migrations`](./apps/api/supabase/migrations) in sequential order.
+- The latest deposit approval compatibility migration is `20260923120000_fix_deposit_approval_compatibility.sql`; apply it after the earlier migrations and before testing approvals.
 
 To promote your account to Admin:
 ```sql
@@ -151,6 +152,16 @@ npm run test:guardrails
 
 # Build web frontend for production
 npm run build:web
+```
+
+Cloudflare deployment after `npx wrangler login`:
+
+```bash
+npm --prefix apps/web run build
+Push-Location apps/web
+npx wrangler pages deploy dist --project-name=otpwala --commit-dirty=true
+Pop-Location
+npx wrangler deploy --config workers/wrangler.jsonc
 ```
 
 ---

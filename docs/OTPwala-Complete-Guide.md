@@ -158,6 +158,7 @@ apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
 apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
 apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
+apps/api/supabase/migrations/20260923120000_fix_deposit_approval_compatibility.sql
 ```
 
 Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
@@ -175,6 +176,8 @@ Apply the migration only after confirming that legacy `admin_credit` rows withou
 The financial ledger views migration creates separate read-only reporting surfaces: `wallet_topups`, `wallet_deductions`, `wallet_refunds`, `wallet_admin_funding`, and `wallet_referral_bonuses`. `wallet_transactions` remains the only immutable source of balance truth; do not create separate writable balance tables or insert into these views.
 
 The provider balance alert threshold is configured in Admin Settings as `provider_low_balance_threshold_usd` and defaults to `$5.00`. Low-balance Telegram alerts are rate-limited to one message in the IST morning window and one in the IST afternoon/evening window, for a maximum of two per day.
+
+The deposit compatibility migration makes approval work with both modern (`amount`, `transaction_id`, `pending`) and legacy (`amount_inr`, `gateway_payment_id`, `created`) payment-request rows. Approval remains atomic: the payment request status, wallet balance, and `wallet_transactions` ledger entry are updated together. Duplicate UTR and Binance order IDs are rejected before a second request is created.
 
 ### 6.3 Create the first admin
 
@@ -266,7 +269,22 @@ npm run verify:production
 npm run deploy:web
 ```
 
+Wrangler is included as a workspace development dependency. To deploy manually after `npx wrangler login`:
+
+```bash
+npm --prefix apps/web run build
+Push-Location apps/web
+npx wrangler pages deploy dist --project-name=otpwala --commit-dirty=true
+Pop-Location
+npx wrangler deploy --config workers/wrangler.jsonc
+```
+
 The GitHub Actions workflow also runs the build, dependency audit, guardrails, and production verification. A successful commit to `main` triggers the connected deployment workflow.
+
+Current deployment endpoints:
+
+- Pages preview: `https://3fcecbcd.otpwala-c9r.pages.dev`
+- Reconciliation Worker: `https://otpwala-reconciliation.banhoga.workers.dev`
 
 Never commit `.env`, service-role keys, Tiger keys, payment secrets, or OAuth client secrets.
 
@@ -307,6 +325,8 @@ The smoke suite checks homepage, status, health, auth configuration, protected s
 - [ ] `npm run verify:production` passes.
 - [ ] GitHub Actions is green after the deployment commit.
 - [ ] Cloudflare production deployment and `/api/health` are operational.
+- [ ] A deposit is submitted once, approved from Telegram, and verified as `approved` in the admin panel.
+- [ ] The approved deposit creates one `topup` ledger entry and updates the wallet balance in both the wallet page and dashboard navigation.
 
 ## 14. Troubleshooting
 

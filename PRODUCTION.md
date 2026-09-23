@@ -3,7 +3,7 @@
 ## Required deployment order
 
 1. Rotate the Tiger SMS API key and Supabase service-role key if they have ever appeared in source history.
-2. For a new project, run `supabase/otpwala-standalone.sql` once. For an existing project, apply every file in `apps/api/supabase/migrations` once, in filename order; never rerun the standalone file over production.
+2. For a new project, run `supabase/otpwala-standalone.sql` once. For an existing project, apply every file in `apps/api/supabase/migrations` once, in filename order, including `20260923120000_fix_deposit_approval_compatibility.sql`; never rerun the standalone file over production.
 3. Configure every variable documented in `.env.example` in Cloudflare; never expose server keys with a `PUBLIC_` prefix.
 4. Deploy only after the GitHub `Verify production safeguards` workflow in
    `.github/workflows/verify.yml` succeeds. It runs the same gate locally with:
@@ -30,6 +30,7 @@
 - Approved payment requests without a matching `wallet_topups` row: investigate before approving another request.
 - Profile balances without a matching latest ledger balance: investigate; do not repair by direct SQL edits.
 - Duplicate UTR submissions: blocked by the unique database index.
+- Deposit approval: verify Telegram approval changes the request to `approved`, creates exactly one `topup` ledger row, and updates both wallet-page and navigation balances.
 - Provider/API health and balance: review separately; a positive balance does not prove API health.
 - Low provider-balance Telegram alerts use the Admin Settings threshold and are limited to two IST windows per day.
 - Referral fraud alerts: Review `public.referral_fraud_logs` periodically for repeated IP/subnet collision attempts.
@@ -41,6 +42,22 @@
 - Confirm the deployed commit is the intended `main` commit before announcing a release.
 - Run `npm run verify:production` locally when investigating a failed hosted check; it covers the web build, API type-check, unit tests, production guardrails, and live unauthenticated smoke checks.
 - A successful build does not verify payment settlement, provider credit, or administrator MFA; those require the corresponding external operational checks.
+
+## Current deployment
+
+- Cloudflare Pages preview: `https://3fcecbcd.otpwala-c9r.pages.dev`
+- Reconciliation Worker: `https://otpwala-reconciliation.banhoga.workers.dev`
+- GitHub branch: `main`
+
+Manual deployment uses the workspace Wrangler installation:
+
+```bash
+npm --prefix apps/web run build
+Push-Location apps/web
+npx wrangler pages deploy dist --project-name=otpwala --commit-dirty=true
+Pop-Location
+npx wrangler deploy --config workers/wrangler.jsonc
+```
 
 ## Recovery rule
 

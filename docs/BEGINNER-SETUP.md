@@ -107,6 +107,7 @@ apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
 apps/api/supabase/migrations/20260918233000_user_security_logs.sql
 apps/api/supabase/migrations/20260918234500_referral_fraud_detection.sql
+apps/api/supabase/migrations/20260923120000_fix_deposit_approval_compatibility.sql
 ```
 
 Run each file once and wait for success before running the next file. Never rerun a migration blindly.
@@ -130,6 +131,8 @@ Funding categories:
 - `admin_grant`: free balance added by an admin; not revenue
 
 Never edit `profiles.wallet_balance` or delete ledger rows directly. Use the application admin flow or restore from Supabase backup/PITR when history was removed accidentally.
+
+Deposit requests are idempotent by payment reference. A UPI UTR or Binance order ID can be submitted only once, and duplicate checks cover both current and legacy payment-request columns. Telegram and the admin panel approve through the same atomic RPC, which updates the request status and wallet ledger together. The dashboard navigation and wallet page read the same refreshed balance.
 
 ## 7. Run Locally
 
@@ -194,6 +197,21 @@ git push origin main
 ```
 
 Cloudflare Pages detects the GitHub push and builds the `otpwala` project.
+
+For a direct deployment after authenticating Wrangler:
+
+```bash
+npm --prefix apps/web run build
+Push-Location apps/web
+npx wrangler pages deploy dist --project-name=otpwala --commit-dirty=true
+Pop-Location
+npx wrangler deploy --config workers/wrangler.jsonc
+```
+
+Production endpoints:
+
+- Pages preview: `https://3fcecbcd.otpwala-c9r.pages.dev`
+- Reconciliation Worker: `https://otpwala-reconciliation.banhoga.workers.dev`
 
 Required production variables belong in Cloudflare Pages settings, not in Git:
 
