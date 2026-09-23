@@ -358,7 +358,7 @@ export default function UserManager() {
   };
 
   // ─── Bulk Selection Toggles ───
-  const selectableUsers = users.filter((u) => u.role !== 'admin' && u.role !== 'superadmin');
+  const selectableUsers = users.filter((u) => u.role !== 'superadmin' && (u.role !== 'admin' || currentUserRole === 'superadmin'));
   const allSelectableChecked = selectableUsers.length > 0 && selectableUsers.every((u) => selectedUserIds.includes(u.id));
 
   const handleToggleSelectAll = () => {
@@ -763,6 +763,7 @@ export default function UserManager() {
                 {users.map((u) => {
                   const isSelected = selectedUserIds.includes(u.id);
                   const isAdmin = u.role === 'admin' || u.role === 'superadmin';
+                  const isProtected = u.role === 'superadmin' || (u.role === 'admin' && currentUserRole !== 'superadmin');
 
                   return (
                     <tr
@@ -775,11 +776,11 @@ export default function UserManager() {
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
                         <input
                           type="checkbox"
-                          disabled={isAdmin}
+                          disabled={isProtected}
                           checked={isSelected}
                           onChange={() => handleToggleSelectUser(u.id)}
-                          title={isAdmin ? 'Administrator accounts cannot be bulk modified' : 'Select user'}
-                          style={{ cursor: isAdmin ? 'not-allowed' : 'pointer', width: '16px', height: '16px' }}
+                          title={isProtected ? 'This administrator account cannot be bulk modified' : 'Select user'}
+                          style={{ cursor: isProtected ? 'not-allowed' : 'pointer', width: '16px', height: '16px' }}
                         />
                       </td>
                       <td style={{ padding: '0.75rem' }}>

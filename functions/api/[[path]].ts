@@ -1438,7 +1438,7 @@ export const onRequest = async (context: any) => {
 
         const { data: profile } = await supabase.from('profiles').select('id,email,role,is_banned').eq('id', targetUserId).maybeSingle();
         if (!profile) return jsonResponse({ success: false, error: 'User not found' }, 404);
-        if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
+        if (profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot delete a Super Admin account.' }, 400);
         if (!profile.is_banned) return jsonResponse({ success: false, error: 'User must be banned before they can be deleted. Please ban the user first.' }, 400);
 
         const { data: erased, error: eraseError } = await supabase.rpc('purge_user_account', { p_user_id: targetUserId, p_actor_id: auth.userId, p_mode: purgeMode });
@@ -1467,7 +1467,9 @@ export const onRequest = async (context: any) => {
         const targets = userIds.filter((uid: string) => uid !== auth.userId);
         if (targets.length === 0) return jsonResponse({ success: false, error: 'Cannot ban your own account.' }, 400);
         const supabase = getSupabaseAdmin(env);
-        const { error } = await supabase.from('profiles').update({ is_banned: !!banned, updated_at: new Date().toISOString() }).in('id', targets).neq('role', 'admin').neq('role', 'superadmin');
+        let banQuery = supabase.from('profiles').update({ is_banned: !!banned, updated_at: new Date().toISOString() }).in('id', targets).neq('role', 'superadmin');
+        if (auth.role !== 'superadmin') banQuery = banQuery.neq('role', 'admin');
+        const { error } = await banQuery;
         if (error) throw error;
         return jsonResponse({ success: true, message: `${targets.length} user(s) ${banned ? 'banned' : 'unbanned'} successfully.` });
       }
@@ -1486,7 +1488,7 @@ export const onRequest = async (context: any) => {
         if (!profiles || profiles.length === 0) return jsonResponse({ success: false, error: 'No matching users found.' }, 404);
         const unbanned = profiles.filter((p: any) => !p.is_banned);
         if (unbanned.length > 0) return jsonResponse({ success: false, error: `Cannot delete unbanned users (${unbanned.length} unbanned). All selected users must be banned first.` }, 400);
-        const eligible = profiles.filter((p: any) => p.role !== 'admin' && p.role !== 'superadmin' && p.is_banned).map((p: any) => p.id);
+        const eligible = profiles.filter((p: any) => p.role !== 'superadmin' && p.is_banned).map((p: any) => p.id);
         if (eligible.length === 0) return jsonResponse({ success: false, error: 'No eligible banned users to delete.' }, 400);
         const results = [];
         for (const uid of eligible) {

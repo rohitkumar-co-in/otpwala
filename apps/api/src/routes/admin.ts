@@ -391,7 +391,7 @@ router.post('/users/:id/purge', async (req: AuthenticatedRequest, res) => {
     }
     const { data: profile } = await supabaseAdmin.from('profiles').select('id,email,role,is_banned').eq('id', targetUserId).maybeSingle();
     if (!profile) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    if (profile.role === 'admin' || profile.role === 'superadmin') { res.status(400).json({ success: false, error: 'Cannot purge an administrator account.' }); return; }
+    if (profile.role === 'superadmin') { res.status(400).json({ success: false, error: 'Cannot purge a Super Admin account.' }); return; }
     if (!profile.is_banned) { res.status(400).json({ success: false, error: 'User must be banned before purge.' }); return; }
 
     const { data, error } = await supabaseAdmin.rpc('purge_user_account', { p_user_id: targetUserId, p_actor_id: req.userId, p_mode: mode });
@@ -434,12 +434,13 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
       return;
     }
 
-    const { error } = await supabaseAdmin
+    let banQuery = supabaseAdmin
       .from('profiles')
       .update({ is_banned: !!banned, updated_at: new Date().toISOString() })
       .in('id', targets)
-      .neq('role', 'admin') // Cannot ban admins
       .neq('role', 'superadmin'); // Cannot ban superadmins
+    if (req.userRole !== 'superadmin') banQuery = banQuery.neq('role', 'admin');
+    const { error } = await banQuery;
 
     if (error) throw error;
 
@@ -461,7 +462,7 @@ router.post('/users/bulk-purge', async (req: AuthenticatedRequest, res) => {
     if (!['complete', 'history'].includes(String(mode))) { res.status(400).json({ success: false, error: 'Purge mode must be complete or history.' }); return; }
     const targets = userIds.filter((id: string) => id !== req.userId);
     const { data: profiles } = await supabaseAdmin.from('profiles').select('id,is_banned,role').in('id', targets);
-    const eligible = (profiles || []).filter((profile: any) => profile.is_banned && !['admin', 'superadmin'].includes(profile.role));
+    const eligible = (profiles || []).filter((profile: any) => profile.is_banned && profile.role !== 'superadmin');
     if (eligible.length === 0) { res.status(400).json({ success: false, error: 'No eligible suspended users selected.' }); return; }
     for (const profile of eligible) {
       const { error } = await supabaseAdmin.rpc('purge_user_account', { p_user_id: profile.id, p_actor_id: req.userId, p_mode: String(mode) });
