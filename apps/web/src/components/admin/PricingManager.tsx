@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAdminPricing, saveAdminPricing, deleteAdminPricing, getServices, getCountries, getAdminSettings, saveAdminSettingsBatch } from '../../lib/api';
+import { getAdminPricing, saveAdminPricing, deleteAdminPricing, getServices, getCountries, getAdminCatalog, getAdminSettings, saveAdminSettingsBatch } from '../../lib/api';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
 import {
@@ -93,15 +93,18 @@ export default function PricingManager() {
     setLoading(true);
     setError(null);
     try {
-      const [pricingData, servicesData, countriesData, settingsData] = await Promise.all([
+      const [pricingData, servicesData, countriesData, catalogData, settingsData] = await Promise.all([
         getAdminPricing().catch(() => []),
         getServices().catch(() => []),
         getCountries().catch(() => []),
+        getAdminCatalog().catch(() => null),
         getAdminSettings().catch(() => ({})),
       ]);
+      const resolvedServices = servicesData?.length ? servicesData : catalogData?.services || [];
+      const resolvedCountries = countriesData?.length ? countriesData : catalogData?.countries || [];
       setRules(pricingData || []);
-      setServices(servicesData || []);
-      setCountries(countriesData || []);
+      setServices(resolvedServices);
+      setCountries(resolvedCountries);
 
       if (settingsData?.dollar_rate_mode) {
         setRateMode(settingsData.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom');
@@ -128,8 +131,8 @@ export default function PricingManager() {
       try {
         sessionStorage.setItem('otpwala_admin_pricing_cache', JSON.stringify({
           rules: pricingData || [],
-          services: servicesData || [],
-          countries: countriesData || [],
+          services: resolvedServices,
+          countries: resolvedCountries,
           settings: settingsData || {},
         }));
       } catch {}
