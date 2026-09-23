@@ -26,6 +26,7 @@ import {
   AlertCircleIcon,
   CheckCircleIcon,
   CheckIcon,
+  CopyIcon,
   XIcon,
   TrashIcon,
   EyeIcon,
@@ -69,6 +70,7 @@ export default function UserManager() {
 
   // Row ban action state
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
 
   // User Inspect Modal state
   const [inspectTarget, setInspectTarget] = useState<any | null>(null);
@@ -108,6 +110,17 @@ export default function UserManager() {
       toast.error(err.message || 'Failed to export user dossier', 'Export Failed');
     } finally {
       setExportingUserId(null);
+    }
+  };
+
+  const handleCopyUserId = async (userId: string) => {
+    try {
+      await navigator.clipboard.writeText(userId);
+      setCopiedUserId(userId);
+      toast.success('User ID copied.', 'Copied');
+      setTimeout(() => setCopiedUserId((current) => current === userId ? null : current), 1800);
+    } catch {
+      toast.error('Unable to copy user ID.', 'Copy Failed');
     }
   };
 
@@ -782,8 +795,18 @@ export default function UserManager() {
                               ) : null}
                             </div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{u.email}</div>
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                              ID: {u.id.substring(0, 16)}...
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                              <span>ID: {u.id.substring(0, 16)}...</span>
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => handleCopyUserId(u.id)}
+                                title="Copy full user ID"
+                                aria-label={`Copy user ID ${u.id}`}
+                                style={{ padding: '0.15rem', minHeight: 'auto', color: copiedUserId === u.id ? 'var(--success)' : 'var(--text-muted)' }}
+                              >
+                                <CopyIcon size={12} />
+                              </button>
                             </div>
                           </div>
                         </div>
