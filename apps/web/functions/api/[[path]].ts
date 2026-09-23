@@ -353,7 +353,7 @@ export const onRequest = async (context: any) => {
         const { data: authData, error: authErr } = await supabase.auth.admin.listUsers();
         if (!authErr && authData?.users && authData.users.length > 0) {
           const found = authData.users.some(
-            (u) => (u.email || '').trim().toLowerCase() === email
+            (u: any) => (u.email || '').trim().toLowerCase() === email
           );
           if (found) {
             return jsonResponse({ success: true, exists: true });

@@ -85,11 +85,7 @@ export default function UserManager() {
     setInspectDetails(null);
     try {
       const res = await getAdminUserDetails(user.id);
-      if (res?.data) {
-        setInspectDetails(res.data);
-      } else if (res) {
-        setInspectDetails(res as any);
-      }
+      setInspectDetails(res as any);
     } catch (err: any) {
       console.error('Error fetching user details:', err);
     } finally {
