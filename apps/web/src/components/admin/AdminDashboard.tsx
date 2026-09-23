@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAdminDashboard, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
+import { getAdminDashboard, clearAdminOperationalAlerts, getAdminOrders, getAdminPaymentRequests, approvePaymentRequest, rejectPaymentRequest, runAdminReconciliation } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
@@ -46,6 +46,7 @@ export default function AdminDashboard() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [paymentTab, setPaymentTab] = useState<'pending' | 'approved' | 'all'>('pending');
   const [reconciling, setReconciling] = useState(false);
+  const [clearingAlerts, setClearingAlerts] = useState(false);
   const integrityUnavailable = Boolean(stats?.financialIntegrity?.error);
   const integrityIssues = Number(stats?.financialIntegrity?.totalIssues || 0);
   // Funding totals come from the wallet_funding_summary RPC. Until that migration is
@@ -162,6 +163,29 @@ export default function AdminDashboard() {
       toast.error(err.message || 'Reconciliation failed', 'Reconciliation Failed');
     } finally {
       setReconciling(false);
+    }
+  };
+
+  const handleClearAlertHistory = async () => {
+    const confirmed = await showConfirm({
+      title: 'Clear Operational Alert History',
+      message: 'Clear all stored operational alerts? This cannot be undone.',
+      confirmText: 'Clear Alert History',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    if (!confirmed) return;
+    setClearingAlerts(true);
+    setError(null);
+    try {
+      await clearAdminOperationalAlerts();
+      toast.success('Operational alert history cleared.', 'Alert History Cleared');
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to clear operational alert history');
+      toast.error(err.message || 'Failed to clear operational alert history', 'Clear Failed');
+    } finally {
+      setClearingAlerts(false);
     }
   };
 
@@ -368,6 +392,17 @@ export default function AdminDashboard() {
               >
                 <RefreshCwIcon size={13} className={loading ? 'animate-spin' : ''} />
                 <span>{loading ? 'Refreshing...' : 'Refresh Alert History'}</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={handleClearAlertHistory}
+                disabled={loading || clearingAlerts}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap', color: '#b91c1c', border: '1px solid #fca5a5', background: '#fff1f2' }}
+                title="Delete all stored operational alert history"
+              >
+                <XIcon size={13} />
+                <span>{clearingAlerts ? 'Clearing...' : 'Clear Alert History'}</span>
               </button>
             </div>
           </div>

@@ -88,6 +88,17 @@ router.get('/dashboard', async (_req: AuthenticatedRequest, res) => {
   }
 });
 
+router.post('/operational-alerts/clear', async (req: AuthenticatedRequest, res) => {
+  if (req.userRole !== 'superadmin') { res.status(403).json({ success: false, error: 'Only Super Admin can clear operational alert history.' }); return; }
+  try {
+    const { error } = await supabaseAdmin.from('operational_alerts').delete().not('alert_key', 'is', null);
+    if (error) throw error;
+    res.json({ success: true, message: 'Operational alert history cleared.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to clear operational alert history' });
+  }
+});
+
 /**
  * GET /api/admin/users
  * List all users with pagination.

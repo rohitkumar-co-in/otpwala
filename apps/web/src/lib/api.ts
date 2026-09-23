@@ -185,6 +185,8 @@ export const getOrders = (limit = 20, offset = 0, status?: string) => {
 
 // ─── Admin ───
 export const getAdminDashboard = () => apiFetch<any>('/api/admin/dashboard');
+export const clearAdminOperationalAlerts = () =>
+  apiFetch<any>('/api/admin/operational-alerts/clear', { method: 'POST' });
 export const runAdminReconciliation = () =>
   apiFetch<{ scanned: number; delivered: number; refunded: number; failed: number }>('/api/admin/reconcile', { method: 'POST' });
 export const getAdminAuditLogs = (limit = 50, offset = 0, action = '') =>

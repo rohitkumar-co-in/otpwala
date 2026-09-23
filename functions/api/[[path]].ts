@@ -1153,6 +1153,14 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: true, data: stats });
       }
 
+      if (path === '/api/admin/operational-alerts/clear' && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can clear operational alert history.' }, 403);
+        const { error } = await getSupabaseAdmin(env).from('operational_alerts').delete().not('alert_key', 'is', null);
+        if (error) throw error;
+        await logAdminAction(auth.userId, 'operations.alert_history_cleared', 'system', null, {}, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, message: 'Operational alert history cleared.' });
+      }
+
       if (path === '/api/admin/audit-logs' && method === 'GET') {
         const limit = parseInt(url.searchParams.get('limit') || '50', 10);
         const offset = parseInt(url.searchParams.get('offset') || '0', 10);
