@@ -219,11 +219,15 @@ export default function BuyNumber() {
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
   const [usdRate, setUsdRate] = useState<number>(DEFAULT_USD_TO_INR_RATE);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const servicesRefreshRef = useRef(false);
   const purchaseInFlightRef = useRef(false);
   const purchaseRequestIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     loadServices();
+    const servicesRefreshTimer = setInterval(() => {
+      void loadServices(true);
+    }, 10_000);
     checkActiveParam();
     loadWalletBalance();
     const handleCurrencyChange = (e: any) => {
@@ -233,6 +237,7 @@ export default function BuyNumber() {
     window.addEventListener('otpwala:currency-change', handleCurrencyChange);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      clearInterval(servicesRefreshTimer);
       window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
     };
   }, []);
@@ -335,8 +340,10 @@ export default function BuyNumber() {
     }
   }
 
-  async function loadServices() {
-    setServicesLoading(true);
+  async function loadServices(silent = false) {
+    if (servicesRefreshRef.current) return;
+    servicesRefreshRef.current = true;
+    if (!silent) setServicesLoading(true);
     try {
       const allData = await getServices(false);
       if (Array.isArray(allData)) {
@@ -344,22 +351,15 @@ export default function BuyNumber() {
         setTotalServicesCount(allData.length);
         setAllServicesLoaded(true);
       }
-      setLoading(false);
+      if (!silent) setLoading(false);
     } catch (err: any) {
-      console.warn('Failed to load services:', err);
-      try {
-        const allData = await getServices(false);
-        if (Array.isArray(allData) && allData.length > 0) {
-          setServices(allData);
-          setTotalServicesCount(allData.length);
-          setAllServicesLoaded(true);
-        }
-      } catch (fallbackErr: any) {
-        console.warn('Fallback error loading services:', fallbackErr);
+      if (!silent) {
+        console.warn('Failed to load services:', err);
+        setLoading(false);
       }
-      setLoading(false);
     } finally {
-      setServicesLoading(false);
+      if (!silent) setServicesLoading(false);
+      servicesRefreshRef.current = false;
     }
   }
 

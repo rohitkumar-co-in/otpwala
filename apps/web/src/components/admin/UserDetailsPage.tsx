@@ -5,7 +5,7 @@ import { promptAndDownloadUserData } from '../../lib/dataExport';
 import { showConfirm } from '../../lib/confirm';
 import { toast } from '../../lib/toast';
 import FundingSourcePicker from './FundingSourcePicker';
-import { RefreshCwIcon, ArrowLeftIcon, CopyIcon, CheckIcon, CreditCardIcon, DownloadIcon, DollarIcon, ClipboardListIcon, ShieldIcon, ClockIcon } from '../ui/Icons';
+import { RefreshCwIcon, ArrowLeftIcon, CopyIcon, CheckIcon, CreditCardIcon, DownloadIcon, DollarIcon, ClipboardListIcon, ShieldIcon, BanIcon, ClockIcon } from '../ui/Icons';
 
 type Tab = 'orders' | 'deposits' | 'tickets';
 
@@ -123,9 +123,9 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
             </div>
           </div>
           <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary btn-sm" onClick={exportUser} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><DownloadIcon size={14} /> Export Dossier</button>
+            <button className="btn btn-secondary btn-sm" onClick={exportUser} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><DownloadIcon size={14} /> Export</button>
             <button className="btn btn-secondary btn-sm" onClick={() => setShowCredit(true)} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><CreditCardIcon size={14} /> Credit Balance</button>
-            <button className="btn btn-secondary btn-sm" onClick={toggleBan} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><ShieldIcon size={14} /> {user.is_banned ? 'Unban' : 'Ban'}</button>
+            <button className="btn btn-secondary btn-sm" onClick={toggleBan} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><BanIcon size={14} /> {user.is_banned ? 'Unban' : 'Ban'}</button>
             <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
               <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} /> Refresh
             </button>

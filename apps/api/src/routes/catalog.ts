@@ -13,6 +13,7 @@ let countriesCache: any[] | null = null;
 let servicesCacheTime = 0;
 let countriesCacheTime = 0;
 const CATALOG_TTL = 3600_000;
+const SERVICES_TTL = 10_000;
 const tigerServiceSlugCache = new Map<string, string>();
 const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
 
@@ -102,7 +103,7 @@ function getServiceIcon(code: string, name: string): string {
 
 async function getCachedServices() {
   const now = Date.now();
-  if (!servicesCache || now - servicesCacheTime > CATALOG_TTL) {
+  if (!servicesCache || now - servicesCacheTime > SERVICES_TTL) {
     servicesCache = await tigerSms.getServicesList('en');
     servicesCacheTime = now;
   }
@@ -186,20 +187,22 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
       tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(), getCachedServices(),
     ]);
     const serviceName = tigerServices.find((service) => service.code.toLowerCase() === code.toLowerCase())?.name || code;
-    const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
+    const highDeliveryNames = await Promise.race([
+      getTigerHighDeliveryCountries(serviceName),
+      new Promise<string[]>((resolve) => setTimeout(() => resolve([]), 250)),
+    ]);
     const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeCatalogName(name), index + 1]));
     const countryMap = new Map(tigerCountries.map((country) => [String(country.id), country.eng]));
-    const countries: any[] = [];
-    for (const [countryKey, serviceData] of Object.entries(livePrices)) {
+    const countries = (await Promise.all(Object.entries(livePrices).map(async ([countryKey, serviceData]) => {
       const countryId = Number.parseInt(countryKey, 10);
-      if (!Number.isFinite(countryId) || config.disabledCountries.includes(countryId)) continue;
+      if (!Number.isFinite(countryId) || config.disabledCountries.includes(countryId)) return null;
       const tigerOffer = (serviceData as any)?.[code];
-      if (!tigerOffer) continue;
+      if (!tigerOffer) return null;
       const priceUsd = Number.parseFloat(String(tigerOffer.cost ?? '0'));
       const available = Number.parseInt(String(tigerOffer.count ?? '0'), 10);
-      if (available <= 0 || !Number.isFinite(priceUsd) || priceUsd <= 0) continue;
+      if (available <= 0 || !Number.isFinite(priceUsd) || priceUsd <= 0) return null;
       const flag = countryFlags[String(countryId)];
-      countries.push({
+      return {
         id: countryId,
         countryId,
         name: countryMap.get(String(countryId)) || `Country ${countryId}`,
@@ -212,8 +215,8 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
         isHighDelivery: deliveryRanks.has(normalizeCatalogName(countryMap.get(String(countryId)) || '')),
         deliveryRank: deliveryRanks.get(normalizeCatalogName(countryMap.get(String(countryId)) || '')) || null,
         isPopular: config.featuredCountries.includes(countryId),
-      });
-    }
+      };
+    }))).filter(Boolean) as any[];
 
     countries.sort((a, b) => {
       if (a.isHighDelivery !== b.isHighDelivery) return a.isHighDelivery ? -1 : 1;

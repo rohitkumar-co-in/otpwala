@@ -738,7 +738,6 @@ const breadcrumbSchema = {
       const apiBase = isLocalHost ? configuredApiBase : '';
       const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
       const browserIsIndia = navigator.language.toLowerCase().endsWith('-in') || browserTimeZone === 'Asia/Kolkata' || browserTimeZone === 'Asia/Calcutta';
-      const curr = localStorage.getItem('otpwala_currency') || (browserIsIndia ? 'INR' : 'USD');
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
       const currencyToggle = document.getElementById('public-currency-toggle');
@@ -756,19 +755,29 @@ const breadcrumbSchema = {
       }
 
       async function loadCurrency() {
+        let resolvedCurrency: string | null = null;
         try {
           const localCurrency = localStorage.getItem('otpwala_currency');
-          if (localCurrency === 'INR' || localCurrency === 'USD') { revealCurrencyToggle(); return; }
           const { data: { session } } = await supabase.auth.getSession();
-          const response = await fetch(`${apiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
-          const payload = await response.json();
-          const serverCurrency = payload?.data?.currency;
-          if (serverCurrency === 'INR' || serverCurrency === 'USD') {
-            localStorage.setItem('otpwala_currency', serverCurrency);
-            updateBtns(serverCurrency);
-            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: serverCurrency } }));
+          if (session?.access_token) {
+            const response = await fetch(`${apiBase}/api/user/currency-preference`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+            const payload = await response.json();
+            const serverCurrency = payload?.data?.currency;
+            if (serverCurrency === 'INR' || serverCurrency === 'USD') resolvedCurrency = serverCurrency;
           }
-        } catch {} finally { revealCurrencyToggle(); }
+          if (!resolvedCurrency && (localCurrency === 'INR' || localCurrency === 'USD')) resolvedCurrency = localCurrency;
+          if (!resolvedCurrency) resolvedCurrency = browserIsIndia ? 'INR' : 'USD';
+        } catch {
+          const localCurrency = localStorage.getItem('otpwala_currency');
+          resolvedCurrency = localCurrency === 'INR' || localCurrency === 'USD' ? localCurrency : (browserIsIndia ? 'INR' : 'USD');
+        } finally {
+          if (resolvedCurrency) {
+            localStorage.setItem('otpwala_currency', resolvedCurrency);
+            updateBtns(resolvedCurrency);
+            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: resolvedCurrency } }));
+          }
+          revealCurrencyToggle();
+        }
       }
 
       function updateBtns(c: string) {
@@ -781,9 +790,6 @@ const breadcrumbSchema = {
           btnInr.classList.add('active');
         }
       }
-      updateBtns(curr);
-      if (localStorage.getItem('otpwala_currency') === 'INR' || localStorage.getItem('otpwala_currency') === 'USD') revealCurrencyToggle();
-
       btnInr?.addEventListener('click', () => {
         localStorage.setItem('otpwala_currency', 'INR');
         updateBtns('INR');

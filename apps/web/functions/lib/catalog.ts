@@ -395,31 +395,32 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     tiger.getServicesList(),
   ]);
   const serviceName = allServices.find((service: any) => service.code.toLowerCase() === serviceCode.toLowerCase())?.name || serviceCode;
-  const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
+  const highDeliveryNames = await Promise.race([
+    getTigerHighDeliveryCountries(serviceName),
+    new Promise<string[]>((resolve) => setTimeout(() => resolve([]), 250)),
+  ]);
   const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeName(name), index + 1]));
 
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));
 
-  const results: any[] = [];
-
-  for (const [countryIdStr, serviceObj] of Object.entries(livePrices)) {
+  const results = (await Promise.all(Object.entries(livePrices).map(async ([countryIdStr, serviceObj]) => {
     const countryId = parseInt(countryIdStr, 10);
-    if (isNaN(countryId) || disabledCountries.includes(countryId)) continue;
+    if (isNaN(countryId) || disabledCountries.includes(countryId)) return null;
 
     const sData = (serviceObj as any)?.[serviceCode];
-    if (!sData) continue;
+    if (!sData) return null;
 
     const costPriceUsd = parseFloat(String(sData.cost ?? '0'));
     const stock = parseInt(String(sData.count ?? '0'), 10);
 
-    if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) continue;
+    if (stock <= 0 || isNaN(costPriceUsd) || costPriceUsd <= 0) return null;
 
     const priceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryId, userId, env);
     const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
     const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
     const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
 
-    results.push({
+    return {
       countryId,
       id: countryId,
       name: countryName,
@@ -432,8 +433,8 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
       isHighDelivery: deliveryRanks.has(normalizeName(countryMap.get(countryIdStr) || '')),
       deliveryRank: deliveryRanks.get(normalizeName(countryMap.get(countryIdStr) || '')) || null,
       isPopular: featuredCountries.includes(countryId),
-    });
-  }
+    };
+  }))).filter(Boolean) as any[];
 
   results.sort((a, b) => {
     if (a.isHighDelivery !== b.isHighDelivery) return a.isHighDelivery ? -1 : 1;

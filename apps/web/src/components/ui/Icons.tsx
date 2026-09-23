@@ -235,6 +235,13 @@ export const ShieldIcon = ({ size = 20, color = 'currentColor', className, ...pr
   </svg>
 );
 
+export const BanIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="5.64" y1="5.64" x2="18.36" y2="18.36" />
+  </svg>
+);
+
 export const CalculatorIcon = ({ size = 20, color = 'currentColor', className, ...props }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
     <rect x="4" y="2" width="16" height="20" rx="2" />

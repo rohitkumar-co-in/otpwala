@@ -173,7 +173,7 @@ export default function UserManager() {
 
   useEffect(() => {
     loadUsers();
-  }, [page, search, userSort, userRole]);
+  }, [page, pageSize, search, userSort, userRole]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -850,8 +850,8 @@ export default function UserManager() {
                             <div style={{ fontWeight: 800, color: '#10b981', fontSize: '0.9rem', marginTop: '0.15rem' }}>₹{parseFloat(u.wallet_balance || 0).toFixed(2)}</div>
                           </div>
                           <div style={{ padding: '0.4rem 0.55rem', background: 'rgba(37, 99, 235, 0.06)', border: '1px solid rgba(37, 99, 235, 0.2)', borderRadius: '8px' }}>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Deposited</div>
-                            <div style={{ fontWeight: 800, color: '#2563eb', fontSize: '0.9rem', marginTop: '0.15rem' }}>₹{parseFloat(u.total_deposited || 0).toFixed(2)}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Used</div>
+                            <div style={{ fontWeight: 800, color: '#2563eb', fontSize: '0.9rem', marginTop: '0.15rem' }}>₹{parseFloat(u.total_spent || 0).toFixed(2)}</div>
                           </div>
                         </div>
                       </td>
@@ -1474,14 +1474,14 @@ export default function UserManager() {
                 onClick={() => handleExportUser(inspectTarget)}
                 disabled={exportingUserId === inspectTarget.id}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                title="Export complete user dossier (Profile, Logs, Orders, Transactions, Referrals, etc.)"
+                title="Export complete user data"
               >
                 {exportingUserId === inspectTarget.id ? (
                   <RefreshCwIcon size={14} className="spin" />
                 ) : (
                   <DownloadIcon size={14} />
                 )}
-                <span>Export User Dossier</span>
+                  <span>Export</span>
               </button>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>
