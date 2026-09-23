@@ -1197,7 +1197,7 @@ export default function BuyNumber() {
                     {order?.serviceName || selectedService?.name || 'SMS Verification'}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 18, 12)}
+                        {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 24, 16)}
                     <span>{order?.countryName || selectedCountry?.name}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatDualPrice(parseFloat(order?.priceInr || 0), currency, usdRate).full}</span>
