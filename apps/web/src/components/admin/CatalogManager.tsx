@@ -528,39 +528,41 @@ export default function CatalogManager() {
                   key={s.code}
                   className="card"
                   style={{
-                    padding: '0.85rem 1rem',
+                    padding: '1rem',
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: 'stretch',
+                    gap: '0.8rem',
+                    minHeight: '185px',
                     background: s.enabled ? 'var(--bg-card)' : 'rgba(239, 68, 68, 0.03)',
                     border: s.enabled ? '1px solid var(--border-subtle)' : '1px solid rgba(239, 68, 68, 0.2)',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.45rem', textAlign: 'center' }}>
                     <div
                       style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: 'var(--radius-sm)',
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: 'var(--radius-md)',
                         background: s.enabled ? 'var(--accent-glow)' : 'var(--bg-tertiary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        padding: '6px',
+                        padding: '8px',
                       }}
                     >
                       {renderServiceIcon(s, 22)}
                     </div>
-                    <div style={{ overflow: 'hidden' }}>
+                    <div style={{ width: '100%' }}>
                       <div
                         style={{
                           fontWeight: 600,
                           fontSize: '0.9rem',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          lineHeight: 1.25,
+                          overflowWrap: 'anywhere',
                           color: s.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
                         }}
                         title={s.name}
@@ -573,7 +575,7 @@ export default function CatalogManager() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
                   <button
                     onClick={() => handleToggleFeatured(s.code, !!s.featured)}
                     disabled={actionLoading === `featured-${s.code}`}
