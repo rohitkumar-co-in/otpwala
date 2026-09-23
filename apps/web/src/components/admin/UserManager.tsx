@@ -39,6 +39,7 @@ export default function UserManager() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [userSort, setUserSort] = useState<'recent' | 'alphabetical' | 'deposited'>('recent');
   const [loading, setLoading] = useState(true);
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +117,7 @@ export default function UserManager() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAdminUsers(limit, page * limit, search);
+      const data = await getAdminUsers(limit, page * limit, search, userSort);
       setUsers(data?.users || []);
       setTotal(data?.total || 0);
       // Clean up selection of users no longer in list
@@ -157,7 +158,7 @@ export default function UserManager() {
 
   useEffect(() => {
     loadUsers();
-  }, [page, search]);
+  }, [page, search, userSort]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -524,7 +525,7 @@ export default function UserManager() {
 
       {/* Search & Filters */}
       <div className="card" style={{ padding: '1rem' }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <input
               type="text"
@@ -542,6 +543,17 @@ export default function UserManager() {
           <button type="submit" className="btn btn-primary btn-sm">
             Search
           </button>
+          <select
+            aria-label="Sort users"
+            value={userSort}
+            onChange={(e) => { setUserSort(e.target.value as typeof userSort); setPage(0); }}
+            className="input"
+            style={{ width: 'auto', minWidth: '190px' }}
+          >
+            <option value="recent">Recently Joined</option>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="deposited">Most Deposited</option>
+          </select>
           {search && (
             <button
               type="button"
@@ -696,6 +708,7 @@ export default function UserManager() {
                   </th>
                   <th style={{ padding: '0.75rem' }}>User Profile</th>
                   <th style={{ padding: '0.75rem' }}>Amount Left</th>
+                  <th style={{ padding: '0.75rem' }}>Deposited</th>
                   <th style={{ padding: '0.75rem' }}>Role</th>
                   <th style={{ padding: '0.75rem' }}>Pricing Rate</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
@@ -792,6 +805,9 @@ export default function UserManager() {
                             {parseFloat(u.total_spent || 0) > 0 ? `₹${parseFloat(u.total_spent || 0).toFixed(2)} spent` : 'Available'}
                           </div>
                         </div>
+                      </td>
+                      <td style={{ padding: '0.75rem', fontWeight: 700, color: '#2563eb' }}>
+                        ₹{parseFloat(u.total_deposited || 0).toFixed(2)}
                       </td>
                       <td style={{ padding: '0.75rem' }}>
                         <span className={`badge ${u.role === 'superadmin' ? 'badge-error' : isAdmin ? 'badge-primary' : 'badge-ghost'}`}>

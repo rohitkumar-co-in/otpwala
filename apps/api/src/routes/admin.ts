@@ -108,12 +108,12 @@ router.get('/users', async (req: AuthenticatedRequest, res) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string;
+    const sort = String(req.query.sort || 'recent');
 
     let query = supabaseAdmin
       .from('profiles')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('created_at', { ascending: false });
 
     if (search) {
       const trimmedSearch = search.trim();
@@ -150,6 +150,12 @@ router.get('/users', async (req: AuthenticatedRequest, res) => {
     }
 
     const zeroMarkupUsers = await getZeroMarkupUserIds();
+    const userIds = (data || []).map((u: any) => u.id).filter(Boolean);
+    const depositTotals: Record<string, number> = {};
+    if (userIds.length) {
+      const { data: deposits } = await supabaseAdmin.from('wallet_transactions').select('user_id,amount').in('user_id', userIds).eq('type', 'topup').eq('status', 'completed');
+      for (const deposit of deposits || []) depositTotals[deposit.user_id] = (depositTotals[deposit.user_id] || 0) + (parseFloat(deposit.amount) || 0);
+    }
     const usersWithMarkup = (data || []).map((u: any) => {
       const authInfo = authMap[u.id] || {};
       const resolvedName = (u.full_name && u.full_name.trim()) || authInfo.name || null;
@@ -168,10 +174,16 @@ router.get('/users', async (req: AuthenticatedRequest, res) => {
         last_sign_in_at: lastLogin,
         created_at: registeredAt,
         has_zero_markup: zeroMarkupUsers.has(u.id),
+        total_deposited: Number((depositTotals[u.id] || 0).toFixed(2)),
       };
     });
 
-    res.json({ success: true, data: { users: usersWithMarkup, total: count || 0 } });
+    const sortedUsers = usersWithMarkup.sort((a: any, b: any) => {
+      if (sort === 'alphabetical') return String(a.name || a.email || '').localeCompare(String(b.name || b.email || ''), undefined, { sensitivity: 'base' });
+      if (sort === 'deposited') return b.total_deposited - a.total_deposited || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    res.json({ success: true, data: { users: sortedUsers.slice(offset, offset + limit), total: count || 0 } });
   } catch (e) {
     console.error('Admin users error:', e);
     res.status(500).json({ success: false, error: 'Failed to fetch users' });

@@ -87,7 +87,7 @@ export async function getAdminDashboard(env?: any) {
   };
 }
 
-export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: any) {
+export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: any, sort = 'recent') {
   const supabase = getSupabaseAdmin(env);
   let query = supabase.from('profiles').select('*', { count: 'exact' });
 
@@ -95,9 +95,7 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
     query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
   }
 
-  const { data, count, error } = await query
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const { data, count, error } = await query.order('created_at', { ascending: false });
 
   if (error) throw error;
 
@@ -128,6 +126,7 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
 
   const userIds = (data || []).map((u: any) => u.id).filter(Boolean);
   const orderTotals: Record<string, { spent: number; orders: number }> = {};
+  const depositTotals: Record<string, number> = {};
   if (userIds.length) {
     const { data: orderRows } = await supabase.from('orders').select('user_id,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
     for (const order of orderRows || []) {
@@ -139,6 +138,14 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
       total.spent += amount;
       total.orders += 1;
       orderTotals[order.user_id] = total;
+    }
+  }
+
+  if (userIds.length) {
+    const { data: depositRows } = await supabase.from('wallet_transactions').select('user_id,amount').in('user_id', userIds).eq('type', 'topup').eq('status', 'completed');
+    for (const deposit of depositRows || []) {
+      const amount = Number(deposit.amount || 0);
+      if (Number.isFinite(amount) && amount > 0) depositTotals[deposit.user_id] = (depositTotals[deposit.user_id] || 0) + amount;
     }
   }
 
@@ -160,10 +167,17 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
       // Derive reporting totals from orders so refunds/cancellations cannot inflate spend.
       total_spent: Number((orderTotals[u.id]?.spent ?? 0).toFixed(2)),
       total_orders: orderTotals[u.id]?.orders ?? 0,
+      total_deposited: Number((depositTotals[u.id] ?? 0).toFixed(2)),
     };
   });
 
-  return { users: enrichedUsers, total: count || 0 };
+  const sortedUsers = [...enrichedUsers].sort((a: any, b: any) => {
+    if (sort === 'alphabetical') return String(a.name || a.email || '').localeCompare(String(b.name || b.email || ''), undefined, { sensitivity: 'base' });
+    if (sort === 'deposited') return Number(b.total_deposited || 0) - Number(a.total_deposited || 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  return { users: sortedUsers.slice(Math.max(offset, 0), Math.max(offset, 0) + Math.min(Math.max(limit, 1), 200)), total: count || 0 };
 }
 
 export async function creditUserBalance(userId: string, amount: number, note: string, fundingSource: string, env?: any) {
