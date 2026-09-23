@@ -330,10 +330,26 @@ export async function getPaymentRequests(env?: any) {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
+  const requestIds = (data || []).map((request: any) => request.id).filter(Boolean);
+  const creditedRequestIds = new Set<string>();
+  if (requestIds.length) {
+    const { data: credits, error: creditsError } = await supabase
+      .from('wallet_transactions')
+      .select('reference_id')
+      .eq('reference_type', 'payment_request')
+      .eq('type', 'topup')
+      .eq('status', 'completed')
+      .in('reference_id', requestIds);
+    if (creditsError) throw creditsError;
+    for (const credit of credits || []) {
+      if (credit.reference_id) creditedRequestIds.add(String(credit.reference_id));
+    }
+  }
+
   return (data || []).map((req: any) => {
     const s = String(req.status || '').toLowerCase().trim();
     const normalizedStatus =
-      s === 'paid' || s === 'approved' || s === 'completed' || s === 'success'
+      creditedRequestIds.has(String(req.id)) || s === 'paid' || s === 'approved' || s === 'completed' || s === 'success'
         ? 'approved'
         : s === 'failed' || s === 'rejected' || s === 'cancelled'
         ? 'rejected'
