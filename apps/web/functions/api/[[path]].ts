@@ -1293,9 +1293,11 @@ export const onRequest = async (context: any) => {
         } catch {}
 
         const zeroUsers = await getZeroMarkupUsers(env);
-        const [txRes, ordersRes] = await Promise.all([
+        const [txRes, ordersRes, depositsRes, ticketsRes] = await Promise.all([
           supabase.from('wallet_transactions').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
-          supabase.from('orders').select('id,service_name,country_name,phone_number,price_inr,status,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(5),
+          supabase.from('orders').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          supabase.from('payment_requests').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          supabase.from('support_tickets').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
         ]);
 
         const resolvedName = (profile.full_name?.trim()) || authMeta.name || null;
@@ -1305,6 +1307,8 @@ export const onRequest = async (context: any) => {
             user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId) },
             transactions: txRes.data || [],
             orders: ordersRes.data || [],
+            deposits: depositsRes.data || [],
+            tickets: ticketsRes.data || [],
           },
         });
       }

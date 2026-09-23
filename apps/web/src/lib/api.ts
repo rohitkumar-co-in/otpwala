@@ -202,7 +202,7 @@ export const replyToAdminSupportTicket = (id: string, reply: string) =>
 export const getAdminUsers = (limit = 20, offset = 0, search = '', sort = 'recent') =>
   apiFetch<any>(`/api/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&sort=${encodeURIComponent(sort)}`);
 export const getAdminUserDetails = (userId: string) =>
-  apiFetch<{ user: any; transactions: any[]; orders: any[] }>(`/api/admin/users/${userId}/details`);
+  apiFetch<{ user: any; transactions: any[]; orders: any[]; deposits: any[]; tickets: any[] }>(`/api/admin/users/${userId}/details`);
 export const getAdminUserExport = (userId: string) =>
   apiFetch<any>(`/api/admin/users/${userId}/export`);
 // Admin-added balance must always state where the money came from:

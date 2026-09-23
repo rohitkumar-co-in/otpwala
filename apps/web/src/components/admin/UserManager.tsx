@@ -727,7 +727,6 @@ export default function UserManager() {
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Registered</th>
                   <th style={{ padding: '0.75rem' }}>Last Login</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -783,7 +782,9 @@ export default function UserManager() {
                           )}
                           <div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
-                              <span>{u.name || u.full_name || 'Anonymous User'}</span>
+                              <a href={`/admin/users/details?id=${encodeURIComponent(u.id)}`} style={{ color: 'inherit', textDecoration: 'none' }} title="Open user details">
+                                {u.name || u.full_name || 'Anonymous User'}
+                              </a>
                               {u.role === 'superadmin' ? (
                                 <span className="badge badge-error" style={{ fontSize: '0.62rem', padding: '0.05rem 0.35rem' }}>
                                   Super Admin
@@ -794,7 +795,7 @@ export default function UserManager() {
                                 </span>
                               ) : null}
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{u.email}</div>
+                            <a href={`/admin/users/details?id=${encodeURIComponent(u.id)}`} style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', textDecoration: 'none' }} title="Open user details">{u.email}</a>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                               <span>ID: {u.id.substring(0, 16)}...</span>
                               <button
@@ -897,69 +898,6 @@ export default function UserManager() {
                         ) : (
                           <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.75rem' }}>Never</span>
                         )}
-                      </td>
-                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          {/* Inspect details button */}
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleInspectUser(u)}
-                            title="Inspect user amount left, orders & balance history"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                          >
-                            <EyeIcon size={13} />
-                            <span>Details</span>
-                          </button>
-
-                          {/* Export user dossier button */}
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleExportUser(u)}
-                            disabled={exportingUserId === u.id}
-                            title="Export complete user data dossier (Profile, Logs, Orders, Transactions, etc.)"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                          >
-                            {exportingUserId === u.id ? (
-                              <RefreshCwIcon size={13} className="spin" />
-                            ) : (
-                              <DownloadIcon size={13} />
-                            )}
-                            <span>Export</span>
-                          </button>
-
-                          {currentUserRole === 'superadmin' && !isAdmin && u.is_banned && (
-                            <button
-                              className="btn btn-sm"
-                              onClick={() => {
-                                setPurgeTarget(u);
-                                setPurgeMode('history');
-                                setPurgeConfirmation('');
-                              }}
-                              title="Purge this suspended user account"
-                              style={{ background: '#dc2626', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                            >
-                              <TrashIcon size={13} />
-                              <span>Purge</span>
-                            </button>
-                          )}
-
-                          {/* Credit button */}
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => {
-                              setCreditUserTarget(u);
-                              setCreditAmount(100);
-                              setCreditReason('');
-                              setCreditFundingSource('');
-                            }}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                          >
-                            <CreditCardIcon size={13} />
-                            <span>Add Funds</span>
-                          </button>
-
-
-                        </div>
                       </td>
                     </tr>
                   );
