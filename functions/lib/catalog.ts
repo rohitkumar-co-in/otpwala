@@ -48,6 +48,25 @@ type CatalogConfig = {
 
 const tigerServiceSlugCache = new Map<string, string>();
 const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
+let tigerCountriesCache: any[] | null = null;
+let tigerCountriesCacheTime = 0;
+const tigerPricesCache = new Map<string, { data: Record<string, any>; expiresAt: number }>();
+
+async function getCachedTigerCountries(tiger: TigerSmsClient): Promise<any[]> {
+  if (tigerCountriesCache && Date.now() - tigerCountriesCacheTime < 3600_000) return tigerCountriesCache;
+  tigerCountriesCache = await tiger.getCountries();
+  tigerCountriesCacheTime = Date.now();
+  return tigerCountriesCache;
+}
+
+async function getCachedTigerPrices(tiger: TigerSmsClient, serviceCode: string): Promise<Record<string, any>> {
+  const cacheKey = serviceCode.toLowerCase();
+  const cached = tigerPricesCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+  const data = await tiger.getPrices(serviceCode);
+  tigerPricesCache.set(cacheKey, { data, expiresAt: Date.now() + 5_000 });
+  return data;
+}
 
 function stripHtml(value: string): string {
   return value
@@ -289,7 +308,7 @@ export async function getCountries(env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledCountries }, tigerCountries] = await Promise.all([
     getDisabledCatalog(env),
-    tiger.getCountries(),
+    getCachedTigerCountries(tiger),
   ]);
 
   const countries = tigerCountries
@@ -390,8 +409,8 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   const tiger = new TigerSmsClient(env);
   const [{ disabledCountries, featuredCountries }, allCountries, livePrices] = await Promise.all([
     getDisabledCatalog(env),
-    tiger.getCountries(),
-    tiger.getPrices(serviceCode),
+    getCachedTigerCountries(tiger),
+    getCachedTigerPrices(tiger, serviceCode),
   ]);
   const serviceName = serviceCode;
   const highDeliveryNames = await Promise.race([
