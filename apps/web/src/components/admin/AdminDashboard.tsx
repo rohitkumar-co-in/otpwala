@@ -166,7 +166,7 @@ export default function AdminDashboard() {
   };
 
   const handleApprovePayment = async (requestId: string, amount: number) => {
-    setActionLoading(requestId);
+    setActionLoading(`${requestId}:approve`);
     setError(null);
     setSuccessMsg(null);
     try {
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
       type: 'danger',
     });
     if (!confirmReject) return;
-    setActionLoading(requestId);
+    setActionLoading(`${requestId}:reject`);
     setError(null);
     setSuccessMsg(null);
     try {
@@ -469,7 +469,7 @@ export default function AdminDashboard() {
             <DollarIcon size={20} color="#34d399" />
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, marginTop: '0.5rem', fontFamily: 'var(--font-display)', color: '#34d399' }}>
-            {!stats ? '...' : `₹${parseFloat(cashCollected || 0).toFixed(2)}`}
+            {!stats ? '...' : `₹${Number(cashCollected || 0).toFixed(2)}`}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
             {!stats ? (
@@ -714,22 +714,22 @@ export default function AdminDashboard() {
                               <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                                 <button
                                   className="btn btn-primary btn-sm"
-                                  disabled={actionLoading === req.id}
+                                  disabled={actionLoading?.startsWith(`${req.id}:`)}
                                   onClick={() => handleApprovePayment(req.id, amt)}
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                                 >
                                   <CheckIcon size={14} />
-                                  <span>{actionLoading === req.id ? 'Approving...' : 'Approve & Credit'}</span>
+                                  <span>{actionLoading === `${req.id}:approve` ? 'Approving...' : 'Approve & Credit'}</span>
                                 </button>
                                 <button
                                   className="btn btn-ghost btn-sm"
-                                  disabled={actionLoading === req.id}
+                                  disabled={actionLoading?.startsWith(`${req.id}:`)}
                                   onClick={() => handleRejectPayment(req.id, amt)}
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
                                   title="Reject deposit request"
                                 >
                                   <XIcon size={14} />
-                                  <span>Reject</span>
+                                  <span>{actionLoading === `${req.id}:reject` ? 'Rejecting...' : 'Reject'}</span>
                                 </button>
                               </div>
                             ) : (
