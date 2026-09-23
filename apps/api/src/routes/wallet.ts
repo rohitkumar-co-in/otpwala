@@ -215,6 +215,7 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
     const isBinance = rawMethod.includes('binance');
     const paymentMethod = isBinance ? 'binance' : 'upi';
 
+    const cleanUtr = String(utr || '').trim().replace(/\s+/g, '');
     if (isBinance) {
       const binanceRate = config.usdtInrRate || 115;
       const minInr = (config.binanceMinDeposit || 1) * binanceRate - 0.5;
@@ -235,7 +236,6 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
     }
 
     // Validate reference
-    const cleanUtr = String(utr || '').trim().replace(/\s+/g, '');
     if (!isBinance) {
       if (!/^\d{12}$/.test(cleanUtr)) {
         res.status(400).json({
@@ -252,6 +252,17 @@ router.post('/topup', async (req: AuthenticatedRequest, res) => {
         });
         return;
       }
+    }
+
+    const { data: duplicateRequest, error: duplicateError } = await supabaseAdmin
+      .from('payment_requests')
+      .select('id')
+      .or(`transaction_id.ilike.${cleanUtr},gateway_payment_id.ilike.${cleanUtr}`)
+      .maybeSingle();
+    if (duplicateError) throw duplicateError;
+    if (duplicateRequest) {
+      res.status(409).json({ success: false, error: 'This UTR / reference number has already been submitted' });
+      return;
     }
 
     let request: any = null;

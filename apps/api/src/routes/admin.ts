@@ -602,12 +602,28 @@ router.get('/payment-requests', async (_req: AuthenticatedRequest, res) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('payment_requests')
-      .select('*, profiles(email)')
-      .eq('status', 'created')
+      .select('*, profiles:user_id(email, full_name)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    res.json({ success: true, data });
+    const normalized = (data || []).map((request: any) => {
+      const status = String(request.status || '').toLowerCase().trim();
+      return {
+        ...request,
+        amount: parseFloat(request.amount ?? request.amount_inr ?? 0),
+        amount_inr: parseFloat(request.amount_inr ?? request.amount ?? 0),
+        transaction_id: request.transaction_id || request.gateway_payment_id || '',
+        gateway_payment_id: request.gateway_payment_id || request.transaction_id || '',
+        payment_method: request.payment_method || request.gateway || 'upi',
+        gateway: request.gateway || request.payment_method || 'upi',
+        status: ['paid', 'approved', 'completed', 'success'].includes(status)
+          ? 'approved'
+          : ['failed', 'rejected', 'cancelled'].includes(status)
+          ? 'rejected'
+          : 'pending',
+      };
+    });
+    res.json({ success: true, data: normalized });
   } catch (e) {
     console.error('Payment requests error:', e);
     res.status(500).json({ success: false, error: 'Failed to fetch payment requests' });
@@ -648,7 +664,7 @@ router.post('/payment-requests/:id/reject', async (req: AuthenticatedRequest, re
       .from('payment_requests')
       .select('*')
       .eq('id', id)
-      .eq('status', 'created')
+      .in('status', ['pending', 'created'])
       .single();
 
     if (fetchError || !request) {

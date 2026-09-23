@@ -691,7 +691,11 @@ export const onRequest = async (context: any) => {
         return jsonResponse({ success: false, error: `Deposit amount must be between ₹${walletConfig.minDeposit} and ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}` }, 400);
       }
 
-      const { data: duplicateUtr } = await supabase.from('payment_requests').select('id').ilike('transaction_id', utr).maybeSingle();
+      const { data: duplicateUtr } = await supabase
+        .from('payment_requests')
+        .select('id')
+        .or(`transaction_id.ilike.${utr},gateway_payment_id.ilike.${utr}`)
+        .maybeSingle();
       if (duplicateUtr) return jsonResponse({ success: false, error: 'This UTR / reference number has already been submitted' }, 409);
       let data: any = null;
 
@@ -763,10 +767,10 @@ export const onRequest = async (context: any) => {
         amount_inr: amount,
         transaction_id: utr,
         gateway_payment_id: utr,
-        payment_method: paymentMethod,
-        gateway: paymentMethod,
+        payment_method: cleanPaymentMethod,
+        gateway: cleanPaymentMethod,
         status: data?.status === 'created' ? 'pending' : (data?.status || 'pending'),
-        message: `UPI deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`,
+        message: `${cleanPaymentMethod === 'binance' ? 'Binance Pay' : 'UPI'} deposit request of ₹${amount} submitted! Admin will verify and credit your wallet.`,
       };
 
       return jsonResponse({ success: true, data: normalized });
