@@ -588,7 +588,9 @@ export default function AdminDashboard() {
               ['Gross Profit', `₹${parseFloat(stats.grossProfit || 0).toFixed(2)}`, '#059669'],
               ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
               ['Cash Collected (UPI + Manual)', `₹${parseFloat(stats.cashCollected || 0).toFixed(2)}`, '#10b981'],
-              ['Free Funds Granted (Not Revenue)', `₹${parseFloat(stats.freeFunds || 0).toFixed(2)} · ${stats.freeFundsCount || 0} grant(s)`, '#a855f7'],
+              ['Free Funds Granted (Not Revenue)', `₹${parseFloat(stats.freeFunds || 0).toFixed(2)}`, '#a855f7'],
+              ['Free Fund Grants', stats.freeFundsCount || 0, '#c084fc'],
+              ['Resolved Support', stats.resolvedSupport || 0, '#10b981'],
               ['Unresolved Support', stats.unresolvedSupport || 0, '#0ea5e9'],
             ].map(([label, value, color]) => (
               <div key={String(label)} style={{ padding: '0.85rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)' }}>

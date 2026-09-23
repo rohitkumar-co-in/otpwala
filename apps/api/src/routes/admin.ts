@@ -39,6 +39,8 @@ router.get('/dashboard', async (_req: AuthenticatedRequest, res) => {
       revenueResult,
       todayOrdersResult,
       activeOrdersResult,
+      resolvedSupportResult,
+      unresolvedSupportResult,
     ] = await Promise.all([
       supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }),
       supabaseAdmin.from('orders').select('*', { count: 'exact', head: true }),
@@ -48,6 +50,10 @@ router.get('/dashboard', async (_req: AuthenticatedRequest, res) => {
         .in('status', ['completed', 'code_received']),
       supabaseAdmin.from('orders').select('*', { count: 'exact', head: true })
         .eq('status', 'waiting'),
+      supabaseAdmin.from('support_tickets').select('id', { count: 'exact', head: true })
+        .in('status', ['resolved', 'closed']),
+      supabaseAdmin.from('support_tickets').select('id', { count: 'exact', head: true })
+        .in('status', ['open', 'in_progress']),
     ]);
 
     const totalRevenue = (revenueResult.data || []).reduce(
@@ -80,6 +86,8 @@ router.get('/dashboard', async (_req: AuthenticatedRequest, res) => {
         ordersToday: todayOrdersResult.data?.length || 0,
         revenueToday,
         activeOrders: activeOrdersResult.count || 0,
+        resolvedSupport: resolvedSupportResult.count || 0,
+        unresolvedSupport: unresolvedSupportResult.count || 0,
       },
     });
   } catch (e) {
