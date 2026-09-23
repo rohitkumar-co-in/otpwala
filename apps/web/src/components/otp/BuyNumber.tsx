@@ -344,17 +344,21 @@ export default function BuyNumber() {
     if (servicesRefreshRef.current) return;
     servicesRefreshRef.current = true;
     if (!silent) setServicesLoading(true);
+    if (!silent) setError('');
     try {
       const allData = await getServices(false);
-      if (Array.isArray(allData)) {
+      if (Array.isArray(allData) && allData.length > 0) {
         setServices(allData);
         setTotalServicesCount(allData.length);
         setAllServicesLoaded(true);
+      } else if (!silent) {
+        setError('Services are temporarily unavailable. Please try again.');
       }
       if (!silent) setLoading(false);
     } catch (err: any) {
       if (!silent) {
         console.warn('Failed to load services:', err);
+        setError('Services are temporarily unavailable. Please try again.');
         setLoading(false);
       }
     } finally {
@@ -632,6 +636,11 @@ export default function BuyNumber() {
         ) : loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
             <div className="spinner spinner-lg"></div>
+          </div>
+        ) : !allServicesLoaded ? (
+          <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+            <p style={{ margin: '0 0 1rem' }}>Services are not available yet.</p>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => loadServices()}>Try Again</button>
           </div>
         ) : sortedServices.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
