@@ -3,8 +3,6 @@ RETURNS TABLE(transaction_id UUID, balance_after DECIMAL)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_request public.payment_requests%ROWTYPE;
-  v_amount DECIMAL;
-  v_reference TEXT;
 BEGIN
   SELECT * INTO v_request
   FROM public.payment_requests
@@ -15,9 +13,7 @@ BEGIN
   IF v_request.status IN ('approved', 'paid') THEN RAISE EXCEPTION 'payment_request_already_approved'; END IF;
   IF v_request.status NOT IN ('pending', 'created') THEN RAISE EXCEPTION 'payment_request_not_pending'; END IF;
 
-  v_amount := COALESCE(v_request.amount, v_request.amount_inr, 0);
-  v_reference := COALESCE(v_request.transaction_id, v_request.gateway_payment_id, v_request.id::text);
-  IF v_amount <= 0 THEN RAISE EXCEPTION 'invalid_payment_amount'; END IF;
+  IF COALESCE(v_request.amount, 0) <= 0 THEN RAISE EXCEPTION 'invalid_payment_amount'; END IF;
 
   UPDATE public.payment_requests
   SET status = 'approved',
@@ -27,9 +23,9 @@ BEGIN
 
   RETURN QUERY SELECT * FROM public.post_wallet_transaction(
     v_request.user_id,
-    v_amount,
+    v_request.amount,
     'topup',
-    concat('Deposit approved (UTR: ', v_reference, ')'),
+    concat('Deposit approved (UTR: ', COALESCE(v_request.transaction_id, v_request.id::text), ')'),
     'payment_request',
     v_request.id::text,
     concat('topup:', v_request.id::text)
