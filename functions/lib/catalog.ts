@@ -388,13 +388,12 @@ export async function setDisabledCatalog(services?: string[], countries?: number
 
 export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
-  const [{ disabledCountries, featuredCountries }, allCountries, livePrices, allServices] = await Promise.all([
+  const [{ disabledCountries, featuredCountries }, allCountries, livePrices] = await Promise.all([
     getDisabledCatalog(env),
     tiger.getCountries(),
     tiger.getPrices(serviceCode),
-    tiger.getServicesList(),
   ]);
-  const serviceName = allServices.find((service: any) => service.code.toLowerCase() === serviceCode.toLowerCase())?.name || serviceCode;
+  const serviceName = serviceCode;
   const highDeliveryNames = await Promise.race([
     getTigerHighDeliveryCountries(serviceName),
     new Promise<string[]>((resolve) => setTimeout(() => resolve([]), 250)),

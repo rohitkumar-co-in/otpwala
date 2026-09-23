@@ -183,10 +183,10 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
       return;
     }
 
-    const [livePrices, config, tigerCountries, tigerServices] = await Promise.all([
-      tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(), getCachedServices(),
+    const [livePrices, config, tigerCountries] = await Promise.all([
+      tigerSms.getPrices(code), getCatalogFilterConfig(), getCachedCountries(),
     ]);
-    const serviceName = tigerServices.find((service) => service.code.toLowerCase() === code.toLowerCase())?.name || code;
+    const serviceName = code;
     const highDeliveryNames = await Promise.race([
       getTigerHighDeliveryCountries(serviceName),
       new Promise<string[]>((resolve) => setTimeout(() => resolve([]), 250)),
