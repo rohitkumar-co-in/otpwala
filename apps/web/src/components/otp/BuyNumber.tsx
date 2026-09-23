@@ -188,6 +188,22 @@ function getServiceBg(code: string) {
 export type ServiceSortOption = 'featured' | 'name_asc' | 'name_desc';
 export type CountrySortOption = 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'stock_desc';
 
+function LoadMoreSentinel({ onLoadMore }: { onLoadMore: () => void }) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) onLoadMore();
+    }, { rootMargin: '320px' });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [onLoadMore]);
+
+  return <div ref={sentinelRef} style={{ minHeight: '1px' }} aria-hidden="true" />;
+}
+
 export default function BuyNumber() {
   const [step, setStep] = useState<Step>('service');
   const [services, setServices] = useState<any[]>([]);
@@ -212,6 +228,7 @@ export default function BuyNumber() {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [allServicesLoaded, setAllServicesLoaded] = useState(false);
   const [totalServicesCount, setTotalServicesCount] = useState(0);
+  const [serviceVisibleCount, setServiceVisibleCount] = useState(30);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [showAllCountries, setShowAllCountries] = useState(false);
   const [allCountries, setAllCountries] = useState<any[]>([]);
@@ -221,6 +238,7 @@ export default function BuyNumber() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countryRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countryRequestIdRef = useRef(0);
+  const [countryVisibleCount, setCountryVisibleCount] = useState(30);
   const servicesRefreshRef = useRef(false);
   const purchaseInFlightRef = useRef(false);
   const purchaseRequestIdRef = useRef<string | null>(null);
@@ -393,6 +411,7 @@ export default function BuyNumber() {
     setCountrySearch('');
     setCountryFilter('all');
     setCountrySort('name_asc');
+    setCountryVisibleCount(30);
     setShowAllCountries(false);
     setAllCountries([]);
     setError('');
@@ -561,6 +580,11 @@ export default function BuyNumber() {
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
+  const visibleServices = sortedServices.slice(0, serviceVisibleCount);
+
+  useEffect(() => {
+    setServiceVisibleCount(30);
+  }, [searchQuery, serviceSort]);
 
   // ─── Step: Select Service ───
   if (step === 'service') {
@@ -658,7 +682,7 @@ export default function BuyNumber() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.85rem' }}>
-            {sortedServices.map((service) => (
+            {visibleServices.map((service) => (
               <button
                 key={service.code}
                 onClick={() => selectService(service)}
@@ -722,6 +746,7 @@ export default function BuyNumber() {
 
               </button>
             ))}
+            {visibleServices.length < sortedServices.length && <LoadMoreSentinel onLoadMore={() => setServiceVisibleCount((count) => Math.min(count + 30, sortedServices.length))} />}
           </div>
         )}
       </div>
@@ -784,7 +809,13 @@ export default function BuyNumber() {
     { id: 'popular', label: 'Popular countries', note: 'Starred by OTPWala admin', countries: popularCountries, color: '#f59e0b' },
     { id: 'all', label: 'All countries', note: 'Your selected sorting applies only here', countries: sortedCountries, color: 'var(--accent-primary)' },
   ].filter((group) => group.countries.length > 0);
-  const visibleCountryCount = highDeliveryCountries.length + popularCountries.length + sortedCountries.length;
+  const totalCountryCount = highDeliveryCountries.length + popularCountries.length + sortedCountries.length;
+  let countrySlotsRemaining = countryVisibleCount;
+  const visibleCountryGroups = countryGroups.map((group) => {
+    const groupCountries = group.countries.slice(0, Math.max(0, countrySlotsRemaining));
+    countrySlotsRemaining -= groupCountries.length;
+    return { ...group, countries: groupCountries };
+  }).filter((group) => group.countries.length > 0);
 
   // ─── Step: Select Country ───
   if (step === 'country') {
@@ -831,7 +862,7 @@ export default function BuyNumber() {
                 aria-label="Search countries"
                 placeholder="Search countries..."
                 value={countrySearch}
-                onChange={(e) => setCountrySearch(e.target.value)}
+                onChange={(e) => { setCountrySearch(e.target.value); setCountryVisibleCount(30); }}
                 style={{ width: '100%', paddingLeft: '2.2rem' }}
               />
               <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, display: 'flex', alignItems: 'center' }}>
@@ -842,7 +873,7 @@ export default function BuyNumber() {
             <select
               aria-label="Sort countries"
               value={countrySort}
-              onChange={(e) => setCountrySort(e.target.value as CountrySortOption)}
+              onChange={(e) => { setCountrySort(e.target.value as CountrySortOption); setCountryVisibleCount(30); }}
               className="input input-sm"
               style={{
                 width: 'auto',
@@ -872,6 +903,7 @@ export default function BuyNumber() {
               key={tab.id}
               onClick={() => {
                 setCountryFilter(tab.id as any);
+                setCountryVisibleCount(30);
                 // Auto-expand to all countries when using non-default filters
                 if (allCountries.length > 0) setShowAllCountries(true);
               }}
@@ -918,7 +950,7 @@ export default function BuyNumber() {
             <div className="spinner spinner-lg"></div>
             <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Loading countries…</span>
           </div>
-        ) : visibleCountryCount === 0 ? (
+        ) : totalCountryCount === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
             No countries found matching "{countrySearch}".
           </div>
@@ -966,7 +998,7 @@ export default function BuyNumber() {
                 </tr>
               </thead>
               <tbody>
-                {countryGroups.map((group) => (
+                {visibleCountryGroups.map((group) => (
                   <Fragment key={group.id}>
                     <tr>
                       <td colSpan={4} style={{ padding: '0.7rem 1rem', background: 'var(--bg-tertiary)', borderTop: '1px solid var(--border-subtle)' }}>
@@ -1028,6 +1060,9 @@ export default function BuyNumber() {
               </tbody>
             </table>
           </div>
+          {countryVisibleCount < totalCountryCount && (
+            <LoadMoreSentinel onLoadMore={() => setCountryVisibleCount((count) => Math.min(count + 30, totalCountryCount))} />
+          )}
           {/* Load All Countries CTA */}
           {!showAllCountries && allCountries.length > countries.length && !countrySearch && (
             <div style={{
