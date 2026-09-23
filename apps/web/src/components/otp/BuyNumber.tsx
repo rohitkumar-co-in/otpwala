@@ -219,6 +219,8 @@ export default function BuyNumber() {
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
   const [usdRate, setUsdRate] = useState<number>(DEFAULT_USD_TO_INR_RATE);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countryRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countryRequestIdRef = useRef(0);
   const servicesRefreshRef = useRef(false);
   const purchaseInFlightRef = useRef(false);
   const purchaseRequestIdRef = useRef<string | null>(null);
@@ -237,6 +239,7 @@ export default function BuyNumber() {
     window.addEventListener('otpwala:currency-change', handleCurrencyChange);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (countryRetryRef.current) clearTimeout(countryRetryRef.current);
       clearInterval(servicesRefreshTimer);
       window.removeEventListener('otpwala:currency-change', handleCurrencyChange);
     };
@@ -345,29 +348,46 @@ export default function BuyNumber() {
     servicesRefreshRef.current = true;
     if (!silent) setServicesLoading(true);
     if (!silent) setError('');
+    let loaded = false;
     try {
       const allData = await getServices(false);
       if (Array.isArray(allData) && allData.length > 0) {
         setServices(allData);
         setTotalServicesCount(allData.length);
         setAllServicesLoaded(true);
-      } else if (!silent) {
-        setError('Services are temporarily unavailable. Please try again.');
+        loaded = true;
       }
-      if (!silent) setLoading(false);
     } catch (err: any) {
       if (!silent) {
         console.warn('Failed to load services:', err);
-        setError('Services are temporarily unavailable. Please try again.');
-        setLoading(false);
       }
     } finally {
-      if (!silent) setServicesLoading(false);
+      if (loaded) setServicesLoading(false);
       servicesRefreshRef.current = false;
     }
   }
 
+  async function loadServiceCountries(service: any, requestId: number) {
+    setLoading(true);
+    try {
+      const apiCountries = await getServiceCountries(service.code);
+      if (requestId !== countryRequestIdRef.current) return;
+      setCountries(apiCountries);
+      setAllCountries(apiCountries);
+      setShowAllCountries(true);
+      setLoading(false);
+    } catch (err: any) {
+      if (requestId !== countryRequestIdRef.current) return;
+      countryRetryRef.current = setTimeout(() => {
+        void loadServiceCountries(service, requestId);
+      }, 5_000);
+    }
+  }
+
   async function selectService(service: any) {
+    countryRequestIdRef.current += 1;
+    if (countryRetryRef.current) clearTimeout(countryRetryRef.current);
+    const requestId = countryRequestIdRef.current;
     setSelectedService(service);
     setStep('country');
     setCountrySearch('');
@@ -375,18 +395,8 @@ export default function BuyNumber() {
     setCountrySort('name_asc');
     setShowAllCountries(false);
     setAllCountries([]);
-    setLoading(true);
     setError('');
-    try {
-      const apiCountries = await getServiceCountries(service.code);
-      setCountries(apiCountries);
-      setAllCountries(apiCountries);
-      setShowAllCountries(true);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
-    }
+    void loadServiceCountries(service, requestId);
   }
 
   async function handleDirectBuy(country: any) {
@@ -783,7 +793,7 @@ export default function BuyNumber() {
         <div className="buy-country-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div className="buy-country-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => { setStep('service'); setCountrySearch(''); }}
+              onClick={() => { countryRequestIdRef.current += 1; if (countryRetryRef.current) clearTimeout(countryRetryRef.current); setLoading(false); setStep('service'); setCountrySearch(''); }}
               className="btn btn-ghost btn-sm"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             >
