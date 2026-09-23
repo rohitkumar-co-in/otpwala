@@ -180,26 +180,28 @@ class TigerSmsClient {
    * STATUS_OK:code — code delivered
    * ACCESS_CANCEL — cancelled
    */
-  async getStatus(activationId: string): Promise<{ status: string; code?: string }> {
+  async getStatus(activationId: string): Promise<{ status: string; code?: string; text?: string; providerStatus?: string }> {
     const text = await this.request('getStatus', { id: activationId });
 
     if (text === 'STATUS_WAIT_CODE') {
-      return { status: 'STATUS_WAIT_CODE' };
+      return { status: 'waiting', providerStatus: text };
     }
     if (text.startsWith('STATUS_WAIT_RETRY:')) {
-      return { status: 'STATUS_WAIT_RETRY', code: text.split(':')[1] };
+      const code = text.split(':')[1];
+      return { status: 'code_received', code, text: `Your code is ${code}`, providerStatus: 'STATUS_WAIT_RETRY' };
     }
     if (text.startsWith('STATUS_OK:')) {
-      return { status: 'STATUS_OK', code: text.split(':')[1] };
+      const code = text.split(':')[1];
+      return { status: 'code_received', code, text: `Your code is ${code}`, providerStatus: 'STATUS_OK' };
     }
     if (text === 'ACCESS_CANCEL' || text === 'STATUS_CANCEL') {
-      return { status: 'ACCESS_CANCEL' };
+      return { status: 'cancelled', providerStatus: 'ACCESS_CANCEL' };
     }
     if (text === 'STATUS_ACCESS' || text === 'ACCESS_ACTIVATION') {
-      return { status: 'STATUS_ACCESS' };
+      return { status: 'code_received', providerStatus: text };
     }
     if (text === 'NO_ACTIVATION') {
-      throw new TigerSmsError('NO_ACTIVATION', 'Activation not found');
+      return { status: 'no_activation', providerStatus: text };
     }
 
     throw new TigerSmsError(text, `Unexpected status response: ${text}`);

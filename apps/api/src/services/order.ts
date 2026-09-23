@@ -213,14 +213,14 @@ export async function checkOrderStatus(
   try {
     const v1Status = await tigerSms.getStatus(order.activation_id);
 
-    if ((v1Status.status === 'STATUS_OK' || v1Status.status === 'STATUS_WAIT_RETRY') && v1Status.code) {
+    if (v1Status.status === 'code_received' && v1Status.code) {
       await supabaseAdmin
         .from('orders')
         .update({
           sms_code: v1Status.code,
           sms_text: `Your code is ${v1Status.code}`,
           status: 'code_received',
-          tiger_status: v1Status.status,
+          tiger_status: v1Status.providerStatus || 'STATUS_OK',
           updated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
@@ -233,7 +233,7 @@ export async function checkOrderStatus(
       } as Order);
     }
 
-    if (v1Status.status === 'ACCESS_CANCEL') {
+    if (v1Status.status === 'cancelled') {
       if (order.status === 'code_received' || order.sms_code) {
         return formatOrderStatus(order as Order);
       }
