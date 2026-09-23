@@ -736,7 +736,9 @@ const breadcrumbSchema = {
       const configuredApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
       const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiBase = isLocalHost ? configuredApiBase : '';
-      const curr = localStorage.getItem('otpwala_currency') || (navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD');
+      const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const browserIsIndia = navigator.language.toLowerCase().endsWith('-in') || browserTimeZone === 'Asia/Kolkata' || browserTimeZone === 'Asia/Calcutta';
+      const curr = localStorage.getItem('otpwala_currency') || (browserIsIndia ? 'INR' : 'USD');
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
       const currencyToggle = document.getElementById('public-currency-toggle');

@@ -869,7 +869,8 @@ const formattedTitle = formatPageTitle(title);
       function getActiveCurrency() {
         const saved = localStorage.getItem('otpwala_currency');
         if (saved === 'INR' || saved === 'USD') return saved;
-        return navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD';
+        const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        return navigator.language.toLowerCase().endsWith('-in') || browserTimeZone === 'Asia/Kolkata' || browserTimeZone === 'Asia/Calcutta' ? 'INR' : 'USD';
       }
 
       const configuredCurrencyApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
