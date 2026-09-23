@@ -4,13 +4,15 @@ import { formatPhoneNumber } from '../../lib/phone';
 import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon, ArrowLeftIcon, ArrowRightIcon, AlertCircleIcon } from '../ui/Icons';
 import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
 import { toast } from '../../lib/toast';
+import { readDashboardCache, writeDashboardCache } from '../../lib/dashboardCache';
 
 export default function OrderHistory() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
-  const [loading, setLoading] = useState(true);
+  const cached = readDashboardCache<{ orders: any[]; total: number } | null>(`orders-${page}-all`, null);
+  const [orders, setOrders] = useState<any[]>(cached?.orders || []);
+  const [total, setTotal] = useState(cached?.total || 0);
+  const [loading, setLoading] = useState(!cached);
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -56,11 +58,12 @@ export default function OrderHistory() {
   }, [hasWaitingOrders, page, statusFilter]);
 
   async function loadOrders(isManual = false) {
-    setLoading(true);
+    setLoading(orders.length === 0);
     try {
       const data = await getOrders(limit, page * limit, statusFilter || undefined);
       setOrders(data.orders || []);
       setTotal(data.total || 0);
+      writeDashboardCache(`orders-${page}-${statusFilter || 'all'}`, { orders: data.orders || [], total: data.total || 0 });
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);

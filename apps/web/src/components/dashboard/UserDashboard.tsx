@@ -11,15 +11,17 @@ import {
   XIcon,
 } from '../ui/Icons';
 import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
+import { readDashboardCache, writeDashboardCache } from '../../lib/dashboardCache';
 
 export default function UserDashboard() {
-  const [balance, setBalance] = useState(0);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [summary, setSummary] = useState<any>({});
-  const [loading, setLoading] = useState(true);
+  const cached = readDashboardCache<{ balance: number; recentOrders: any[]; summary: any; usdRate: number } | null>('overview', null);
+  const [balance, setBalance] = useState(cached?.balance || 0);
+  const [recentOrders, setRecentOrders] = useState<any[]>(cached?.recentOrders || []);
+  const [summary, setSummary] = useState<any>(cached?.summary || {});
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
-  const [usdRate, setUsdRate] = useState<number>(115);
+  const [usdRate, setUsdRate] = useState<number>(cached?.usdRate || 115);
 
   useEffect(() => {
     loadDashboard();
@@ -44,6 +46,12 @@ export default function UserDashboard() {
       }
       setRecentOrders(ordersData.orders || []);
       setSummary(ordersData.summary || { totalOrders: ordersData.total || 0 });
+      writeDashboardCache('overview', {
+        balance: parseFloat(String(walletData.balance)) || 0,
+        recentOrders: ordersData.orders || [],
+        summary: ordersData.summary || { totalOrders: ordersData.total || 0 },
+        usdRate: parseFloat(String(walletData.config?.usdToInrRate)) || 115,
+      });
     } catch (err: any) {
       console.error('Dashboard load error:', err);
       setError(err?.message || 'Unable to load your dashboard.');

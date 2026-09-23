@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { getReferralStats, claimReferralCode, type ReferralStatsData } from '../../lib/api';
 import { UsersIcon, CheckCircleIcon, CheckIcon, AlertCircleIcon, RefreshCwIcon, LockIcon, HourglassIcon, GiftIcon, TargetIcon, ZapIcon, InfoIcon } from '../ui/Icons';
 import { toast } from '../../lib/toast';
+import { readDashboardCache, writeDashboardCache } from '../../lib/dashboardCache';
 
 export default function ReferEarnPage() {
-  const [data, setData] = useState<ReferralStatsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedData = readDashboardCache<ReferralStatsData | null>('referrals', null);
+  const [data, setData] = useState<ReferralStatsData | null>(cachedData);
+  const [loading, setLoading] = useState(!cachedData);
   const [recentRefresh, setRecentRefresh] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -23,6 +25,7 @@ export default function ReferEarnPage() {
     try {
       const res = await getReferralStats();
       setData(res);
+      writeDashboardCache('referrals', res);
       if (isManual) {
         setRecentRefresh(true);
         setTimeout(() => setRecentRefresh(false), 2500);

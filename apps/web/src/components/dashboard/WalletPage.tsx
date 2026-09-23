@@ -16,6 +16,7 @@ import {
 } from '../ui/Icons';
 import { getActiveCurrency, type Currency } from '../../lib/currency';
 import { toast } from '../../lib/toast';
+import { readDashboardCache, writeDashboardCache } from '../../lib/dashboardCache';
 
 interface WalletConfig {
   minDeposit: number;
@@ -66,18 +67,20 @@ const UpiIcon = ({ size = 20, style }: { size?: number; style?: React.CSSPropert
 );
 
 export default function WalletPage() {
-  const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [userRequests, setUserRequests] = useState<any[]>([]);
-  const [totalTx, setTotalTx] = useState(0);
+  const cachedWallet = readDashboardCache<{ balance: number; config: WalletConfig; requests: any[] } | null>('wallet', null);
+  const cachedTransactions = readDashboardCache<{ transactions: any[]; total: number } | null>('wallet-transactions-0', null);
+  const [balance, setBalance] = useState(cachedWallet?.balance || 0);
+  const [transactions, setTransactions] = useState<any[]>(cachedTransactions?.transactions || []);
+  const [userRequests, setUserRequests] = useState<any[]>(cachedWallet?.requests || []);
+  const [totalTx, setTotalTx] = useState(cachedTransactions?.total || 0);
   const [page, setPage] = useState(0);
   const [transactionFilter, setTransactionFilter] = useState<'all' | 'topup' | 'deduction' | 'refund' | 'admin_grant'>('all');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedWallet);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
 
   // Dynamic Wallet Config (Admin Controlled)
-  const [walletConfig, setWalletConfig] = useState<WalletConfig>({
+  const [walletConfig, setWalletConfig] = useState<WalletConfig>(cachedWallet?.config || {
     minDeposit: 50,
     maxDeposit: 50000,
     suggestions: [50, 100, 200, 300, 500],
@@ -199,6 +202,7 @@ export default function WalletPage() {
         setWalletConfig(safeConfig);
         setUpiAmount(String(safeConfig.suggestions[0] || 100));
         setBinanceAmount(String(safeConfig.binanceSuggestions[0] || 1));
+        writeDashboardCache('wallet', { balance: parseFloat(String(walletData.balance)) || 0, config: safeConfig, requests: requestsData || [] });
       }
     } catch (err: any) {
       console.error('Wallet error:', err);
@@ -214,6 +218,7 @@ export default function WalletPage() {
       const data = await getTransactions(limit, page * limit);
       setTransactions(data.transactions || []);
       setTotalTx(data.total || 0);
+      writeDashboardCache(`wallet-transactions-${page}`, { transactions: data.transactions || [], total: data.total || 0 });
     } catch (err: any) {
       console.error('Transaction error:', err);
       setTransactionsError(err?.message || 'Unable to load transaction history.');
