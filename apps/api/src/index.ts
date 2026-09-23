@@ -59,6 +59,36 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/user/currency-preference', optionalAuthMiddleware, async (req: any, res) => {
+  try {
+    const detectedCurrency = String(req.headers['cf-ipcountry'] || '').toUpperCase() === 'IN' ? 'INR' : 'USD';
+    if (!req.userId) {
+      res.json({ success: true, data: { currency: detectedCurrency, source: 'location' } });
+      return;
+    }
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { data: profile, error } = await supabaseAdmin.from('profiles').select('currency_preference').eq('id', req.userId).maybeSingle();
+    if (error) throw error;
+    const currency = profile?.currency_preference === 'INR' || profile?.currency_preference === 'USD' ? profile.currency_preference : detectedCurrency;
+    res.json({ success: true, data: { currency, source: profile?.currency_preference ? 'saved' : 'location' } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to load currency preference' });
+  }
+});
+
+app.post('/api/user/currency-preference', authMiddleware, async (req: any, res) => {
+  try {
+    const currency = String(req.body?.currency || '').toUpperCase();
+    if (!['INR', 'USD'].includes(currency)) { res.status(400).json({ success: false, error: 'Currency must be INR or USD.' }); return; }
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { error } = await supabaseAdmin.from('profiles').update({ currency_preference: currency, updated_at: new Date().toISOString() }).eq('id', req.userId);
+    if (error) throw error;
+    res.json({ success: true, data: { currency, source: 'saved' } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to save currency preference' });
+  }
+});
+
 // ─── Catalog Routes (Public) ───
 app.use('/api', catalogRoutes);
 

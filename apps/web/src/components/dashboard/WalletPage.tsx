@@ -91,7 +91,7 @@ export default function WalletPage() {
   });
 
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
-  // Default top-up mode is always UPI when any user opens the wallet page
+  // Currency selects the initial deposit rail; users can still switch manually.
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'binance'>('upi');
   const [upiAmount, setUpiAmount] = useState('100');
   const [binanceAmount, setBinanceAmount] = useState('1');
@@ -132,6 +132,14 @@ export default function WalletPage() {
   useEffect(() => {
     loadTransactions();
   }, [page]);
+
+  useEffect(() => {
+    if (currency === 'USD' && walletConfig.binancePayEnabled !== false) {
+      setPaymentMethod('binance');
+    } else if (currency === 'INR') {
+      setPaymentMethod('upi');
+    }
+  }, [currency, walletConfig.binancePayEnabled]);
 
   async function handleRefresh(isManual = false) {
     setRefreshing(true);

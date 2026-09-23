@@ -867,7 +867,37 @@ const formattedTitle = formatPageTitle(title);
 
       // Universal Currency Management
       function getActiveCurrency() {
-        return localStorage.getItem('otpwala_currency') || 'USD';
+        const saved = localStorage.getItem('otpwala_currency');
+        if (saved === 'INR' || saved === 'USD') return saved;
+        return navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD';
+      }
+
+      const currencyApiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      async function saveCurrencyPreference(currency: string) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) return;
+          await fetch(`${currencyApiBase}/api/user/currency-preference`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ currency }),
+          });
+        } catch {}
+      }
+
+      async function loadCurrencyPreference() {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const response = await fetch(`${currencyApiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
+          const payload = await response.json();
+          const currency = payload?.data?.currency;
+          if (currency === 'INR' || currency === 'USD') {
+            localStorage.setItem('otpwala_currency', currency);
+            updateCurrencyButtons(currency);
+            updateDisplayBalance();
+            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency, rate: (window as any).__otpwala_rate || 115 } }));
+          }
+        } catch {}
       }
 
       function updateCurrencyButtons(curr: string) {
@@ -906,6 +936,7 @@ const formattedTitle = formatPageTitle(title);
 
         btnInr?.addEventListener('click', () => {
           localStorage.setItem('otpwala_currency', 'INR');
+          void saveCurrencyPreference('INR');
           updateCurrencyButtons('INR');
           updateDisplayBalance();
           window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'INR', rate: (window as any).__otpwala_rate || 115 } }));
@@ -913,6 +944,7 @@ const formattedTitle = formatPageTitle(title);
 
         btnUsd?.addEventListener('click', () => {
           localStorage.setItem('otpwala_currency', 'USD');
+          void saveCurrencyPreference('USD');
           updateCurrencyButtons('USD');
           updateDisplayBalance();
           window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'USD', rate: (window as any).__otpwala_rate || 115 } }));
@@ -926,6 +958,7 @@ const formattedTitle = formatPageTitle(title);
         });
       }
       initCurrencyControls();
+      void loadCurrencyPreference();
 
       // Fetch wallet balance — concurrent_session is now non-fatal (re-registers instead of kicking)
       try {

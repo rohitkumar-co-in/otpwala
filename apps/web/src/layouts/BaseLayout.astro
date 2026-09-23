@@ -733,9 +733,35 @@ const breadcrumbSchema = {
 
     // Universal Currency Management for Public Site
     function initPublicCurrency() {
-      const curr = localStorage.getItem('otpwala_currency') || 'USD';
+      const apiBase = String(import.meta.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+      const curr = localStorage.getItem('otpwala_currency') || (navigator.language.toLowerCase().endsWith('-in') ? 'INR' : 'USD');
       const btnInr = document.getElementById('pub-btn-curr-inr');
       const btnUsd = document.getElementById('pub-btn-curr-usd');
+
+      async function saveCurrency(currency: string) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          await fetch(`${apiBase}/api/user/currency-preference`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+            body: JSON.stringify({ currency }),
+          });
+        } catch {}
+      }
+
+      async function loadCurrency() {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const response = await fetch(`${apiBase}/api/user/currency-preference`, { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} });
+          const payload = await response.json();
+          const serverCurrency = payload?.data?.currency;
+          if (serverCurrency === 'INR' || serverCurrency === 'USD') {
+            localStorage.setItem('otpwala_currency', serverCurrency);
+            updateBtns(serverCurrency);
+            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: serverCurrency } }));
+          }
+        } catch {}
+      }
 
       function updateBtns(c: string) {
         if (!btnInr || !btnUsd) return;
@@ -752,18 +778,21 @@ const breadcrumbSchema = {
       btnInr?.addEventListener('click', () => {
         localStorage.setItem('otpwala_currency', 'INR');
         updateBtns('INR');
+        void saveCurrency('INR');
         window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'INR' } }));
       });
 
       btnUsd?.addEventListener('click', () => {
         localStorage.setItem('otpwala_currency', 'USD');
         updateBtns('USD');
+        void saveCurrency('USD');
         window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'USD' } }));
       });
 
       window.addEventListener('otpwala:currency-change', (e: any) => {
         if (e.detail?.currency) updateBtns(e.detail.currency);
       });
+      void loadCurrency();
     }
     initPublicCurrency();
 

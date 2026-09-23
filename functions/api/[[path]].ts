@@ -243,6 +243,30 @@ export const onRequest = async (context: any) => {
       return jsonResponse({ success: true, data: data || [] });
     }
 
+    if (path === '/api/user/currency-preference') {
+      const auth = await authenticateUser(request, env);
+      const supabase = getSupabaseAdmin(env);
+      const detectedCurrency = String((request as any).cf?.country || '').toUpperCase() === 'IN' ? 'INR' : 'USD';
+
+      if (method === 'GET') {
+        if (!auth) return jsonResponse({ success: true, data: { currency: detectedCurrency, source: 'location' } });
+        const { data: profile, error } = await supabase.from('profiles').select('currency_preference').eq('id', auth.userId).maybeSingle();
+        if (error) throw error;
+        const currency = profile?.currency_preference === 'INR' || profile?.currency_preference === 'USD' ? profile.currency_preference : detectedCurrency;
+        return jsonResponse({ success: true, data: { currency, source: profile?.currency_preference ? 'saved' : 'location' } });
+      }
+
+      if (method === 'POST') {
+        if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const currency = String(body.currency || '').toUpperCase();
+        if (!['INR', 'USD'].includes(currency)) return jsonResponse({ success: false, error: 'Currency must be INR or USD.' }, 400);
+        const { error } = await supabase.from('profiles').update({ currency_preference: currency, updated_at: new Date().toISOString() }).eq('id', auth.userId);
+        if (error) throw error;
+        return jsonResponse({ success: true, data: { currency, source: 'saved' } });
+      }
+    }
+
     if (path === '/api/cron/reconcile' && method === 'POST') {
       const cronSecret = String(env?.CRON_SECRET || '').trim();
       const supplied = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
