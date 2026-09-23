@@ -25,6 +25,10 @@ const formattedTitle = formatPageTitle(title);
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
   <link rel="shortcut icon" href="/favicon.ico?v=3" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+  <style is:inline>
+    body.dashboard-auth-pending > * { visibility: hidden; }
+    body.dashboard-auth-pending::before { content: ''; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; }
+  </style>
 
   <!-- Instant Site Branding Pre-Hydration (Zero FOUC) -->
   <script is:inline>
@@ -45,7 +49,7 @@ const formattedTitle = formatPageTitle(title);
     })();
   </script>
 </head>
-<body>
+<body class="dashboard-auth-pending">
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="dashboard-layout">
     <!-- Sidebar -->
@@ -693,15 +697,11 @@ const formattedTitle = formatPageTitle(title);
       }
 
       if (!session?.user) {
-        // Double-check if token exists in localStorage before redirecting
-        const hasStoredToken = typeof localStorage !== 'undefined' && Object.keys(localStorage).some(
-          k => k.startsWith('sb-') && k.endsWith('-auth-token')
-        );
-        if (!hasStoredToken) {
-          window.location.href = '/auth/login';
-          return;
-        }
+        window.location.replace('/auth/login');
+        return;
       }
+
+      document.body.classList.remove('dashboard-auth-pending');
 
       // Check profile existence and ban status
       let existingProfile: any = null;
