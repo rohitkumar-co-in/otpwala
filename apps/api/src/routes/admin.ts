@@ -350,8 +350,44 @@ router.post('/users/:id/ban', async (req: AuthenticatedRequest, res) => {
  * pseudonymizes personal data while retaining financial records.
  */
 router.delete('/users/:id', async (req: AuthenticatedRequest, res) => {
-  void req;
-  res.status(410).json({ success: false, error: 'This legacy endpoint is retired. Use the reviewed data-erasure workflow in the Pages admin application.' });
+  try {
+    if (req.userRole !== 'superadmin') {
+      res.status(403).json({ success: false, error: 'Only Super Admin can purge user data.' });
+      return;
+    }
+    const targetUserId = req.params.id;
+    const mode = String(req.body?.mode || 'history');
+    if (!['complete', 'history'].includes(mode)) {
+      res.status(400).json({ success: false, error: 'Purge mode must be complete or history.' });
+      return;
+    }
+    if (targetUserId === req.userId) {
+      res.status(400).json({ success: false, error: 'You cannot purge your own account.' });
+      return;
+    }
+    const { data: profile } = await supabaseAdmin.from('profiles').select('id,email,role,is_banned').eq('id', targetUserId).maybeSingle();
+    if (!profile) { res.status(404).json({ success: false, error: 'User not found' }); return; }
+    if (profile.role === 'admin' || profile.role === 'superadmin') { res.status(400).json({ success: false, error: 'Cannot purge an administrator account.' }); return; }
+    if (!profile.is_banned) { res.status(400).json({ success: false, error: 'User must be banned before purge.' }); return; }
+
+    const { data, error } = await supabaseAdmin.rpc('purge_user_account', { p_user_id: targetUserId, p_actor_id: req.userId, p_mode: mode });
+    if (error) throw error;
+    res.json({ success: true, data, message: mode === 'history' ? 'User purged; non-personal history retained.' : 'User purged completely.' });
+  } catch (error: any) {
+    console.error('Admin purge error:', error);
+    res.status(400).json({ success: false, error: error.message || 'Failed to purge user' });
+  }
+});
+
+router.get('/user-purge-history', async (req: AuthenticatedRequest, res) => {
+  if (req.userRole !== 'superadmin') { res.status(403).json({ success: false, error: 'Only Super Admin can view purge history.' }); return; }
+  try {
+    const { data, error } = await supabaseAdmin.from('user_purge_history').select('id,user_reference,user_email_hash,purge_mode,orders_count,wallet_transactions_count,payment_requests_count,total_order_sales,total_deposits,purged_at').order('purged_at', { ascending: false }).limit(200);
+    if (error) throw error;
+    res.json({ success: true, data: data || [] });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to load purge history' });
+  }
 });
 
 /**
@@ -393,13 +429,25 @@ router.post('/users/bulk-ban', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-/**
- * POST /api/admin/users/bulk-delete
- * Retired alongside the single-user legacy deletion endpoint.
- */
 router.post('/users/bulk-delete', async (req: AuthenticatedRequest, res) => {
-  void req;
-  res.status(410).json({ success: false, error: 'This legacy endpoint is retired. Use the reviewed data-erasure workflow in the Pages admin application.' });
+  try {
+    if (req.userRole !== 'superadmin') { res.status(403).json({ success: false, error: 'Only Super Admin can purge user data.' }); return; }
+    const { userIds, mode = 'history' } = req.body || {};
+    if (!Array.isArray(userIds) || userIds.length === 0) { res.status(400).json({ success: false, error: 'No users selected.' }); return; }
+    if (!['complete', 'history'].includes(String(mode))) { res.status(400).json({ success: false, error: 'Purge mode must be complete or history.' }); return; }
+    const targets = userIds.filter((id: string) => id !== req.userId);
+    const { data: profiles } = await supabaseAdmin.from('profiles').select('id,is_banned,role').in('id', targets);
+    const eligible = (profiles || []).filter((profile: any) => profile.is_banned && !['admin', 'superadmin'].includes(profile.role));
+    if (eligible.length === 0) { res.status(400).json({ success: false, error: 'No eligible suspended users selected.' }); return; }
+    for (const profile of eligible) {
+      const { error } = await supabaseAdmin.rpc('purge_user_account', { p_user_id: profile.id, p_actor_id: req.userId, p_mode: String(mode) });
+      if (error) throw error;
+    }
+    res.json({ success: true, message: `${eligible.length} user(s) purged (${mode} mode).` });
+  } catch (error: any) {
+    console.error('Admin bulk purge error:', error);
+    res.status(400).json({ success: false, error: error.message || 'Failed to purge users' });
+  }
 });
 
 /**

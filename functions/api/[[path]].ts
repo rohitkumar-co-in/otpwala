@@ -1392,6 +1392,9 @@ export const onRequest = async (context: any) => {
       if (userDeleteMatch && method === 'DELETE') {
         if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
         const targetUserId = userDeleteMatch[1];
+        const body = await request.json().catch(() => ({}));
+        const purgeMode = String(body.mode || 'history');
+        if (!['complete', 'history'].includes(purgeMode)) return jsonResponse({ success: false, error: 'Purge mode must be complete or history.' }, 400);
         const supabase = getSupabaseAdmin(env);
         if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'You cannot delete your own account.' }, 400);
 
@@ -1400,12 +1403,17 @@ export const onRequest = async (context: any) => {
         if (profile.role === 'admin' || profile.role === 'superadmin') return jsonResponse({ success: false, error: 'Cannot delete an administrator account.' }, 400);
         if (!profile.is_banned) return jsonResponse({ success: false, error: 'User must be banned before they can be deleted. Please ban the user first.' }, 400);
 
-        const { data: erased, error: eraseError } = await supabase.rpc('erase_user_personal_data', { p_user_id: targetUserId, p_actor_id: auth.userId, p_request_id: null });
+        const { data: erased, error: eraseError } = await supabase.rpc('purge_user_account', { p_user_id: targetUserId, p_actor_id: auth.userId, p_mode: purgeMode });
         if (eraseError) throw eraseError;
-        const authDeletion = await supabase.auth.admin.deleteUser(targetUserId);
-        if (authDeletion.error) throw authDeletion.error;
-        await logAdminAction(auth.userId, 'privacy.erasure_completed', 'user', targetUserId, { source: 'admin-user-management', financialRecordsRetained: true }, request.headers.get('cf-connecting-ip'), env);
-        return jsonResponse({ success: true, data: erased, message: `Personal data for ${profile.email || targetUserId} was erased; pseudonymized financial records were retained.` });
+        await logAdminAction(auth.userId, 'privacy.user_purged', purgeMode === 'history' ? 'user' : 'system', purgeMode === 'history' ? targetUserId : null, { source: 'admin-user-management', mode: purgeMode, historyRetained: purgeMode === 'history' }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, data: erased, message: purgeMode === 'history' ? 'User data was purged and a non-personal history summary was retained.' : 'User data was purged completely.' });
+      }
+
+      if (path === '/api/admin/user-purge-history' && method === 'GET') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can view purge history.' }, 403);
+        const { data, error } = await getSupabaseAdmin(env).from('user_purge_history').select('id,user_reference,user_email_hash,purge_mode,orders_count,wallet_transactions_count,payment_requests_count,total_order_sales,total_deposits,purged_at').order('purged_at', { ascending: false }).limit(200);
+        if (error) throw error;
+        return jsonResponse({ success: true, data: data || [] });
       }
 
       // POST /api/admin/users/bulk-ban
@@ -1426,6 +1434,8 @@ export const onRequest = async (context: any) => {
         if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can erase user data.' }, 403);
         const body = await request.json().catch(() => ({}));
         const { userIds } = body;
+        const purgeMode = String(body.mode || 'history');
+        if (!['complete', 'history'].includes(purgeMode)) return jsonResponse({ success: false, error: 'Purge mode must be complete or history.' }, 400);
         if (!Array.isArray(userIds) || userIds.length === 0) return jsonResponse({ success: false, error: 'No users selected.' }, 400);
         const targets = userIds.filter((uid: string) => uid !== auth.userId);
         const supabase = getSupabaseAdmin(env);
@@ -1437,14 +1447,12 @@ export const onRequest = async (context: any) => {
         if (eligible.length === 0) return jsonResponse({ success: false, error: 'No eligible banned users to delete.' }, 400);
         const results = [];
         for (const uid of eligible) {
-          const { error: eraseError } = await supabase.rpc('erase_user_personal_data', { p_user_id: uid, p_actor_id: auth.userId, p_request_id: null });
+          const { error: eraseError } = await supabase.rpc('purge_user_account', { p_user_id: uid, p_actor_id: auth.userId, p_mode: purgeMode });
           if (eraseError) throw eraseError;
-          const authDeletion = await supabase.auth.admin.deleteUser(uid);
-          if (authDeletion.error) throw authDeletion.error;
           results.push(uid);
         }
-        await logAdminAction(auth.userId, 'privacy.bulk_erasure_completed', 'user', null, { count: results.length, userIds: results, financialRecordsRetained: true }, request.headers.get('cf-connecting-ip'), env);
-        return jsonResponse({ success: true, message: `${results.length} banned user account(s) anonymized; financial records retained.` });
+        await logAdminAction(auth.userId, 'privacy.bulk_user_purge', 'system', null, { count: results.length, userIds: purgeMode === 'history' ? results : undefined, mode: purgeMode, historyRetained: purgeMode === 'history' }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({ success: true, message: `${results.length} banned user account(s) purged (${purgeMode} mode).` });
       }
 
       // POST /api/admin/users/:id/promote

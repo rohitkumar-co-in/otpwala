@@ -4,16 +4,17 @@ import {
   getAdminUsers,
   getAdminUserDetails,
   getAdminUserExport,
+  getAdminUserPurgeHistory,
   creditUser,
   banUser,
   setUserZeroMarkup,
-  deleteUser,
+  purgeUser,
   bulkBanUsers,
   bulkDeleteUsers,
   promoteAdmin,
   demoteAdmin,
 } from '../../lib/api';
-import type { AdminFundingSource } from '../../lib/api';
+import type { AdminFundingSource, UserPurgeMode } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
@@ -54,6 +55,10 @@ export default function UserManager() {
   // Single delete confirmation modal state
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [purgeMode, setPurgeMode] = useState<UserPurgeMode>('history');
+  const [purgeConfirmation, setPurgeConfirmation] = useState('');
+  const [purgeHistory, setPurgeHistory] = useState<any[]>([]);
+  const [purgeHistoryLoading, setPurgeHistoryLoading] = useState(false);
 
   // Bulk selection state
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -139,6 +144,15 @@ export default function UserManager() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (currentUserRole !== 'superadmin') return;
+    setPurgeHistoryLoading(true);
+    getAdminUserPurgeHistory()
+      .then((data) => setPurgeHistory(data || []))
+      .catch(() => setPurgeHistory([]))
+      .finally(() => setPurgeHistoryLoading(false));
+  }, [currentUserRole]);
 
   useEffect(() => {
     loadUsers();
@@ -289,7 +303,7 @@ export default function UserManager() {
     }
   };
 
-  // ─── Single User Delete (Prerequisite: User must be banned first!) ───
+  // ─── Single User Purge (Prerequisite: User must be banned first!) ───
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
 
@@ -298,20 +312,29 @@ export default function UserManager() {
       setDeleteTarget(null);
       return;
     }
+    const expectedConfirmation = purgeMode === 'complete' ? 'PURGE COMPLETELY' : 'PURGE WITH HISTORY';
+    if (purgeConfirmation !== expectedConfirmation) {
+      setError(`Type ${expectedConfirmation} to confirm this purge.`);
+      return;
+    }
 
     setDeleting(true);
     setError(null);
     setSuccess(null);
     try {
-      await deleteUser(deleteTarget.id);
-      setSuccess(`Personal data for ${deleteTarget.email} was erased and required financial records were retained.`);
+      await purgeUser(deleteTarget.id, purgeMode);
+      setSuccess(purgeMode === 'history' ? `User data for ${deleteTarget.email} was purged and a non-personal history summary was retained.` : `All data for ${deleteTarget.email} was purged completely.`);
       
       // Optimistic update: instantly remove from UI
       setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deleteTarget.id));
       setDeleteTarget(null);
+      setPurgeConfirmation('');
+      if (purgeMode === 'history') {
+        getAdminUserPurgeHistory().then((data) => setPurgeHistory(data || [])).catch(() => {});
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to erase personal data');
+      setError(err.message || 'Failed to purge user data');
     } finally {
       setDeleting(false);
     }
@@ -533,6 +556,40 @@ export default function UserManager() {
           )}
         </form>
       </div>
+
+      {currentUserRole === 'superadmin' && (
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.05rem', margin: 0 }}>Purged User History</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>Non-personal summaries retained only when the history option was selected.</p>
+            </div>
+            <span className="badge badge-secondary">{purgeHistory.length} record(s)</span>
+          </div>
+          {purgeHistoryLoading ? (
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading purge history...</div>
+          ) : purgeHistory.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No retained purge history.</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <thead><tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '0.55rem' }}>Reference</th><th style={{ padding: '0.55rem' }}>Mode</th><th style={{ padding: '0.55rem' }}>Orders</th><th style={{ padding: '0.55rem' }}>Deposits</th><th style={{ padding: '0.55rem' }}>Purged At</th>
+                </tr></thead>
+                <tbody>{purgeHistory.map((entry) => (
+                  <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '0.55rem', fontFamily: 'var(--font-mono)' }}>{entry.user_reference}</td>
+                    <td style={{ padding: '0.55rem' }}><span className="badge badge-warning">{entry.purge_mode}</span></td>
+                    <td style={{ padding: '0.55rem' }}>{entry.orders_count}</td>
+                    <td style={{ padding: '0.55rem' }}>₹{Number(entry.total_deposits || 0).toFixed(2)}</td>
+                    <td style={{ padding: '0.55rem', color: 'var(--text-muted)' }}>{new Date(entry.purged_at).toLocaleString()}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Bulk Action Toolbar */}
       {selectedUserIds.length > 0 && (
@@ -830,6 +887,22 @@ export default function UserManager() {
                             <span>Export</span>
                           </button>
 
+                          {currentUserRole === 'superadmin' && !isAdmin && u.is_banned && (
+                            <button
+                              className="btn btn-sm"
+                              onClick={() => {
+                                setDeleteTarget(u);
+                                setPurgeMode('history');
+                                setPurgeConfirmation('');
+                              }}
+                              title="Purge this suspended user account"
+                              style={{ background: '#dc2626', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                            >
+                              <TrashIcon size={13} />
+                              <span>Purge</span>
+                            </button>
+                          )}
+
                           {/* Credit button */}
                           <button
                             className="btn btn-secondary btn-sm"
@@ -999,8 +1072,19 @@ export default function UserManager() {
             </div>
 
             <p style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-              Erase the login credentials and eligible personal data for <strong>{deleteTarget.email}</strong>?
+              Purge all account data for <strong>{deleteTarget.email}</strong>?
             </p>
+
+            <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1rem' }}>
+              <label style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', padding: '0.7rem', border: `1px solid ${purgeMode === 'history' ? '#f59e0b' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="purge-mode" checked={purgeMode === 'history'} onChange={() => { setPurgeMode('history'); setPurgeConfirmation(''); }} />
+                <span><strong>Keep purge history</strong><br /><small>Delete the user data but retain a non-personal summary of the purge.</small></span>
+              </label>
+              <label style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', padding: '0.7rem', border: `1px solid ${purgeMode === 'complete' ? '#dc2626' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="purge-mode" checked={purgeMode === 'complete'} onChange={() => { setPurgeMode('complete'); setPurgeConfirmation(''); }} />
+                <span><strong>Complete purge</strong><br /><small>Delete the user data and do not retain a purge-history row.</small></span>
+              </label>
+            </div>
 
             <div style={{
               background: '#fef2f2',
@@ -1012,8 +1096,17 @@ export default function UserManager() {
               lineHeight: 1.45,
               marginBottom: '1.5rem',
             }}>
-              <strong>Important:</strong> This cannot be undone. Authentication and personal content will be erased. Pseudonymized wallet transactions and order accounting records will be retained; the wallet must already be zero.
+              <strong>Important:</strong> This cannot be undone. Orders, deposits, wallet transactions, support records, referrals, security logs, and the login account will be deleted. The account must be suspended first.
             </div>
+
+            <input
+              className="input"
+              value={purgeConfirmation}
+              onChange={(e) => setPurgeConfirmation(e.target.value)}
+              placeholder={purgeMode === 'complete' ? 'Type PURGE COMPLETELY' : 'Type PURGE WITH HISTORY'}
+              aria-label="Purge confirmation"
+              style={{ width: '100%', marginBottom: '1.25rem' }}
+            />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
@@ -1037,7 +1130,7 @@ export default function UserManager() {
                   padding: '0.5rem 1.1rem',
                 }}
               >
-                {deleting ? 'Erasing...' : 'Erase Personal Data'}
+                {deleting ? 'Purging...' : 'Confirm Purge'}
               </button>
             </div>
           </div>
@@ -1091,7 +1184,7 @@ export default function UserManager() {
               lineHeight: 1.45,
               marginBottom: '1.5rem',
             }}>
-              <strong>Important:</strong> Authentication and personal content will be erased. Pseudonymized financial and order records will be retained, and every wallet must be zero.
+              <strong>Important:</strong> Authentication and all user records will be purged. Every selected account must be suspended first.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
