@@ -59,7 +59,10 @@ export async function getBalance(userId: string): Promise<number> {
 export async function deductBalance(
   userId: string,
   amount: number,
-  description: string
+  description: string,
+  referenceType: string | null = null,
+  referenceId: string | null = null,
+  idempotencyKey: string | null = null,
 ): Promise<number> {
   if (!Number.isFinite(amount) || amount <= 0) {
     throw new WalletError('INVALID_AMOUNT', 'Transaction amount must be positive');
@@ -70,9 +73,9 @@ export async function deductBalance(
     p_amount: -amount,
     p_type: 'deduction',
     p_description: description,
-    p_reference_type: null,
-    p_reference_id: null,
-    p_idempotency_key: null,
+    p_reference_type: referenceType,
+    p_reference_id: referenceId,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {

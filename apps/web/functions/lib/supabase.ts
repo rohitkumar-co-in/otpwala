@@ -66,6 +66,12 @@ export async function authenticateUser(
 
     if (profile?.is_banned) return null;
 
+    const clientSessionId = request.headers.get('x-session-id') || '';
+    const serverSessionId = String(user.user_metadata?.current_session_id || '');
+    if (!options?.allowSessionReplacement && serverSessionId && clientSessionId !== serverSessionId) {
+      return null;
+    }
+
     let aal = 'aal1';
     try {
       const payloadPart = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');

@@ -10,6 +10,7 @@ import type {
 
 const BASE_URL = env.TIGER_SMS_BASE_URL;
 const API_KEY = env.TIGER_SMS_API_KEY;
+const REQUEST_TIMEOUT_MS = 4000;
 
 /**
  * Tiger SMS API Client
@@ -28,7 +29,7 @@ class TigerSmsClient {
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: { 'Accept': '*/*' },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     const text = (await response.text()).trim();

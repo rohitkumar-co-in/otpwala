@@ -54,7 +54,7 @@ export async function authMiddleware(
           email: user.email,
           full_name: displayName,
           role: 'user',
-          balance: 0,
+          wallet_balance: 0,
           is_banned: false,
         })
         .select('role, is_banned')

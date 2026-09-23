@@ -55,8 +55,12 @@ async function refundOrderAtomically(
 export async function buyNumber(
   userId: string,
   serviceCode: string,
-  countryCode: number
+  countryCode: number,
+  requestedOrderId?: string,
 ): Promise<BuyNumberResponse> {
+  const orderId = requestedOrderId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedOrderId)
+    ? requestedOrderId
+    : crypto.randomUUID();
   // 0. Verify service and country are enabled by admin
   const [serviceEnabled, countryEnabled] = await Promise.all([
     isServiceActive(serviceCode),
@@ -101,7 +105,7 @@ export async function buyNumber(
 
   // 4. Deduct user wallet
   try {
-    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceName} (${countryName})`);
+    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceName} (${countryName})`, 'order', orderId, `purchase:${orderId}`);
   } catch (e: any) {
     throw new OrderError('USER_INSUFFICIENT_FUNDS', e.message || 'Insufficient wallet balance');
   }
@@ -120,7 +124,8 @@ export async function buyNumber(
       userId,
       sellPriceInr,
       'refund',
-      `Refund: Number purchase failed (${serviceName})`
+      `Refund: Number purchase failed (${serviceName})`,
+      { paymentId: `refund:${orderId}`, method: 'order' }
     );
 
     if (e instanceof TigerSmsError) {
@@ -157,7 +162,8 @@ export async function buyNumber(
       userId,
       sellPriceInr,
       'refund',
-      `Refund: Order creation failed (${serviceName})`
+      `Refund: Order creation failed (${serviceName})`,
+      { paymentId: `refund:${orderId}`, method: 'order' }
     );
     throw new OrderError('ORDER_CREATION_FAILED', 'Failed to record order. Wallet refunded.');
   }
@@ -359,7 +365,7 @@ export async function completeOrder(orderId: string, userId: string): Promise<vo
   await supabaseAdmin
     .from('orders')
     .update({
-      status: 'code_received',
+      status: 'completed',
       tiger_status: 'ACCESS_ACTIVATION',
       updated_at: new Date().toISOString(),
     })
