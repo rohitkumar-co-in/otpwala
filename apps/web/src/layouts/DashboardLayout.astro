@@ -145,7 +145,6 @@ const formattedTitle = formatPageTitle(title);
             </svg>
           </span>
           <span style="flex: 1;">Wallet</span>
-          <span class="badge badge-success" id="sidebar-wallet-badge" style="font-size: 0.72rem; padding: 0.15rem 0.45rem;">$0.00</span>
         </a>
 
         <a href="/dashboard/refer" class={`nav-item ${activeNav === 'refer' ? 'active' : ''}`} id="nav-refer">
@@ -929,8 +928,6 @@ const formattedTitle = formatPageTitle(title);
         
         const amountEl = document.getElementById('wallet-amount');
         if (amountEl) amountEl.textContent = formatted;
-        const badgeEl = document.getElementById('sidebar-wallet-badge');
-        if (badgeEl) badgeEl.textContent = formatted;
       }
 
       function initCurrencyControls() {
