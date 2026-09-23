@@ -677,6 +677,13 @@ export default function UserManager() {
                 ? `Unban Selected (${selectedUserIds.length})`
                 : `Ban Selected (${selectedUserIds.length})`}
             </button>
+            {selectedUserIds.length === 1 && (
+              <>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleInspectUser(selectedUsersList[0])} title="Open selected user details"><EyeIcon size={13} /></button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleExportUser(selectedUsersList[0])} disabled={exportingUserId === selectedUsersList[0].id} title="Export selected user"><DownloadIcon size={13} /></button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreditUserTarget(selectedUsersList[0]); setCreditAmount(100); setCreditReason(''); setCreditFundingSource(''); }} title="Add funds to selected user"><CreditCardIcon size={13} /></button>
+              </>
+            )}
             {selectedBannedUsers.length > 0 && (
               <button
                 className="btn btn-sm"
@@ -736,7 +743,6 @@ export default function UserManager() {
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Registered</th>
                   <th style={{ padding: '0.75rem' }}>Last Login</th>
-                  {selectedUserIds.length > 0 && <th style={{ padding: '0.75rem', textAlign: 'right' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -900,18 +906,6 @@ export default function UserManager() {
                           <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.75rem' }}>Never</span>
                         )}
                       </td>
-                      {selectedUserIds.length > 0 && (
-                        <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                          {isSelected && (
-                            <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleInspectUser(u)} title="Open user details"><EyeIcon size={13} /></button>
-                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleExportUser(u)} disabled={exportingUserId === u.id} title="Export user dossier"><DownloadIcon size={13} /></button>
-                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreditUserTarget(u); setCreditAmount(100); setCreditReason(''); setCreditFundingSource(''); }} title="Add funds"><CreditCardIcon size={13} /></button>
-                              {currentUserRole === 'superadmin' && !isAdmin && u.is_banned && <button type="button" className="btn btn-sm" onClick={() => { setPurgeTarget(u); setPurgeMode('history'); setPurgeConfirmation(''); }} title="Purge user" style={{ background: '#dc2626', color: '#fff', border: 'none' }}><TrashIcon size={13} /></button>}
-                            </div>
-                          )}
-                        </td>
-                      )}
                     </tr>
                   );
                 })}
