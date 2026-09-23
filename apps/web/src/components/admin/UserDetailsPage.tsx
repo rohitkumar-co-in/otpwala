@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { getAdminUserDetails } from '../../lib/api';
+import { banUser, getAdminUserDetails, getAdminUserExport } from '../../lib/api';
+import { promptAndDownloadUserData } from '../../lib/dataExport';
+import { showConfirm } from '../../lib/confirm';
+import { toast } from '../../lib/toast';
 import { RefreshCwIcon, ArrowLeftIcon, CopyIcon, CheckIcon } from '../ui/Icons';
 
 type Tab = 'orders' | 'deposits' | 'tickets';
@@ -11,6 +14,7 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -52,6 +56,34 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
     } catch {}
   };
 
+  const exportUser = async () => {
+    setActionLoading(true);
+    try {
+      const response = await getAdminUserExport(userId);
+      const payload = response?.data !== undefined ? response.data : response;
+      await promptAndDownloadUserData(payload, `otpwala-user-dossier-${String(user.email || userId).split('@')[0]}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to export user data', 'Export Failed');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const toggleBan = async () => {
+    const nextBanned = !user.is_banned;
+    const confirmed = await showConfirm({ title: nextBanned ? 'Ban User' : 'Unban User', message: `Are you sure you want to ${nextBanned ? 'ban' : 'unban'} this user?`, confirmText: nextBanned ? 'Ban User' : 'Unban User', cancelText: 'Cancel', type: nextBanned ? 'danger' : 'info' });
+    if (!confirmed) return;
+    setActionLoading(true);
+    try {
+      await banUser(userId, nextBanned);
+      await load();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update user status', 'Action Failed');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <a href="/admin/users" className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -67,9 +99,13 @@ export default function UserDetailsPage({ userId: initialUserId = '' }: { userId
               <div style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{user.email || 'No email'}</div>
             </div>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-            <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} /> Refresh
-          </button>
+          <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary btn-sm" onClick={exportUser} disabled={loading || actionLoading}>Export</button>
+            <button className="btn btn-secondary btn-sm" onClick={toggleBan} disabled={loading || actionLoading}>{user.is_banned ? 'Unban' : 'Ban'}</button>
+            <button className="btn btn-secondary btn-sm" onClick={load} disabled={loading || actionLoading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <RefreshCwIcon size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+          </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.75rem', marginTop: '1.35rem' }}>
           <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', minWidth: 0 }}><div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Name</div><div style={{ marginTop: '0.25rem', fontWeight: 700, overflowWrap: 'anywhere' }}>{displayName}</div></div>
