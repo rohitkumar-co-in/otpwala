@@ -356,7 +356,20 @@ export default function AdminDashboard() {
               <h2 id="operational-alerts-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Operational Alert History</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.2rem 0 0' }}>Latest deduplicated provider and notification alerts.</p>
             </div>
-            {stats.failedAlerts > 0 && <span className="badge badge-error">{stats.failedAlerts} failed</span>}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {stats.failedAlerts > 0 && <span className="badge badge-error">{stats.failedAlerts} failed</span>}
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => loadData(true)}
+                disabled={loading}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
+                title="Refresh the latest operational alert history"
+              >
+                <RefreshCwIcon size={13} className={loading ? 'animate-spin' : ''} />
+                <span>{loading ? 'Refreshing...' : 'Refresh Alert History'}</span>
+              </button>
+            </div>
           </div>
           <div style={{ display: 'grid', gap: '0.55rem' }}>
             {stats.recentAlerts.map((alert: any) => (
