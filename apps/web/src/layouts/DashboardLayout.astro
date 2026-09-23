@@ -804,6 +804,8 @@ const formattedTitle = formatPageTitle(title);
         }
       } catch {}
 
+      const walletBalanceStorageKey = `otpwala_wallet_balance_${session.user.id}`;
+
       // Set avatar initial and dropdown profile info
       const avatar = document.getElementById('user-avatar');
       const dropdownEmail = document.getElementById('dropdown-user-email');
@@ -970,6 +972,10 @@ const formattedTitle = formatPageTitle(title);
           }
         });
       }
+      const cachedWalletBalance = Number(localStorage.getItem(walletBalanceStorageKey));
+      if (Number.isFinite(cachedWalletBalance)) {
+        (window as any).__otpwala_balance = cachedWalletBalance;
+      }
       initCurrencyControls();
       void loadCurrencyPreference();
 
@@ -995,6 +1001,7 @@ const formattedTitle = formatPageTitle(title);
         if (data.success) {
           (window as any).__otpwala_balance = parseFloat(data.data.balance) || 0;
           (window as any).__otpwala_rate = parseFloat(data.data.config?.usdToInrRate) || 115;
+          localStorage.setItem(walletBalanceStorageKey, String((window as any).__otpwala_balance));
           updateDisplayBalance();
         } else if (data.error === 'concurrent_session') {
           // Non-fatal: re-register this device's session instead of kicking user
@@ -1014,6 +1021,7 @@ const formattedTitle = formatPageTitle(title);
         const balance = Number(event.detail?.balance);
         if (!Number.isFinite(balance)) return;
         (window as any).__otpwala_balance = balance;
+        localStorage.setItem(walletBalanceStorageKey, String(balance));
         if (event.detail?.rate) (window as any).__otpwala_rate = Number(event.detail.rate) || 115;
         updateDisplayBalance();
       });
