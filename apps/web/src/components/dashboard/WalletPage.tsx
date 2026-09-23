@@ -159,6 +159,12 @@ export default function WalletPage() {
         getUserPaymentRequests().catch(() => []),
       ]);
       setBalance(parseFloat(String(walletData.balance)) || 0);
+      window.dispatchEvent(new CustomEvent('otpwala:wallet-balance', {
+        detail: {
+          balance: parseFloat(String(walletData.balance)) || 0,
+          rate: Number(walletData.config?.usdToInrRate) || 115,
+        },
+      }));
       setUserRequests(requestsData || []);
       if (walletData.config) {
         const minDeposit = Number(walletData.config.minDeposit) || 1;

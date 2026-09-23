@@ -914,7 +914,13 @@ const formattedTitle = formatPageTitle(title);
 
       // Fetch wallet balance — concurrent_session is now non-fatal (re-registers instead of kicking)
       try {
-        const apiUrl = (import.meta.env.PUBLIC_API_URL || '');
+        let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined
+          ? (window as any).__PUBLIC_API_URL__
+          : (import.meta.env.PUBLIC_API_URL || '');
+        const host = window.location.hostname;
+        if (!apiUrl && (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.'))) {
+          apiUrl = 'http://localhost:3001';
+        }
         const res = await fetch(
           apiUrl + '/api/wallet',
           {
@@ -942,6 +948,14 @@ const formattedTitle = formatPageTitle(title);
           return;
         }
       } catch {}
+
+      window.addEventListener('otpwala:wallet-balance', (event: any) => {
+        const balance = Number(event.detail?.balance);
+        if (!Number.isFinite(balance)) return;
+        (window as any).__otpwala_balance = balance;
+        if (event.detail?.rate) (window as any).__otpwala_rate = Number(event.detail.rate) || 115;
+        updateDisplayBalance();
+      });
 
       // Fetch health status
       try {
