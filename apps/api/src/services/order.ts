@@ -271,14 +271,14 @@ export async function checkOrderStatus(
 
     await refundOrderAtomically(
       orderId,
-      'expired',
-      `Auto-refund: Order expired without SMS (${order.service_name})`
+      'cancelled',
+      `Auto-refund: Provider cancelled expired activation (${order.service_name})`
     );
 
     return formatOrderStatus({
       ...order,
-      status: 'expired',
-      tiger_status: 'EXPIRED',
+      status: 'cancelled',
+      tiger_status: 'ACCESS_CANCEL',
     } as Order);
   }
 
@@ -303,14 +303,6 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
 
   if (order.status !== 'waiting' || order.sms_code) {
     throw new OrderError('INVALID_STATUS', 'Cannot cancel order in current status');
-  }
-
-  const activationAgeMs = Date.now() - new Date(order.created_at).getTime();
-  if (!Number.isFinite(activationAgeMs) || activationAgeMs < 120_000) {
-    throw new OrderError(
-      'WAIT_BEFORE_CANCEL',
-      'Please wait 2 minutes for the OTP before cancelling this number.'
-    );
   }
 
   // Tiger is the source of truth. Do not refund or mutate the local order unless

@@ -265,16 +265,15 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
     let cancelled = false;
     try {
       const tigerStatus = await tiger.setStatus(order.activation_id, 8);
-        cancelled = (tigerStatus === 'ACCESS_CANCEL');
+      cancelled = tigerStatus === 'ACCESS_CANCEL';
     } catch {
-      // If already expired/cancelled upstream on Tiger
-      if (statusResult.status === 'no_activation') cancelled = true;
+      // Keep the local order waiting until Tiger explicitly confirms cancellation.
     }
     if (cancelled) {
-      await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
+      await refundOrder(supabase, order.id, 'cancelled', `Refund: Provider cancelled expired activation (${order.service_name})`);
       return {
         orderId: order.id,
-        status: 'expired',
+        status: 'cancelled',
         phoneNumber: order.phone_number,
         serviceCode: order.service_code,
         serviceName: order.service_name,
@@ -308,14 +307,6 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   if (!order) throw new Error('Order not found');
   if (order.status !== 'waiting' || order.sms_code) {
     throw new Error('Order cannot be cancelled in its current status');
-  }
-
-  const activationAgeMs = Date.now() - new Date(order.created_at).getTime();
-  if (!Number.isFinite(activationAgeMs) || activationAgeMs < 120_000) {
-    throw new TigerSmsError(
-      'WAIT_BEFORE_CANCEL',
-      'Please wait 2 minutes for the OTP before cancelling this number.'
-    );
   }
 
   // Tiger is the source of truth. Never refund or change the local status unless

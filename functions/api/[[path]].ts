@@ -597,7 +597,7 @@ export const onRequest = async (context: any) => {
             code: err.code,
             message: err.message,
             provider: 'otpwala',
-          }, ['WAIT_BEFORE_CANCEL', 'EARLY_CANCEL_DENIED'].includes(err.code) ? 409 : 502);
+          }, ['EARLY_CANCEL_DENIED', 'BAD_STATUS', 'NO_ACTIVATION', 'SMS_RECEIVED'].includes(err.code) ? 409 : 502);
         }
         throw err;
       }

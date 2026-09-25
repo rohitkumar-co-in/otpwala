@@ -226,7 +226,7 @@ export default function BuyNumber() {
   const [priceInfo, setPriceInfo] = useState<any>(null);
   const [order, setOrder] = useState<any>(null);
   const [otpData, setOtpData] = useState<any>(null);
-  const [cancelBlocked, setCancelBlocked] = useState(false);
+  const [cancelDenied, setCancelDenied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number>(1200);
   const [loading, setLoading] = useState(false);
   const [buyingCountryId, setBuyingCountryId] = useState<number | null>(null);
@@ -303,8 +303,6 @@ export default function BuyNumber() {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          if (pollRef.current) clearInterval(pollRef.current);
-          setOrder((prevOrd: any) => ({ ...prevOrd, status: 'expired' }));
           return 0;
         }
         return prev - 1;
@@ -461,6 +459,7 @@ export default function BuyNumber() {
         createdAt: new Date().toISOString(),
       };
       setOrder(newOrder);
+      setCancelDenied(false);
       setCancelBlocked(false);
       setOtpData(null);
       setSecondsLeft(1200);
@@ -492,6 +491,8 @@ export default function BuyNumber() {
         const status = await getOrderStatus(orderId);
         if (status) {
           if (status.smsCode || status.status === 'code_received') {
+            setCancelDenied(false);
+            setError('');
             setOtpData(status);
             setOrder((prev: any) => ({
               ...prev,
@@ -505,10 +506,14 @@ export default function BuyNumber() {
             loadWalletBalance();
             loadRecentOrders();
           } else if (status.status === 'expired' || status.status === 'cancelled') {
+            setCancelDenied(false);
+            setError('');
             setOrder((prev: any) => ({ ...prev, status: status.status }));
             if (pollRef.current) clearInterval(pollRef.current);
             loadWalletBalance();
             loadRecentOrders();
+          } else if (status.status === 'waiting') {
+            setOrder((prev: any) => ({ ...prev, ...status, status: 'waiting' }));
           }
         }
       } catch {
@@ -519,30 +524,47 @@ export default function BuyNumber() {
 
   async function handleCancel() {
     if (!order) return;
-    if (cancelBlocked) {
-      setError('Tiger SMS does not currently allow cancellation for this activation.');
-      return;
-    }
-    const elapsedSeconds = Math.max(0, 1200 - secondsLeft);
-    if (elapsedSeconds < 120) {
-      setError('Please wait 2 minutes for the OTP before cancelling this number.');
-      return;
-    }
     setError('');
+    setCancelDenied(false);
     setLoading(true);
     try {
       await cancelOrder(order.orderId);
       if (pollRef.current) clearInterval(pollRef.current);
-      setOrder(null);
+      setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
       setOtpData(null);
-      setStep('service');
-      showSuccessToast('Number cancelled. If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes.');
+      setStep('messages');
+      showSuccessToast('The provider confirmed cancellation. Your refund is being processed.');
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
-      if (['EARLY_CANCEL_DENIED', 'WAIT_BEFORE_CANCEL', 'BAD_STATUS'].includes(err?.code)) {
-        setCancelBlocked(true);
-        setError('Tiger SMS does not currently allow cancellation for this activation. No refund was issued.');
+      if (err?.code === 'EARLY_CANCEL_DENIED') {
+        setCancelDenied(true);
+        setError('The provider denied cancellation. Your number is still waiting for an OTP; no refund was issued.');
+        return;
+      }
+      if (['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS', 'SMS_RECEIVED'].includes(err?.code)) {
+        let providerResolved = false;
+        try {
+          const status = await getOrderStatus(order.orderId);
+          if (status?.smsCode || status?.status === 'code_received') {
+            setOrder((prev: any) => ({ ...prev, ...status, status: 'code_received' }));
+            setOtpData(status);
+            setCancelDenied(false);
+            setError('');
+            providerResolved = true;
+          } else if (status?.status === 'cancelled' || status?.status === 'expired') {
+            setOrder((prev: any) => ({ ...prev, ...status, status: status.status }));
+            setCancelDenied(false);
+            setError('');
+            providerResolved = true;
+          } else {
+            setOrder((prev: any) => ({ ...prev, ...status, status: 'waiting' }));
+            setCancelDenied(true);
+          }
+        } catch {
+          setCancelDenied(true);
+        }
+        if (!providerResolved) setError('The provider did not confirm cancellation. The number remains active and no refund was issued.');
         return;
       }
       setError(err.message || 'Failed to cancel order');
@@ -1119,13 +1141,11 @@ export default function BuyNumber() {
     const secs = secondsLeft % 60;
     const progressPercent = Math.max(0, Math.min(100, (secondsLeft / 1200) * 100));
     const isWaiting = (order?.status === 'waiting' || step === 'waiting') && !order?.smsCode && !otpData?.smsCode;
-    const isExpired = order?.status === 'expired' || step === 'expired' || order?.status === 'cancelled';
+    const isExpired = order?.status === 'expired' || step === 'expired';
+    const isCancelled = order?.status === 'cancelled';
     const hasOtp = !!(order?.smsCode || otpData?.smsCode);
     const smsCode = order?.smsCode || otpData?.smsCode || '';
     const smsText = order?.smsText || otpData?.smsText || '';
-    const cancelWaitSeconds = Math.max(0, 120 - Math.max(0, 1200 - secondsLeft));
-    const cancelWaitMins = Math.floor(cancelWaitSeconds / 60);
-    const cancelWaitRemainder = cancelWaitSeconds % 60;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -1174,12 +1194,12 @@ export default function BuyNumber() {
               padding: '1.5rem',
               background: hasOtp
                 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.95))'
-                : isExpired
+                : isExpired || isCancelled
                 ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(15, 23, 42, 0.95))'
                 : 'var(--bg-card)',
               border: hasOtp
                 ? '1px solid rgba(16, 185, 129, 0.45)'
-                : isExpired
+                : isExpired || isCancelled
                 ? '1px solid rgba(239, 68, 68, 0.35)'
                 : '1px solid var(--border-glow)',
               borderRadius: '16px',
@@ -1235,7 +1255,7 @@ export default function BuyNumber() {
                     }}
                   >
                     <RefreshCwIcon size={12} className="animate-spin" />
-                    <span>Checking live every 3s</span>
+                    <span>{cancelDenied ? 'Cancellation denied · still waiting' : 'Checking live every 3s'}</span>
                   </div>
                 )}
                 {hasOtp && (
@@ -1257,7 +1277,7 @@ export default function BuyNumber() {
                     <span>OTP Received</span>
                   </div>
                 )}
-                {isExpired && (
+                {(isExpired || isCancelled) && (
                   <div
                     style={{
                       display: 'inline-flex',
@@ -1273,7 +1293,7 @@ export default function BuyNumber() {
                     }}
                   >
                     <ClockIcon size={14} color="#ef4444" />
-                    <span>Expired &amp; Refunded</span>
+                    <span>{isCancelled ? 'Cancelled' : 'Expired'}</span>
                   </div>
                 )}
               </div>
@@ -1354,14 +1374,14 @@ export default function BuyNumber() {
                   alignItems: hasOtp ? 'flex-start' : 'center',
                   padding: '1.15rem',
                   borderRadius: '10px',
-                  background: hasOtp ? 'rgba(16, 185, 129, 0.12)' : isExpired ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.06)',
-                  border: hasOtp ? '1px solid rgba(16, 185, 129, 0.45)' : isExpired ? '1px solid rgba(239, 68, 68, 0.3)' : '1px dashed rgba(245, 158, 11, 0.4)',
+                  background: hasOtp ? 'rgba(16, 185, 129, 0.12)' : isExpired || isCancelled ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.06)',
+                  border: hasOtp ? '1px solid rgba(16, 185, 129, 0.45)' : isExpired || isCancelled ? '1px solid rgba(239, 68, 68, 0.3)' : '1px dashed rgba(245, 158, 11, 0.4)',
                 }}
               >
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: hasOtp ? '#10b981' : isExpired ? '#ef4444' : '#f59e0b', marginBottom: '0.45rem', fontWeight: 700 }}>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: hasOtp ? '#10b981' : isExpired || isCancelled ? '#ef4444' : '#f59e0b', marginBottom: '0.45rem', fontWeight: 700 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    {hasOtp ? <CheckCircleIcon size={15} /> : isExpired ? <XIcon size={15} /> : <HourglassIcon size={15} />}
-                    {hasOtp ? 'OTP Received' : isExpired ? 'Order Expired' : 'Waiting for OTP Code'}
+                    {hasOtp ? <CheckCircleIcon size={15} /> : isExpired || isCancelled || cancelDenied ? <XIcon size={15} /> : <HourglassIcon size={15} />}
+                    {hasOtp ? 'OTP Received' : isCancelled ? 'Cancelled' : isExpired ? 'Order Expired' : cancelDenied ? 'Cancellation Denied' : 'Waiting for OTP Code'}
                   </span>
                 </div>
 
@@ -1372,10 +1392,14 @@ export default function BuyNumber() {
                       <span style={{ fontWeight: 700, fontSize: '1rem' }}>Waiting for SMS to arrive...</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      <span>Window expires in:</span>
-                      <strong style={{ fontFamily: 'var(--font-mono)', color: secondsLeft < 180 ? '#ef4444' : '#f59e0b', fontSize: '0.95rem' }}>
-                        {mins}:{secs.toString().padStart(2, '0')}
-                      </strong>
+                      {secondsLeft > 0 ? (
+                        <>
+                          <span>Activation window:</span>
+                          <strong style={{ fontFamily: 'var(--font-mono)', color: secondsLeft < 180 ? '#ef4444' : '#f59e0b', fontSize: '0.95rem' }}>
+                            {mins}:{secs.toString().padStart(2, '0')}
+                          </strong>
+                        </>
+                      ) : <span>Waiting for the provider’s latest status...</span>}
                     </div>
                     {/* Progress Bar */}
                     <div style={{ height: '4px', width: '100%', maxWidth: '240px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '999px', overflow: 'hidden', marginTop: '0.2rem' }}>
@@ -1427,10 +1451,10 @@ export default function BuyNumber() {
                   </div>
                 )}
 
-                {isExpired && (
+                {(isExpired || isCancelled) && (
                   <div style={{ textAlign: 'center', width: '100%' }}>
                     <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0 0 0.5rem', fontWeight: 600 }}>
-                      No SMS code arrived within 20 minutes.
+                      {isCancelled ? 'The provider confirmed this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
                     </p>
                     <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
                       If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.
@@ -1449,14 +1473,14 @@ export default function BuyNumber() {
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {isWaiting && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-                    {cancelWaitSeconds > 0 && (
+                    {cancelDenied && (
                       <span style={{ color: '#f59e0b', fontSize: '0.75rem', maxWidth: '300px', textAlign: 'right' }}>
-                        Please wait 2 minutes for the OTP before cancelling this number.
+                        Provider denied the last cancellation request. The number is still waiting; you may try again.
                       </span>
                     )}
                     <button
                       onClick={handleCancel}
-                      disabled={loading || cancelWaitSeconds > 0 || cancelBlocked}
+                      disabled={loading}
                       className="btn btn-danger btn-sm"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
                     >
@@ -1464,10 +1488,8 @@ export default function BuyNumber() {
                       <span>
                         {loading
                           ? 'Cancelling...'
-                          : cancelWaitSeconds > 0
-                          ? `Cancel available in ${cancelWaitMins}:${cancelWaitRemainder.toString().padStart(2, '0')}`
-                          : cancelBlocked
-                          ? 'Cancellation not allowed by Tiger SMS'
+                          : cancelDenied
+                          ? 'Try Cancel Again'
                           : 'Cancel Order & Refund'}
                       </span>
                     </button>
@@ -1486,7 +1508,7 @@ export default function BuyNumber() {
                     </button>
                   </>
                 )}
-                {isExpired && (
+                {(isExpired || isCancelled) && (
                   <button
                     onClick={() => {
                       setStep('service');

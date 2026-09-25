@@ -61,7 +61,17 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers,
   });
 
-  const data = await res.json();
+  const responseText = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    const error = new Error(
+      `The API endpoint ${path} returned an unexpected non-JSON response (HTTP ${res.status}). It may be unavailable or misrouted.`
+    );
+    (error as any).code = 'INVALID_API_RESPONSE';
+    throw error;
+  }
   
   if (!data.success) {
     if (data.error === 'mfa_required' && typeof window !== 'undefined' && !window.location.pathname.includes('/dashboard/settings')) {
