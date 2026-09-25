@@ -535,8 +535,8 @@ const breadcrumbSchema = {
     }
     .footer-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 2.5rem;
+      grid-template-columns: minmax(220px, 1.3fr) minmax(135px, 0.8fr) minmax(155px, 0.9fr) minmax(205px, 1.1fr);
+      gap: clamp(1.25rem, 3vw, 2.5rem);
       margin-bottom: 2.5rem;
     }
     .footer-brand p {
@@ -562,22 +562,26 @@ const breadcrumbSchema = {
     .footer-links {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      align-items: flex-start;
+      gap: 0.7rem;
     }
     .footer-links h4 {
       font-size: 0.75rem;
       font-weight: 700;
-      color: #94a3b8;
-      margin-bottom: 0.6rem;
+      color: #e2e8f0;
+      margin: 0 0 0.2rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
     .footer-links a {
       color: #94a3b8;
       font-size: 0.85rem;
+      line-height: 1.45;
+      text-decoration: none;
+      text-underline-offset: 0.2em;
       transition: color 0.15s;
     }
-    .footer-links a:hover { color: #f1f5f9; }
+    .footer-links a:hover { color: #f1f5f9; text-decoration: underline; }
 
     .footer-bottom {
       padding-top: 1.5rem;
@@ -791,10 +795,15 @@ const breadcrumbSchema = {
       .mobile-nav-backdrop { display: block; }
       .header-actions #login-btn,
       .header-actions #register-btn { display: none !important; }
-      .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.75rem 1.5rem; }
+      .footer-brand { grid-column: 1 / -1; }
+      .footer-links:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 0.7rem 1rem; }
+      .footer-links:last-child h4 { grid-column: 1 / -1; }
     }
     @media (max-width: 480px) {
-      .footer-grid { grid-template-columns: 1fr; }
+      .footer-grid { gap: 1.5rem 1rem; }
+      .footer-links h4 { font-size: 0.68rem; }
+      .footer-links a { font-size: 0.8rem; }
       .header-actions #login-btn,
       .header-actions #register-btn {
         display: none !important;
