@@ -168,6 +168,8 @@ Superadmins can clear visible user history without deleting the account. One opt
 
 On phones, admin user cards show Registered and Last Login dates with their corresponding times together in the value column.
 
+The admin overview combines the recent order's email and order ID in a profile-style cell and shows the Google profile photo when available. On the Users page, the account identifier is labelled **User ID**. Order and wallet history tables use consistent bold text; status badges keep their status colors. Refunded prices use the same styling as sale prices. The service and country directory pages load their full lists, so no load-more button is required.
+
 ## 7. Run Locally
 
 Start both applications:

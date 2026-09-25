@@ -2,7 +2,7 @@
 
 This repository includes a daily GitHub Actions workflow at `.github/workflows/backup.yml`. It follows Supabase's CLI backup pattern and stores each day's compressed role, schema, and data dumps in `backups/supabase/YYYY-MM-DD/` on the separate `database-backups` branch. Keeping dumps off `main` avoids triggering the production website deployment for each backup.
 
-The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests.
+The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests. Each successful run writes one dated folder only. There is no duplicate `latest/` folder.
 
 The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup. The `database-backups` branch contains only dated database snapshots, not a duplicate copy of the application. When converting an older branch that contains project files, prior successful snapshots are moved into date folders before the branch history is cleaned.
 

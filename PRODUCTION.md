@@ -44,7 +44,7 @@ Use a staging project and disposable accounts for flows that spend money, change
 ### Guest experience
 
 1. Open Home. Check navigation, slogan, footer, page title, canonical URL, and mobile menu. Opening the guest menu should lock background scrolling and the menu itself should not scroll.
-2. Open Services and Countries. Search, sort/filter, open a service, and check catalog images, country flags, availability labels, and selected-currency prices.
+2. Open Services and Countries. Search, sort/filter, open a service, and check catalog images, country flags, availability labels, and selected-currency prices. Confirm the full lists are available without a “Load more” action.
 3. Open Pricing, How It Works, Contact, Terms, Privacy, Refund Policy, Acceptable Use, and Status. Check page content and links; do not advertise a public Telegram channel that does not exist.
 4. Check `/robots.txt`, `/sitemap-index.xml`, canonical URLs, and structured data on public pages. Confirm private pages use `noindex`.
 5. At mobile, tablet, and desktop widths, check clipped text, horizontal overflow, navigation overlap, and keyboard focus. The connected in-app browser was unavailable during the audit, so this visual check remains outstanding.
@@ -63,8 +63,8 @@ Use a staging project and disposable accounts for flows that spend money, change
 ### Admin experience
 
 1. Sign in as admin. Confirm a normal user cannot retrieve admin data or use admin APIs. Enroll and verify MFA for privileged accounts.
-2. Check dashboard financial totals and integrity warnings against the ledger. A waiting order must not be displayed as refunded.
-3. At phone and desktop widths, review Orders and Users. Check service/country icons, copying, OTP status, currency, sale/cost/profit placement, filters, and pagination. In the Users cards, confirm Registered and Last Login each show date and time together in the value column.
+2. Check dashboard financial totals and integrity warnings against the ledger. A waiting order must not be displayed as refunded. In the overview, verify the recent-order cell shows the profile photo when available, email, order ID, and a working ID copy action.
+3. At phone and desktop widths, review Orders and Users. Check service/country icons, copying, OTP status, currency, sale/cost/profit placement, filters, and pagination. Confirm refunded price text matches sale-price size, weight, and color. In Users, confirm the profile row labels the account identifier **User ID**, and Registered and Last Login show date and 12-hour time together in the value column. Check that table text is consistently emphasized and status badges retain their colors.
 4. In staging, test global, service, country, and service-country pricing overrides. Confirm a quote before buying.
 5. Test catalog enable/disable, featured ordering, and search in staging.
 6. Test recharge review, one-time approve/reject, funding-source classification, and resulting ledger balance.
@@ -72,9 +72,9 @@ Use a staging project and disposable accounts for flows that spend money, change
 8. With a disposable banned test user, verify Clear Activity (keeps deposits and balance), Clear All (resets spendable balance), retained audit data, and each Purge User mode. Never test a purge on a real account.
 9. In a private test chat, test Telegram order modes: `completion_only` and `lifecycle`. Confirm lifecycle changes edit the same Telegram message when possible.
 
-## Audit snapshot (2026-09-25)
+## Historical audit snapshot (2026-09-25)
 
-- Historical live check: Cloudflare Pages showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational. GitHub `main` has since advanced to `6ac9703` (including the responsive admin-user timestamp fix). Confirm the Cloudflare deployment separately before treating that commit as live.
+- Historical live check: Cloudflare Pages showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational at that time. The repository has advanced since then. Confirm the Cloudflare deployment list and current `/api/health` before treating any later commit as live.
 - Production verification passed: web build, API type-check, 24 unit tests, production guardrails, and 10/10 unauthenticated smoke checks.
 - Read-only GET checks returned HTTP 200 for the listed public pages, auth screens, customer dashboard pages, and admin page shells. This does not prove authenticated flows work.
 - Web and API production dependency audits reported no known vulnerabilities.

@@ -35,6 +35,7 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - Live session command center showing Public IP, telecom carrier / ISP name, ASN, and geo location.
 - TOTP authenticator MFA after password, email OTP, and Google login.
 - Service and country catalog with live provider pricing.
+- Full service and country directories with search/filter over all loaded entries; the public catalog does not use redundant load-more buttons.
 - Catalog service artwork and country flags beside their names in the buy flow and order history; customer prices use only the selected currency.
 - Wallet balance, top-up requests, ledger history with running balance after each transaction, and auto-refunds.
 - Strict 12-digit numeric UPI UTR and numeric Binance Pay Order ID validation on deposits.
@@ -59,6 +60,7 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - Catalog visibility controls with 1-click batch actions.
 - Top-up approval/rejection and manual wallet credits declaring funding sources (cash vs free grant).
 - User search, details inspect modal with running balance ledger, ban/unban, promote/demote, and zero-markup toggle. On mobile, Registered and Last Login dates keep their times grouped in the value column.
+- The admin Users table labels the account identifier as **User ID** and shows its copy action beside the profile details. Registration and last-login times use a consistent 12-hour clock.
 - Full user dossier export (1-click download of all user profile data, IP/ISP security logs, orders, ledger, payment requests, and tickets).
 - Multi-tier referral fraud logs and automated network collision protection.
 - Support queue with status, priority, internal notes, threaded replies, and ticket-type context.
@@ -66,6 +68,8 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - User-history controls separate from account purge: hide activity while keeping deposits and balance, or hide all user-visible history and reset the spendable balance. Existing banned-user purge options remain separate.
 - Optional Telegram order notifications: alert only when an OTP arrives, or create one message per order and edit it as its status changes.
 - Recent order tables show service artwork and country flags beside their names.
+- The overview's recent-order identity cell combines email and order ID in a profile-style row, shows a Google profile photo when available, and can copy the full order ID. Across admin and customer order history, refunded price text matches sale-price size, weight, and success color. Table typography is consistent while status badges retain semantic colors.
+- Public footer links are grouped and spaced for desktop, tablet, and mobile layouts.
 - Immutable wallet ledger, reconciliation, audit log, operational alerts, retention controls, and RLS protections.
 - Universal in-site toast notification engine on all refresh, save, and update actions.
 

@@ -29,9 +29,13 @@ The build synchronizes the shared Pages Functions source into the web project be
 
 The wallet page and dashboard navigation use the same authenticated wallet response. Wallet refreshes publish the current balance to the navigation, so an approved deposit is reflected without a full page reload.
 
-The public site, customer dashboard, and admin panel are designed to work across phone, tablet, and desktop widths. Customer order and catalog views reuse the configured service artwork and country flags. Customer-facing prices use the selected currency only.
+The public site, customer dashboard, and admin panel are designed to work across phone, tablet, and desktop widths. Customer order and catalog views reuse the configured service artwork and country flags. Customer-facing prices use the selected currency only. Service and country catalog pages load the complete lists; search and filters work across all entries and there are no load-more controls.
 
 Responsive table cards keep related content grouped within each value cell. In the admin user list, registration and last-login dates keep their times directly beneath the date, rather than wrapping into the label column.
+
+Table headers and body cells share consistent emphasis and text colors. Status badges retain their semantic colors. In the admin overview, the recent-order identity cell shows the customer's profile photo when available, email, shortened order ID, and a copy action. The Users page labels each account identifier as **User ID**. Registered and Last Login times use 12-hour time. Refunded price text uses the same size, weight, and success color as sale-price text.
+
+The shared guest footer uses responsive link groups, with a dedicated brand area and compact two-column links on smaller screens. Keep all existing footer destinations when adjusting its layout.
 
 Order cancellation is provider-confirmed. A denied cancellation remains `waiting`; the UI must not show a refund until cancellation/expiry is confirmed and the wallet ledger records it.
 

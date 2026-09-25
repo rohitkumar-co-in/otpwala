@@ -39,6 +39,7 @@
 - **Astro static-site architecture**: Public pages are prebuilt for fast delivery, with responsive layouts and interactive React components for account and admin tasks.
 - **Interactive React Islands (`client:load`)**:
   - **Service and country browsing**: Search available services and countries, see provider catalog icons and country flags, filter by availability, and view prices in the selected currency.
+  - **Complete catalogs**: All services and countries are loaded on their catalog pages; search and filters work across the full list, with no redundant “Load more” controls.
   - **Number purchase and OTP status**: Follow a number from waiting to OTP received, cancellation, or expiry. Copy the phone number without its country calling code, or copy a received OTP.
   - **Refund status**: A waiting order is not treated as refunded. A refund is recorded only after the provider confirms cancellation or expiry; a denied cancellation leaves the order active.
   - **Wallet (`/dashboard/wallet`)**: Shared balance display, deposit requests, and a transaction history. User-facing prices show only the currency selected by the user.
@@ -73,12 +74,12 @@
 
 ### 6. Admin Management Suite (`/admin`)
 - **Dashboard Overview**: Financial health checks, provider balance status, platform revenue vs wallet liabilities, pending deposits with 1-click in-site approve/reject.
-- **User Management (`/admin/users`)**: Search users, view balance details & ledger history, export complete user dossiers, credit funds with mandatory funding source, ban/unban, promote/demote, and toggle zero-markup status. Registration and last-login dates keep their times grouped beside them on mobile.
+- **User Management (`/admin/users`)**: Search users, view balance details & ledger history, export complete user dossiers, credit funds with mandatory funding source, ban/unban, promote/demote, and toggle zero-markup status. Profile rows show the user ID with a copy action; registration and last-login times use a consistent 12-hour format.
 - **History controls**: Superadmins can hide a user's visible activity while keeping the account, either preserving deposits and balance or hiding all visible history and resetting the spendable balance. This is separate from the existing irreversible Purge User action.
 - **Funding Sources & Balance Sheet (`/admin/recharges`)**: Explicit distinction between cash collected (UPI / confirmed manual funding) and free granted balance (promotional/goodwill).
 - **Dynamic Profit Margins (`/admin/pricing`)**: Percentage and fixed markup rules globally, per-service, or per-country with profit margin simulator.
 - **Catalog Controls (`/admin/catalog`)**: Enable or disable services and countries with 1-click toggles and batch actions.
-- **Order Audit Log (`/admin/orders`)**: Service and country icons, phone numbers, OTP status, sale price, provider cost, and gross profit.
+- **Order Audit Log (`/admin/orders`)**: Service and country icons, phone numbers, OTP status, sale price, provider cost, and gross profit. Recent orders on the overview combine the user's email and order ID in a profile-style cell, including the available Google profile photo and a copy action. Refunded prices use the same emphasis as sale prices.
 - **Support & Privacy Erasure Queue (`/admin/support`)**: Support tickets with threaded replies, internal admin notes, and data erasure approval workflows.
 - **Admin Audit Trail (`/admin/audit`)**: Immutable log of privileged administrator actions with structured columns, categorized color-coded action badges, live payload previews, interactive JSON inspection modal with 1-click copy and file download, and full JSON audit trail export.
 - **System Settings (`/admin/settings`)**: Currency rates, payment instructions, Telegram admin notifications, order notification mode, provider balance alerts, and maintenance controls. Site identity and the homepage slogan are fixed in the site templates, not editable settings.
@@ -175,3 +176,4 @@ npx wrangler deploy --config workers/wrangler.jsonc
 - **Pseudonymized Data Erasure**: Compliant with data privacy standards; user account deletion erases authentication and personal data while preserving legally mandated financial accounting records in pseudonymized form.
 - **Zero Browser Popups**: All user confirmation flows are rendered within custom accessible styled dialogs.
 - **Catalog visuals**: Service artwork and country flags come from the configured catalog; status, action, and navigation symbols use the site's SVG icon set.
+- **Responsive presentation**: Tables use consistent readable typography and responsive cards on narrow screens. The footer keeps its link groups readable on desktop, tablet, and mobile.

@@ -207,6 +207,7 @@ Use a new test account and a small, controlled budget. Complete the following be
 
 - Home page loads over HTTPS with no console/runtime errors. Check every public page, navigation link, footer, contact address, logo, social preview, canonical URL, robots rules, and sitemap.
 - Test phone, tablet, and desktop widths, keyboard navigation, contrast, menu behavior, clipped content, and horizontal overflow.
+- Check the complete Services and Countries directories, their search/filter controls, the responsive footer link groups, and table-card readability without expecting a load-more action.
 - Confirm canonical URLs, structured data, `robots.txt`, and sitemap all use the new domain. Remove any `noindex` launch setting from pages intended for search, while keeping private/admin pages out of indexing.
 - Test from a private browser session and at least one external mobile connection.
 
@@ -226,7 +227,8 @@ Use a new test account and a small, controlled budget. Complete the following be
 
 ### Admin and operations
 
-- Verify dashboard totals against the wallet ledger, user details, admin order status/price/profit fields, phone layouts, pagination, search, catalog controls, top-up review, audit logs, support, and exports.
+- Verify dashboard totals against the wallet ledger, user details, admin order status/price/profit fields, phone layouts, pagination, search, catalog controls, top-up review, audit logs, support, and exports. Confirm recent overview orders show the available profile image, email, shortened order ID, and copy action; confirm the Users page labels account IDs as **User ID**.
+- Confirm refunded amounts match sale amounts in font size, weight, and success color in both admin and customer order views. Check table text emphasis across pages while preserving semantic badge colors.
 - Verify admin roles, MFA, alert routing, and that destructive user history/purge controls are available only to the intended superadmin. Never run purge tests on real customer accounts.
 - Check `https://YOUR-CANONICAL-DOMAIN/api/health` and `/status`. Confirm the Pages deployment, Worker cron, Supabase, email, and provider all report healthy.
 - Confirm GitHub Actions is green, Cloudflare Pages deployed the expected commit, and no production secrets appear in Git history or browser bundles.
