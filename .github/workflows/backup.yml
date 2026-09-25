@@ -168,17 +168,14 @@ jobs:
             rewrite_backup_branch=true
           fi
 
-          mkdir -p "backups/supabase/$backup_date" backups/supabase/latest
+          # Keep one copy per day; remove the former convenience mirror.
+          git rm -r -f --ignore-unmatch -- backups/supabase/latest
+          mkdir -p "backups/supabase/$backup_date"
           cp "$backup_dir/roles.sql.gz" "backups/supabase/$backup_date/roles.sql.gz"
           cp "$backup_dir/schema.sql.gz" "backups/supabase/$backup_date/schema.sql.gz"
           cp "$backup_dir/data.sql.gz" "backups/supabase/$backup_date/data.sql.gz"
           cp "$backup_dir/manifest.txt" "backups/supabase/$backup_date/manifest.txt"
           cp "$backup_dir/SHA256SUMS" "backups/supabase/$backup_date/SHA256SUMS"
-          cp "$backup_dir/roles.sql.gz" backups/supabase/latest/roles.sql.gz
-          cp "$backup_dir/schema.sql.gz" backups/supabase/latest/schema.sql.gz
-          cp "$backup_dir/data.sql.gz" backups/supabase/latest/data.sql.gz
-          cp "$backup_dir/manifest.txt" backups/supabase/latest/manifest.txt
-          cp "$backup_dir/SHA256SUMS" backups/supabase/latest/SHA256SUMS
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

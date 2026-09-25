@@ -1,6 +1,6 @@
 # Automated Supabase database backups
 
-This repository includes a daily GitHub Actions workflow at `.github/workflows/backup.yml`. It follows Supabase's CLI backup pattern and stores each day's compressed role, schema, and data dumps in `backups/supabase/YYYY-MM-DD/` on the separate `database-backups` branch. `backups/supabase/latest/` is also refreshed with the newest snapshot. Keeping dumps off `main` avoids triggering the production website deployment for each backup.
+This repository includes a daily GitHub Actions workflow at `.github/workflows/backup.yml`. It follows Supabase's CLI backup pattern and stores each day's compressed role, schema, and data dumps in `backups/supabase/YYYY-MM-DD/` on the separate `database-backups` branch. Keeping dumps off `main` avoids triggering the production website deployment for each backup.
 
 The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests.
 
@@ -14,7 +14,7 @@ Each roles, schema, and data dump is logged as a separate stage with its start t
 2. In the repository, open **Settings → Actions → General → Workflow permissions**. Select **Read and write permissions** and save. The workflow also requests only `contents: write` for the backup job so it can commit the generated files.
 3. In **Settings → Secrets and variables → Actions → Secrets**, add `SUPABASE_DB_URL`. Use the production project's **Session pooler** connection string from Supabase → Connect. Keep the full string, including the password, in the secret; percent-encode special characters in the password as required for a URL. Never put it in this repository, workflow YAML, a log, or a chat message.
 4. In **Settings → Secrets and variables → Actions → Variables**, add `BACKUP_ENABLED` with the value `true`. Leave it unset or set it to `false` to disable scheduled backups.
-5. Open **Actions → Supabase database backup → Run workflow** and run it on `main`. Confirm that it completes and that the `database-backups` branch contains `backups/supabase/latest/roles.sql.gz`, `schema.sql.gz`, `data.sql.gz`, `manifest.txt`, and `SHA256SUMS`.
+5. Open **Actions → Supabase database backup → Run workflow** and run it on `main`. Confirm that it completes and that the `database-backups` branch contains a date folder with `roles.sql.gz`, `schema.sql.gz`, `data.sql.gz`, `manifest.txt`, and `SHA256SUMS`.
 6. Confirm the next scheduled run succeeds. GitHub may delay scheduled workflows during busy periods, so monitor the Actions page and investigate failed or missing runs.
 
 The connection secret needs database access. If you rotate the Supabase database password, update `SUPABASE_DB_URL` immediately. The workflow can be paused quickly by setting `BACKUP_ENABLED` to `false`.
@@ -25,13 +25,13 @@ The workflow uses Supabase's recommended `supabase db dump` commands for roles, 
 
 This is a useful free logical backup of application tables, not a complete replacement for Supabase's managed backups/PITR or a full project clone. If preserving customer login accounts and uploaded support files is required for disaster recovery, this workflow alone is insufficient. Use a supported full-project backup/restore option or design and test a separate Auth/Storage recovery process before relying on it.
 
-The dump files are compressed but not separately encrypted by this workflow. Repository privacy and access control are therefore critical. Git keeps prior backup commits in history even though the working tree contains only the latest dump, so repository storage grows over time. Review repository storage and Actions usage periodically. Do not make this repository public or add unknown collaborators.
+The dump files are compressed but not separately encrypted by this workflow. Repository privacy and access control are therefore critical. Each date folder is retained in the backup branch and in its commit history, so repository storage grows over time. Review repository storage and Actions usage periodically. Do not make this repository public or add unknown collaborators.
 
 ## Restore test
 
 Do not test restoration over the live project. Restore to a separate disposable Supabase project and verify row counts, constraints, policies, triggers, functions, indexes, and representative wallet/order records before considering the backup usable.
 
-For a specific day's snapshot, download that date's folder, for example `backups/supabase/2026-09-25/`. `backups/supabase/latest/` is a duplicate of the newest snapshot for convenience. From the downloaded folder, decompress and verify the files:
+For a specific day's snapshot, download that date's folder, for example `backups/supabase/2026-09-25/`. From the downloaded folder, decompress and verify the files:
 
 ```bash
 gzip -dc roles.sql.gz > roles.sql
