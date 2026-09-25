@@ -190,7 +190,7 @@ export default function OrderManager() {
                           </button>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--text-muted)' }}>N/A</span>
                       )}
                     </td>
                     <td data-label="Status / OTP" style={{ padding: '0.75rem' }}>

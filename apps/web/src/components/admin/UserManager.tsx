@@ -230,7 +230,7 @@ export default function UserManager() {
     setError(null);
     setSuccess(null);
 
-    // Optimistic update — instant UI response
+    // Optimistic update for an instant UI response
     setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, is_banned: newBanned } : u));
     if (inspectTarget?.id === user.id) {
       setInspectTarget((prev: any) => prev ? { ...prev, is_banned: newBanned } : prev);
@@ -425,7 +425,7 @@ export default function UserManager() {
     setError(null);
     setSuccess(null);
 
-    // Optimistic update — flip all selected users instantly
+    // Optimistic update. Flip all selected users instantly.
     const ids = new Set(selectedUserIds);
     setUsers((prev) => prev.map((u) => ids.has(u.id) ? { ...u, is_banned: banned } : u));
 
@@ -1558,7 +1558,7 @@ export default function UserManager() {
                               ₹{parseFloat(tx.balance_after || 0).toFixed(2)}
                             </td>
                             <td data-label="Description" style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', maxWidth: '200px', overflowWrap: 'anywhere' }} title={tx.description}>
-                              {tx.description || '—'}
+                              {tx.description || 'N/A'}
                             </td>
                             <td data-label="Date" style={{ padding: '0.5rem 0.75rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                               {new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}{' '}

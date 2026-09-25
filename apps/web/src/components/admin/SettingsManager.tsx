@@ -45,8 +45,8 @@ export default function SettingsManager() {
 
   // Category 1: Brand & Slogan Configuration
   const [brandName, setBrandName] = useState(cachedS.brand_name || 'OTPWala');
-  const [titleSeparator, setTitleSeparator] = useState(cachedS.title_separator || '—');
-  const [brandSlogan, setBrandSlogan] = useState(cachedS.brand_slogan || 'Instant Virtual Numbers for SMS Verification');
+  const [titleSeparator, setTitleSeparator] = useState(cachedS.title_separator && !/[\u2014\u2013]/.test(cachedS.title_separator) ? cachedS.title_separator : '|');
+  const [brandSlogan, setBrandSlogan] = useState(cachedS.brand_slogan && cachedS.brand_slogan !== 'Instant Virtual Numbers for SMS Verification' ? cachedS.brand_slogan : 'Check services, country availability, and prices for SMS verification.');
 
   // Category 3: Currency & Pricing
   const cachedRateMode = cachedS.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom';
@@ -128,7 +128,7 @@ export default function SettingsManager() {
 
       if (s.brand_name) setBrandName(s.brand_name);
       if (s.title_separator) setTitleSeparator(s.title_separator);
-      if (s.brand_slogan) setBrandSlogan(s.brand_slogan);
+      if (s.brand_slogan) setBrandSlogan(s.brand_slogan === 'Instant Virtual Numbers for SMS Verification' ? 'Check services, country availability, and prices for SMS verification.' : s.brand_slogan);
 
       if (s.dollar_rate_mode) {
         setRateMode(s.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom');
@@ -310,8 +310,8 @@ export default function SettingsManager() {
     try {
       await saveAdminSettingsBatch({
         brand_name: brandName.trim() || 'OTPWala',
-        title_separator: titleSeparator.trim() || '—',
-        brand_slogan: brandSlogan.trim() || 'Instant Virtual Numbers for SMS Verification',
+        title_separator: titleSeparator.trim() || '|',
+        brand_slogan: brandSlogan.trim() || 'Check services, country availability, and prices for SMS verification.',
         dollar_rate_mode: rateMode,
         tiger_default_rate: tigerDefaultRate,
         custom_dollar_rate: customDollarRate,
@@ -352,8 +352,8 @@ export default function SettingsManager() {
       if (typeof window !== 'undefined') {
         try {
           const finalBrand = brandName.trim() || 'OTPWala';
-          const finalSep = titleSeparator.trim() || '—';
-          const finalSlogan = brandSlogan.trim() || 'Instant Virtual Numbers for SMS Verification';
+          const finalSep = titleSeparator.trim() || '|';
+          const finalSlogan = brandSlogan.trim() || 'Check services, country availability, and prices for SMS verification.';
 
           localStorage.setItem('otpwala_branding', JSON.stringify({
             brandName: finalBrand,
@@ -596,10 +596,10 @@ export default function SettingsManager() {
                 onChange={(e) => setTitleSeparator(e.target.value)}
                 className="input"
                 style={{ width: '100%' }}
-                placeholder="e.g. — or | or •"
+                placeholder="e.g. | or •"
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Separator between page name and brand in browser tabs (e.g. &quot;—&quot;, &quot;|&quot;, or &quot;•&quot;).
+                Separator between page name and brand in browser tabs, such as &quot;|&quot; or &quot;•&quot;.
               </span>
             </div>
 
@@ -637,13 +637,13 @@ export default function SettingsManager() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: 'var(--text-muted)', width: '90px', fontSize: '0.75rem' }}>Homepage:</span>
                 <strong style={{ color: 'var(--accent-primary)', background: 'rgba(99, 102, 241, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
-                  {brandName || 'OTPWala'} {titleSeparator || '—'} {brandSlogan || 'Instant Virtual Numbers for SMS Verification'}
+                  {brandName || 'OTPWala'} {titleSeparator || '|'} {brandSlogan || 'Check services, country availability, and prices for SMS verification.'}
                 </strong>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: 'var(--text-muted)', width: '90px', fontSize: '0.75rem' }}>Subpages:</span>
                 <strong style={{ color: 'var(--text-primary)', background: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
-                  Dashboard {titleSeparator || '—'} {brandName || 'OTPWala'}
+                  Dashboard {titleSeparator || '|'} {brandName || 'OTPWala'}
                 </strong>
               </div>
             </div>

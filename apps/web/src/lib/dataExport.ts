@@ -361,7 +361,7 @@ export function generateHtmlReport(rawInput: any, title = 'Account Data & Securi
                     <td>${escapeHtml(o.country_name || String(o.country_code) || 'N/A')}</td>
                     <td class="mono"><strong>${escapeHtml(o.phone_number || 'N/A')}</strong></td>
                     <td>
-                      ${o.sms_code ? `<span class="mono" style="color: #10b981; font-weight: 800; background: rgba(16, 185, 129, 0.1); padding: 0.15rem 0.4rem; border-radius: 4px;">${escapeHtml(o.sms_code)}</span>` : '<span style="color: #94a3b8;">—</span>'}
+                      ${o.sms_code ? `<span class="mono" style="color: #10b981; font-weight: 800; background: rgba(16, 185, 129, 0.1); padding: 0.15rem 0.4rem; border-radius: 4px;">${escapeHtml(o.sms_code)}</span>` : '<span style="color: #94a3b8;">N/A</span>'}
                     </td>
                     <td>₹${parseFloat(o.price_inr || o.sell_price_inr || 0).toFixed(2)}</td>
                     <td>

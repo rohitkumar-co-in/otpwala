@@ -623,7 +623,7 @@ export default function AuditLogManager() {
                             textTransform: 'capitalize',
                           }}
                         >
-                          {log.target_type || '—'}
+                          {log.target_type || 'N/A'}
                         </span>
                         {log.target_id && (
                           <span
@@ -720,7 +720,7 @@ export default function AuditLogManager() {
                           </button>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>—</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>N/A</span>
                       )}
                     </td>
 
@@ -892,7 +892,7 @@ export default function AuditLogManager() {
                     <strong>{inspectLog.target_type}</strong>
                     {inspectLog.target_id ? ` (${inspectLog.target_id.slice(0, 8)}…)` : ''}
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                      IP: {inspectLog.ip_address || '—'}
+                      IP: {inspectLog.ip_address || 'N/A'}
                     </div>
                   </div>
                 </div>

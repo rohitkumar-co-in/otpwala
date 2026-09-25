@@ -814,7 +814,7 @@ export default function BuyNumber() {
                 {renderServiceIcon(selectedService, 36)}
               </div>
               <h2 className="buy-country-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
-                {selectedService?.name} — <span className="text-gradient">Select Country</span>
+                {selectedService?.name}: <span className="text-gradient">Select Country</span>
               </h2>
             </div>
           </div>
@@ -971,7 +971,7 @@ export default function BuyNumber() {
                             </div>
                             <div className="country-option-price">
                               <span>Price</span>
-                              <strong>{price || '—'}</strong>
+                              <strong>{price || 'N/A'}</strong>
                             </div>
                           </div>
                           <button
@@ -1356,7 +1356,7 @@ export default function BuyNumber() {
                       {isCancelled ? 'The provider confirmed this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
                     </p>
                     <p style={{ color: '#15803d', fontSize: '0.8rem', margin: 0 }}>
-                      The number price was deducted when it was reserved. If no OTP was received, the refund follows provider-confirmed cancellation or expiry and may take 5–10 minutes to appear.
+                      The number price is deducted when reserved. If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.
                     </p>
                   </div>
                 )}
@@ -1366,7 +1366,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: isExpired || isCancelled ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry; wallet updates may take 5–10 minutes.</span>
+                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</span>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

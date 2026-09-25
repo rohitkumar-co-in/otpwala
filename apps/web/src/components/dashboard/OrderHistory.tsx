@@ -187,7 +187,7 @@ export default function OrderHistory() {
                             {copiedId === `number-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
                           </button>
                         </div>
-                      ) : '—'}
+                      ) : 'N/A'}
                     </td>
                     <td data-label="Status" style={{ padding: '0.75rem' }}>
                       <StatusBadge status={order.status} />

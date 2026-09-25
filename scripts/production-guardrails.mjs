@@ -105,8 +105,8 @@ if (/creditBalance\(\s*request\.user_id/.test(files.legacyAdminRoutes)) failures
 requireText(files.admin, "rpc('financial_integrity_report')", 'Admin dashboard does not run financial integrity checks');
 requireText(files.globalCss, ':focus-visible', 'Keyboard focus visibility is missing');
 requireText(files.globalCss, 'prefers-reduced-motion: reduce', 'Reduced-motion support is missing');
-requireText(files.baseLayout, '<html lang="en">', 'Public layout language is missing');
-requireText(files.dashboardLayout, '<html lang="en">', 'Dashboard layout language is missing');
+requireText(files.baseLayout, '<html lang="en-IN">', 'Public layout language is missing');
+requireText(files.dashboardLayout, '<html lang="en-IN">', 'Dashboard layout language is missing');
 requireText(files.dashboardLayout, 'aria-controls="sidebar"', 'Dashboard mobile menu target is not labelled');
 requireText(files.servicesPage, 'aria-label="Search available services"', 'Public services search is not labelled');
 requireText(files.pricingPage, 'aria-label="Filter pricing by service name"', 'Public pricing search is not labelled');

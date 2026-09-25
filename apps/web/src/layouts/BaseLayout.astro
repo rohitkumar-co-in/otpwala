@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { formatPageTitle, DEFAULT_BRANDING } from '../lib/branding';
+import { formatPageTitle } from '../lib/branding';
 
 export interface Props {
   title?: string;
@@ -14,7 +14,7 @@ export interface Props {
 
 const { 
   title,
-  description = 'Browse live OTPWala services, countries, stock, and current virtual-number pricing before purchase.',
+  description = 'Check services, country availability, and prices for SMS verification.',
   canonical,
   keywords = 'virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala',
   ogType = 'website',
@@ -36,9 +36,6 @@ const organizationSchema = {
   "name": "OTPWala",
   "url": siteOrigin,
   "logo": `${siteOrigin}/favicon.svg`,
-  "sameAs": [
-    "https://t.me/OTPWalaSupport"
-  ],
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Customer Support",
@@ -52,8 +49,8 @@ const webSiteSchema = {
   "@type": "WebSite",
   "name": "OTPWala",
   "url": siteOrigin,
-  "description": "Instant Virtual Numbers for SMS & OTP Verification",
-  "inLanguage": "en"
+  "description": "Check services, country availability, and prices for SMS verification.",
+  "inLanguage": "en-IN"
 };
 
 const webAppSchema = {
@@ -63,10 +60,11 @@ const webAppSchema = {
   "url": siteOrigin,
   "applicationCategory": "UtilityApplication",
   "operatingSystem": "All",
-  "inLanguage": "en"
+  "description": "Check services, country availability, and prices for SMS verification.",
+  "inLanguage": "en-IN"
 };
 
-const pageName = (title || 'OTPWala').replace(/\s*[—|-]\s*OTPWala.*$/i, '').trim() || 'OTPWala';
+const pageName = (title || 'OTPWala').replace(/\s*[|\u2014\u2013-]\s*OTPWala.*$/i, '').trim() || 'OTPWala';
 const webPageSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
@@ -76,7 +74,7 @@ const webPageSchema = {
   "description": description,
   "isPartOf": { "@id": `${siteOrigin}/#website` },
   "about": { "@id": `${siteOrigin}/#organization` },
-  "inLanguage": "en"
+  "inLanguage": "en-IN"
 };
 
 const breadcrumbSchema = {
@@ -90,7 +88,7 @@ const breadcrumbSchema = {
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -100,7 +98,6 @@ const breadcrumbSchema = {
   <title>{formattedTitle}</title>
   <meta name="title" content={formattedTitle} />
   <meta name="description" content={description} />
-  <meta name="keywords" content={keywords} />
   <meta name="author" content="OTPWala" />
   <meta name="theme-color" content="#2563eb" />
   <meta name="application-name" content="OTPWala" />
@@ -148,8 +145,8 @@ const breadcrumbSchema = {
   <meta property="og:image" content={ogImage} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="OTPWala — Instant Virtual Numbers for SMS Verification" />
-  <meta property="og:locale" content="en_US" />
+  <meta property="og:image:alt" content="OTPWala virtual numbers for SMS verification" />
+  <meta property="og:locale" content="en_IN" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -159,11 +156,7 @@ const breadcrumbSchema = {
   <meta name="twitter:image" content={ogImage} />
   <meta name="twitter:image:alt" content="OTPWala Virtual Number Service" />
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="preconnect" href="https://tiger-sms.com" crossorigin />
+  {['/', '/services', '/countries'].includes(currentPath) && <link rel="preconnect" href="https://tiger-sms.com" crossorigin />}
 
   <!-- Favicons & Touch Icons -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
@@ -187,13 +180,13 @@ const breadcrumbSchema = {
         if (rawB) {
           var b = JSON.parse(rawB);
           var bName = b.brandName || 'OTPWala';
-          var bSep = b.separator || '—';
-          var bSlogan = b.slogan || 'Instant Virtual Numbers for SMS Verification';
+          var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
+          var bSlogan = b.slogan && b.slogan !== 'Instant Virtual Numbers for SMS Verification' ? b.slogan : 'Check services, country availability, and prices for SMS verification.';
           
           if (window.location.pathname === '/' || window.location.pathname === '') {
             document.title = bName + ' ' + bSep + ' ' + bSlogan;
           } else {
-            var parts = document.title.split(/ [—|•-] /);
+            var parts = document.title.split(/ [|•\u2014\u2013-] /);
             var prefix = parts[0] ? parts[0].trim() : '';
             if (prefix && prefix !== bName) {
               document.title = prefix + ' ' + bSep + ' ' + bName;
@@ -335,7 +328,7 @@ const breadcrumbSchema = {
     <section class="mobile-nav-intro" aria-labelledby="mobile-nav-title">
       <span class="mobile-nav-eyebrow">OTPWALA · NAVIGATION</span>
       <h2 id="mobile-nav-title">Explore OTPWala</h2>
-      <p>Find a service, check availability, and get started.</p>
+      <p data-brand-slogan>Check services, country availability, and prices for SMS verification.</p>
     </section>
     <nav class="mobile-nav-links" aria-label="Main navigation">
       <a href="/" class={currentPath === '/' ? 'active' : ''}><span>Home</span><span class="mobile-nav-link-arrow" aria-hidden="true">→</span></a>
@@ -350,7 +343,7 @@ const breadcrumbSchema = {
       <a href="/auth/login" class="btn btn-secondary" id="mobile-login-btn">Log In</a>
       <a href="/auth/register" class="btn btn-primary" id="mobile-register-btn">Get Started Free</a>
     </div>
-    <p class="mobile-nav-note">Secure virtual numbers for SMS verification.</p>
+    <p class="mobile-nav-note" data-brand-slogan>Check services, country availability, and prices for SMS verification.</p>
   </div>
   <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
@@ -423,7 +416,7 @@ const breadcrumbSchema = {
             </span>
             <span class="logo-text"><span data-brand-name>OTPWala</span></span>
           </a>
-          <p class="text-secondary">Virtual numbers with live OTPWala service, stock, and pricing data.</p>
+          <p class="text-secondary" data-brand-slogan>Check services, country availability, and prices for SMS verification.</p>
           <a href="https://gravatar.com/slowlymagicalb55039405e" rel="me" hidden>Gravatar Profile</a>
         </div>
         <div class="footer-links">
@@ -449,7 +442,7 @@ const breadcrumbSchema = {
         </div>
       </div>
       <div class="footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <p class="text-muted">&copy; 2026 <span data-brand-name>OTPWala</span> — All rights reserved.</p>
+        <p class="text-muted">&copy; 2026 <span data-brand-name>OTPWala</span>. All rights reserved.</p>
         <div class="system-status-pill" title="Service, country, and pricing data are loaded from the live catalog">
           <span class="status-dot active pulse-dot"></span>
           <span>System Up &amp; Operational</span>
@@ -649,7 +642,7 @@ const breadcrumbSchema = {
         linear-gradient(145deg, #ffffff 0%, #f8fbff 58%, #f1f6ff 100%);
       padding: clamp(1rem, 4vw, 2.5rem) clamp(1rem, 6vw, 5rem) max(1.25rem, env(safe-area-inset-bottom));
       overflow-y: auto;
-      transform: translateX(-105%);
+      transform: translateX(105%);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1001;
       display: none;
@@ -657,7 +650,11 @@ const breadcrumbSchema = {
       align-items: center;
       gap: clamp(1.25rem, 3vh, 2rem);
       overscroll-behavior: contain;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
+
+    .mobile-nav-drawer::-webkit-scrollbar { display: none; }
 
     .mobile-nav-drawer.open {
       transform: translateX(0);
@@ -1037,12 +1034,12 @@ const breadcrumbSchema = {
       function applyBrand(b) {
         if (!b) return;
         var bName = b.brandName || 'OTPWala';
-        var bSep = b.separator || '—';
-        var bSlogan = b.slogan || 'Instant Virtual Numbers for SMS Verification';
+        var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
+        var bSlogan = b.slogan && b.slogan !== 'Instant Virtual Numbers for SMS Verification' ? b.slogan : 'Check services, country availability, and prices for SMS verification.';
         if (window.location.pathname === '/' || window.location.pathname === '') {
           document.title = bName + ' ' + bSep + ' ' + bSlogan;
         } else if (document.title) {
-          var parts = document.title.split(/ [—|•-] /);
+          var parts = document.title.split(/ [|•\u2014\u2013-] /);
           var prefix = parts[0] ? parts[0].trim() : '';
           if (prefix && prefix !== bName) {
             document.title = prefix + ' ' + bSep + ' ' + bName;

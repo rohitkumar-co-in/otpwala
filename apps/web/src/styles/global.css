@@ -1,10 +1,8 @@
 /* ═══════════════════════════════════════════════════════════
-   OTPWala — Global Design System
+   OTPWala | Global Design System
    Modern white theme with clean typography, soft shadows,
    and micro-animations. (2026 Edition)
    ═══════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ─── CSS Variables / Design Tokens ─── */
 :root {
@@ -59,9 +57,9 @@
   --info-border: rgba(37, 99, 235, 0.18);
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Outfit', 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: Outfit, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -903,6 +901,35 @@ tr:hover td {
 .sidebar-backdrop.active {
   opacity: 1;
   visibility: visible;
+}
+
+/* Keep notices readable and consistent across guest, user, and admin screens. */
+.alert,
+[role="alert"],
+.notice-callout,
+.orders-important-note {
+  line-height: 1.55;
+}
+
+.alert strong,
+[role="alert"] strong,
+.notice-callout strong,
+.orders-important-note strong {
+  font-weight: 750;
+}
+
+.alert p,
+[role="alert"] p,
+.notice-callout p,
+.orders-important-note p {
+  margin-block: 0.35rem;
+}
+
+.alert p:last-child,
+[role="alert"] p:last-child,
+.notice-callout p:last-child,
+.orders-important-note p:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 768px) {

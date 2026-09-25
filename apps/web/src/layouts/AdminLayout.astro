@@ -12,15 +12,12 @@ const formattedTitle = formatPageTitle(title);
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>{formattedTitle}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
   <link rel="shortcut icon" href="/favicon.ico?v=3" />
@@ -38,8 +35,8 @@ const formattedTitle = formatPageTitle(title);
         if (rawB) {
           var b = JSON.parse(rawB);
           var bName = b.brandName || 'OTPWala';
-          var bSep = b.separator || '—';
-          var parts = document.title.split(/ [—|•-] /);
+          var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
+          var parts = document.title.split(/ [|•\u2014\u2013-] /);
           var prefix = parts[0] ? parts[0].trim() : '';
           if (prefix && prefix !== bName) {
             document.title = prefix + ' ' + bSep + ' ' + bName;
@@ -501,9 +498,9 @@ const formattedTitle = formatPageTitle(title);
       function applyBrand(b) {
         if (!b) return;
         var bName = b.brandName || 'OTPWala';
-        var bSep = b.separator || '—';
+        var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
         if (document.title) {
-          var parts = document.title.split(/ [—|•-] /);
+          var parts = document.title.split(/ [|•\u2014\u2013-] /);
           var prefix = parts[0] ? parts[0].trim() : '';
           if (prefix && prefix !== bName) {
             document.title = prefix + ' ' + bSep + ' ' + bName;

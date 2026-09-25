@@ -46,7 +46,7 @@ const howToSchema = {
       "@type": "HowToStep",
       "position": 3,
       "name": "Wait for the SMS Code",
-      "text": "Enter the assigned virtual phone number on your app and follow its live order status. If no OTP arrives, the charge is refunded after cancellation or automatic expiry.",
+      "text": "Enter the assigned virtual number in the app and follow the order status. If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry.",
       "url": "https://otpwala.me/how-it-works#step-3"
     }
   ]
@@ -69,7 +69,7 @@ const howItWorksFaqSchema = {
       "name": "What happens if the SMS verification code does not arrive?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "If a phone number does not receive an OTP, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry."
+        "text": "If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes."
       }
     },
     {
@@ -85,7 +85,7 @@ const howItWorksFaqSchema = {
       "name": "Can someone else see my SMS code?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Never. Unlike free public number websites where messages are broadcast publicly, OTPWala numbers are private and private to your account session only."
+        "text": "Your number and incoming code appear in your logged-in OTPWala account. The number is temporary, so do not use it for long-term account recovery."
       }
     }
   ]
@@ -93,7 +93,7 @@ const howItWorksFaqSchema = {
 ---
 
 <BaseLayout 
-  title="How to Receive SMS Verification Codes — OTPWala"
+  title="How to Receive SMS Verification Codes | OTPWala"
   description="Learn how OTPWala virtual numbers work: add wallet balance, select a service and country, receive an SMS verification code, and handle eligible cancellations."
   canonical="https://otpwala.me/how-it-works"
   keywords="how to get virtual number, receive otp online, temporary phone number guide, sms verification tutorial, virtual number india upi, auto refund otp"
@@ -172,7 +172,7 @@ const howItWorksFaqSchema = {
           <ul class="step-highlights">
             <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1-Click copy code button</li>
             <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Active countdown timer with live status</li>
-            <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Refunds when no OTP arrives after cancellation or automatic expiry</li>
+            <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Refunds after the provider confirms cancellation or expiry</li>
           </ul>
         </div>
       </div>
@@ -235,7 +235,7 @@ const howItWorksFaqSchema = {
                 <div class="rf-num">1</div>
                 <div>
                   <h4>15-Minute Countdown</h4>
-                  <p>When you order a number, a 15–20 minute countdown starts for code delivery.</p>
+                  <p>The provider sets the time available for each number. Check the timer shown on your order.</p>
                 </div>
               </div>
               <div class="rf-step">
@@ -249,7 +249,7 @@ const howItWorksFaqSchema = {
                 <div class="rf-num">3</div>
                 <div>
                   <h4>Refund After Cancellation or Expiry</h4>
-                  <p>If no OTP is received, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.</p>
+                  <p>If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</p>
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@ const howItWorksFaqSchema = {
             <ul class="guarantee-list">
               <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Refunds apply when no OTP is received</li>
               <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Cancellation rejection errors are shown directly</li>
-              <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Wallet credit appears within 5–10 minutes after cancellation or automatic expiry</li>
+              <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Wallet credit may take 5 to 10 minutes after provider confirmation</li>
               <li><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Telegram support link is available from the website</li>
             </ul>
             <a href="/auth/register" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Create Account →</a>
@@ -290,7 +290,7 @@ const howItWorksFaqSchema = {
             <tbody>
               <tr>
                 <td><strong>Privacy & Exclusivity</strong></td>
-                <td class="text-danger"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Public inbox — anyone can read your messages</td>
+                <td class="text-danger"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Public inbox. Anyone can read your messages.</td>
                 <td class="text-success"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Order details shown in your authenticated account</td>
               </tr>
               <tr>
@@ -311,7 +311,7 @@ const howItWorksFaqSchema = {
               <tr>
                 <td><strong>Refund Policy</strong></td>
                 <td class="text-danger"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No support or guarantees</td>
-                <td class="text-success"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Refund if no OTP arrives after cancellation or automatic expiry</td>
+                <td class="text-success"><svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Refund after the provider confirms cancellation or expiry</td>
               </tr>
             </tbody>
           </table>
@@ -336,7 +336,7 @@ const howItWorksFaqSchema = {
           <details class="faq-item">
             <summary class="faq-question">What happens if the SMS verification code does not arrive?</summary>
             <div class="faq-answer">
-              <p>If a phone number does not receive an OTP, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.</p>
+              <p>If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</p>
             </div>
           </details>
 
@@ -350,7 +350,7 @@ const howItWorksFaqSchema = {
           <details class="faq-item">
             <summary class="faq-question">Can someone else see my SMS code?</summary>
             <div class="faq-answer">
-              <p>Never. Unlike free public number websites where messages are broadcast publicly, OTPWala numbers are private to your account session only.</p>
+              <p>Your number and incoming code appear in your logged-in OTPWala account. The number is temporary, so do not use it for long-term account recovery.</p>
             </div>
           </details>
         </div>

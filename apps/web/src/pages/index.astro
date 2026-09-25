@@ -21,7 +21,7 @@ const faqSchema = {
       "name": "What is OTPWala and how does it work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "OTPWala is a high-speed platform providing temporary virtual phone numbers to receive SMS verification codes (OTPs) for services like WhatsApp, Telegram, Google, and Instagram without revealing your personal phone number."
+        "text": "OTPWala lists virtual numbers for SMS verification. Users can check services, country availability, and prices before choosing a number."
       }
     },
     {
@@ -37,7 +37,7 @@ const faqSchema = {
       "name": "What happens if I do not receive an SMS code? Do I get a refund?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "If a phone number does not receive an OTP, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry."
+        "text": "A refund is issued only after the provider confirms cancellation or expiry. Wallet updates may take 5 to 10 minutes."
       }
     },
     {
@@ -61,7 +61,7 @@ const faqSchema = {
       "name": "Are virtual phone numbers safe and private?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Each number is provisioned for your exclusive verification session, protecting your personal SIM card and identity from spam, data brokers, and trackers."
+        "text": "A virtual number lets you receive a verification SMS without sharing your personal phone number. Check the rules of the service where you plan to use it."
       }
     }
   ]
@@ -69,8 +69,8 @@ const faqSchema = {
 ---
 
 <BaseLayout 
-  title="OTPWala — Instant Virtual Numbers for SMS Verification" 
-  description="Get virtual phone numbers for SMS verification. Browse live services, country stock, and current pricing before purchase."
+  title="OTPWala | Virtual Numbers for SMS Verification"
+  description="Check services, country availability, and prices for SMS verification. Choose from the options currently listed on OTPWala."
   keywords="virtual number, sms verification, otp receive, temporary phone number, fake number for otp, whatsapp virtual number, telegram otp, india virtual number, online sms receiver, cheap otp service, otp wala"
 >
 
@@ -104,11 +104,7 @@ const faqSchema = {
           <span class="hero-highlight">SMS &amp; OTP Verification</span>
         </h1>
 
-        <p class="hero-subtitle">
-          Receive OTP verification codes for WhatsApp, Telegram, Google, and more.
-          Select from the services and countries currently available on OTPWala.<br/>
-          View live country availability and current API-based pricing before every purchase.
-        </p>
+        <p class="hero-subtitle">Check services, country availability, and prices for SMS verification before choosing a virtual number.</p>
 
         <div class="hero-btns">
           <a href="/auth/register" class="btn btn-primary btn-lg hero-cta-btn" id="hero-cta">
@@ -514,7 +510,7 @@ const faqSchema = {
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           </div>
           <h3>Choose Service & Country</h3>
-          <p class="text-secondary">Pick any service — WhatsApp, Google, Telegram — and select a country.</p>
+          <p class="text-secondary">Choose a service such as WhatsApp, Google, or Telegram, then select a country.</p>
           <div class="step-line"></div>
         </div>
 
@@ -574,7 +570,7 @@ const faqSchema = {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           </div>
           <h4>Auto Refund</h4>
-          <p class="text-secondary">No OTP? Get a wallet refund within 5–10 minutes after cancellation or automatic expiry.</p>
+          <p class="text-secondary">No OTP? A refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</p>
         </div>
 
         <div class="feat-card feat-small reveal" id="feature-services">
@@ -641,7 +637,7 @@ const faqSchema = {
             <span class="faq-toggle-icon"></span>
           </summary>
           <div class="faq-answer">
-            <p>If a phone number does not receive an OTP, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.</p>
+            <p>If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</p>
           </div>
         </details>
 

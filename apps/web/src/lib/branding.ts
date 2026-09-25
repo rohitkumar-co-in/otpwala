@@ -6,9 +6,13 @@ export interface SiteBranding {
 
 export const DEFAULT_BRANDING: SiteBranding = {
   brandName: 'OTPWala',
-  separator: '—',
-  slogan: 'Instant Virtual Numbers for SMS Verification',
+  separator: '|',
+  slogan: 'Check services, country availability, and prices for SMS verification.',
 };
+
+function cleanSeparator(value?: string): string {
+  return value && !/[\u2014\u2013]/.test(value) ? value : DEFAULT_BRANDING.separator;
+}
 
 /**
  * Get locally cached branding or fall back to defaults
@@ -21,8 +25,8 @@ export function getCachedBranding(): SiteBranding {
         const b = JSON.parse(raw);
         return {
           brandName: b.brandName || DEFAULT_BRANDING.brandName,
-          separator: b.separator || DEFAULT_BRANDING.separator,
-          slogan: b.slogan || DEFAULT_BRANDING.slogan,
+          separator: cleanSeparator(b.separator),
+          slogan: b.slogan === 'Instant Virtual Numbers for SMS Verification' ? DEFAULT_BRANDING.slogan : (b.slogan || DEFAULT_BRANDING.slogan),
         };
       }
     } catch {}
@@ -39,7 +43,7 @@ export function setCachedBranding(branding: Partial<SiteBranding>): void {
     const current = getCachedBranding();
     const updated: SiteBranding = {
       brandName: branding.brandName || current.brandName,
-      separator: branding.separator || current.separator,
+      separator: cleanSeparator(branding.separator || current.separator),
       slogan: branding.slogan || current.slogan,
     };
     localStorage.setItem('otpwala_branding', JSON.stringify(updated));
@@ -52,17 +56,20 @@ export function setCachedBranding(branding: Partial<SiteBranding>): void {
  */
 export function formatPageTitle(pageName?: string, branding: SiteBranding = DEFAULT_BRANDING): string {
   const brand = branding.brandName || DEFAULT_BRANDING.brandName;
-  const sep = branding.separator || DEFAULT_BRANDING.separator;
-  const slogan = branding.slogan || DEFAULT_BRANDING.slogan;
+  const sep = cleanSeparator(branding.separator);
+  const slogan = branding.slogan === 'Instant Virtual Numbers for SMS Verification' ? DEFAULT_BRANDING.slogan : (branding.slogan || DEFAULT_BRANDING.slogan);
 
   if (!pageName || pageName === 'Home' || pageName === brand || pageName.toLowerCase().includes('homepage')) {
     return `${brand} ${sep} ${slogan}`;
   }
 
-  // If pageName already contains a separator and brand suffix, normalize it
-  if (pageName.includes(' — ') || pageName.includes(' | ') || pageName.includes(' • ')) {
-    const parts = pageName.split(/ [—|•-] /);
+  // Normalize authored titles and preserve the home-page slogan suffix.
+  if (/[|•\u2014\u2013-]/.test(pageName)) {
+    const parts = pageName.split(/ [|•\u2014\u2013-] /);
     const prefix = parts[0]?.trim();
+    if (prefix === brand && parts.length > 1) {
+      return `${brand} ${sep} ${parts.slice(1).join(' ')}`;
+    }
     if (prefix && prefix !== brand) {
       return `${prefix} ${sep} ${brand}`;
     }
@@ -77,14 +84,15 @@ export function formatPageTitle(pageName?: string, branding: SiteBranding = DEFA
 export function applyBrandingToDOM(branding: SiteBranding): void {
   if (typeof document === 'undefined') return;
 
-  const { brandName, separator, slogan } = branding;
+  const { brandName, slogan } = branding;
+  const separator = cleanSeparator(branding.separator);
 
   // 1. Update Title
   const path = window.location.pathname;
   if (path === '/' || path === '') {
     document.title = `${brandName} ${separator} ${slogan}`;
   } else if (document.title) {
-    const parts = document.title.split(/ [—|•-] /);
+    const parts = document.title.split(/ [|•\u2014\u2013-] /);
     const prefix = parts[0]?.trim();
     if (prefix && prefix !== brandName) {
       document.title = `${prefix} ${separator} ${brandName}`;

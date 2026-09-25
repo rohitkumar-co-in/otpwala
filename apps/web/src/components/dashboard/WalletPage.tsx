@@ -1131,7 +1131,7 @@ export default function WalletPage() {
               </div>
               <div style={{ marginTop: '0.35rem', fontSize: '0.78rem', color: '#1e40af', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <ClockIcon size={13} color="#1e40af" />
-                <span>10 AM to 10 PM IST timing — outside of this time it can take a bit longer to approve.</span>
+                <span>Support is available from 10 AM to 10 PM IST. Approvals may take longer outside these hours.</span>
               </div>
             </div>
           </div>
@@ -1277,7 +1277,7 @@ export default function WalletPage() {
                             {utrId}
                           </span>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                          <span style={{ color: 'var(--text-muted)' }}>N/A</span>
                         )}
                       </td>
                       <td data-label="Status" style={{ padding: '0.75rem 1rem' }}>
@@ -1375,7 +1375,7 @@ export default function WalletPage() {
                         {currency === 'USD' ? `$${(parseFloat(tx.balance_after || 0) / usdtRate).toFixed(2)}` : `₹${parseFloat(tx.balance_after || 0).toFixed(2)}`}
                       </td>
                       <td data-label="Description" style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
-                        {tx.description || '—'}
+                        {tx.description || 'N/A'}
                       </td>
                       <td data-label="Date" style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(tx.created_at).toLocaleString()}

@@ -111,7 +111,7 @@ export function getStoredSessionSync(): any {
  * localStorage restoration delays, and navigator.locks concurrency.
  */
 export async function getOrWaitForSession(maxWaitMs = 3000): Promise<any> {
-  // 0. Synchronous instant check — 0ms, never blocks
+  // 0. Synchronous instant check: 0ms, never blocks
   const syncSession = getStoredSessionSync();
   if (syncSession?.user) return syncSession;
 

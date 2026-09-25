@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const integrityUnavailable = Boolean(stats?.financialIntegrity?.error);
   const integrityIssues = Number(stats?.financialIntegrity?.totalIssues || 0);
   // Funding totals come from the wallet_funding_summary RPC. Until that migration is
-  // applied the keys are absent — fall back to top-ups only and say so instead of
+  // applied the keys are absent. Fall back to top-ups only and say so instead of
   // silently reporting free balance as collected cash.
   const fundingSummaryAvailable = stats ? stats.cashCollected !== undefined : false;
   const cashCollected = fundingSummaryAvailable
@@ -368,7 +368,7 @@ export default function AdminDashboard() {
         <div className="alert alert-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.45rem' }}>
           <strong>Operations require attention</strong>
           {!stats.providerAvailable && <span>Tiger SMS health check failed: {stats.providerError || 'provider unavailable'}</span>}
-          {stats.failedRefunds > 0 && <a href="/admin/orders?status=failed_refund" style={{ color: 'inherit' }}>{stats.failedRefunds} refund(s) failed — inspect and retry reconciliation</a>}
+          {stats.failedRefunds > 0 && <a href="/admin/orders?status=failed_refund" style={{ color: 'inherit' }}>{stats.failedRefunds} refund(s) failed. Inspect and retry reconciliation.</a>}
           {stats.stuckOrders > 0 && <a href="/admin/orders?status=stuck" style={{ color: 'inherit' }}>{stats.stuckOrders} expired waiting order(s) need reconciliation</a>}
         </div>
       )}
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', marginBottom: '0.85rem' }}>
             <div>
               <h2 id="operational-alerts-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Operational Alert History</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.2rem 0 0' }}>Latest deduplicated provider and notification alerts.</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.2rem 0 0' }}>Recent alerts from the provider and notification services. Similar alerts are grouped together.</p>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               {stats.failedAlerts > 0 && <span className="badge badge-error">{stats.failedAlerts} failed</span>}
@@ -429,10 +429,10 @@ export default function AdminDashboard() {
       {stats?.financialIntegrity && (
         <section className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${integrityUnavailable || integrityIssues > 0 ? 'var(--error)' : 'var(--success)'}` }} aria-labelledby="financial-integrity-heading">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div><h2 id="financial-integrity-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Financial Integrity Check</h2><p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>Cross-checks orders, refunds, approved top-ups, and profile balances against the immutable wallet ledger.</p></div>
+            <div><h2 id="financial-integrity-heading" style={{ fontSize: '1.05rem', margin: 0 }}>Financial Integrity Check</h2><p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>Compares orders, refunds, approved deposits, and wallet balances with transaction records.</p></div>
             <span className={`badge ${integrityUnavailable || integrityIssues > 0 ? 'badge-error' : 'badge-success'}`}>{integrityUnavailable ? 'Check unavailable' : integrityIssues === 0 ? 'All checks passed' : `${integrityIssues} issue(s)`}</span>
           </div>
-          {integrityUnavailable ? <p role="alert" style={{ color: 'var(--error)', fontSize: '0.8rem', margin: '0.85rem 0 0' }}>{stats.financialIntegrity.error} Refresh the dashboard; if it persists, investigate the database RPC before approving financial actions.</p> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '0.55rem', marginTop: '0.85rem' }}>
+          {integrityUnavailable ? <p role="alert" style={{ color: 'var(--error)', fontSize: '0.8rem', margin: '0.85rem 0 0' }}><strong>Check needed:</strong> {stats.financialIntegrity.error} Refresh the dashboard. If the issue remains, check it before approving payments.</p> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '0.55rem', marginTop: '0.85rem' }}>
             {[
               ['Orders without debit', stats.financialIntegrity.ordersWithoutDebit],
               ['Order amount mismatch', stats.financialIntegrity.orderDebitMismatch],
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
                 : parseFloat(stats?.tigerBalance || 0) >= 1.0
                 ? 'Upstream Provider Connected & Healthy'
                 : parseFloat(stats?.tigerBalance || 0) > 0
-                ? 'Low Balance — Top Up Tiger SMS'
+                ? 'Low Balance: Top Up Tiger SMS'
                 : 'Provider Connected • Balance $0.00'}
             </span>
           </div>
@@ -740,7 +740,7 @@ export default function AdminDashboard() {
                                 {utr}
                               </span>
                             ) : (
-                              <span style={{ color: 'var(--text-muted)' }}>—</span>
+                              <span style={{ color: 'var(--text-muted)' }}>N/A</span>
                             )}
                           </td>
                           <td data-label="Method" style={{ padding: '0.75rem' }}>
@@ -876,7 +876,7 @@ export default function AdminDashboard() {
                           </button>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--text-muted)' }}>N/A</span>
                       )}
                     </td>
                     <td data-label="Status" style={{ padding: '0.75rem' }}>

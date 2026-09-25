@@ -11,7 +11,7 @@ interface Props {
 const OPTIONS: { value: AdminFundingSource; title: string; description: string; accent: string; tint: string; ring: string }[] = [
   {
     value: 'manual_funding',
-    title: 'Manually funded — money received',
+    title: 'Manually funded: money received',
     description: 'You really received the payment (UPI, bank transfer or cash) and are adding it to the wallet. Counts as collected cash.',
     accent: '#10b981',
     tint: 'rgba(16, 185, 129, 0.12)',
@@ -19,7 +19,7 @@ const OPTIONS: { value: AdminFundingSource; title: string; description: string; 
   },
   {
     value: 'free_grant',
-    title: 'Free funds by admin — no money received',
+    title: 'Free funds by admin: no money received',
     description: 'Goodwill, compensation or promotional balance. Increases wallet liability but is never counted as revenue.',
     accent: '#a855f7',
     tint: 'rgba(168, 85, 247, 0.12)',
