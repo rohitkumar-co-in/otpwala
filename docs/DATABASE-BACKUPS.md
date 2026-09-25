@@ -4,7 +4,7 @@ This repository includes a daily GitHub Actions workflow at `.github/workflows/b
 
 The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests.
 
-The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup.
+The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup. The `database-backups` branch contains only database snapshots, not a duplicate copy of the application. When converting an older branch that contains project files, prior successful snapshots are moved into `backups/supabase/archive/` before the branch history is cleaned.
 
 Each roles, schema, and data dump is logged as a separate stage with its start time, duration, CLI output, and exit status. If one fails, the workflow prints its captured output with connection passwords redacted.
 

@@ -117,12 +117,53 @@ jobs:
             cd "$backup_dir"
             sha256sum roles.sql.gz schema.sql.gz data.sql.gz > SHA256SUMS
           )
+          remote_sha=""
           remote_branch="$(git ls-remote --heads origin refs/heads/database-backups)"
           if [[ -n "$remote_branch" ]]; then
-            git fetch origin refs/heads/database-backups:refs/remotes/origin/database-backups
-            git checkout -B database-backups origin/database-backups
+            remote_sha="${remote_branch%%$'\t'*}"
+            git fetch origin +refs/heads/database-backups:refs/remotes/origin/database-backups
+            backup_ref=refs/remotes/origin/database-backups
+            unrelated_files="$(git ls-tree -r --name-only "$backup_ref" | grep -Ev '^backups/supabase/' || true)"
+
+            if [[ -n "$unrelated_files" ]]; then
+              echo "Converting database-backups to a database-only branch. Archiving prior snapshots first."
+              archive_root="$backup_tmp/prior-snapshots"
+              mkdir -p "$archive_root"
+
+              while IFS= read -r commit; do
+                manifest="$(git show "$commit:backups/supabase/latest/manifest.txt" 2>/dev/null || true)"
+                created_at="$(printf '%s\n' "$manifest" | sed -n 's/^created_at_utc=//p' | head -n 1)"
+                archive_id="$(printf '%s' "$created_at" | tr -cd '[:alnum:]')"
+                if [[ -z "$archive_id" ]]; then
+                  archive_id="legacy-${commit:0:8}"
+                else
+                  archive_id="${archive_id}-${commit:0:8}"
+                fi
+
+                snapshot_dir="$archive_root/$archive_id"
+                mkdir -p "$snapshot_dir"
+                for file in roles.sql.gz schema.sql.gz data.sql.gz manifest.txt SHA256SUMS; do
+                  if git cat-file -e "$commit:backups/supabase/latest/$file" 2>/dev/null; then
+                    git show "$commit:backups/supabase/latest/$file" > "$snapshot_dir/$file"
+                  fi
+                done
+              done < <(git log --format='%H' "$backup_ref" -- backups/supabase/latest/manifest.txt)
+
+              git switch --orphan database-backup-clean
+              git rm -r -f --ignore-unmatch -- .
+              if [[ -n "$(find "$archive_root" -type f -print -quit)" ]]; then
+                mkdir -p backups/supabase/archive
+                cp -R "$archive_root"/. backups/supabase/archive/
+              fi
+              rewrite_backup_branch=true
+            else
+              git checkout -B database-backups "$backup_ref"
+              rewrite_backup_branch=false
+            fi
           else
-            git checkout -b database-backups
+            git switch --orphan database-backup-clean
+            git rm -r -f --ignore-unmatch -- .
+            rewrite_backup_branch=true
           fi
 
           mkdir -p backups/supabase/latest
@@ -134,10 +175,14 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backups/supabase/latest
+          git add backups/supabase
           if git diff --cached --quiet; then
             echo "The database dump has not changed; no backup commit is needed."
             exit 0
           fi
           git commit -m "chore(backup): refresh Supabase database dump"
-          git push origin HEAD:database-backups
+          if [[ "$rewrite_backup_branch" == "true" ]]; then
+            git push --force-with-lease="refs/heads/database-backups:$remote_sha" origin HEAD:database-backups
+          else
+            git push origin HEAD:database-backups
+          fi
