@@ -1598,7 +1598,6 @@ export default function BuyNumber() {
                     <th>Service</th>
                     <th>Country</th>
                     <th>Number</th>
-                    <th>OTP Code</th>
                     <th>Status</th>
                     <th>Price</th>
                     <th>Date</th>
@@ -1627,19 +1626,11 @@ export default function BuyNumber() {
                               Copy
                             </button>
                           </div>
-                        ) : ro.status === 'waiting' ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontSize: '0.78rem', fontWeight: 600 }}>
-                            <RefreshCwIcon size={12} className="animate-spin" />
-                            <span>Waiting for OTP...</span>
-                          </span>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)' }}>—</span>
+                          <span className={`badge badge-${ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
+                            {ro.status === 'code_received' ? 'OTP Received' : ro.status}
+                          </span>
                         )}
-                      </td>
-                      <td>
-                        <span className={`badge badge-${ro.status === 'code_received' ? 'success' : ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
-                          {ro.status === 'code_received' ? 'OTP Received' : ro.status}
-                        </span>
                       </td>
                       <td style={{ fontWeight: 600 }}>{formatDualPrice(parseFloat(ro.sell_price_inr || 0), currency, usdRate).full}</td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
