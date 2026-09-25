@@ -1,5 +1,4 @@
 import serviceIcons from '../data/tigerServiceIcons.json';
-import countryFlags from '../data/countryFlags.json';
 import { TigerSmsClient } from './tiger';
 import { calculateSellPrices } from './pricing';
 import { getSupabaseAdmin } from './supabase';
@@ -68,9 +67,17 @@ type CatalogConfig = {
 
 const tigerServiceSlugCache = new Map<string, string>();
 const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
+let tigerServicesCache: { data: { code: string; name: string }[]; expiresAt: number } | null = null;
 let tigerCountriesCache: any[] | null = null;
 let tigerCountriesCacheTime = 0;
 const tigerPricesCache = new Map<string, { data: Record<string, any>; expiresAt: number }>();
+
+async function getCachedTigerServices(tiger: TigerSmsClient): Promise<{ code: string; name: string }[]> {
+  if (tigerServicesCache && tigerServicesCache.expiresAt > Date.now()) return tigerServicesCache.data;
+  const data = await tiger.getServicesList();
+  tigerServicesCache = { data, expiresAt: Date.now() + 60 * 60_000 };
+  return data;
+}
 
 async function getCachedTigerCountries(tiger: TigerSmsClient): Promise<any[]> {
   if (tigerCountriesCache && Date.now() - tigerCountriesCacheTime < 3600_000) return tigerCountriesCache;
@@ -154,14 +161,6 @@ try {
     }
   }
 } catch {}
-// Prefer the checked-in country directory when runtime Intl region data or
-// provider-specific country names do not resolve to an ISO code.
-const savedCountryDirectory = (countryFlags as any)?.default || countryFlags;
-for (const country of Object.values(savedCountryDirectory as Record<string, any>)) {
-  if (country?.name && country?.iso) {
-    countryIsoByName.set(normalizeCountryName(country.name), String(country.iso).toLowerCase());
-  }
-}
 for (const [name, iso] of Object.entries(COUNTRY_ISO_ALIASES)) {
   countryIsoByName.set(name, iso);
 }
@@ -209,21 +208,18 @@ async function getTigerHighDeliveryCountries(serviceName: string): Promise<strin
   if (cached && cached.expiresAt > Date.now()) return cached.names;
 
   const pageHtml = await fetchTigerPage(`https://tiger-sms.com/services/${encodeURIComponent(slug)}`);
-  const scriptPattern = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  let names: string[] = [];
-  for (const match of pageHtml.matchAll(scriptPattern)) {
-    try {
-      const value = JSON.parse(match[1]);
-      if (value?.['@type'] !== 'ItemList' || !/countries for/i.test(String(value.name || ''))) continue;
-      names = (value.itemListElement || [])
-        .sort((a: any, b: any) => Number(a.position || 0) - Number(b.position || 0))
-        .map((item: any) => String(item.name || '').trim())
-        .filter(Boolean);
-      break;
-    } catch {}
-  }
+  // Tiger's JSON-LD list is the Top 10, not the countries it actually labels
+  // "Best delivery". Only elevate entries whose rendered provider badge says so.
+  const countryBlocks = pageHtml.split(/<div class=["']country-block-wrapper["'][^>]*>/i).slice(1);
+  const names = countryBlocks.flatMap((block) => {
+    if (!/<span[^>]*class=["'][^"']*t_dp-badge[^"']*["'][^>]*>\s*Best delivery\s*<\/span>/i.test(block)) return [];
+    const link = block.match(/<a[^>]*class=["'][^"']*t_dp-rowlink[^"']*["'][^>]*>([\s\S]*?)<\/a>/i);
+    const name = link ? stripHtml(link[1]) : '';
+    return name ? [name] : [];
+  });
 
-  tigerDeliveryCache.set(slug, { names, expiresAt: Date.now() + 15 * 60_000 });
+  // Don't cache failed/changed markup as an empty result; retry on the next call.
+  if (names.length) tigerDeliveryCache.set(slug, { names, expiresAt: Date.now() + 15 * 60_000 });
   return names;
 }
 
@@ -269,7 +265,7 @@ export async function getServices(featuredOnly = false, env?: any) {
   const tiger = new TigerSmsClient(env);
   const [{ disabledServices, featuredServices }, tigerServices] = await Promise.all([
     getDisabledCatalog(env),
-    tiger.getServicesList(),
+    getCachedTigerServices(tiger),
   ]);
 
   const candidateServices = featuredOnly
@@ -400,16 +396,14 @@ export async function setDisabledCatalog(services?: string[], countries?: number
 
 export async function getServiceCountries(serviceCode: string, userId?: string, env?: any) {
   const tiger = new TigerSmsClient(env);
-  const [{ disabledCountries, featuredCountries }, allCountries, livePrices] = await Promise.all([
+  const [{ disabledCountries, featuredCountries }, allCountries, livePrices, tigerServices] = await Promise.all([
     getDisabledCatalog(env),
     getCachedTigerCountries(tiger),
     getCachedTigerPrices(tiger, serviceCode),
+    getCachedTigerServices(tiger),
   ]);
-  const serviceName = serviceCode;
-  const highDeliveryNames = await Promise.race([
-    getTigerHighDeliveryCountries(serviceName),
-    new Promise<string[]>((resolve) => setTimeout(() => resolve([]), 250)),
-  ]);
+  const serviceName = tigerServices.find((service) => service.code.toLowerCase() === serviceCode.toLowerCase())?.name || serviceCode;
+  const highDeliveryNames = await getTigerHighDeliveryCountries(serviceName);
   const deliveryRanks = new Map(highDeliveryNames.map((name, index) => [normalizeName(name), index + 1]));
 
   const countryMap = new Map(allCountries.map((c: any) => [String(c.id), c.eng]));

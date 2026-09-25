@@ -545,16 +545,16 @@ export default function CatalogManager() {
                       style={{
                         width: '48px',
                         height: '48px',
-                        borderRadius: 'var(--radius-md)',
-                        background: s.enabled ? 'var(--accent-glow)' : 'var(--bg-tertiary)',
+                        borderRadius: '50%',
+                        background: 'transparent',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        padding: '8px',
+                        padding: 0,
                       }}
                     >
-                      {renderServiceIcon(s, 22)}
+                      {renderServiceIcon(s, 48)}
                     </div>
                     <div style={{ width: '100%' }}>
                       <div
@@ -645,8 +645,8 @@ export default function CatalogManager() {
                       style={{
                         width: '38px',
                         height: '38px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: c.enabled ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-tertiary)',
+                        borderRadius: '50%',
+                        background: 'transparent',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -656,8 +656,8 @@ export default function CatalogManager() {
                       <img
                         src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
                         alt={c.name}
-                        width="26"
-                        height="26"
+                        width="38"
+                        height="38"
                         style={{
                           borderRadius: '50%',
                           objectFit: 'cover',

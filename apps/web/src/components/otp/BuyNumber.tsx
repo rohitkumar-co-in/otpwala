@@ -112,35 +112,6 @@ export function renderCountryFlag(country: any, width = 28, _height = 18) {
   );
 }
 
-function getServiceBg(code: string) {
-  const c = (code || '').toLowerCase().trim();
-  if (c === 'wa' || c === 'wa2') return 'rgba(37, 211, 102, 0.15)';
-  if (c === 'tg' || c === 'eh') return 'rgba(34, 158, 217, 0.15)';
-  if (c === 'go' || c === 'gch' || c === 'gms' || c === 'gpy' || c === 'gf') return 'rgba(234, 67, 53, 0.15)';
-  if (c === 'ig') return 'rgba(225, 48, 108, 0.15)';
-  if (c === 'dr') return 'rgba(16, 163, 127, 0.15)';
-  if (c === 'fb') return 'rgba(24, 119, 242, 0.15)';
-  if (c === 'tw') return 'rgba(15, 23, 42, 0.08)';
-  if (c === 'lf') return 'rgba(254, 44, 85, 0.15)';
-  if (c === 'mm') return 'rgba(0, 164, 239, 0.15)';
-  if (c === 'wx') return 'rgba(15, 23, 42, 0.08)';
-  if (c === 'am') return 'rgba(255, 153, 0, 0.15)';
-  if (c === 'nf') return 'rgba(229, 9, 20, 0.15)';
-  if (c === 'ds') return 'rgba(88, 101, 242, 0.15)';
-  if (c === 'ub') return 'rgba(15, 23, 42, 0.08)';
-  if (c === 'fu') return 'rgba(255, 252, 0, 0.15)';
-  if (c === 'oi') return 'rgba(254, 60, 114, 0.15)';
-  if (c === 'so' || c === 'spot') return 'rgba(30, 215, 96, 0.15)';
-  if (c === 'ln') return 'rgba(10, 102, 194, 0.15)';
-  if (c === 'rd') return 'rgba(255, 69, 0, 0.15)';
-  if (c === 'mt' || c === 'steam') return 'rgba(102, 192, 244, 0.15)';
-  if (c === 'ts') return 'rgba(0, 121, 193, 0.15)';
-  if (c === 'mb') return 'rgba(96, 1, 210, 0.15)';
-  if (c === 'vi') return 'rgba(115, 96, 242, 0.15)';
-  if (c === 'me') return 'rgba(0, 195, 0, 0.15)';
-  return 'var(--accent-glow)';
-}
-
 export type ServiceSortOption = 'featured' | 'name_asc' | 'name_desc';
 export type CountrySortOption = 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'stock_desc';
 
@@ -723,17 +694,17 @@ export default function BuyNumber() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    borderRadius: 'var(--radius-md)',
-                    background: getServiceBg(service.code),
+                  borderRadius: '50%',
+                  background: 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: '0.5rem',
                     transition: 'transform var(--transition-fast)',
-                    padding: '8px',
+                  padding: 0,
                   }}
                 >
-                  {renderServiceIcon(service, 28)}
+                  {renderServiceIcon(service, 48)}
                 </div>
 
                 <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--text-primary)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={service.name}>
@@ -833,15 +804,15 @@ export default function BuyNumber() {
                 style={{
                   width: '36px',
                   height: '36px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: getServiceBg(selectedService?.code || ''),
+                  borderRadius: '50%',
+                  background: 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '6px',
+                  padding: 0,
                 }}
               >
-                {renderServiceIcon(selectedService, 22)}
+                {renderServiceIcon(selectedService, 36)}
               </div>
               <h2 className="buy-country-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', margin: 0 }}>
                 {selectedService?.name} — <span className="text-gradient">Select Country</span>
@@ -1197,15 +1168,15 @@ export default function BuyNumber() {
                   style={{
                     width: '40px',
                     height: '40px',
-                    borderRadius: '10px',
-                    background: getServiceBg(order?.serviceCode || selectedService?.code || ''),
+                    borderRadius: '50%',
+                    background: 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '7px',
+                    padding: 0,
                   }}
                 >
-                  {renderServiceIcon(selectedService || { code: order?.serviceCode, name: order?.serviceName }, 24)}
+                  {renderServiceIcon(selectedService || { code: order?.serviceCode, name: order?.serviceName }, 40)}
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
