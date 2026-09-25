@@ -1229,7 +1229,7 @@ export default function BuyNumber() {
               background: hasOtp
                 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.95))'
                 : isExpired || isCancelled
-                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(15, 23, 42, 0.95))'
+                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), var(--bg-card))'
                 : 'var(--bg-card)',
               border: hasOtp
                 ? '1px solid rgba(16, 185, 129, 0.45)'
@@ -1484,7 +1484,7 @@ export default function BuyNumber() {
                     <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0 0 0.5rem', fontWeight: 600 }}>
                       {isCancelled ? 'The provider confirmed this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
                     </p>
-                    <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
+                    <p style={{ color: '#15803d', fontSize: '0.8rem', margin: 0 }}>
                       The number price was deducted when it was reserved. If no OTP was received, the refund follows provider-confirmed cancellation or expiry and may take 5–10 minutes to appear.
                     </p>
                   </div>
@@ -1494,7 +1494,7 @@ export default function BuyNumber() {
 
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.78rem', color: isExpired || isCancelled ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry; wallet updates may take 5–10 minutes.</span>
               </div>
 

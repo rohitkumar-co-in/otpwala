@@ -1,9 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
 ---
 
 <BaseLayout title="Service Status — OTPWala" description="Current operational status of OTPWala services.">
   <main id="main-content" class="status-page">
+    <div class="status-shell">
+      <Breadcrumb current="Service Status" />
+    </div>
     <section class="status-shell" aria-labelledby="status-title">
       <p class="eyebrow">System health</p>
       <h1 id="status-title">OTPWala Service Status</h1>

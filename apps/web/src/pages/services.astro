@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
 import catalog from '../data/catalog.json';
 
 const referenceServiceData = import.meta.glob('../data/tiger-service-directory.json', { eager: true, import: 'default' })['../data/tiger-service-directory.json'];
@@ -111,13 +112,7 @@ const servicesFaqSchema = {
 
   <section class="services-page">
     <div class="container">
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-        <ol class="breadcrumb-list">
-          <li><a href="/">Home</a></li>
-          <li aria-current="page">Services</li>
-        </ol>
-      </nav>
+      <Breadcrumb current="Services" />
 
       <!-- Hero Header -->
       <div class="services-hero">

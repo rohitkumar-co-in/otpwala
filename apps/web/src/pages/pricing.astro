@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
 
 // SEO Structured Data
 const breadcrumbSchema = {
@@ -74,13 +75,7 @@ const pricingFaqSchema = {
 
   <section class="pricing-page">
     <div class="container">
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-        <ol class="breadcrumb-list">
-          <li><a href="/">Home</a></li>
-          <li aria-current="page">Pricing</li>
-        </ol>
-      </nav>
+      <Breadcrumb current="Pricing" />
 
       <!-- Pricing Hero -->
       <div class="pricing-hero">

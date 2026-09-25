@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
 import catalog from '../data/catalog.json';
 
 const displayCountryLists = import.meta.glob('../data/tiger-country-directory.json', { eager: true, import: 'default' })['../data/tiger-country-directory.json'];
@@ -33,12 +34,7 @@ const breadcrumbSchema = {
 
   <section class="countries-page">
     <div class="container">
-      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-        <ol class="breadcrumb-list">
-          <li><a href="/">Home</a></li>
-          <li aria-current="page">Countries</li>
-        </ol>
-      </nav>
+      <Breadcrumb current="Countries" />
 
       <section class="countries-hero">
           <span class="badge-pill">Catalog</span>

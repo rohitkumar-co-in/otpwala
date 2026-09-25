@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/ui/Breadcrumb.astro';
 import '../styles/legal.css';
 
 const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
@@ -14,6 +15,7 @@ const { canonical = 'https://otpwala.me/privacy' } = Astro.props;
     {/* Header Banner */}
     <section class="legal-hero">
       <div class="container">
+        <Breadcrumb current="Privacy Policy" />
         <div class="legal-hero-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>

@@ -217,14 +217,6 @@ const formattedTitle = formatPageTitle(title);
             </div>
           </div>
 
-          <!-- Header Wallet Balance Pill -->
-          <a href="/dashboard/wallet" class="header-wallet-pill" id="header-wallet-pill" title="View Wallet & Top Up">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
-            </svg>
-            <span id="wallet-amount" aria-live="polite" style="font-weight: 700; font-family: var(--font-mono); font-size: 0.84rem;">…</span>
-          </a>
-
           <div class="system-status-pill" id="dashboard-health-pill" title="Service, country, and pricing data are loaded from the live catalog">
             <span class="status-dot active pulse-dot" id="dashboard-health-dot"></span>
             <span class="status-text" id="dashboard-health-text" style="font-size: 0.72rem;">System Up &amp; Operational</span>
@@ -466,23 +458,6 @@ const formattedTitle = formatPageTitle(title);
       color: #ffffff;
       box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
     }
-    .header-wallet-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 5px 11px;
-      border-radius: 999px;
-      color: #059669;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-    .header-wallet-pill:hover {
-      background: rgba(16, 185, 129, 0.16);
-      border-color: rgba(16, 185, 129, 0.4);
-    }
-
     .user-avatar {
       width: 36px;
       height: 36px;
@@ -708,7 +683,7 @@ const formattedTitle = formatPageTitle(title);
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('id, role, is_banned, wallet_balance')
+          .select('id, role, is_banned')
           .eq('id', session.user.id)
           .maybeSingle();
         existingProfile = data;
@@ -803,8 +778,6 @@ const formattedTitle = formatPageTitle(title);
           }
         }
       } catch {}
-
-      const walletBalanceStorageKey = `otpwala_wallet_balance_${session.user.id}`;
 
       // Set avatar initial and dropdown profile info
       const avatar = document.getElementById('user-avatar');
@@ -910,8 +883,7 @@ const formattedTitle = formatPageTitle(title);
           if (resolvedCurrency) {
             localStorage.setItem('otpwala_currency', resolvedCurrency);
             updateCurrencyButtons(resolvedCurrency);
-            updateDisplayBalance();
-            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: resolvedCurrency, rate: (window as any).__otpwala_rate || 115 } }));
+            window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: resolvedCurrency } }));
           }
           revealCurrencyToggle();
         }
@@ -931,23 +903,9 @@ const formattedTitle = formatPageTitle(title);
         }
       }
 
-      function updateDisplayBalance() {
-        const curr = getActiveCurrency();
-        const safeRate = Number((window as any).__otpwala_rate) || 115;
-        const amountEl = document.getElementById('wallet-amount');
-        if (!amountEl) return;
-        const balance = Number((window as any).__otpwala_balance);
-        if (!Number.isFinite(balance)) {
-          amountEl.textContent = '…';
-          return;
-        }
-        amountEl.textContent = curr === 'USD' ? `$${(balance / safeRate).toFixed(2)}` : `₹${balance.toFixed(2)}`;
-      }
-
       function initCurrencyControls() {
         const curr = getActiveCurrency();
         updateCurrencyButtons(curr);
-        updateDisplayBalance();
 
         const btnInr = document.getElementById('btn-curr-inr');
         const btnUsd = document.getElementById('btn-curr-usd');
@@ -956,74 +914,24 @@ const formattedTitle = formatPageTitle(title);
           localStorage.setItem('otpwala_currency', 'INR');
           void saveCurrencyPreference('INR');
           updateCurrencyButtons('INR');
-          updateDisplayBalance();
-          window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'INR', rate: (window as any).__otpwala_rate || 115 } }));
+          window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'INR' } }));
         });
 
         btnUsd?.addEventListener('click', () => {
           localStorage.setItem('otpwala_currency', 'USD');
           void saveCurrencyPreference('USD');
           updateCurrencyButtons('USD');
-          updateDisplayBalance();
-          window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'USD', rate: (window as any).__otpwala_rate || 115 } }));
+          window.dispatchEvent(new CustomEvent('otpwala:currency-change', { detail: { currency: 'USD' } }));
         });
 
         window.addEventListener('otpwala:currency-change', (e: any) => {
           if (e.detail?.currency) {
             updateCurrencyButtons(e.detail.currency);
-            updateDisplayBalance();
           }
         });
       }
       initCurrencyControls();
       void loadCurrencyPreference();
-
-      // Fetch wallet balance — concurrent_session is now non-fatal (re-registers instead of kicking)
-      try {
-        let apiUrl = (window as any).__PUBLIC_API_URL__ !== undefined
-          ? (window as any).__PUBLIC_API_URL__
-          : (import.meta.env.PUBLIC_API_URL || '');
-        const host = window.location.hostname;
-        if (!apiUrl && (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.'))) {
-          apiUrl = 'http://localhost:3001';
-        }
-        const res = await fetch(
-          apiUrl + '/api/wallet',
-          {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'x-session-id': getLocalSessionId() || '',
-            }
-          }
-        );
-        const data = await res.json();
-        if (data.success) {
-          (window as any).__otpwala_balance = parseFloat(data.data.balance) || 0;
-          (window as any).__otpwala_rate = parseFloat(data.data.config?.usdToInrRate) || 115;
-          localStorage.setItem(walletBalanceStorageKey, String((window as any).__otpwala_balance));
-          updateDisplayBalance();
-        } else if (data.error === 'concurrent_session') {
-          // Non-fatal: re-register this device's session instead of kicking user
-          console.warn('Concurrent session detected, re-registering...');
-          clearLocalSessionId();
-          registerCurrentSession(session.access_token).catch(() => {});
-        } else if (data.error === 'account_banned') {
-          await handleSessionTermination('account_banned');
-          return;
-        } else if (data.error === 'account_deleted') {
-          await handleSessionTermination('account_deleted');
-          return;
-        }
-      } catch {}
-
-      window.addEventListener('otpwala:wallet-balance', (event: any) => {
-        const balance = Number(event.detail?.balance);
-        if (!Number.isFinite(balance)) return;
-        (window as any).__otpwala_balance = balance;
-        localStorage.setItem(walletBalanceStorageKey, String(balance));
-        if (event.detail?.rate) (window as any).__otpwala_rate = Number(event.detail.rate) || 115;
-        updateDisplayBalance();
-      });
 
       // Fetch health status
       try {
