@@ -235,6 +235,12 @@ export const setUserZeroMarkup = (userId: string, hasZeroMarkup: boolean) =>
     body: JSON.stringify({ hasZeroMarkup }),
   });
 export type UserPurgeMode = 'complete' | 'history';
+export type UserHistoryClearMode = 'all' | 'preserve_funding';
+export const clearUserHistory = (userId: string, mode: UserHistoryClearMode, confirmation: string) =>
+  apiFetch<any>(`/api/admin/users/${userId}/clear-history`, {
+    method: 'POST',
+    body: JSON.stringify({ mode, confirmation }),
+  });
 export const purgeUser = (userId: string, mode: UserPurgeMode) =>
   apiFetch<any>(`/api/admin/users/${userId}/purge`, { method: 'POST', body: JSON.stringify({ mode }) });
 export const getAdminUserPurgeHistory = () =>

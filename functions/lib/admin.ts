@@ -130,9 +130,25 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
   const userIds = (data || []).map((u: any) => u.id).filter(Boolean);
   const orderTotals: Record<string, { spent: number; orders: number }> = {};
   const depositTotals: Record<string, number> = {};
+  const historyClearByUser: Record<string, { cleared_at: string; mode: string; funding_since: string | null }> = {};
   if (userIds.length) {
-    const { data: orderRows } = await supabase.from('orders').select('user_id,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
+    const { data: clearRows, error: clearError } = await supabase.from('admin_user_history_clears').select('user_id,cleared_at,mode').in('user_id', userIds).order('cleared_at', { ascending: false });
+    if (!clearError) {
+      for (const userId of userIds) {
+        const userClears = (clearRows || []).filter((clear: any) => clear.user_id === userId);
+        const latestClear = userClears[0];
+        if (latestClear) {
+          historyClearByUser[userId] = {
+            ...latestClear,
+            funding_since: userClears.find((clear: any) => clear.mode === 'all')?.cleared_at || null,
+          };
+        }
+      }
+    }
+    const { data: orderRows } = await supabase.from('orders').select('user_id,created_at,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
     for (const order of orderRows || []) {
+      const clear = historyClearByUser[order.user_id];
+      if (clear && new Date(order.created_at).getTime() < new Date(clear.cleared_at).getTime()) continue;
       const refunded = ['refunded', 'refund_issued', 'cancelled'].includes(String(order.refund_status || '').toLowerCase()) || String(order.status || '').toLowerCase() === 'cancelled';
       if (refunded) continue;
       const amount = Number(order.sell_price_inr ?? order.price_inr ?? 0);
@@ -145,8 +161,11 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
   }
 
   if (userIds.length) {
-    const { data: depositRows } = await supabase.from('wallet_transactions').select('user_id,amount').in('user_id', userIds).eq('type', 'topup').eq('status', 'completed');
+    const { data: depositRows } = await supabase.from('wallet_transactions').select('user_id,amount,created_at').in('user_id', userIds).eq('type', 'topup').eq('status', 'completed');
     for (const deposit of depositRows || []) {
+      const clear = historyClearByUser[deposit.user_id];
+      const fundingCutoff = clear?.mode === 'all' ? clear.cleared_at : clear?.funding_since;
+      if (fundingCutoff && new Date(deposit.created_at).getTime() < new Date(fundingCutoff).getTime()) continue;
       const amount = Number(deposit.amount || 0);
       if (Number.isFinite(amount) && amount > 0) depositTotals[deposit.user_id] = (depositTotals[deposit.user_id] || 0) + amount;
     }

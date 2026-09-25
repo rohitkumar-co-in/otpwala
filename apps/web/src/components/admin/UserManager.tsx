@@ -5,6 +5,7 @@ import {
   getAdminUserDetails,
   getAdminUserExport,
   getAdminUserPurgeHistory,
+  clearUserHistory,
   creditUser,
   banUser,
   setUserZeroMarkup,
@@ -14,7 +15,7 @@ import {
   promoteAdmin,
   demoteAdmin,
 } from '../../lib/api';
-import type { AdminFundingSource, UserPurgeMode } from '../../lib/api';
+import type { AdminFundingSource, UserHistoryClearMode, UserPurgeMode } from '../../lib/api';
 import FundingSourcePicker from './FundingSourcePicker';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
@@ -63,6 +64,10 @@ export default function UserManager() {
   const [purgeConfirmation, setPurgeConfirmation] = useState('');
   const [purgeHistory, setPurgeHistory] = useState<any[]>([]);
   const [purgeHistoryLoading, setPurgeHistoryLoading] = useState(false);
+  const [historyClearTarget, setHistoryClearTarget] = useState<any | null>(null);
+  const [historyClearMode, setHistoryClearMode] = useState<UserHistoryClearMode>('preserve_funding');
+  const [historyClearConfirmation, setHistoryClearConfirmation] = useState('');
+  const [clearingHistory, setClearingHistory] = useState(false);
 
   // Bulk selection state
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -350,6 +355,39 @@ export default function UserManager() {
       setError(err.message || 'Failed to purge user data');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleConfirmHistoryClear = async () => {
+    if (!historyClearTarget) return;
+    const expectedConfirmation = historyClearMode === 'all' ? 'CLEAR ALL HISTORY' : 'CLEAR ACTIVITY HISTORY';
+    if (historyClearConfirmation !== expectedConfirmation) {
+      setError(`Type ${expectedConfirmation} to confirm this history clear.`);
+      return;
+    }
+
+    setClearingHistory(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await clearUserHistory(historyClearTarget.id, historyClearMode, historyClearConfirmation);
+      setSuccess(result?.mode === 'all'
+        ? 'User history was cleared from normal views and the wallet balance was reset to zero. Audit ledger records remain protected.'
+        : 'User activity history was cleared from normal views. Deposit history and wallet balance were preserved.');
+      setUsers((prev) => prev.map((user) => user.id === historyClearTarget.id ? {
+        ...user,
+        wallet_balance: historyClearMode === 'all' ? 0 : user.wallet_balance,
+        total_spent: 0,
+        total_orders: 0,
+        total_deposited: historyClearMode === 'all' ? 0 : user.total_deposited,
+      } : user));
+      setHistoryClearTarget(null);
+      setHistoryClearConfirmation('');
+      setSelectedUserIds([]);
+    } catch (err: any) {
+      setError(err.message || 'Failed to clear user history.');
+    } finally {
+      setClearingHistory(false);
     }
   };
 
@@ -692,6 +730,18 @@ export default function UserManager() {
                 <a href={`/admin/users/details?id=${encodeURIComponent(selectedUsersList[0].id)}`} className="btn btn-secondary btn-sm" title="Open selected user details" aria-label="Open selected user details"><EyeIcon size={13} /></a>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleExportUser(selectedUsersList[0])} disabled={exportingUserId === selectedUsersList[0].id} title="Export selected user"><DownloadIcon size={13} /></button>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreditUserTarget(selectedUsersList[0]); setCreditAmount(100); setCreditReason(''); setCreditFundingSource(''); }} title="Add funds to selected user"><CreditCardIcon size={13} /></button>
+                {currentUserRole === 'superadmin' && selectedUsersList[0].role === 'user' && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    disabled={clearingHistory || deleting}
+                    onClick={() => { setError(null); setHistoryClearTarget(selectedUsersList[0]); setHistoryClearMode('preserve_funding'); setHistoryClearConfirmation(''); }}
+                    title="Clear the selected user's visible history without deleting the account"
+                    style={{ color: '#b45309', borderColor: 'rgba(245, 158, 11, .35)' }}
+                  >
+                    <TrashIcon size={13} style={{ display: 'inline', marginRight: '4px' }} /> Clear History
+                  </button>
+                )}
               </>
             )}
             {selectedBannedUsers.length > 0 && (
@@ -1044,6 +1094,67 @@ export default function UserManager() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Non-destructive user history reset; preserves the account and raw audit ledger. */}
+      {historyClearTarget && (
+        <div className="modal-backdrop" style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.68)',
+          backdropFilter: 'blur(5px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem',
+        }}>
+          <div className="card glass-card" style={{ maxWidth: '560px', width: '100%', maxHeight: 'min(90vh, 760px)', overflowY: 'auto', padding: '1.5rem', border: '1px solid rgba(245, 158, 11, .45)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.65rem', color: '#b45309', marginBottom: '.6rem' }}>
+              <AlertCircleIcon size={22} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Clear User History</h3>
+            </div>
+            <p style={{ fontSize: '.9rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 1rem' }}>
+              Select what to hide for <strong style={{ color: 'var(--text-primary)' }}>{historyClearTarget.email}</strong>. Their account stays active; this does not use Purge User.
+            </p>
+
+            <div style={{ display: 'grid', gap: '.65rem', marginBottom: '1rem' }}>
+              <label style={{ display: 'flex', gap: '.65rem', alignItems: 'flex-start', padding: '.8rem', border: `1px solid ${historyClearMode === 'preserve_funding' ? '#f59e0b' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="history-clear-mode" checked={historyClearMode === 'preserve_funding'} onChange={() => { setHistoryClearMode('preserve_funding'); setHistoryClearConfirmation(''); }} />
+                <span><strong>Clear activity; keep deposits and balance</strong><br /><small>Hide old orders, non-deposit wallet activity, support/referral activity, and login history. Keep deposit requests, deposit entries, and the current wallet balance.</small></span>
+              </label>
+              <label style={{ display: 'flex', gap: '.65rem', alignItems: 'flex-start', padding: '.8rem', border: `1px solid ${historyClearMode === 'all' ? '#dc2626' : 'var(--border-subtle)'}`, borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                <input type="radio" name="history-clear-mode" checked={historyClearMode === 'all'} onChange={() => { setHistoryClearMode('all'); setHistoryClearConfirmation(''); }} />
+                <span><strong>Clear all visible history and reset balance</strong><br /><small>Hide old orders, deposit requests, wallet activity, support/referral activity, and login history. Set the spendable wallet balance to ₹0.</small></span>
+              </label>
+            </div>
+
+            {error && <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem', fontSize: '.82rem' }}>{error}</div>}
+
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 'var(--radius-md)', padding: '.8rem', marginBottom: '1rem', color: '#92400e', fontSize: '.78rem', lineHeight: 1.5 }}>
+              <strong>History visibility:</strong> This hides past records from the user’s account pages and per-user admin details; it does not delete raw records from global admin audit views or data exports. Financial ledger rows are immutable. A selected balance reset is recorded as a ledger debit. Both modes require no waiting order; full clear also requires no pending deposit.
+            </div>
+
+            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '.8rem', fontWeight: 700, marginBottom: '.35rem' }} htmlFor="history-clear-confirmation">
+              Type <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{historyClearMode === 'all' ? 'CLEAR ALL HISTORY' : 'CLEAR ACTIVITY HISTORY'}</span> to confirm
+            </label>
+            <input
+              id="history-clear-confirmation"
+              className="input"
+              value={historyClearConfirmation}
+              onChange={(event) => setHistoryClearConfirmation(event.target.value)}
+              placeholder={historyClearMode === 'all' ? 'Type CLEAR ALL HISTORY' : 'Type CLEAR ACTIVITY HISTORY'}
+              style={{ width: '100%', marginBottom: '1.1rem' }}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '.65rem', flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={clearingHistory} onClick={() => { setHistoryClearTarget(null); setHistoryClearConfirmation(''); }}>Cancel</button>
+              <button type="button" className="btn btn-sm" disabled={clearingHistory || !historyClearConfirmation} onClick={handleConfirmHistoryClear} style={{ background: '#b45309', color: '#fff', fontWeight: 700, border: 'none' }}>
+                {clearingHistory ? 'Clearing…' : historyClearMode === 'all' ? 'Clear History & Reset Balance' : 'Clear Activity History'}
+              </button>
+            </div>
           </div>
         </div>
       )}

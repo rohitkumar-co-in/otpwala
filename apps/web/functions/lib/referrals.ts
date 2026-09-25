@@ -1,8 +1,10 @@
 import { getSupabaseAdmin } from './supabase';
 import { evaluateReferralFraud } from './referral-fraud';
+import { getUserHistoryClear } from './user-history';
 
 export async function getReferralStats(userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
+  const historyClear = await getUserHistoryClear(supabase, userId);
 
   const { data: codeData } = await supabase
     .from('settings')
@@ -75,19 +77,20 @@ export async function getReferralStats(userId: string, env?: any) {
     }
   } catch {}
 
-  const userReferrals = allReferrals.filter((r: any) => r.referrerId === userId);
+  const userReferrals = allReferrals.filter((r: any) => r.referrerId === userId && (!historyClear || new Date(r.joinedAt || 0).getTime() >= new Date(historyClear.cleared_at).getTime()));
   
   const referredUsers = userReferrals.map((r: any) => ({
     name: r.referredName || 'User',
     joinedAt: r.joinedAt,
   }));
 
-  const { data: bonusTxs } = await supabase
+  let bonusQuery = supabase
     .from('wallet_transactions')
     .select('id, description, amount, created_at')
     .eq('user_id', userId)
-    .ilike('description', '%refer bonus%')
-    .order('created_at', { ascending: false });
+    .ilike('description', '%refer bonus%');
+  if (historyClear) bonusQuery = bonusQuery.gte('created_at', historyClear.cleared_at);
+  const { data: bonusTxs } = await bonusQuery.order('created_at', { ascending: false });
 
   const bonusLogs = (bonusTxs || []).map((tx: any) => ({
     id: tx.id,

@@ -36,6 +36,7 @@ import {
 } from '../lib/admin';
 import { TigerSmsClient } from '../lib/tiger';
 import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket, replyToSupportTicket } from '../lib/support';
+import { getUserHistoryClear, applyOrderHistoryClear, applyWalletHistoryClear, applyPaymentHistoryClear } from '../lib/user-history';
 
 function jsonResponse(data: any, status = 200, cacheControl = 'no-store') {
   return new Response(JSON.stringify(data), {
@@ -624,14 +625,15 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const supabase = getSupabaseAdmin(env);
+      const historyClear = await getUserHistoryClear(supabase, auth.userId);
+      let transactionQuery = supabase
+        .from('wallet_transactions')
+        .select('*', { count: 'exact' })
+        .eq('user_id', auth.userId);
+      transactionQuery = applyWalletHistoryClear(transactionQuery, historyClear);
       const [balance, { data: transactions, count }, config] = await Promise.all([
         getBalance(auth.userId, env),
-        supabase
-          .from('wallet_transactions')
-          .select('*', { count: 'exact' })
-          .eq('user_id', auth.userId)
-          .order('created_at', { ascending: false })
-          .range(0, 9),
+        transactionQuery.order('created_at', { ascending: false }).range(0, 9),
         getWalletConfig(env),
       ]);
 
@@ -654,10 +656,13 @@ export const onRequest = async (context: any) => {
       const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
       const supabase = getSupabaseAdmin(env);
-      const { data, count } = await supabase
+      const historyClear = await getUserHistoryClear(supabase, auth.userId);
+      let transactionQuery = supabase
         .from('wallet_transactions')
         .select('*', { count: 'exact' })
-        .eq('user_id', auth.userId)
+        .eq('user_id', auth.userId);
+      transactionQuery = applyWalletHistoryClear(transactionQuery, historyClear);
+      const { data, count } = await transactionQuery
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -805,11 +810,13 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const supabase = getSupabaseAdmin(env);
-      const { data, error } = await supabase
+      const historyClear = await getUserHistoryClear(supabase, auth.userId);
+      let paymentQuery = supabase
         .from('payment_requests')
         .select('*')
-        .eq('user_id', auth.userId)
-        .order('created_at', { ascending: false });
+        .eq('user_id', auth.userId);
+      paymentQuery = applyPaymentHistoryClear(paymentQuery, historyClear);
+      const { data, error } = await paymentQuery.order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -837,14 +844,17 @@ export const onRequest = async (context: any) => {
       const status = url.searchParams.get('status');
 
       const supabase = getSupabaseAdmin(env);
-      let query = supabase.from('orders').select('*', { count: 'exact' }).eq('user_id', auth.userId);
+      const historyClear = await getUserHistoryClear(supabase, auth.userId);
+      let query = applyOrderHistoryClear(supabase.from('orders').select('*', { count: 'exact' }).eq('user_id', auth.userId), historyClear);
       if (status && status !== 'all') {
         query = query.eq('status', status);
       }
 
       const [{ data, count, error: ordersError }, { data: summary, error: summaryError }] = await Promise.all([
         query.order('created_at', { ascending: false }).range(offset, offset + limit - 1),
-        supabase.rpc('user_order_metrics', { p_user_id: auth.userId }),
+        historyClear
+          ? supabase.rpc('user_order_metrics', { p_user_id: auth.userId, p_created_after: historyClear.cleared_at })
+          : supabase.rpc('user_order_metrics', { p_user_id: auth.userId }),
       ]);
       if (ordersError) throw ordersError;
       if (summaryError) throw summaryError;
@@ -1134,13 +1144,14 @@ export const onRequest = async (context: any) => {
 
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '25', 10), 100);
       const supabase = getSupabaseAdmin(env);
+      const historyClear = await getUserHistoryClear(supabase, auth.userId);
 
-      const { data, error } = await supabase
+      let securityLogQuery = supabase
         .from('user_security_logs')
         .select('id, event_type, ip_address, isp, asn, country, region, city, user_agent, created_at')
-        .eq('user_id', auth.userId)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .eq('user_id', auth.userId);
+      if (historyClear) securityLogQuery = securityLogQuery.gte('created_at', historyClear.cleared_at);
+      const { data, error } = await securityLogQuery.order('created_at', { ascending: false }).limit(limit);
 
       if (error) throw error;
 
@@ -1295,18 +1306,25 @@ export const onRequest = async (context: any) => {
         } catch {}
 
         const zeroUsers = await getZeroMarkupUsers(env);
+        const historyClear = await getUserHistoryClear(supabase, targetId);
+        let txQuery = supabase.from('wallet_transactions').select('*').eq('user_id', targetId);
+        txQuery = applyWalletHistoryClear(txQuery, historyClear);
+        let ordersQuery = supabase.from('orders').select('*').eq('user_id', targetId);
+        ordersQuery = applyOrderHistoryClear(ordersQuery, historyClear);
+        let depositsQuery = supabase.from('payment_requests').select('*').eq('user_id', targetId);
+        depositsQuery = applyPaymentHistoryClear(depositsQuery, historyClear);
         const [txRes, ordersRes, depositsRes, ticketsRes] = await Promise.all([
-          supabase.from('wallet_transactions').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
-          supabase.from('orders').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
-          supabase.from('payment_requests').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
-          supabase.from('support_tickets').select('*').eq('user_id', targetId).order('created_at', { ascending: false }).limit(200),
+          txQuery.order('created_at', { ascending: false }).limit(10),
+          ordersQuery.order('created_at', { ascending: false }).limit(200),
+          depositsQuery.order('created_at', { ascending: false }).limit(200),
+          applyOrderHistoryClear(supabase.from('support_tickets').select('*').eq('user_id', targetId), historyClear).order('created_at', { ascending: false }).limit(200),
         ]);
 
         const resolvedName = (profile.full_name?.trim()) || authMeta.name || null;
         return jsonResponse({
           success: true,
           data: {
-            user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId) },
+            user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId), history_cleared_at: historyClear?.cleared_at || null, history_clear_mode: historyClear?.mode || null },
             transactions: await labelOrderTransactions(txRes.data || [], targetId, env, ordersRes.data || []),
             orders: ordersRes.data || [],
             deposits: depositsRes.data || [],
@@ -1423,6 +1441,47 @@ export const onRequest = async (context: any) => {
         await banUser(targetUserId, !!body.banned, body.reason, env);
         await logAdminAction(auth.userId, body.banned ? 'user.ban' : 'user.unban', 'user', targetUserId, { reason: body.reason || null }, request.headers.get('cf-connecting-ip'), env);
         return jsonResponse({ success: true, message: body.banned ? 'User banned' : 'User unbanned' });
+      }
+
+      // POST /api/admin/users/:id/clear-history
+      const userHistoryClearMatch = path.match(/^\/api\/admin\/users\/([^\/]+)\/clear-history$/);
+      if (userHistoryClearMatch && method === 'POST') {
+        if (auth.role !== 'superadmin') return jsonResponse({ success: false, error: 'Only Super Admin can clear user history.' }, 403);
+        const targetUserId = userHistoryClearMatch[1];
+        const body = await request.json().catch(() => ({}));
+        const clearMode = String(body.mode || '');
+        if (!['all', 'preserve_funding'].includes(clearMode)) return jsonResponse({ success: false, error: 'Choose a valid user-history clear mode.' }, 400);
+        const expectedConfirmation = clearMode === 'all' ? 'CLEAR ALL HISTORY' : 'CLEAR ACTIVITY HISTORY';
+        if (body.confirmation !== expectedConfirmation) return jsonResponse({ success: false, error: `Type ${expectedConfirmation} to confirm.` }, 400);
+        if (targetUserId === auth.userId) return jsonResponse({ success: false, error: 'You cannot clear your own history.' }, 400);
+
+        const supabase = getSupabaseAdmin(env);
+        const { data: cleared, error: clearError } = await supabase.rpc('clear_user_history', {
+          p_user_id: targetUserId,
+          p_actor_id: auth.userId,
+          p_mode: clearMode,
+        });
+        if (clearError) {
+          if (clearError.code === 'PGRST202' || String(clearError.message || '').includes('clear_user_history')) {
+            return jsonResponse({ success: false, error: 'The user-history database migration has not been applied yet. Apply 20260925100000_admin_user_history_clear.sql, then retry.' }, 503);
+          }
+          throw clearError;
+        }
+        await logAdminAction(auth.userId, 'privacy.user_history_cleared', 'user', targetUserId, {
+          mode: clearMode,
+          walletBalanceBefore: cleared?.wallet_balance_before,
+          walletBalanceAfter: cleared?.wallet_balance_after,
+          ordersHidden: cleared?.orders_hidden,
+          paymentRequestsHidden: cleared?.payment_requests_hidden,
+          financialLedgerRetained: true,
+        }, request.headers.get('cf-connecting-ip'), env);
+        return jsonResponse({
+          success: true,
+          data: cleared,
+          message: clearMode === 'all'
+            ? 'User history was cleared from normal views and the wallet balance was reset to zero. Audit ledger records remain protected.'
+            : 'User activity history was cleared from normal views. Deposit history and wallet balance were preserved.',
+        });
       }
 
       // POST /api/admin/users/:id/purge

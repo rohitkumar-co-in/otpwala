@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from './supabase';
 import { getTelegramConfig, sendTelegramMessage } from './telegram';
+import { getUserHistoryClear } from './user-history';
 
 const allowedStatuses = new Set(['open', 'in_progress', 'resolved', 'closed']);
 const allowedPriorities = new Set(['low', 'normal', 'high', 'urgent']);
@@ -49,7 +50,10 @@ export async function createSupportTicket(userId: string, input: any, env?: any)
 
 export async function getUserSupportTickets(userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
-  const { data, error } = await supabase.from('support_tickets').select('id,order_id,subject,message,ticket_type,attachment,status,priority,public_reply,resolved_at,created_at,updated_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(100);
+  const historyClear = await getUserHistoryClear(supabase, userId);
+  let query = supabase.from('support_tickets').select('id,order_id,subject,message,ticket_type,attachment,status,priority,public_reply,resolved_at,created_at,updated_at').eq('user_id', userId);
+  if (historyClear) query = query.gte('created_at', historyClear.cleared_at);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(100);
   if (error) throw error;
   return data || [];
 }
