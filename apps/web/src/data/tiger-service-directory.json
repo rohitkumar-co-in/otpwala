@@ -1,0 +1,2130 @@
+{
+  "services": [
+    {
+      "name": "163СOM",
+      "slug": "163som",
+      "iconUrl": "/img/service/462.svg"
+    },
+    {
+      "name": "1688",
+      "slug": "1688",
+      "iconUrl": "/img/service/31.svg"
+    },
+    {
+      "name": "1xBet",
+      "slug": "1xbet",
+      "iconUrl": "/img/service/34.svg"
+    },
+    {
+      "name": "32red",
+      "slug": "32red",
+      "iconUrl": "/img/service/157.svg"
+    },
+    {
+      "name": "99acres",
+      "slug": "99acres",
+      "iconUrl": "/img/service/721.svg"
+    },
+    {
+      "name": "99app",
+      "slug": "99app",
+      "iconUrl": "/img/service/239.svg"
+    },
+    {
+      "name": "Ace2Three",
+      "slug": "ace2three",
+      "iconUrl": "/img/service/546.svg"
+    },
+    {
+      "name": "Acko",
+      "slug": "acko",
+      "iconUrl": "/img/service/13514.svg"
+    },
+    {
+      "name": "AdaKami",
+      "slug": "adakami",
+      "iconUrl": "/img/service/654.svg"
+    },
+    {
+      "name": "Adidas",
+      "slug": "adidas",
+      "iconUrl": "/img/service/63.svg"
+    },
+    {
+      "name": "AfreecaTV",
+      "slug": "afreecatv",
+      "iconUrl": "/img/service/13516.svg"
+    },
+    {
+      "name": "AGIBANK",
+      "slug": "agibank",
+      "iconUrl": "/img/service/531.svg"
+    },
+    {
+      "name": "Airbnb",
+      "slug": "airbnb",
+      "iconUrl": "/img/service/26.svg"
+    },
+    {
+      "name": "Airtel",
+      "slug": "airtel",
+      "iconUrl": "/img/service/192.svg"
+    },
+    {
+      "name": "Aitu",
+      "slug": "aitu",
+      "iconUrl": "/img/service/668.svg"
+    },
+    {
+      "name": "Akulaku",
+      "slug": "akulaku",
+      "iconUrl": "/img/service/507.svg"
+    },
+    {
+      "name": "Alchemy",
+      "slug": "alchemy",
+      "iconUrl": "/img/service/13519.svg"
+    },
+    {
+      "name": "Algida",
+      "slug": "algida",
+      "iconUrl": "/img/service/633.svg"
+    },
+    {
+      "name": "Alibaba",
+      "slug": "alibaba",
+      "iconUrl": "/img/service/13520.svg"
+    },
+    {
+      "name": "AliExpress",
+      "slug": "aliexpress",
+      "iconUrl": "/img/service/689.svg"
+    },
+    {
+      "name": "Alipay/Alibaba/1688",
+      "slug": "alipayalibaba1688",
+      "iconUrl": "/img/service/29.svg"
+    },
+    {
+      "name": "Allegro",
+      "slug": "allegro",
+      "iconUrl": "/img/service/441.svg"
+    },
+    {
+      "name": "Amasia",
+      "slug": "amasia",
+      "iconUrl": "/img/service/228.svg"
+    },
+    {
+      "name": "Amazon",
+      "slug": "amazon",
+      "iconUrl": "/img/service/28.svg"
+    },
+    {
+      "name": "Angel One",
+      "slug": "angel-one",
+      "iconUrl": "/img/service/13526.svg"
+    },
+    {
+      "name": "Ankama",
+      "slug": "ankama",
+      "iconUrl": "/img/service/13528.svg"
+    },
+    {
+      "name": "Any other",
+      "slug": "any-other",
+      "iconUrl": "/img/service/196.svg"
+    },
+    {
+      "name": "AOL",
+      "slug": "aol",
+      "iconUrl": "/img/service/54.svg"
+    },
+    {
+      "name": "Apple ID",
+      "slug": "apple",
+      "iconUrl": "/img/service/197.svg"
+    },
+    {
+      "name": "AptekaRU",
+      "slug": "aptekaru",
+      "iconUrl": "/img/service/712.svg"
+    },
+    {
+      "name": "Asda",
+      "slug": "asda",
+      "iconUrl": "/img/service/692.svg"
+    },
+    {
+      "name": "AstraPay",
+      "slug": "astrapay",
+      "iconUrl": "/img/service/13534.svg"
+    },
+    {
+      "name": "Astropay",
+      "slug": "astropay",
+      "iconUrl": "/img/service/66.svg"
+    },
+    {
+      "name": "Autoru",
+      "slug": "autoru",
+      "iconUrl": "/img/service/13536.svg"
+    },
+    {
+      "name": "Avito",
+      "slug": "avito",
+      "iconUrl": "/img/service/89.svg"
+    },
+    {
+      "name": "Badoo",
+      "slug": "badoo",
+      "iconUrl": "/img/service/91.svg"
+    },
+    {
+      "name": "Baidu",
+      "slug": "baidu",
+      "iconUrl": "/img/service/227.svg"
+    },
+    {
+      "name": "Band",
+      "slug": "band",
+      "iconUrl": "/img/service/698.svg"
+    },
+    {
+      "name": "Bazos",
+      "slug": "bazos",
+      "iconUrl": "/img/service/789.svg"
+    },
+    {
+      "name": "BeReal",
+      "slug": "bereal",
+      "iconUrl": "/img/service/782.svg"
+    },
+    {
+      "name": "bet365",
+      "slug": "bet365",
+      "iconUrl": "/img/service/411.svg"
+    },
+    {
+      "name": "Betano",
+      "slug": "betano",
+      "iconUrl": "/img/service/13551.svg"
+    },
+    {
+      "name": "Betfair",
+      "slug": "betfair",
+      "iconUrl": "/img/service/476.svg"
+    },
+    {
+      "name": "Bharatgas",
+      "slug": "bharatgas",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "BigBasket",
+      "slug": "bigbasket",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "BIGO LIVE",
+      "slug": "bigo-live",
+      "iconUrl": "/img/service/226.svg"
+    },
+    {
+      "name": "Bilibili",
+      "slug": "bilibili",
+      "iconUrl": "/img/service/191.svg"
+    },
+    {
+      "name": "BIP",
+      "slug": "bip",
+      "iconUrl": "/img/service/458.svg"
+    },
+    {
+      "name": "BlaBlaCar",
+      "slug": "blablacar",
+      "iconUrl": "/img/service/90.svg"
+    },
+    {
+      "name": "BLIBLI",
+      "slug": "blibli",
+      "iconUrl": "/img/service/730.svg"
+    },
+    {
+      "name": "Blizzard",
+      "slug": "blizzard",
+      "iconUrl": "/img/service/15.svg"
+    },
+    {
+      "name": "Blued",
+      "slug": "blued",
+      "iconUrl": "/img/service/557.svg"
+    },
+    {
+      "name": "Bolt",
+      "slug": "bolt",
+      "iconUrl": "/img/service/217.svg"
+    },
+    {
+      "name": "Boosty",
+      "slug": "boosty",
+      "iconUrl": "/img/service/13559.svg"
+    },
+    {
+      "name": "BotIm",
+      "slug": "botim",
+      "iconUrl": "/img/service/237.svg"
+    },
+    {
+      "name": "BPJSTK",
+      "slug": "bpjstk",
+      "iconUrl": "/img/service/13562.svg"
+    },
+    {
+      "name": "Br777",
+      "slug": "br777",
+      "iconUrl": "/img/service/663.svg"
+    },
+    {
+      "name": "Brevo",
+      "slug": "brevo",
+      "iconUrl": "/img/service/13564.svg"
+    },
+    {
+      "name": "Buff.163",
+      "slug": "buff163",
+      "iconUrl": "/img/service/92.svg"
+    },
+    {
+      "name": "Bukalapak",
+      "slug": "bukalapak",
+      "iconUrl": "/img/service/658.svg"
+    },
+    {
+      "name": "Bumble",
+      "slug": "bumble",
+      "iconUrl": "/img/service/249.svg"
+    },
+    {
+      "name": "Bunq",
+      "slug": "bunq",
+      "iconUrl": "/img/service/13568.svg"
+    },
+    {
+      "name": "Burger King",
+      "slug": "burger-king",
+      "iconUrl": "/img/service/94.svg"
+    },
+    {
+      "name": "Bykea",
+      "slug": "bykea",
+      "iconUrl": "/img/service/680.svg"
+    },
+    {
+      "name": "BytePlus",
+      "slug": "byteplus",
+      "iconUrl": "/img/service/13570.svg"
+    },
+    {
+      "name": "CAIXA",
+      "slug": "caixa",
+      "iconUrl": "/img/service/254.svg"
+    },
+    {
+      "name": "Careem",
+      "slug": "careem",
+      "iconUrl": "/img/service/57.svg"
+    },
+    {
+      "name": "Carousell",
+      "slug": "carousell",
+      "iconUrl": "/img/service/713.svg"
+    },
+    {
+      "name": "Cash App",
+      "slug": "cashapp",
+      "iconUrl": "/img/service/412.svg"
+    },
+    {
+      "name": "CDEK",
+      "slug": "cdek",
+      "iconUrl": "/img/service/13576.svg"
+    },
+    {
+      "name": "ChatGPT (OpenAI)",
+      "slug": "chatgpt",
+      "iconUrl": "/img/service/252.svg"
+    },
+    {
+      "name": "Chick-fil-A",
+      "slug": "chick-fil-a",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Chispa",
+      "slug": "chispa",
+      "iconUrl": "/img/service/681.svg"
+    },
+    {
+      "name": "Cian",
+      "slug": "cian",
+      "iconUrl": "/img/service/13582.svg"
+    },
+    {
+      "name": "CityMall",
+      "slug": "citymall",
+      "iconUrl": "/img/service/13584.svg"
+    },
+    {
+      "name": "Claude (Anthropic)",
+      "slug": "claude",
+      "iconUrl": "/img/service/13585.svg"
+    },
+    {
+      "name": "CliQQ",
+      "slug": "cliqq",
+      "iconUrl": "/img/service/734.svg"
+    },
+    {
+      "name": "CloudChat",
+      "slug": "cloudchat",
+      "iconUrl": "/img/service/766.svg"
+    },
+    {
+      "name": "Clubhouse",
+      "slug": "clubhouse",
+      "iconUrl": "/img/service/229.svg"
+    },
+    {
+      "name": "Coca-Cola",
+      "slug": "coca-cola",
+      "iconUrl": "/img/service/13589.svg"
+    },
+    {
+      "name": "Codashop",
+      "slug": "codashop",
+      "iconUrl": "/img/service/595.svg"
+    },
+    {
+      "name": "Coinbase",
+      "slug": "coinbase",
+      "iconUrl": "/img/service/53.svg"
+    },
+    {
+      "name": "Coindcx",
+      "slug": "coindcx",
+      "iconUrl": "/img/service/612.svg"
+    },
+    {
+      "name": "CoinFantasy",
+      "slug": "coinfantasy",
+      "iconUrl": "/img/service/13932.svg"
+    },
+    {
+      "name": "Craigslist",
+      "slug": "craigslist",
+      "iconUrl": "/img/service/32.svg"
+    },
+    {
+      "name": "cryptocom",
+      "slug": "cryptocom",
+      "iconUrl": "/img/service/509.svg"
+    },
+    {
+      "name": "DANA",
+      "slug": "dana",
+      "iconUrl": "/img/service/104.svg"
+    },
+    {
+      "name": "Dealshare",
+      "slug": "dealshare",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Deliveroo",
+      "slug": "deliveroo",
+      "iconUrl": "/img/service/56.svg"
+    },
+    {
+      "name": "Delivery Club",
+      "slug": "delivery-club",
+      "iconUrl": "/img/service/219.svg"
+    },
+    {
+      "name": "Dent",
+      "slug": "dent",
+      "iconUrl": "/img/service/52.svg"
+    },
+    {
+      "name": "Depop",
+      "slug": "depop",
+      "iconUrl": "/img/service/446.svg"
+    },
+    {
+      "name": "Dhani",
+      "slug": "dhani",
+      "iconUrl": "/img/service/221.svg"
+    },
+    {
+      "name": "DiDi",
+      "slug": "didi",
+      "iconUrl": "/img/service/64.svg"
+    },
+    {
+      "name": "Discord",
+      "slug": "discord",
+      "iconUrl": "/img/service/61.svg"
+    },
+    {
+      "name": "dodopizza",
+      "slug": "dodopizza",
+      "iconUrl": "/img/service/105.svg"
+    },
+    {
+      "name": "Dominos Pizza",
+      "slug": "dominos-pizza",
+      "iconUrl": "/img/service/263.svg"
+    },
+    {
+      "name": "DoorDash",
+      "slug": "doordash",
+      "iconUrl": "/img/service/258.svg"
+    },
+    {
+      "name": "Dostavista",
+      "slug": "dostavista",
+      "iconUrl": "/img/service/518.svg"
+    },
+    {
+      "name": "Douyu",
+      "slug": "douyu",
+      "iconUrl": "/img/service/42.svg"
+    },
+    {
+      "name": "Dream11",
+      "slug": "dream11",
+      "iconUrl": "/img/service/77.svg"
+    },
+    {
+      "name": "Drom",
+      "slug": "drom",
+      "iconUrl": "/img/service/106.svg"
+    },
+    {
+      "name": "EarnEasy",
+      "slug": "earneasy",
+      "iconUrl": "/img/service/13612.svg"
+    },
+    {
+      "name": "eBay",
+      "slug": "ebay",
+      "iconUrl": "/img/service/6.svg"
+    },
+    {
+      "name": "Eneba",
+      "slug": "eneba",
+      "iconUrl": "/img/service/496.svg"
+    },
+    {
+      "name": "EscapeFromTarkov",
+      "slug": "escapefromtarkov",
+      "iconUrl": "/img/service/815.svg"
+    },
+    {
+      "name": "Eyecon",
+      "slug": "eyecon",
+      "iconUrl": "/img/service/652.svg"
+    },
+    {
+      "name": "Facebook",
+      "slug": "facebook",
+      "iconUrl": "/img/service/9.svg"
+    },
+    {
+      "name": "Faceit",
+      "slug": "faceit",
+      "iconUrl": "/img/service/265.svg"
+    },
+    {
+      "name": "Feeld",
+      "slug": "feeld",
+      "iconUrl": "/img/service/13620.svg"
+    },
+    {
+      "name": "fiverr",
+      "slug": "fiverr",
+      "iconUrl": "/img/service/251.svg"
+    },
+    {
+      "name": "Flip",
+      "slug": "flip",
+      "iconUrl": "/img/service/13628.svg"
+    },
+    {
+      "name": "Flipkart",
+      "slug": "flipkart",
+      "iconUrl": "/img/service/450.svg"
+    },
+    {
+      "name": "Flot",
+      "slug": "flot",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Flowwow",
+      "slug": "flowwow",
+      "iconUrl": "/img/service/13629.svg"
+    },
+    {
+      "name": "Foodora",
+      "slug": "foodora",
+      "iconUrl": "/img/service/13630.svg"
+    },
+    {
+      "name": "foodpanda",
+      "slug": "foodpanda",
+      "iconUrl": "/img/service/22.svg"
+    },
+    {
+      "name": "Foody",
+      "slug": "foody",
+      "iconUrl": "/img/service/648.svg"
+    },
+    {
+      "name": "Fotka",
+      "slug": "fotka",
+      "iconUrl": "/img/service/544.svg"
+    },
+    {
+      "name": "Freelancer",
+      "slug": "freelancer",
+      "iconUrl": "/img/service/709.svg"
+    },
+    {
+      "name": "FreeNow",
+      "slug": "freenow",
+      "iconUrl": "/img/service/13634.svg"
+    },
+    {
+      "name": "Fruitz",
+      "slug": "fruitz",
+      "iconUrl": "/img/service/617.svg"
+    },
+    {
+      "name": "FunPay",
+      "slug": "funpay",
+      "iconUrl": "/img/service/611.svg"
+    },
+    {
+      "name": "Fups",
+      "slug": "fups",
+      "iconUrl": "/img/service/13638.svg"
+    },
+    {
+      "name": "G2G",
+      "slug": "g2g",
+      "iconUrl": "/img/service/797.svg"
+    },
+    {
+      "name": "GCash",
+      "slug": "gcash",
+      "iconUrl": "/img/service/804.svg"
+    },
+    {
+      "name": "Getir",
+      "slug": "getir",
+      "iconUrl": "/img/service/67.svg"
+    },
+    {
+      "name": "Getmega",
+      "slug": "getmega",
+      "iconUrl": "/img/service/769.svg"
+    },
+    {
+      "name": "Gett",
+      "slug": "gett",
+      "iconUrl": "/img/service/13648.svg"
+    },
+    {
+      "name": "GG",
+      "slug": "gg",
+      "iconUrl": "/img/service/564.svg"
+    },
+    {
+      "name": "Gittigidiyor",
+      "slug": "gittigidiyor",
+      "iconUrl": "/img/service/608.svg"
+    },
+    {
+      "name": "Glovo",
+      "slug": "glovo",
+      "iconUrl": "/img/service/812.svg"
+    },
+    {
+      "name": "GMX",
+      "slug": "gmx",
+      "iconUrl": "/img/service/13653.svg"
+    },
+    {
+      "name": "GoFundMe",
+      "slug": "gofundme",
+      "iconUrl": "/img/service/79.svg"
+    },
+    {
+      "name": "Gojek",
+      "slug": "gojek",
+      "iconUrl": "/img/service/118.svg"
+    },
+    {
+      "name": "Google (Gmail / YouTube)",
+      "slug": "googleyoutubegmail",
+      "iconUrl": "/img/service/10.svg"
+    },
+    {
+      "name": "Google Messages",
+      "slug": "googlemessenger",
+      "iconUrl": "/img/service/13947.svg"
+    },
+    {
+      "name": "Google Pay",
+      "slug": "googlepay",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "GoogleVoice",
+      "slug": "googlevoice",
+      "iconUrl": "/img/service/17.svg"
+    },
+    {
+      "name": "Gopuff",
+      "slug": "gopuff",
+      "iconUrl": "/img/service/13658.svg"
+    },
+    {
+      "name": "Grab",
+      "slug": "grab",
+      "iconUrl": "/img/service/671.svg"
+    },
+    {
+      "name": "Grailed",
+      "slug": "grailed",
+      "iconUrl": "/img/service/13662.svg"
+    },
+    {
+      "name": "Greggs",
+      "slug": "greggs",
+      "iconUrl": "/img/service/13663.svg"
+    },
+    {
+      "name": "Grindr",
+      "slug": "grindr",
+      "iconUrl": "/img/service/116.svg"
+    },
+    {
+      "name": "Grofers",
+      "slug": "grofers",
+      "iconUrl": "/img/service/635.svg"
+    },
+    {
+      "name": "GroupMe",
+      "slug": "groupme",
+      "iconUrl": "/img/service/119.svg"
+    },
+    {
+      "name": "Happn",
+      "slug": "happn",
+      "iconUrl": "/img/service/255.svg"
+    },
+    {
+      "name": "HAPPYTUK",
+      "slug": "happytuk",
+      "iconUrl": "/img/service/390.svg"
+    },
+    {
+      "name": "Hepsiburadacom",
+      "slug": "hepsiburadacom",
+      "iconUrl": "/img/service/76.svg"
+    },
+    {
+      "name": "Her",
+      "slug": "her",
+      "iconUrl": "/img/service/13673.svg"
+    },
+    {
+      "name": "hh",
+      "slug": "hh",
+      "iconUrl": "/img/service/124.svg"
+    },
+    {
+      "name": "hily",
+      "slug": "hily",
+      "iconUrl": "/img/service/536.svg"
+    },
+    {
+      "name": "Hinge",
+      "slug": "hinge",
+      "iconUrl": "/img/service/240.svg"
+    },
+    {
+      "name": "Hopi",
+      "slug": "hopi",
+      "iconUrl": "/img/service/70.svg"
+    },
+    {
+      "name": "Huya",
+      "slug": "huya",
+      "iconUrl": "/img/service/266.svg"
+    },
+    {
+      "name": "icq",
+      "slug": "icq",
+      "iconUrl": "/img/service/682.svg"
+    },
+    {
+      "name": "Idealista",
+      "slug": "idealista",
+      "iconUrl": "/img/service/419.svg"
+    },
+    {
+      "name": "IFood",
+      "slug": "ifood",
+      "iconUrl": "/img/service/71.svg"
+    },
+    {
+      "name": "Immowelt",
+      "slug": "immowelt",
+      "iconUrl": "/img/service/687.svg"
+    },
+    {
+      "name": "imo",
+      "slug": "imo",
+      "iconUrl": "/img/service/48.svg"
+    },
+    {
+      "name": "Inboxlv",
+      "slug": "inboxlv",
+      "iconUrl": "/img/service/356.svg"
+    },
+    {
+      "name": "IndiaPlays",
+      "slug": "indiaplays",
+      "iconUrl": "/img/service/429.svg"
+    },
+    {
+      "name": "Indomaret",
+      "slug": "indomaret",
+      "iconUrl": "/img/service/241.svg"
+    },
+    {
+      "name": "inDrive",
+      "slug": "indriver",
+      "iconUrl": "/img/service/267.svg"
+    },
+    {
+      "name": "Innopay",
+      "slug": "innopay",
+      "iconUrl": "/img/service/13954.svg"
+    },
+    {
+      "name": "Instagram (Threads)",
+      "slug": "instagramthreads",
+      "iconUrl": "/img/service/4.svg"
+    },
+    {
+      "name": "Ipsos iSay",
+      "slug": "ipsos-isay",
+      "iconUrl": "/img/service/13681.svg"
+    },
+    {
+      "name": "iQIYI",
+      "slug": "iqiyi",
+      "iconUrl": "/img/service/268.svg"
+    },
+    {
+      "name": "IQOS",
+      "slug": "iqos",
+      "iconUrl": "/img/service/269.svg"
+    },
+    {
+      "name": "IRCTC",
+      "slug": "irctc",
+      "iconUrl": "/img/service/486.svg"
+    },
+    {
+      "name": "Iti",
+      "slug": "iti",
+      "iconUrl": "/img/service/817.svg"
+    },
+    {
+      "name": "IVI",
+      "slug": "ivi",
+      "iconUrl": "/img/service/674.svg"
+    },
+    {
+      "name": "JDcom",
+      "slug": "jdcom",
+      "iconUrl": "/img/service/13968.svg"
+    },
+    {
+      "name": "Jingdong",
+      "slug": "jingdong",
+      "iconUrl": "/img/service/38.svg"
+    },
+    {
+      "name": "JivoMart",
+      "slug": "jiomart",
+      "iconUrl": "/img/service/13685.svg"
+    },
+    {
+      "name": "Joyride",
+      "slug": "joyride",
+      "iconUrl": "/img/service/270.svg"
+    },
+    {
+      "name": "JungleeRummy",
+      "slug": "jungleerummy",
+      "iconUrl": "/img/service/699.svg"
+    },
+    {
+      "name": "Justdating",
+      "slug": "justdating",
+      "iconUrl": "/img/service/572.svg"
+    },
+    {
+      "name": "Kaggle",
+      "slug": "kaggle",
+      "iconUrl": "/img/service/131.svg"
+    },
+    {
+      "name": "KakaoTalk",
+      "slug": "kakaotalk",
+      "iconUrl": "/img/service/1.svg"
+    },
+    {
+      "name": "KFC",
+      "slug": "kfc",
+      "iconUrl": "/img/service/130.svg"
+    },
+    {
+      "name": "KGEN",
+      "slug": "kgen",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "KION",
+      "slug": "kion",
+      "iconUrl": "/img/service/13694.svg"
+    },
+    {
+      "name": "Klarna",
+      "slug": "klarna",
+      "iconUrl": "/img/service/13695.svg"
+    },
+    {
+      "name": "Kleinanzeigen",
+      "slug": "kleinanzeigen",
+      "iconUrl": "/img/service/13952.svg"
+    },
+    {
+      "name": "kolesa.kz",
+      "slug": "kolesakz",
+      "iconUrl": "/img/service/657.svg"
+    },
+    {
+      "name": "KuCoinPlay",
+      "slug": "kucoinplay",
+      "iconUrl": "/img/service/212.svg"
+    },
+    {
+      "name": "kufarby",
+      "slug": "kufarby",
+      "iconUrl": "/img/service/660.svg"
+    },
+    {
+      "name": "Kwai",
+      "slug": "kwai",
+      "iconUrl": "/img/service/7.svg"
+    },
+    {
+      "name": "Lamoda",
+      "slug": "lamoda",
+      "iconUrl": "/img/service/272.svg"
+    },
+    {
+      "name": "Lazada",
+      "slug": "lazada",
+      "iconUrl": "/img/service/55.svg"
+    },
+    {
+      "name": "Lebocoin",
+      "slug": "lebocoin",
+      "iconUrl": "/img/service/247.svg"
+    },
+    {
+      "name": "Leboncoin",
+      "slug": "leboncoin",
+      "iconUrl": "/img/service/761.svg"
+    },
+    {
+      "name": "Lenta",
+      "slug": "lenta",
+      "iconUrl": "/img/service/134.svg"
+    },
+    {
+      "name": "LightChat",
+      "slug": "lightchat",
+      "iconUrl": "/img/service/125.svg"
+    },
+    {
+      "name": "Likee",
+      "slug": "likee",
+      "iconUrl": "/img/service/273.svg"
+    },
+    {
+      "name": "LINE",
+      "slug": "line-messenger",
+      "iconUrl": "/img/service/11.svg"
+    },
+    {
+      "name": "LinkAja",
+      "slug": "linkaja",
+      "iconUrl": "/img/service/13696.svg"
+    },
+    {
+      "name": "LinkedIn",
+      "slug": "linkedin",
+      "iconUrl": "/img/service/207.svg"
+    },
+    {
+      "name": "Linode",
+      "slug": "linode",
+      "iconUrl": "/img/service/739.svg"
+    },
+    {
+      "name": "LOCO",
+      "slug": "loco",
+      "iconUrl": "/img/service/519.svg"
+    },
+    {
+      "name": "LoveRu",
+      "slug": "loveru",
+      "iconUrl": "/img/service/594.svg"
+    },
+    {
+      "name": "Ludo24",
+      "slug": "ludo24",
+      "iconUrl": "/img/service/13951.svg"
+    },
+    {
+      "name": "Luminous",
+      "slug": "luminous",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Lyft",
+      "slug": "lyft",
+      "iconUrl": "/img/service/502.svg"
+    },
+    {
+      "name": "LYKA",
+      "slug": "lyka",
+      "iconUrl": "/img/service/275.svg"
+    },
+    {
+      "name": "Magicbricks",
+      "slug": "magicbricks",
+      "iconUrl": "/img/service/694.svg"
+    },
+    {
+      "name": "Mail.ru",
+      "slug": "mailru",
+      "iconUrl": "/img/service/198.svg"
+    },
+    {
+      "name": "Mamba, MeetMe",
+      "slug": "mamba-meetme",
+      "iconUrl": "/img/service/206.svg"
+    },
+    {
+      "name": "Marktplaats",
+      "slug": "marktplaats",
+      "iconUrl": "/img/service/13705.svg"
+    },
+    {
+      "name": "McDonalds",
+      "slug": "mcdonalds",
+      "iconUrl": "/img/service/137.svg"
+    },
+    {
+      "name": "Meesho",
+      "slug": "meesho",
+      "iconUrl": "/img/service/695.svg"
+    },
+    {
+      "name": "Megogo",
+      "slug": "megogo",
+      "iconUrl": "/img/service/277.svg"
+    },
+    {
+      "name": "Meitu",
+      "slug": "meitu",
+      "iconUrl": "/img/service/13711.svg"
+    },
+    {
+      "name": "Meituan",
+      "slug": "meituan",
+      "iconUrl": "/img/service/13712.svg"
+    },
+    {
+      "name": "Mercado",
+      "slug": "mercado",
+      "iconUrl": "/img/service/777.svg"
+    },
+    {
+      "name": "Mercari",
+      "slug": "mercari",
+      "iconUrl": "/img/service/194.svg"
+    },
+    {
+      "name": "Meta",
+      "slug": "meta",
+      "iconUrl": "/img/service/467.svg"
+    },
+    {
+      "name": "Michat",
+      "slug": "michat",
+      "iconUrl": "/img/service/75.svg"
+    },
+    {
+      "name": "Microsoft (Outlook/Hotmail)",
+      "slug": "microsoft",
+      "iconUrl": "/img/service/25.svg"
+    },
+    {
+      "name": "Miravia",
+      "slug": "miravia",
+      "iconUrl": "/img/service/13716.svg"
+    },
+    {
+      "name": "MobiKwik",
+      "slug": "mobikwik",
+      "iconUrl": "/img/service/727.svg"
+    },
+    {
+      "name": "MoMo",
+      "slug": "momo",
+      "iconUrl": "/img/service/704.svg"
+    },
+    {
+      "name": "Moneylion",
+      "slug": "moneylion",
+      "iconUrl": "/img/service/40.svg"
+    },
+    {
+      "name": "MPL",
+      "slug": "mpl",
+      "iconUrl": "/img/service/451.svg"
+    },
+    {
+      "name": "MTR Mobile",
+      "slug": "mtr-mobile",
+      "iconUrl": "/img/service/13729.svg"
+    },
+    {
+      "name": "Muzz",
+      "slug": "muzz",
+      "iconUrl": "/img/service/13730.svg"
+    },
+    {
+      "name": "my jio",
+      "slug": "myjio",
+      "iconUrl": "/img/service/13967.svg"
+    },
+    {
+      "name": "My11Circle",
+      "slug": "my11circle",
+      "iconUrl": "/img/service/257.svg"
+    },
+    {
+      "name": "myboost",
+      "slug": "myboost",
+      "iconUrl": "/img/service/13731.svg"
+    },
+    {
+      "name": "myGLO",
+      "slug": "myglo",
+      "iconUrl": "/img/service/120.svg"
+    },
+    {
+      "name": "Myntra",
+      "slug": "myntra",
+      "iconUrl": "/img/service/607.svg"
+    },
+    {
+      "name": "Naver",
+      "slug": "naver",
+      "iconUrl": "/img/service/2.svg"
+    },
+    {
+      "name": "Netease",
+      "slug": "netease",
+      "iconUrl": "/img/service/223.svg"
+    },
+    {
+      "name": "Netflix",
+      "slug": "netflix",
+      "iconUrl": "/img/service/19.svg"
+    },
+    {
+      "name": "Nextdoor",
+      "slug": "nextdoor",
+      "iconUrl": "/img/service/751.svg"
+    },
+    {
+      "name": "Nielsen",
+      "slug": "nielsen",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Nike",
+      "slug": "nike",
+      "iconUrl": "/img/service/33.svg"
+    },
+    {
+      "name": "NimoTV",
+      "slug": "nimotv",
+      "iconUrl": "/img/service/279.svg"
+    },
+    {
+      "name": "noon",
+      "slug": "noon",
+      "iconUrl": "/img/service/511.svg"
+    },
+    {
+      "name": "NovaPoshta",
+      "slug": "novaposhta",
+      "iconUrl": "/img/service/619.svg"
+    },
+    {
+      "name": "Nttgame",
+      "slug": "nttgame",
+      "iconUrl": "/img/service/424.svg"
+    },
+    {
+      "name": "Nubank",
+      "slug": "nubank",
+      "iconUrl": "/img/service/13747.svg"
+    },
+    {
+      "name": "OfferUp",
+      "slug": "offerup",
+      "iconUrl": "/img/service/431.svg"
+    },
+    {
+      "name": "OffGamers",
+      "slug": "offgamers",
+      "iconUrl": "/img/service/480.svg"
+    },
+    {
+      "name": "OkCupid",
+      "slug": "okcupid",
+      "iconUrl": "/img/service/147.svg"
+    },
+    {
+      "name": "okk4.bet",
+      "slug": "okk4bet",
+      "iconUrl": "/img/service/13950.svg"
+    },
+    {
+      "name": "Okko",
+      "slug": "okko",
+      "iconUrl": "/img/service/280.svg"
+    },
+    {
+      "name": "Ola",
+      "slug": "olacabs",
+      "iconUrl": "/img/service/222.svg"
+    },
+    {
+      "name": "Oldubil",
+      "slug": "oldubil",
+      "iconUrl": "/img/service/602.svg"
+    },
+    {
+      "name": "OLX",
+      "slug": "olx",
+      "iconUrl": "/img/service/150.svg"
+    },
+    {
+      "name": "OneForma",
+      "slug": "oneforma",
+      "iconUrl": "/img/service/13752.svg"
+    },
+    {
+      "name": "Onet",
+      "slug": "onet",
+      "iconUrl": "/img/service/497.svg"
+    },
+    {
+      "name": "Oppo",
+      "slug": "oppo",
+      "iconUrl": "/img/service/374.svg"
+    },
+    {
+      "name": "OVO",
+      "slug": "ovo",
+      "iconUrl": "/img/service/148.svg"
+    },
+    {
+      "name": "Ozon",
+      "slug": "ozon",
+      "iconUrl": "/img/service/215.svg"
+    },
+    {
+      "name": "PaddyPower",
+      "slug": "paddypower",
+      "iconUrl": "/img/service/772.svg"
+    },
+    {
+      "name": "PagSmile",
+      "slug": "pagsmile",
+      "iconUrl": "/img/service/716.svg"
+    },
+    {
+      "name": "Papara",
+      "slug": "papara",
+      "iconUrl": "/img/service/58.svg"
+    },
+    {
+      "name": "Paxful",
+      "slug": "paxful",
+      "iconUrl": "/img/service/762.svg"
+    },
+    {
+      "name": "Paybis",
+      "slug": "paybis",
+      "iconUrl": "/img/service/13763.svg"
+    },
+    {
+      "name": "Payoneer",
+      "slug": "payoneer",
+      "iconUrl": "/img/service/155.svg"
+    },
+    {
+      "name": "PayPal",
+      "slug": "paypal",
+      "iconUrl": "/img/service/13.svg"
+    },
+    {
+      "name": "Paysafecard",
+      "slug": "paysafecard",
+      "iconUrl": "/img/service/152.svg"
+    },
+    {
+      "name": "Paysend",
+      "slug": "paysend",
+      "iconUrl": "/img/service/13764.svg"
+    },
+    {
+      "name": "Paytm",
+      "slug": "paytm",
+      "iconUrl": "/img/service/717.svg"
+    },
+    {
+      "name": "PharmEasy",
+      "slug": "pharmeasy",
+      "iconUrl": "/img/service/735.svg"
+    },
+    {
+      "name": "PicPay",
+      "slug": "picpay",
+      "iconUrl": "/img/service/740.svg"
+    },
+    {
+      "name": "Pinduoduo",
+      "slug": "pinduoduo",
+      "iconUrl": "/img/service/13766.svg"
+    },
+    {
+      "name": "PlayerAuctions",
+      "slug": "playerauctions",
+      "iconUrl": "/img/service/13768.svg"
+    },
+    {
+      "name": "Playerzpot",
+      "slug": "playerzpot",
+      "iconUrl": "/img/service/13769.svg"
+    },
+    {
+      "name": "PlayTime",
+      "slug": "playtime",
+      "iconUrl": "/img/service/13963.svg"
+    },
+    {
+      "name": "Pocket52",
+      "slug": "pocket52",
+      "iconUrl": "/img/service/785.svg"
+    },
+    {
+      "name": "Pockit",
+      "slug": "pockit",
+      "iconUrl": "/img/service/13771.svg"
+    },
+    {
+      "name": "Pokemon Center Online",
+      "slug": "pokemon-center-online",
+      "iconUrl": "/img/service/13957.svg"
+    },
+    {
+      "name": "Poshmark",
+      "slug": "poshmark",
+      "iconUrl": "/img/service/86.svg"
+    },
+    {
+      "name": "Potato",
+      "slug": "potato",
+      "iconUrl": "/img/service/220.svg"
+    },
+    {
+      "name": "Potato Chat",
+      "slug": "potato-chat",
+      "iconUrl": "/img/service/13773.svg"
+    },
+    {
+      "name": "Prakerja",
+      "slug": "prakerja",
+      "iconUrl": "/img/service/13775.svg"
+    },
+    {
+      "name": "Prenagen Club",
+      "slug": "prenagen-club",
+      "iconUrl": "/img/service/13776.svg"
+    },
+    {
+      "name": "Probo",
+      "slug": "probo",
+      "iconUrl": "/img/service/818.svg"
+    },
+    {
+      "name": "Prom",
+      "slug": "prom",
+      "iconUrl": "/img/service/780.svg"
+    },
+    {
+      "name": "Proton Mail",
+      "slug": "protonmail",
+      "iconUrl": "/img/service/154.svg"
+    },
+    {
+      "name": "Railone",
+      "slug": "railone",
+      "iconUrl": "/img/service/13964.svg"
+    },
+    {
+      "name": "Rambler",
+      "slug": "rambler",
+      "iconUrl": "/img/service/13790.svg"
+    },
+    {
+      "name": "Rapido",
+      "slug": "rapido",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Razer",
+      "slug": "razer",
+      "iconUrl": "/img/service/13792.svg"
+    },
+    {
+      "name": "Rebtel",
+      "slug": "rebtel",
+      "iconUrl": "/img/service/13793.svg"
+    },
+    {
+      "name": "RedBook",
+      "slug": "redbook",
+      "iconUrl": "/img/service/231.svg"
+    },
+    {
+      "name": "Rediffmail",
+      "slug": "rediffmail",
+      "iconUrl": "/img/service/779.svg"
+    },
+    {
+      "name": "Revolut",
+      "slug": "revolut",
+      "iconUrl": "/img/service/161.svg"
+    },
+    {
+      "name": "ROBINHOOD",
+      "slug": "robinhood",
+      "iconUrl": "/img/service/432.svg"
+    },
+    {
+      "name": "Roposo",
+      "slug": "roposo",
+      "iconUrl": "/img/service/719.svg"
+    },
+    {
+      "name": "Rozetka",
+      "slug": "rozetka",
+      "iconUrl": "/img/service/656.svg"
+    },
+    {
+      "name": "RummyCircle",
+      "slug": "rummycircle",
+      "iconUrl": "/img/service/13800.svg"
+    },
+    {
+      "name": "RummyCulture",
+      "slug": "rummyculture",
+      "iconUrl": "/img/service/753.svg"
+    },
+    {
+      "name": "RummyOla",
+      "slug": "rummyola",
+      "iconUrl": "/img/service/456.svg"
+    },
+    {
+      "name": "RummyWealth",
+      "slug": "rummywealth",
+      "iconUrl": "/img/service/522.svg"
+    },
+    {
+      "name": "Rush",
+      "slug": "rush",
+      "iconUrl": "/img/service/649.svg"
+    },
+    {
+      "name": "RuTube",
+      "slug": "rutube",
+      "iconUrl": "/img/service/493.svg"
+    },
+    {
+      "name": "Ryde",
+      "slug": "ryde",
+      "iconUrl": "/img/service/13801.svg"
+    },
+    {
+      "name": "Sahibinden",
+      "slug": "sahibinden",
+      "iconUrl": "/img/service/398.svg"
+    },
+    {
+      "name": "SamsungShop",
+      "slug": "samsungshop",
+      "iconUrl": "/img/service/708.svg"
+    },
+    {
+      "name": "SHAKEPAY",
+      "slug": "shakepay",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "SHEIN",
+      "slug": "shein",
+      "iconUrl": "/img/service/13811.svg"
+    },
+    {
+      "name": "Shopee",
+      "slug": "shopee",
+      "iconUrl": "/img/service/37.svg"
+    },
+    {
+      "name": "Signal",
+      "slug": "signal",
+      "iconUrl": "/img/service/167.svg"
+    },
+    {
+      "name": "Sixer",
+      "slug": "sixer",
+      "iconUrl": "/img/service/13941.svg"
+    },
+    {
+      "name": "Skout",
+      "slug": "skout",
+      "iconUrl": "/img/service/50.svg"
+    },
+    {
+      "name": "Skroutz",
+      "slug": "skroutz",
+      "iconUrl": "/img/service/525.svg"
+    },
+    {
+      "name": "Skype",
+      "slug": "skype",
+      "iconUrl": "/img/service/233.svg"
+    },
+    {
+      "name": "Snapchat",
+      "slug": "snapchat",
+      "iconUrl": "/img/service/235.svg"
+    },
+    {
+      "name": "SoulApp",
+      "slug": "soulapp",
+      "iconUrl": "/img/service/615.svg"
+    },
+    {
+      "name": "Spartanpoker",
+      "slug": "spartanpoker",
+      "iconUrl": "/img/service/399.svg"
+    },
+    {
+      "name": "Spincrush",
+      "slug": "spincrush",
+      "iconUrl": "/img/service/unknown.svg"
+    },
+    {
+      "name": "Spotify",
+      "slug": "spotify",
+      "iconUrl": "/img/service/166.svg"
+    },
+    {
+      "name": "Steam",
+      "slug": "steam",
+      "iconUrl": "/img/service/12.svg"
+    },
+    {
+      "name": "Stormgain",
+      "slug": "stormgain",
+      "iconUrl": "/img/service/170.svg"
+    },
+    {
+      "name": "Subito",
+      "slug": "subito",
+      "iconUrl": "/img/service/245.svg"
+    },
+    {
+      "name": "Swagbucks",
+      "slug": "swagbucks",
+      "iconUrl": "/img/service/238.svg"
+    },
+    {
+      "name": "Swarail",
+      "slug": "swarail",
+      "iconUrl": "/img/service/13946.svg"
+    },
+    {
+      "name": "Swiggy",
+      "slug": "swiggy",
+      "iconUrl": "/img/service/662.svg"
+    },
+    {
+      "name": "Talabat",
+      "slug": "talabat",
+      "iconUrl": "/img/service/84.svg"
+    },
+    {
+      "name": "TamTam",
+      "slug": "tamtam",
+      "iconUrl": "/img/service/13836.svg"
+    },
+    {
+      "name": "Tango",
+      "slug": "tango",
+      "iconUrl": "/img/service/284.svg"
+    },
+    {
+      "name": "TanTan",
+      "slug": "tantan",
+      "iconUrl": "/img/service/246.svg"
+    },
+    {
+      "name": "Taobao",
+      "slug": "taobao",
+      "iconUrl": "/img/service/30.svg"
+    },
+    {
+      "name": "Taptap Send",
+      "slug": "taptap-send",
+      "iconUrl": "/img/service/400.svg"
+    },
+    {
+      "name": "Tata Neu",
+      "slug": "tata-neu",
+      "iconUrl": "/img/service/13840.svg"
+    },
+    {
+      "name": "TeenPattiStarpro",
+      "slug": "teenpattistarpro",
+      "iconUrl": "/img/service/685.svg"
+    },
+    {
+      "name": "Telegram",
+      "slug": "telegram",
+      "iconUrl": "/img/service/5.svg"
+    },
+    {
+      "name": "Temu",
+      "slug": "temu",
+      "iconUrl": "/img/service/743.svg"
+    },
+    {
+      "name": "Tencent QQ",
+      "slug": "tencent-qq",
+      "iconUrl": "/img/service/41.svg"
+    },
+    {
+      "name": "TenChat",
+      "slug": "tenchat",
+      "iconUrl": "/img/service/285.svg"
+    },
+    {
+      "name": "Ticketmaster",
+      "slug": "ticketmaster",
+      "iconUrl": "/img/service/225.svg"
+    },
+    {
+      "name": "tiketcom",
+      "slug": "tiketcom",
+      "iconUrl": "/img/service/13847.svg"
+    },
+    {
+      "name": "TikTok (Douyin)",
+      "slug": "tiktokdouyin",
+      "iconUrl": "/img/service/36.svg"
+    },
+    {
+      "name": "Tokopedia",
+      "slug": "tokopedia",
+      "iconUrl": "/img/service/174.svg"
+    },
+    {
+      "name": "TradingView",
+      "slug": "tradingview",
+      "iconUrl": "/img/service/176.svg"
+    },
+    {
+      "name": "Trendyol",
+      "slug": "trendyol",
+      "iconUrl": "/img/service/85.svg"
+    },
+    {
+      "name": "Trip",
+      "slug": "trip",
+      "iconUrl": "/img/service/286.svg"
+    },
+    {
+      "name": "Truecaller",
+      "slug": "truecaller",
+      "iconUrl": "/img/service/211.svg"
+    },
+    {
+      "name": "TRUTH SOCIAL",
+      "slug": "truth-social",
+      "iconUrl": "/img/service/13853.svg"
+    },
+    {
+      "name": "Twilio",
+      "slug": "twilio",
+      "iconUrl": "/img/service/287.svg"
+    },
+    {
+      "name": "Twitch",
+      "slug": "twitch",
+      "iconUrl": "/img/service/172.svg"
+    },
+    {
+      "name": "UangMe",
+      "slug": "uangme",
+      "iconUrl": "/img/service/13856.svg"
+    },
+    {
+      "name": "Uber",
+      "slug": "uber",
+      "iconUrl": "/img/service/24.svg"
+    },
+    {
+      "name": "Ubisoft",
+      "slug": "ubisoft",
+      "iconUrl": "/img/service/13857.svg"
+    },
+    {
+      "name": "Uklon",
+      "slug": "uklon",
+      "iconUrl": "/img/service/778.svg"
+    },
+    {
+      "name": "Ukrnet",
+      "slug": "ukrnet",
+      "iconUrl": "/img/service/690.svg"
+    },
+    {
+      "name": "Uplay",
+      "slug": "uplay",
+      "iconUrl": "/img/service/700.svg"
+    },
+    {
+      "name": "Upwork",
+      "slug": "upwork",
+      "iconUrl": "/img/service/13859.svg"
+    },
+    {
+      "name": "UU163",
+      "slug": "uu163",
+      "iconUrl": "/img/service/813.svg"
+    },
+    {
+      "name": "Uzum",
+      "slug": "uzum",
+      "iconUrl": "/img/service/13861.svg"
+    },
+    {
+      "name": "Venmo",
+      "slug": "venmo",
+      "iconUrl": "/img/service/193.svg"
+    },
+    {
+      "name": "Vercel",
+      "slug": "vercel",
+      "iconUrl": "/img/service/13863.svg"
+    },
+    {
+      "name": "VFS GLOBAL",
+      "slug": "vfs-global",
+      "iconUrl": "/img/service/13866.svg"
+    },
+    {
+      "name": "Viber",
+      "slug": "viber",
+      "iconUrl": "/img/service/8.svg"
+    },
+    {
+      "name": "Vinted",
+      "slug": "vinted",
+      "iconUrl": "/img/service/195.svg"
+    },
+    {
+      "name": "Walmart",
+      "slug": "walmart",
+      "iconUrl": "/img/service/13872.svg"
+    },
+    {
+      "name": "WeChat",
+      "slug": "wechat",
+      "iconUrl": "/img/service/69.svg"
+    },
+    {
+      "name": "Weibo",
+      "slug": "weibo",
+      "iconUrl": "/img/service/190.svg"
+    },
+    {
+      "name": "Weverse",
+      "slug": "weverse",
+      "iconUrl": "/img/service/676.svg"
+    },
+    {
+      "name": "WhatsApp",
+      "slug": "whatsapp",
+      "iconUrl": "/img/service/14.svg"
+    },
+    {
+      "name": "Wildberries",
+      "slug": "wildberries",
+      "iconUrl": "/img/service/181.svg"
+    },
+    {
+      "name": "Wink",
+      "slug": "wink",
+      "iconUrl": "/img/service/289.svg"
+    },
+    {
+      "name": "WinzoGame",
+      "slug": "winzogame",
+      "iconUrl": "/img/service/410.svg"
+    },
+    {
+      "name": "Wise",
+      "slug": "wise",
+      "iconUrl": "/img/service/290.svg"
+    },
+    {
+      "name": "Wish",
+      "slug": "wish",
+      "iconUrl": "/img/service/448.svg"
+    },
+    {
+      "name": "Wolt",
+      "slug": "wolt",
+      "iconUrl": "/img/service/538.svg"
+    },
+    {
+      "name": "WooHoo",
+      "slug": "woohoo",
+      "iconUrl": "/img/service/13966.svg"
+    },
+    {
+      "name": "WooPlus",
+      "slug": "wooplus",
+      "iconUrl": "/img/service/13882.svg"
+    },
+    {
+      "name": "WorldRemit",
+      "slug": "worldremit",
+      "iconUrl": "/img/service/551.svg"
+    },
+    {
+      "name": "X (Twitter)",
+      "slug": "twitter",
+      "iconUrl": "/img/service/20.svg"
+    },
+    {
+      "name": "X5ID",
+      "slug": "x5id",
+      "iconUrl": "/img/service/13883.svg"
+    },
+    {
+      "name": "Xiaomi",
+      "slug": "xiaomi",
+      "iconUrl": "/img/service/291.svg"
+    },
+    {
+      "name": "Ximalaya",
+      "slug": "ximalaya",
+      "iconUrl": "/img/service/292.svg"
+    },
+    {
+      "name": "Yahoo Mail",
+      "slug": "yahoo",
+      "iconUrl": "/img/service/27.svg"
+    },
+    {
+      "name": "Yalla",
+      "slug": "yalla",
+      "iconUrl": "/img/service/49.svg"
+    },
+    {
+      "name": "YandexGo",
+      "slug": "yandexgo",
+      "iconUrl": "/img/service/216.svg"
+    },
+    {
+      "name": "YAPPY",
+      "slug": "yappy",
+      "iconUrl": "/img/service/293.svg"
+    },
+    {
+      "name": "Yemeksepeti",
+      "slug": "yemeksepeti",
+      "iconUrl": "/img/service/83.svg"
+    },
+    {
+      "name": "YouDo",
+      "slug": "youdo",
+      "iconUrl": "/img/service/13889.svg"
+    },
+    {
+      "name": "Yubo",
+      "slug": "yubo",
+      "iconUrl": "/img/service/494.svg"
+    },
+    {
+      "name": "Zalo",
+      "slug": "zalo",
+      "iconUrl": "/img/service/73.svg"
+    },
+    {
+      "name": "Zasilkovna",
+      "slug": "zasilkovna",
+      "iconUrl": "/img/service/13892.svg"
+    },
+    {
+      "name": "Zepto",
+      "slug": "zepto",
+      "iconUrl": "/img/service/13894.svg"
+    },
+    {
+      "name": "Zhihu",
+      "slug": "zhihu",
+      "iconUrl": "/img/service/189.svg"
+    },
+    {
+      "name": "Zilch",
+      "slug": "zilch",
+      "iconUrl": "/img/service/435.svg"
+    },
+    {
+      "name": "Zoho",
+      "slug": "zoho",
+      "iconUrl": "/img/service/295.svg"
+    },
+    {
+      "name": "Zomato",
+      "slug": "zomato",
+      "iconUrl": "/img/service/47.svg"
+    },
+    {
+      "name": "Zupee",
+      "slug": "zupee",
+      "iconUrl": "/img/service/296.svg"
+    },
+    {
+      "name": "ZUS Coffee",
+      "slug": "zus-coffee",
+      "iconUrl": "/img/service/13897.svg"
+    },
+    {
+      "name": "Şikayet var",
+      "slug": "sikayet-var",
+      "iconUrl": "/img/service/724.svg"
+    },
+    {
+      "name": "Ашан",
+      "slug": "asan",
+      "iconUrl": "/img/service/88.svg"
+    },
+    {
+      "name": "Вконтакте",
+      "slug": "vkontakte",
+      "iconUrl": "/img/service/23.svg"
+    },
+    {
+      "name": "ВкусВилл",
+      "slug": "vkusvill",
+      "iconUrl": "/img/service/180.svg"
+    },
+    {
+      "name": "Вкусно и Точка",
+      "slug": "vkusno-i-tocka",
+      "iconUrl": "/img/service/297.svg"
+    },
+    {
+      "name": "Детский мир",
+      "slug": "detskii-mir",
+      "iconUrl": "/img/service/298.svg"
+    },
+    {
+      "name": "ДругВокруг",
+      "slug": "drugvokrug",
+      "iconUrl": "/img/service/107.svg"
+    },
+    {
+      "name": "Золотая Корона",
+      "slug": "zolotaia-korona",
+      "iconUrl": "/img/service/307.svg"
+    },
+    {
+      "name": "Золотое Яблоко",
+      "slug": "zolotoe-iabloko",
+      "iconUrl": "/img/service/308.svg"
+    },
+    {
+      "name": "Лэтуаль",
+      "slug": "letual",
+      "iconUrl": "/img/service/300.svg"
+    },
+    {
+      "name": "Магнит",
+      "slug": "magnit",
+      "iconUrl": "/img/service/139.svg"
+    },
+    {
+      "name": "Магнит.Маркет",
+      "slug": "magnitmarket",
+      "iconUrl": "/img/service/129.svg"
+    },
+    {
+      "name": "МВидео",
+      "slug": "mvideo",
+      "iconUrl": "/img/service/145.svg"
+    },
+    {
+      "name": "Одноклассники",
+      "slug": "odnoklassniki",
+      "iconUrl": "/img/service/199.svg"
+    },
+    {
+      "name": "Окей",
+      "slug": "okei",
+      "iconUrl": "/img/service/500.svg"
+    },
+    {
+      "name": "Почта России",
+      "slug": "pocta-rossii",
+      "iconUrl": "/img/service/13911.svg"
+    },
+    {
+      "name": "Профи",
+      "slug": "profi-1",
+      "iconUrl": "/img/service/13913.svg"
+    },
+    {
+      "name": "Самокат",
+      "slug": "samokat",
+      "iconUrl": "/img/service/168.svg"
+    },
+    {
+      "name": "СберАптека",
+      "slug": "sberapteka",
+      "iconUrl": "/img/service/524.svg"
+    },
+    {
+      "name": "СберМаркет",
+      "slug": "sbermarket",
+      "iconUrl": "/img/service/169.svg"
+    },
+    {
+      "name": "СберМегаМаркет",
+      "slug": "sbermegamarket",
+      "iconUrl": "/img/service/803.svg"
+    },
+    {
+      "name": "СпортМастер",
+      "slug": "sportmaster",
+      "iconUrl": "/img/service/162.svg"
+    },
+    {
+      "name": "Столото",
+      "slug": "stoloto",
+      "iconUrl": "/img/service/312.svg"
+    },
+    {
+      "name": "Фотострана",
+      "slug": "fotostrana",
+      "iconUrl": "/img/service/13921.svg"
+    },
+    {
+      "name": "Эльдорадо",
+      "slug": "eldorado",
+      "iconUrl": "/img/service/302.svg"
+    },
+    {
+      "name": "Яндекс",
+      "slug": "iandeks",
+      "iconUrl": "/img/service/185.svg"
+    },
+    {
+      "name": "米画师Mihuashi",
+      "slug": "mihuashi",
+      "iconUrl": "/img/service/443.svg"
+    }
+  ],
+  "popular": [
+    "facebook",
+    "telegram",
+    "whatsapp",
+    "tiktokdouyin",
+    "instagramthreads",
+    "chatgpt",
+    "googleyoutubegmail",
+    "amazon",
+    "wechat",
+    "viber",
+    "airtel",
+    "hinge",
+    "walmart",
+    "discord",
+    "paypal",
+    "ticketmaster",
+    "myntra",
+    "uber",
+    "kakaotalk",
+    "flipkart",
+    "swiggy",
+    "signal",
+    "redbook",
+    "jiomart"
+  ]
+}

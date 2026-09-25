@@ -1,6 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import catalog from '../data/catalog.json';
 
+const displayCountryLists = import.meta.glob('../data/tiger-country-directory.json', { eager: true, import: 'default' })['../data/tiger-country-directory.json'];
+const displayIdByName = new Map(catalog.countries.map((country) => [country.name.toLowerCase().trim(), country.id]));
+const countries = displayCountryLists.countries.map((country) => ({
+  ...country,
+  id: displayIdByName.get(country.name.toLowerCase().trim()) || catalog.countries.find((entry) => entry.name.toLowerCase().replace(/\s/g, '') === country.name.toLowerCase().replace(/\s/g, ''))?.id || 0,
+  flagUrl: `https://tiger-sms.com${country.iconUrl}`,
+  phoneCode: country.phoneCode || '',
+}));
+const regionNames = { europe: 'Europe', asia: 'Asia', africa: 'Africa', 'north-america': 'North America', 'south-america': 'South America', oceania: 'Oceania' };
+const regionOrder = ['europe', 'asia', 'africa', 'north-america', 'south-america', 'oceania'];
+const popularCountries = displayCountryLists.popular.map((slug) => countries.find((country) => country.slug === slug)).filter(Boolean);
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
@@ -19,7 +31,7 @@ const breadcrumbSchema = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
-  <main class="countries-page">
+  <section class="countries-page">
     <div class="container">
       <nav class="breadcrumb-nav" aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
@@ -29,41 +41,50 @@ const breadcrumbSchema = {
       </nav>
 
       <section class="countries-hero">
-        <span class="badge-pill">Live coverage</span>
-        <h1>Virtual numbers by <span class="text-gradient">country</span></h1>
-        <p>Choose a country with live carrier inventory for your next SMS verification. Availability and prices can change as numbers are used.</p>
-        <div class="country-controls">
-          <div class="country-search-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input id="country-search" type="search" placeholder="Search countries..." aria-label="Search countries" autocomplete="off" />
-          </div>
-          <a href="/dashboard/buy" class="btn btn-primary">Buy a number</a>
-        </div>
+          <span class="badge-pill">Catalog</span>
+        <h1>Virtual numbers by country</h1>
+        <p>Every country where OTPWala has virtual numbers, grouped by region. Pick a country to see its services and prices.</p>
       </section>
 
       <section class="country-section" aria-labelledby="popular-countries-title">
         <div class="section-heading compact-heading">
-          <span class="badge-pill">Popular choices</span>
           <h2 id="popular-countries-title">Popular countries</h2>
-          <p>Frequently selected destinations for verification SMS.</p>
         </div>
-        <div id="popular-countries" class="popular-country-grid" aria-live="polite"><p class="catalog-status">Loading countries...</p></div>
+        <div id="popular-countries" class="popular-country-grid" aria-live="polite">
+          {popularCountries.map((country) => (
+            <a class="country-tile" href={`/dashboard/buy?country=${encodeURIComponent(String(country.id))}`}><img class="country-flag" src={country.flagUrl} alt="" loading="lazy" /><span>{country.name}</span></a>
+          ))}
+        </div>
       </section>
 
       <section class="country-section all-country-section" aria-labelledby="all-countries-title">
         <div class="all-country-heading">
           <div>
-            <span class="badge-pill">Full catalog</span>
             <h2 id="all-countries-title">All countries</h2>
           </div>
-          <span id="country-count" class="catalog-count">Loading...</span>
+            <div class="directory-actions">
+              <span class="catalog-label">Countries</span><span id="country-count" class="catalog-count">{countries.length}</span>
+              <div class="country-search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input id="country-search" type="search" placeholder="Search countries" aria-label="Search countries" autocomplete="off" />
+              </div>
+            </div>
         </div>
         <nav id="country-alpha" class="catalog-alpha" aria-label="Country initials"></nav>
-        <div id="all-countries" class="all-country-grid" aria-live="polite"><p class="catalog-status">Loading countries...</p></div>
+        <div id="all-countries" class="all-country-grid" aria-live="polite">
+          {regionOrder.map((region) => [region, countries.filter((country) => country.region === region)]).filter(([, group]) => group.length).map(([region, group]) => (
+            <section class="directory-group" id={`reg-${region}`}>
+              <h3 class="directory-group-heading"><span>{regionNames[region]}</span><small>{group.length}</small></h3>
+              <div class="directory-grid">{group.map((country) => (
+                <a class="all-country-item" href={`/dashboard/buy?country=${encodeURIComponent(String(country.id))}`} data-name={country.name.toLowerCase()} data-slug={country.slug}><img class="country-flag" src={country.flagUrl} alt="" loading="lazy" /><span class="country-label">{country.name}</span><span class="dial-code">{country.phoneCode}</span></a>
+              ))}</div>
+            </section>
+          ))}
+        </div>
         <button id="load-more-countries" class="btn btn-secondary load-more" type="button" hidden>Load more countries</button>
       </section>
 
-      <section class="country-footer-cta">
+      <section class="country-footer-cta" hidden>
         <div>
           <span class="badge-pill">Ready when you are</span>
           <h2>Find a service and receive your code.</h2>
@@ -72,31 +93,41 @@ const breadcrumbSchema = {
         <a href="/dashboard/buy" class="btn btn-primary">Browse services</a>
       </section>
     </div>
-  </main>
+  </section>
 </BaseLayout>
 
-<style>
+<style is:global>
   .countries-page { padding: 1.25rem 0 4rem; background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 55%, #f8fafc 100%); min-height: 70vh; }
-  .countries-hero { padding: 3.5rem 0 2.25rem; max-width: 820px; }
+  .breadcrumb-nav { margin-bottom: 1.5rem; }
+  .breadcrumb-list { display: flex; align-items: center; gap: .5rem; list-style: none; padding: 0; margin: 0; font-size: .85rem; color: var(--text-muted, #64748b); }
+  .breadcrumb-list a { color: var(--text-secondary, #475569); text-decoration: none; }
+  .breadcrumb-list a:hover { color: var(--accent-primary, #2563eb); }
+  .breadcrumb-list li:not(:last-child)::after { content: '/'; margin-left: .5rem; color: #cbd5e1; }
+  .badge-pill { display: inline-block; padding: .35rem .9rem; background: #eff6ff; color: #2563eb; border-radius: 9999px; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1rem; border: 1px solid #bfdbfe; }
+  .countries-hero { padding: 2.25rem 0 1.75rem; max-width: 820px; }
   .countries-hero h1 { margin: .85rem 0 .65rem; font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.05; letter-spacing: 0; color: #172033; }
-  .countries-hero p { max-width: 650px; margin: 0; color: #64748b; font-size: 1rem; line-height: 1.65; }
+  .countries-hero p { max-width: 700px; margin: 0 auto; color: #64748b; font-size: 1rem; line-height: 1.65; }
+  .countries-hero > .badge-pill { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); padding: .45rem 1.1rem; }
   .country-controls { display: flex; align-items: center; gap: .75rem; margin-top: 1.5rem; flex-wrap: wrap; }
   .country-search-box { display: flex; align-items: center; gap: .55rem; flex: 1 1 300px; max-width: 520px; background: #fff; border: 1px solid #dbe3ec; border-radius: 10px; padding: .15rem .9rem; color: #94a3b8; box-shadow: 0 4px 18px rgba(15, 23, 42, .04); }
   .country-search-box input { width: 100%; border: 0; outline: 0; padding: .72rem 0; background: transparent; color: #172033; font: inherit; }
   .country-section { margin-top: 1.5rem; }
   .compact-heading { margin-bottom: 1rem; }
-  .compact-heading h2, .all-country-heading h2 { margin: .5rem 0 .2rem; color: #172033; font-family: var(--font-display); font-size: 1.65rem; }
+  .compact-heading h2, .all-country-heading h2 { margin: 0 0 1.1rem; color: #172033; font-family: var(--font-display); font-size: 1.65rem; }
   .compact-heading p { margin: 0; color: #64748b; font-size: .9rem; }
   .popular-country-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .7rem; }
   .country-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .45rem; min-height: 92px; padding: .8rem .5rem; border: 1px solid #e2e8f0; border-radius: 10px; background: rgba(255,255,255,.9); color: #172033; text-decoration: none; box-shadow: 0 3px 12px rgba(15,23,42,.04); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
   .country-tile:hover { transform: translateY(-2px); border-color: #93c5fd; box-shadow: 0 8px 20px rgba(37,99,235,.1); }
-  .country-flag { width: 24px; height: 16px; aspect-ratio: 3 / 2; object-fit: cover; object-position: center; display: block; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: 0 0 24px; }
-  .country-tile span { font-size: .76rem; font-weight: 700; text-align: center; }
+  .country-flag { width: 28px; height: 18px; aspect-ratio: 3 / 2; object-fit: cover; object-position: center; display: block; border-radius: 0; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: 0 0 auto; }
+  .country-tile span { font-size: .9rem; font-weight: 700; text-align: center; }
   .all-country-section { padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255,255,255,.82); box-shadow: 0 8px 26px rgba(15,23,42,.05); }
   .all-country-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
   .catalog-count { color: #64748b; font-size: .8rem; font-weight: 700; }
+  .directory-actions { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; flex-wrap: wrap; }
+  .directory-actions .country-search-box { flex: 0 1 280px; max-width: 280px; margin-top: 0; }
   .catalog-alpha { display: flex; flex-wrap: wrap; gap: .3rem; padding: .65rem 0; margin-bottom: .4rem; border-top: 1px solid #eef2f7; border-bottom: 1px solid #eef2f7; }
   .catalog-alpha button { min-width: 27px; padding: .25rem .35rem; border: 0; border-radius: 6px; background: transparent; color: #64748b; font-size: .75rem; font-weight: 800; cursor: pointer; }
+  .catalog-alpha .region-link { min-width: auto; padding: .35rem .7rem; }
   .catalog-alpha button:hover, .catalog-alpha button.active { background: #eaf2ff; color: #2563eb; }
   .all-country-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1.5rem; }
   .all-country-item { display: flex; align-items: center; gap: .6rem; min-height: 46px; border-top: 1px solid #eef2f7; color: #334155; font-size: .84rem; }
@@ -106,28 +137,59 @@ const breadcrumbSchema = {
   .country-footer-cta h2 { margin: .45rem 0 .25rem; font-family: var(--font-display); font-size: 1.35rem; }
   .country-footer-cta p { margin: 0; color: #cbd5e1; font-size: .86rem; }
   .country-footer-cta .badge-pill { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #bfdbfe; }
-  @media (max-width: 900px) { .popular-country-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .countries-hero { padding-top: 2.25rem; } .popular-country-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .all-country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: .85rem; } .catalog-alpha { gap: .15rem; } .catalog-alpha button { min-width: 24px; } .country-footer-cta { align-items: flex-start; flex-direction: column; } .country-footer-cta .btn { width: 100%; justify-content: center; } }
+  .countries-page { padding-top: 1.25rem; }
+  .countries-hero { max-width: 820px; padding: 3.5rem 0 2.25rem; margin-left: auto; margin-right: auto; text-align: center; }
+  .countries-hero p { margin-left: auto; margin-right: auto; }
+  .country-controls { justify-content: center; }
+  .country-section > .compact-heading { text-align: left; }
+  .popular-country-grid { gap: .75rem; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .country-tile { min-height: 112px; border-radius: 10px; padding: .8rem .5rem; box-shadow: 0 3px 12px rgba(15, 23, 42, .04); }
+  .country-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, .1); }
+  .country-flag { width: 28px; height: 18px; aspect-ratio: 3 / 2; flex: 0 0 auto; border-radius: 0; }
+  .all-country-section { margin-top: 2rem; padding: 1.5rem; }
+  .all-country-heading { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .5rem 1rem; }
+  .all-country-heading h2 { margin: 0; font-size: 1.25rem; }
+  .all-country-heading > div:first-child { display: flex; align-items: baseline; }
+  .catalog-label { color: #64748b; font-size: .8rem; }
+  .all-country-grid { display: block; }
+  .directory-group { margin-top: 1.5rem; }
+  .directory-group:first-child { margin-top: 0; }
+  .directory-group-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: 0 0 .65rem; color: #172033; font-family: var(--font-display); font-size: 1rem; }
+  .directory-group-heading small { min-width: 26px; padding: .18rem .45rem; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: .7rem; text-align: center; }
+  .all-country-grid .directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; }
+  .all-country-grid .all-country-item { min-height: 42px; padding: .45rem .25rem; border: 0; border-top: 1px solid #e9edf2; border-radius: 0; background: transparent; box-shadow: none; color: #263246; text-decoration: none; font-size: .86rem; transition: background .15s; display: flex; align-items: center; }
+  .all-country-grid .all-country-item:hover { transform: none; border-color: #e9edf2; background: #f8fafc; box-shadow: none; }
+  .all-country-grid .country-flag { width: 28px; height: 28px; object-fit: contain; box-shadow: none; }
+  .all-country-item .country-label { flex: 1; }
+  .dial-code { color: #657185; font-size: .8rem; white-space: nowrap; }
+  @media (max-width: 900px) { .popular-country-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .all-country-grid .directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .countries-hero { padding-top: 2.25rem; } .popular-country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .all-country-grid .directory-grid { grid-template-columns: 1fr; } .all-country-heading { grid-template-columns: 1fr; align-items: start; } .directory-actions { justify-content: space-between; } .catalog-alpha { gap: .15rem; } .catalog-alpha button { min-width: 24px; } .country-footer-cta { align-items: flex-start; flex-direction: column; } .country-footer-cta .btn { width: 100%; justify-content: center; } }
 </style>
 
 <script>
-  type Country = { id: number; name: string; iso?: string; flagUrl?: string };
-  const popularNames = ['Brazil', 'United States', 'Philippines', 'Indonesia', 'United Kingdom', 'South Africa', 'India', 'Canada', 'Mexico', 'France', 'Nigeria', 'Thailand', 'Colombia', 'Netherlands', 'Poland', 'Germany', 'Pakistan', 'Turkey', 'Bangladesh', 'Italy', 'Portugal', 'Saudi Arabia', 'Spain', 'Vietnam'];
-  const searchInput = document.getElementById('country-search') as HTMLInputElement;
-  const popularContainer = document.getElementById('popular-countries') as HTMLElement;
-  const allContainer = document.getElementById('all-countries') as HTMLElement;
-  const countLabel = document.getElementById('country-count') as HTMLElement;
-  const loadMoreButton = document.getElementById('load-more-countries') as HTMLButtonElement;
-  const alphaContainer = document.getElementById('country-alpha') as HTMLElement;
-  let countries: Country[] = [];
+  const popularNames = ['Brazil', 'United States', 'Philippines', 'Indonesia', 'United Kingdom', 'South Africa', 'India', 'Canada', 'Mexico', 'France', 'Nigeria', 'Colombia', 'Thailand', 'Netherlands', 'Poland', 'Pakistan', 'Germany', 'Turkey', 'Bangladesh', 'Italy', 'Portugal', 'Saudi Arabia', 'Vietnam', 'Malaysia'];
+  const searchInput = document.getElementById('country-search');
+  const popularContainer = document.getElementById('popular-countries');
+  const allContainer = document.getElementById('all-countries');
+  const countLabel = document.getElementById('country-count');
+  const loadMoreButton = document.getElementById('load-more-countries');
+  const alphaContainer = document.getElementById('country-alpha');
+  let countries = [...document.querySelectorAll('#all-countries .all-country-item')].map((item) => ({
+    id: Number(new URL(item.getAttribute('href'), location.origin).searchParams.get('country')),
+    name: item.querySelector('.country-label')?.textContent || '',
+    iso: item.querySelector('img')?.getAttribute('src')?.match(/\/country\/([A-Z]+)\.svg/i)?.[1]?.toLowerCase() || '',
+    flagUrl: item.querySelector('img')?.getAttribute('src') || '/icons/services/default.svg',
+    phoneCode: item.querySelector('.dial-code')?.textContent || '',
+    region: item.closest('.directory-group')?.id.replace('reg-', '') || 'other',
+    slug: item.dataset.slug || '',
+  }));
   let visibleCount = 60;
   let letterFilter = '';
-
-  function flagUrl(country: Country) {
-    return country.flagUrl || `/api/catalog/country-flag/${String(country.iso || 'un').toLowerCase()}`;
+  function flagUrl(country) {
+    return country.flagUrl || '/icons/flags/default.svg';
   }
 
-  function countryTile(country: Country, compact = false) {
+  function countryTile(country, compact = false) {
     const link = document.createElement('a');
     link.className = compact ? 'country-tile' : 'all-country-item';
     link.href = `/dashboard/buy?country=${encodeURIComponent(String(country.id))}`;
@@ -139,35 +201,61 @@ const breadcrumbSchema = {
     const label = document.createElement('span');
     label.textContent = country.name;
     link.append(image, label);
+    if (!compact && country.phoneCode) {
+      const dialCode = document.createElement('span');
+      dialCode.className = 'dial-code';
+      dialCode.textContent = country.phoneCode;
+      link.append(dialCode);
+    }
     return link;
   }
 
   function render() {
     const query = searchInput.value.trim().toLowerCase();
     const filtered = countries.filter((country) => country.name.toLowerCase().includes(query) && (!letterFilter || country.name.toUpperCase().startsWith(letterFilter)));
-    countLabel.textContent = `${filtered.length} countries`;
+    countLabel.textContent = String(filtered.length);
     popularContainer.replaceChildren();
-    const popular = popularNames.map((name) => filtered.find((country) => country.name.toLowerCase() === name.toLowerCase())).filter(Boolean) as Country[];
+    const popular = popularNames.map((name) => filtered.find((country) => country.name.toLowerCase() === name.toLowerCase())).filter(Boolean);
     if (popular.length) popular.forEach((country) => popularContainer.append(countryTile(country, true)));
     else popularContainer.innerHTML = '<p class="catalog-status">No popular countries match your search.</p>';
 
     allContainer.replaceChildren();
-    filtered.slice(0, visibleCount).forEach((country) => allContainer.append(countryTile(country)));
-    loadMoreButton.hidden = filtered.length <= visibleCount;
+    const groups = new Map();
+    filtered.forEach((country) => {
+      const region = country.region;
+      if (!groups.has(region)) groups.set(region, []);
+      groups.get(region)?.push(country);
+    });
+    groups.forEach((group, region) => {
+      const section = document.createElement('section');
+      section.className = 'directory-group';
+      section.id = `reg-${region.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+      const heading = document.createElement('h3');
+      heading.className = 'directory-group-heading';
+      heading.innerHTML = `<span>${regionNames[region] || region}</span><small>${group.length}</small>`;
+      const grid = document.createElement('div');
+      grid.className = 'directory-grid';
+      grid.append(...group.map((country) => countryTile(country)));
+      section.append(heading, grid);
+      allContainer.append(section);
+    });
+    loadMoreButton.hidden = true;
   }
 
   function renderAlphabet() {
     alphaContainer.replaceChildren();
-    const allButton = document.createElement('button');
-    allButton.textContent = 'All';
-    allButton.className = !letterFilter ? 'active' : '';
-    allButton.onclick = () => { letterFilter = ''; visibleCount = 60; renderAlphabet(); render(); };
-    alphaContainer.append(allButton);
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((letter) => {
+    regionOrder.forEach((region) => {
       const button = document.createElement('button');
-      button.textContent = letter;
-      button.className = letterFilter === letter ? 'active' : '';
-      button.onclick = () => { letterFilter = letter; visibleCount = 60; renderAlphabet(); render(); };
+      button.type = 'button';
+      button.textContent = regionNames[region];
+      button.className = 'region-link';
+      button.onclick = () => {
+        searchInput.value = '';
+        letterFilter = '';
+        visibleCount = 60;
+        render();
+        document.getElementById(`reg-${region}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
       alphaContainer.append(button);
     });
   }
@@ -175,14 +263,6 @@ const breadcrumbSchema = {
   searchInput.addEventListener('input', () => { letterFilter = ''; visibleCount = 60; renderAlphabet(); render(); });
   loadMoreButton.addEventListener('click', () => { visibleCount += 60; render(); });
 
-  try {
-    const response = await fetch('/api/countries');
-    const payload = await response.json();
-    countries = Array.isArray(payload?.data) ? payload.data : [];
-    renderAlphabet();
-    render();
-  } catch {
-    popularContainer.innerHTML = '<p class="catalog-status">Countries are temporarily unavailable.</p>';
-    allContainer.innerHTML = '<p class="catalog-status">Countries are temporarily unavailable.</p>';
-  }
+  renderAlphabet();
+  render();
 </script>

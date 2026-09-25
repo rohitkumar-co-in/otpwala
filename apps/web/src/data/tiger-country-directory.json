@@ -1,0 +1,1430 @@
+{
+  "countries": [
+    {
+      "name": "Albania",
+      "slug": "albania",
+      "iso": "AL",
+      "iconUrl": "/img/country/AL.svg",
+      "phoneCode": "+355",
+      "region": "europe"
+    },
+    {
+      "name": "Austria",
+      "slug": "austria",
+      "iso": "AT",
+      "iconUrl": "/img/country/AT.svg",
+      "phoneCode": "+43",
+      "region": "europe"
+    },
+    {
+      "name": "Belarus",
+      "slug": "belarus",
+      "iso": "BY",
+      "iconUrl": "/img/country/BY.svg",
+      "phoneCode": "+375",
+      "region": "europe"
+    },
+    {
+      "name": "Belgium",
+      "slug": "belgium",
+      "iso": "BE",
+      "iconUrl": "/img/country/BE.svg",
+      "phoneCode": "+32",
+      "region": "europe"
+    },
+    {
+      "name": "Bosnia and Herzegovina",
+      "slug": "bosnia-and-herzegovina",
+      "iso": "BA",
+      "iconUrl": "/img/country/BA.svg",
+      "phoneCode": "+387",
+      "region": "europe"
+    },
+    {
+      "name": "Bulgaria",
+      "slug": "bulgaria",
+      "iso": "BG",
+      "iconUrl": "/img/country/BG.svg",
+      "phoneCode": "+359",
+      "region": "europe"
+    },
+    {
+      "name": "Croatia",
+      "slug": "croatia",
+      "iso": "HR",
+      "iconUrl": "/img/country/HR.svg",
+      "phoneCode": "+385",
+      "region": "europe"
+    },
+    {
+      "name": "Czech Republic",
+      "slug": "czech-republic",
+      "iso": "CZ",
+      "iconUrl": "/img/country/CZ.svg",
+      "phoneCode": "+420",
+      "region": "europe"
+    },
+    {
+      "name": "Denmark",
+      "slug": "denmark",
+      "iso": "DK",
+      "iconUrl": "/img/country/DK.svg",
+      "phoneCode": "+45",
+      "region": "europe"
+    },
+    {
+      "name": "Estonia",
+      "slug": "estonia",
+      "iso": "EE",
+      "iconUrl": "/img/country/EE.svg",
+      "phoneCode": "+372",
+      "region": "europe"
+    },
+    {
+      "name": "Finland",
+      "slug": "finland",
+      "iso": "FI",
+      "iconUrl": "/img/country/FI.svg",
+      "phoneCode": "+358",
+      "region": "europe"
+    },
+    {
+      "name": "France",
+      "slug": "france",
+      "iso": "FR",
+      "iconUrl": "/img/country/FR.svg",
+      "phoneCode": "+33",
+      "region": "europe"
+    },
+    {
+      "name": "Germany",
+      "slug": "germany",
+      "iso": "DE",
+      "iconUrl": "/img/country/DE.svg",
+      "phoneCode": "+49",
+      "region": "europe"
+    },
+    {
+      "name": "Greece",
+      "slug": "greece",
+      "iso": "GR",
+      "iconUrl": "/img/country/GR.svg",
+      "phoneCode": "+30",
+      "region": "europe"
+    },
+    {
+      "name": "Hungary",
+      "slug": "hungary",
+      "iso": "HU",
+      "iconUrl": "/img/country/HU.svg",
+      "phoneCode": "+36",
+      "region": "europe"
+    },
+    {
+      "name": "Ireland",
+      "slug": "ireland",
+      "iso": "IE",
+      "iconUrl": "/img/country/IE.svg",
+      "phoneCode": "+353",
+      "region": "europe"
+    },
+    {
+      "name": "Italy",
+      "slug": "italy",
+      "iso": "IT",
+      "iconUrl": "/img/country/IT.svg",
+      "phoneCode": "+39",
+      "region": "europe"
+    },
+    {
+      "name": "Latvia",
+      "slug": "latvia",
+      "iso": "LV",
+      "iconUrl": "/img/country/LV.svg",
+      "phoneCode": "+371",
+      "region": "europe"
+    },
+    {
+      "name": "Lithuania",
+      "slug": "lithuania",
+      "iso": "LT",
+      "iconUrl": "/img/country/LT.svg",
+      "phoneCode": "+370",
+      "region": "europe"
+    },
+    {
+      "name": "Luxembourg",
+      "slug": "luxembourg",
+      "iso": "LU",
+      "iconUrl": "/img/country/LU.svg",
+      "phoneCode": "+352",
+      "region": "europe"
+    },
+    {
+      "name": "Macedonia",
+      "slug": "macedonia",
+      "iso": "MK",
+      "iconUrl": "/img/country/MK.svg",
+      "phoneCode": "+389",
+      "region": "europe"
+    },
+    {
+      "name": "Moldova",
+      "slug": "moldova-republic-of",
+      "iso": "MD",
+      "iconUrl": "/img/country/MD.svg",
+      "phoneCode": "+373",
+      "region": "europe"
+    },
+    {
+      "name": "Montenegro",
+      "slug": "montenegro",
+      "iso": "ME",
+      "iconUrl": "/img/country/ME.svg",
+      "phoneCode": "+382",
+      "region": "europe"
+    },
+    {
+      "name": "Netherlands",
+      "slug": "netherlands",
+      "iso": "NL",
+      "iconUrl": "/img/country/NL.svg",
+      "phoneCode": "+31",
+      "region": "europe"
+    },
+    {
+      "name": "Norway",
+      "slug": "norway",
+      "iso": "NO",
+      "iconUrl": "/img/country/NO.svg",
+      "phoneCode": "+47",
+      "region": "europe"
+    },
+    {
+      "name": "Poland",
+      "slug": "poland",
+      "iso": "PL",
+      "iconUrl": "/img/country/PL.svg",
+      "phoneCode": "+48",
+      "region": "europe"
+    },
+    {
+      "name": "Portugal",
+      "slug": "portugal",
+      "iso": "PT",
+      "iconUrl": "/img/country/PT.svg",
+      "phoneCode": "+351",
+      "region": "europe"
+    },
+    {
+      "name": "Romania",
+      "slug": "romania",
+      "iso": "RO",
+      "iconUrl": "/img/country/RO.svg",
+      "phoneCode": "+40",
+      "region": "europe"
+    },
+    {
+      "name": "Serbia",
+      "slug": "serbia",
+      "iso": "RS",
+      "iconUrl": "/img/country/RS.svg",
+      "phoneCode": "+381",
+      "region": "europe"
+    },
+    {
+      "name": "Slovakia",
+      "slug": "slovakia",
+      "iso": "SK",
+      "iconUrl": "/img/country/SK.svg",
+      "phoneCode": "+421",
+      "region": "europe"
+    },
+    {
+      "name": "Slovenia",
+      "slug": "slovenia",
+      "iso": "SI",
+      "iconUrl": "/img/country/SI.svg",
+      "phoneCode": "+386",
+      "region": "europe"
+    },
+    {
+      "name": "Spain",
+      "slug": "spain",
+      "iso": "ES",
+      "iconUrl": "/img/country/ES.svg",
+      "phoneCode": "+34",
+      "region": "europe"
+    },
+    {
+      "name": "Sweden",
+      "slug": "sweden",
+      "iso": "SE",
+      "iconUrl": "/img/country/SE.svg",
+      "phoneCode": "+46",
+      "region": "europe"
+    },
+    {
+      "name": "Switzerland",
+      "slug": "switzerland",
+      "iso": "CH",
+      "iconUrl": "/img/country/CH.svg",
+      "phoneCode": "+41",
+      "region": "europe"
+    },
+    {
+      "name": "Ukraine",
+      "slug": "ukraine",
+      "iso": "UA",
+      "iconUrl": "/img/country/UA.svg",
+      "phoneCode": "+380",
+      "region": "europe"
+    },
+    {
+      "name": "United Kingdom",
+      "slug": "united-kingdom",
+      "iso": "GB",
+      "iconUrl": "/img/country/GB.svg",
+      "phoneCode": "+44",
+      "region": "europe"
+    },
+    {
+      "name": "Afghanistan",
+      "slug": "afghanistan",
+      "iso": "AF",
+      "iconUrl": "/img/country/AF.svg",
+      "phoneCode": "+93",
+      "region": "asia"
+    },
+    {
+      "name": "Armenia",
+      "slug": "armenia",
+      "iso": "AM",
+      "iconUrl": "/img/country/AM.svg",
+      "phoneCode": "+374",
+      "region": "asia"
+    },
+    {
+      "name": "Azerbaijan",
+      "slug": "azerbaijan",
+      "iso": "AZ",
+      "iconUrl": "/img/country/AZ.svg",
+      "phoneCode": "+994",
+      "region": "asia"
+    },
+    {
+      "name": "Bahrain",
+      "slug": "bahrain",
+      "iso": "BH",
+      "iconUrl": "/img/country/BH.svg",
+      "phoneCode": "+973",
+      "region": "asia"
+    },
+    {
+      "name": "Bangladesh",
+      "slug": "bangladesh",
+      "iso": "BD",
+      "iconUrl": "/img/country/BD.svg",
+      "phoneCode": "+880",
+      "region": "asia"
+    },
+    {
+      "name": "Bhutan",
+      "slug": "bhutan",
+      "iso": "BT",
+      "iconUrl": "/img/country/BT.svg",
+      "phoneCode": "+975",
+      "region": "asia"
+    },
+    {
+      "name": "Brunei Darussalam",
+      "slug": "brunei-darussalam",
+      "iso": "BN",
+      "iconUrl": "/img/country/BN.svg",
+      "phoneCode": "+673",
+      "region": "asia"
+    },
+    {
+      "name": "Cambodia",
+      "slug": "cambodia",
+      "iso": "KH",
+      "iconUrl": "/img/country/KH.svg",
+      "phoneCode": "+855",
+      "region": "asia"
+    },
+    {
+      "name": "Cyprus",
+      "slug": "cyprus",
+      "iso": "CY",
+      "iconUrl": "/img/country/CY.svg",
+      "phoneCode": "+357",
+      "region": "asia"
+    },
+    {
+      "name": "Georgia",
+      "slug": "georgia",
+      "iso": "GE",
+      "iconUrl": "/img/country/GE.svg",
+      "phoneCode": "+995",
+      "region": "asia"
+    },
+    {
+      "name": "Hong Kong",
+      "slug": "hong-kong",
+      "iso": "HK",
+      "iconUrl": "/img/country/HK.svg",
+      "phoneCode": "+852",
+      "region": "asia"
+    },
+    {
+      "name": "India",
+      "slug": "india",
+      "iso": "IN",
+      "iconUrl": "/img/country/IN.svg",
+      "phoneCode": "+91",
+      "region": "asia"
+    },
+    {
+      "name": "Indonesia",
+      "slug": "indonesia",
+      "iso": "ID",
+      "iconUrl": "/img/country/ID.svg",
+      "phoneCode": "+62",
+      "region": "asia"
+    },
+    {
+      "name": "Iran",
+      "slug": "iran",
+      "iso": "IR",
+      "iconUrl": "/img/country/IR.svg",
+      "phoneCode": "+98",
+      "region": "asia"
+    },
+    {
+      "name": "Iraq",
+      "slug": "iraq",
+      "iso": "IQ",
+      "iconUrl": "/img/country/IQ.svg",
+      "phoneCode": "+964",
+      "region": "asia"
+    },
+    {
+      "name": "Israel",
+      "slug": "israel",
+      "iso": "IL",
+      "iconUrl": "/img/country/IL.svg",
+      "phoneCode": "+972",
+      "region": "asia"
+    },
+    {
+      "name": "Japan",
+      "slug": "japan",
+      "iso": "JP",
+      "iconUrl": "/img/country/JP.svg",
+      "phoneCode": "+81",
+      "region": "asia"
+    },
+    {
+      "name": "Jordan",
+      "slug": "jordan",
+      "iso": "JO",
+      "iconUrl": "/img/country/JO.svg",
+      "phoneCode": "+962",
+      "region": "asia"
+    },
+    {
+      "name": "Kazakhstan",
+      "slug": "kazakhstan",
+      "iso": "KZ",
+      "iconUrl": "/img/country/KZ.svg",
+      "phoneCode": "+7",
+      "region": "asia"
+    },
+    {
+      "name": "Korea",
+      "slug": "korea",
+      "iso": "KR",
+      "iconUrl": "/img/country/KR.svg",
+      "phoneCode": "+82",
+      "region": "asia"
+    },
+    {
+      "name": "Kuwait",
+      "slug": "kuwait",
+      "iso": "KW",
+      "iconUrl": "/img/country/KW.svg",
+      "phoneCode": "+965",
+      "region": "asia"
+    },
+    {
+      "name": "Kyrgyzstan",
+      "slug": "kyrgyzstan",
+      "iso": "KG",
+      "iconUrl": "/img/country/KG.svg",
+      "phoneCode": "+996",
+      "region": "asia"
+    },
+    {
+      "name": "Lao People&#039;s",
+      "slug": "lao-peoples",
+      "iso": "LA",
+      "iconUrl": "/img/country/LA.svg",
+      "phoneCode": "+856",
+      "region": "asia"
+    },
+    {
+      "name": "Lebanon",
+      "slug": "lebanon",
+      "iso": "LB",
+      "iconUrl": "/img/country/LB.svg",
+      "phoneCode": "+961",
+      "region": "asia"
+    },
+    {
+      "name": "Macau",
+      "slug": "macau",
+      "iso": "MO",
+      "iconUrl": "/img/country/MO.svg",
+      "phoneCode": "+853",
+      "region": "asia"
+    },
+    {
+      "name": "Malaysia",
+      "slug": "malaysia",
+      "iso": "MY",
+      "iconUrl": "/img/country/MY.svg",
+      "phoneCode": "+60",
+      "region": "asia"
+    },
+    {
+      "name": "Maldives",
+      "slug": "maldives",
+      "iso": "MV",
+      "iconUrl": "/img/country/MV.svg",
+      "phoneCode": "+960",
+      "region": "asia"
+    },
+    {
+      "name": "Mongolia",
+      "slug": "mongolia",
+      "iso": "MN",
+      "iconUrl": "/img/country/MN.svg",
+      "phoneCode": "+976",
+      "region": "asia"
+    },
+    {
+      "name": "Myanmar",
+      "slug": "myanmar",
+      "iso": "MM",
+      "iconUrl": "/img/country/MM.svg",
+      "phoneCode": "+95",
+      "region": "asia"
+    },
+    {
+      "name": "Nepal",
+      "slug": "nepal",
+      "iso": "NP",
+      "iconUrl": "/img/country/NP.svg",
+      "phoneCode": "+977",
+      "region": "asia"
+    },
+    {
+      "name": "Oman",
+      "slug": "oman",
+      "iso": "OM",
+      "iconUrl": "/img/country/OM.svg",
+      "phoneCode": "+968",
+      "region": "asia"
+    },
+    {
+      "name": "Pakistan",
+      "slug": "pakistan",
+      "iso": "PK",
+      "iconUrl": "/img/country/PK.svg",
+      "phoneCode": "+92",
+      "region": "asia"
+    },
+    {
+      "name": "Palestine",
+      "slug": "palestine",
+      "iso": "PS",
+      "iconUrl": "/img/country/PS.svg",
+      "phoneCode": "+970",
+      "region": "asia"
+    },
+    {
+      "name": "Philippines",
+      "slug": "philippines",
+      "iso": "PH",
+      "iconUrl": "/img/country/PH.svg",
+      "phoneCode": "+63",
+      "region": "asia"
+    },
+    {
+      "name": "Qatar",
+      "slug": "qatar",
+      "iso": "QA",
+      "iconUrl": "/img/country/QA.svg",
+      "phoneCode": "+974",
+      "region": "asia"
+    },
+    {
+      "name": "Saudi Arabia",
+      "slug": "saudi-arabia",
+      "iso": "SA",
+      "iconUrl": "/img/country/SA.svg",
+      "phoneCode": "+966",
+      "region": "asia"
+    },
+    {
+      "name": "Singapore",
+      "slug": "singapore",
+      "iso": "SG",
+      "iconUrl": "/img/country/SG.svg",
+      "phoneCode": "+65",
+      "region": "asia"
+    },
+    {
+      "name": "Sri Lanka",
+      "slug": "sri-lanka",
+      "iso": "LK",
+      "iconUrl": "/img/country/LK.svg",
+      "phoneCode": "+94",
+      "region": "asia"
+    },
+    {
+      "name": "Syrian Arab Republic",
+      "slug": "syrian-arab-republic",
+      "iso": "SY",
+      "iconUrl": "/img/country/SY.svg",
+      "phoneCode": "+963",
+      "region": "asia"
+    },
+    {
+      "name": "Taiwan",
+      "slug": "taiwan",
+      "iso": "TW",
+      "iconUrl": "/img/country/TW.svg",
+      "phoneCode": "+886",
+      "region": "asia"
+    },
+    {
+      "name": "Tajikistan",
+      "slug": "tajikistan",
+      "iso": "TJ",
+      "iconUrl": "/img/country/TJ.svg",
+      "phoneCode": "+992",
+      "region": "asia"
+    },
+    {
+      "name": "Thailand",
+      "slug": "thailand",
+      "iso": "TH",
+      "iconUrl": "/img/country/TH.svg",
+      "phoneCode": "+66",
+      "region": "asia"
+    },
+    {
+      "name": "Timor-Leste",
+      "slug": "timor-leste",
+      "iso": "TL",
+      "iconUrl": "/img/country/TL.svg",
+      "phoneCode": "+670",
+      "region": "asia"
+    },
+    {
+      "name": "Turkey",
+      "slug": "turkey",
+      "iso": "TR",
+      "iconUrl": "/img/country/TR.svg",
+      "phoneCode": "+90",
+      "region": "asia"
+    },
+    {
+      "name": "Turkmenistan",
+      "slug": "turkmenistan",
+      "iso": "TM",
+      "iconUrl": "/img/country/TM.svg",
+      "phoneCode": "+993",
+      "region": "asia"
+    },
+    {
+      "name": "United Arab Emirates",
+      "slug": "united-arab-emirates",
+      "iso": "AE",
+      "iconUrl": "/img/country/AE.svg",
+      "phoneCode": "+971",
+      "region": "asia"
+    },
+    {
+      "name": "Uzbekistan",
+      "slug": "uzbekistan",
+      "iso": "UZ",
+      "iconUrl": "/img/country/UZ.svg",
+      "phoneCode": "+998",
+      "region": "asia"
+    },
+    {
+      "name": "Vietnam",
+      "slug": "viet-nam",
+      "iso": "VN",
+      "iconUrl": "/img/country/VN.svg",
+      "phoneCode": "+84",
+      "region": "asia"
+    },
+    {
+      "name": "Yemen",
+      "slug": "yemen",
+      "iso": "YE",
+      "iconUrl": "/img/country/YE.svg",
+      "phoneCode": "+967",
+      "region": "asia"
+    },
+    {
+      "name": "Algeria",
+      "slug": "algeria",
+      "iso": "DZ",
+      "iconUrl": "/img/country/DZ.svg",
+      "phoneCode": "+213",
+      "region": "africa"
+    },
+    {
+      "name": "Angola",
+      "slug": "angola",
+      "iso": "AO",
+      "iconUrl": "/img/country/AO.svg",
+      "phoneCode": "+244",
+      "region": "africa"
+    },
+    {
+      "name": "Benin",
+      "slug": "benin",
+      "iso": "BJ",
+      "iconUrl": "/img/country/BJ.svg",
+      "phoneCode": "+229",
+      "region": "africa"
+    },
+    {
+      "name": "Botswana",
+      "slug": "botswana",
+      "iso": "BW",
+      "iconUrl": "/img/country/BW.svg",
+      "phoneCode": "+267",
+      "region": "africa"
+    },
+    {
+      "name": "Burkina Faso",
+      "slug": "burkina-faso",
+      "iso": "BF",
+      "iconUrl": "/img/country/BF.svg",
+      "phoneCode": "+226",
+      "region": "africa"
+    },
+    {
+      "name": "Burundi",
+      "slug": "burundi",
+      "iso": "BI",
+      "iconUrl": "/img/country/BI.svg",
+      "phoneCode": "+257",
+      "region": "africa"
+    },
+    {
+      "name": "Cameroon",
+      "slug": "cameroon",
+      "iso": "CM",
+      "iconUrl": "/img/country/CM.svg",
+      "phoneCode": "+237",
+      "region": "africa"
+    },
+    {
+      "name": "Cape Verde",
+      "slug": "cape-verde",
+      "iso": "CV",
+      "iconUrl": "/img/country/CV.svg",
+      "phoneCode": "+238",
+      "region": "africa"
+    },
+    {
+      "name": "Central African Republic",
+      "slug": "central-african-republic",
+      "iso": "CF",
+      "iconUrl": "/img/country/CF.svg",
+      "phoneCode": "+236",
+      "region": "africa"
+    },
+    {
+      "name": "Chad",
+      "slug": "chad",
+      "iso": "TD",
+      "iconUrl": "/img/country/TD.svg",
+      "phoneCode": "+235",
+      "region": "africa"
+    },
+    {
+      "name": "Congo",
+      "slug": "congo",
+      "iso": "CD",
+      "iconUrl": "/img/country/CD.svg",
+      "phoneCode": "+243",
+      "region": "africa"
+    },
+    {
+      "name": "Cote d&#039;Ivoire/Ivory Coast",
+      "slug": "cote-divoireivory-coast",
+      "iso": "CI",
+      "iconUrl": "/img/country/CI.svg",
+      "phoneCode": "+225",
+      "region": "africa"
+    },
+    {
+      "name": "DR Congo",
+      "slug": "congo-dem-republic",
+      "iso": "CG",
+      "iconUrl": "/img/country/CG.svg",
+      "phoneCode": "+242",
+      "region": "africa"
+    },
+    {
+      "name": "Egypt",
+      "slug": "egypt",
+      "iso": "EG",
+      "iconUrl": "/img/country/EG.svg",
+      "phoneCode": "+20",
+      "region": "africa"
+    },
+    {
+      "name": "Equatorial Guinea",
+      "slug": "equatorial-guinea",
+      "iso": "GQ",
+      "iconUrl": "/img/country/GQ.svg",
+      "phoneCode": "+240",
+      "region": "africa"
+    },
+    {
+      "name": "Ethiopia",
+      "slug": "ethiopia",
+      "iso": "ET",
+      "iconUrl": "/img/country/ET.svg",
+      "phoneCode": "+251",
+      "region": "africa"
+    },
+    {
+      "name": "Gabon",
+      "slug": "gabon",
+      "iso": "GA",
+      "iconUrl": "/img/country/GA.svg",
+      "phoneCode": "+241",
+      "region": "africa"
+    },
+    {
+      "name": "Gambia",
+      "slug": "gambia",
+      "iso": "GM",
+      "iconUrl": "/img/country/GM.svg",
+      "phoneCode": "+220",
+      "region": "africa"
+    },
+    {
+      "name": "Ghana",
+      "slug": "ghana",
+      "iso": "GH",
+      "iconUrl": "/img/country/GH.svg",
+      "phoneCode": "+233",
+      "region": "africa"
+    },
+    {
+      "name": "Guinea",
+      "slug": "guinea",
+      "iso": "GN",
+      "iconUrl": "/img/country/GN.svg",
+      "phoneCode": "+675",
+      "region": "africa"
+    },
+    {
+      "name": "Guinea-Bissau",
+      "slug": "guinea-bissau",
+      "iso": "GW",
+      "iconUrl": "/img/country/GW.svg",
+      "phoneCode": "+245",
+      "region": "africa"
+    },
+    {
+      "name": "Kenya",
+      "slug": "kenya",
+      "iso": "KE",
+      "iconUrl": "/img/country/KE.svg",
+      "phoneCode": "+254",
+      "region": "africa"
+    },
+    {
+      "name": "Lesotho",
+      "slug": "lesotho",
+      "iso": "LS",
+      "iconUrl": "/img/country/LS.svg",
+      "phoneCode": "+266",
+      "region": "africa"
+    },
+    {
+      "name": "Liberia",
+      "slug": "liberia",
+      "iso": "LR",
+      "iconUrl": "/img/country/LR.svg",
+      "phoneCode": "+231",
+      "region": "africa"
+    },
+    {
+      "name": "Libya",
+      "slug": "libya",
+      "iso": "LY",
+      "iconUrl": "/img/country/LY.svg",
+      "phoneCode": "+218",
+      "region": "africa"
+    },
+    {
+      "name": "Madagascar",
+      "slug": "madagascar",
+      "iso": "MG",
+      "iconUrl": "/img/country/MG.svg",
+      "phoneCode": "+261",
+      "region": "africa"
+    },
+    {
+      "name": "Malawi",
+      "slug": "malawi",
+      "iso": "MW",
+      "iconUrl": "/img/country/MW.svg",
+      "phoneCode": "+265",
+      "region": "africa"
+    },
+    {
+      "name": "Mali",
+      "slug": "mali",
+      "iso": "ML",
+      "iconUrl": "/img/country/ML.svg",
+      "phoneCode": "+223",
+      "region": "africa"
+    },
+    {
+      "name": "Mauritania",
+      "slug": "mauritania",
+      "iso": "MR",
+      "iconUrl": "/img/country/MR.svg",
+      "phoneCode": "+222",
+      "region": "africa"
+    },
+    {
+      "name": "Mauritius",
+      "slug": "mauritius",
+      "iso": "MU",
+      "iconUrl": "/img/country/MU.svg",
+      "phoneCode": "+230",
+      "region": "africa"
+    },
+    {
+      "name": "Morocco",
+      "slug": "morocco",
+      "iso": "MA",
+      "iconUrl": "/img/country/MA.svg",
+      "phoneCode": "+212",
+      "region": "africa"
+    },
+    {
+      "name": "Mozambique",
+      "slug": "mozambique",
+      "iso": "MZ",
+      "iconUrl": "/img/country/MZ.svg",
+      "phoneCode": "+258",
+      "region": "africa"
+    },
+    {
+      "name": "Namibia",
+      "slug": "namibia",
+      "iso": "NA",
+      "iconUrl": "/img/country/NA.svg",
+      "phoneCode": "+264",
+      "region": "africa"
+    },
+    {
+      "name": "Niger",
+      "slug": "niger",
+      "iso": "NE",
+      "iconUrl": "/img/country/NE.svg",
+      "phoneCode": "+227",
+      "region": "africa"
+    },
+    {
+      "name": "Nigeria",
+      "slug": "nigeria",
+      "iso": "NG",
+      "iconUrl": "/img/country/NG.svg",
+      "phoneCode": "+234",
+      "region": "africa"
+    },
+    {
+      "name": "Reunion",
+      "slug": "reunion",
+      "iso": "RE",
+      "iconUrl": "/img/country/RE.svg",
+      "phoneCode": "+262",
+      "region": "africa"
+    },
+    {
+      "name": "Rwanda",
+      "slug": "rwanda",
+      "iso": "RW",
+      "iconUrl": "/img/country/RW.svg",
+      "phoneCode": "+250",
+      "region": "africa"
+    },
+    {
+      "name": "Senegal",
+      "slug": "senegal",
+      "iso": "SN",
+      "iconUrl": "/img/country/SN.svg",
+      "phoneCode": "+221",
+      "region": "africa"
+    },
+    {
+      "name": "Sierra Leone",
+      "slug": "sierra-leone",
+      "iso": "SL",
+      "iconUrl": "/img/country/SL.svg",
+      "phoneCode": "+232",
+      "region": "africa"
+    },
+    {
+      "name": "Somalia",
+      "slug": "somalia",
+      "iso": "SO",
+      "iconUrl": "/img/country/SO.svg",
+      "phoneCode": "+252",
+      "region": "africa"
+    },
+    {
+      "name": "South Africa",
+      "slug": "south-africa",
+      "iso": "ZA",
+      "iconUrl": "/img/country/ZA.svg",
+      "phoneCode": "+27",
+      "region": "africa"
+    },
+    {
+      "name": "South Sudan",
+      "slug": "south-sudan",
+      "iso": "SS",
+      "iconUrl": "/img/country/SS.svg",
+      "phoneCode": "+249",
+      "region": "africa"
+    },
+    {
+      "name": "Sudan",
+      "slug": "sudan",
+      "iso": "SD",
+      "iconUrl": "/img/country/SD.svg",
+      "phoneCode": "+249",
+      "region": "africa"
+    },
+    {
+      "name": "Swaziland",
+      "slug": "swaziland",
+      "iso": "SZ",
+      "iconUrl": "/img/country/SZ.svg",
+      "phoneCode": "+268",
+      "region": "africa"
+    },
+    {
+      "name": "Tanzania",
+      "slug": "tanzania",
+      "iso": "TZ",
+      "iconUrl": "/img/country/TZ.svg",
+      "phoneCode": "+255",
+      "region": "africa"
+    },
+    {
+      "name": "Togo",
+      "slug": "togo",
+      "iso": "TG",
+      "iconUrl": "/img/country/TG.svg",
+      "phoneCode": "+228",
+      "region": "africa"
+    },
+    {
+      "name": "Tunisia",
+      "slug": "tunisia",
+      "iso": "TN",
+      "iconUrl": "/img/country/TN.svg",
+      "phoneCode": "+216",
+      "region": "africa"
+    },
+    {
+      "name": "Uganda",
+      "slug": "uganda",
+      "iso": "UG",
+      "iconUrl": "/img/country/UG.svg",
+      "phoneCode": "+256",
+      "region": "africa"
+    },
+    {
+      "name": "United States virt",
+      "slug": "united-states-virt",
+      "iso": "UV",
+      "iconUrl": "/img/country/UV.svg",
+      "phoneCode": "+1",
+      "region": "africa"
+    },
+    {
+      "name": "Zambia",
+      "slug": "zambia",
+      "iso": "ZM",
+      "iconUrl": "/img/country/ZM.svg",
+      "phoneCode": "+260",
+      "region": "africa"
+    },
+    {
+      "name": "Zimbabwe",
+      "slug": "zimbabwe",
+      "iso": "ZW",
+      "iconUrl": "/img/country/ZW.svg",
+      "phoneCode": "+263",
+      "region": "africa"
+    },
+    {
+      "name": "Antigua and Barbuda",
+      "slug": "antigua-and-barbuda",
+      "iso": "AG",
+      "iconUrl": "/img/country/AG.svg",
+      "phoneCode": "+1268",
+      "region": "north-america"
+    },
+    {
+      "name": "Bahamas",
+      "slug": "bahamas",
+      "iso": "BS",
+      "iconUrl": "/img/country/BS.svg",
+      "phoneCode": "+1242",
+      "region": "north-america"
+    },
+    {
+      "name": "Belize",
+      "slug": "belize",
+      "iso": "BZ",
+      "iconUrl": "/img/country/BZ.svg",
+      "phoneCode": "+501",
+      "region": "north-america"
+    },
+    {
+      "name": "Canada",
+      "slug": "canada",
+      "iso": "CA",
+      "iconUrl": "/img/country/CA.svg",
+      "phoneCode": "+1",
+      "region": "north-america"
+    },
+    {
+      "name": "Costa Rica",
+      "slug": "costa-rica",
+      "iso": "CR",
+      "iconUrl": "/img/country/CR.svg",
+      "phoneCode": "+506",
+      "region": "north-america"
+    },
+    {
+      "name": "Cuba",
+      "slug": "cuba",
+      "iso": "CU",
+      "iconUrl": "/img/country/CU.svg",
+      "phoneCode": "+53",
+      "region": "north-america"
+    },
+    {
+      "name": "Dominica",
+      "slug": "dominica",
+      "iso": "DM",
+      "iconUrl": "/img/country/DM.svg",
+      "phoneCode": "+1767",
+      "region": "north-america"
+    },
+    {
+      "name": "Dominican Republic",
+      "slug": "dominican-republic",
+      "iso": "DO",
+      "iconUrl": "/img/country/DO.svg",
+      "phoneCode": "+1809",
+      "region": "north-america"
+    },
+    {
+      "name": "El Salvador",
+      "slug": "el-salvador",
+      "iso": "SV",
+      "iconUrl": "/img/country/SV.svg",
+      "phoneCode": "+503",
+      "region": "north-america"
+    },
+    {
+      "name": "Grenada",
+      "slug": "grenada",
+      "iso": "GD",
+      "iconUrl": "/img/country/GD.svg",
+      "phoneCode": "+1473",
+      "region": "north-america"
+    },
+    {
+      "name": "Guatemala",
+      "slug": "guatemala",
+      "iso": "GT",
+      "iconUrl": "/img/country/GT.svg",
+      "phoneCode": "+502",
+      "region": "north-america"
+    },
+    {
+      "name": "Haiti",
+      "slug": "haiti",
+      "iso": "HT",
+      "iconUrl": "/img/country/HT.svg",
+      "phoneCode": "+509",
+      "region": "north-america"
+    },
+    {
+      "name": "Honduras",
+      "slug": "honduras",
+      "iso": "HN",
+      "iconUrl": "/img/country/HN.svg",
+      "phoneCode": "+504",
+      "region": "north-america"
+    },
+    {
+      "name": "Jamaica",
+      "slug": "jamaica",
+      "iso": "JM",
+      "iconUrl": "/img/country/JM.svg",
+      "phoneCode": "+1876",
+      "region": "north-america"
+    },
+    {
+      "name": "Mexico",
+      "slug": "mexico",
+      "iso": "MX",
+      "iconUrl": "/img/country/MX.svg",
+      "phoneCode": "+52",
+      "region": "north-america"
+    },
+    {
+      "name": "Nicaragua",
+      "slug": "nicaragua",
+      "iso": "NI",
+      "iconUrl": "/img/country/NI.svg",
+      "phoneCode": "+505",
+      "region": "north-america"
+    },
+    {
+      "name": "Panama",
+      "slug": "panama",
+      "iso": "PA",
+      "iconUrl": "/img/country/PA.svg",
+      "phoneCode": "+507",
+      "region": "north-america"
+    },
+    {
+      "name": "Puerto Rico",
+      "slug": "puerto-rico",
+      "iso": "PR",
+      "iconUrl": "/img/country/PR.svg",
+      "phoneCode": "+1787",
+      "region": "north-america"
+    },
+    {
+      "name": "Trinidad and Tobago",
+      "slug": "trinidad-and-tobago",
+      "iso": "TT",
+      "iconUrl": "/img/country/TT.svg",
+      "phoneCode": "+1868",
+      "region": "north-america"
+    },
+    {
+      "name": "United States",
+      "slug": "united-states",
+      "iso": "US",
+      "iconUrl": "/img/country/US.svg",
+      "phoneCode": "+1",
+      "region": "north-america"
+    },
+    {
+      "name": "United States VIP",
+      "slug": "united-states-vip",
+      "iso": "",
+      "iconUrl": "/img/country/USVIP.svg",
+      "phoneCode": "+1",
+      "region": "north-america"
+    },
+    {
+      "name": "Argentinas",
+      "slug": "argentinas",
+      "iso": "AR",
+      "iconUrl": "/img/country/AR.svg",
+      "phoneCode": "+54",
+      "region": "south-america"
+    },
+    {
+      "name": "Bolivia",
+      "slug": "bolivia",
+      "iso": "BO",
+      "iconUrl": "/img/country/BO.svg",
+      "phoneCode": "+591",
+      "region": "south-america"
+    },
+    {
+      "name": "Brazil",
+      "slug": "brazil",
+      "iso": "BR",
+      "iconUrl": "/img/country/BR.svg",
+      "phoneCode": "+55",
+      "region": "south-america"
+    },
+    {
+      "name": "Chile",
+      "slug": "chile",
+      "iso": "CL",
+      "iconUrl": "/img/country/CL.svg",
+      "phoneCode": "+56",
+      "region": "south-america"
+    },
+    {
+      "name": "Colombia",
+      "slug": "colombia",
+      "iso": "CO",
+      "iconUrl": "/img/country/CO.svg",
+      "phoneCode": "+57",
+      "region": "south-america"
+    },
+    {
+      "name": "Ecuador",
+      "slug": "ecuador",
+      "iso": "EC",
+      "iconUrl": "/img/country/EC.svg",
+      "phoneCode": "+593",
+      "region": "south-america"
+    },
+    {
+      "name": "Guyana",
+      "slug": "guyana",
+      "iso": "GY",
+      "iconUrl": "/img/country/GY.svg",
+      "phoneCode": "+592",
+      "region": "south-america"
+    },
+    {
+      "name": "Paraguay",
+      "slug": "paraguay",
+      "iso": "PY",
+      "iconUrl": "/img/country/PY.svg",
+      "phoneCode": "+595",
+      "region": "south-america"
+    },
+    {
+      "name": "Peru",
+      "slug": "peru",
+      "iso": "PE",
+      "iconUrl": "/img/country/PE.svg",
+      "phoneCode": "+51",
+      "region": "south-america"
+    },
+    {
+      "name": "Suriname",
+      "slug": "suriname",
+      "iso": "SR",
+      "iconUrl": "/img/country/SR.svg",
+      "phoneCode": "+597",
+      "region": "south-america"
+    },
+    {
+      "name": "Uruguay",
+      "slug": "uruguay",
+      "iso": "UY",
+      "iconUrl": "/img/country/UY.svg",
+      "phoneCode": "+598",
+      "region": "south-america"
+    },
+    {
+      "name": "Venezuela",
+      "slug": "venezuela",
+      "iso": "VE",
+      "iconUrl": "/img/country/VE.svg",
+      "phoneCode": "+58",
+      "region": "south-america"
+    },
+    {
+      "name": "Australia",
+      "slug": "australia",
+      "iso": "AU",
+      "iconUrl": "/img/country/AU.svg",
+      "phoneCode": "+61",
+      "region": "oceania"
+    },
+    {
+      "name": "Fiji",
+      "slug": "fiji",
+      "iso": "FJ",
+      "iconUrl": "/img/country/FJ.svg",
+      "phoneCode": "+679",
+      "region": "oceania"
+    },
+    {
+      "name": "New Zealand",
+      "slug": "new-zealand",
+      "iso": "NZ",
+      "iconUrl": "/img/country/NZ.svg",
+      "phoneCode": "+64",
+      "region": "oceania"
+    },
+    {
+      "name": "Papua New Guinea",
+      "slug": "papua-new-guinea",
+      "iso": "PG",
+      "iconUrl": "/img/country/PG.svg",
+      "phoneCode": "+675",
+      "region": "oceania"
+    },
+    {
+      "name": "Samoa",
+      "slug": "samoa",
+      "iso": "WS",
+      "iconUrl": "/img/country/WS.svg",
+      "phoneCode": "+685",
+      "region": "oceania"
+    },
+    {
+      "name": "Solomon Islands",
+      "slug": "solomon-islands",
+      "iso": "SB",
+      "iconUrl": "/img/country/SB.svg",
+      "phoneCode": "+677",
+      "region": "oceania"
+    }
+  ],
+  "popular": [
+    "brazil",
+    "united-states",
+    "philippines",
+    "indonesia",
+    "united-kingdom",
+    "south-africa",
+    "india",
+    "canada",
+    "mexico",
+    "france",
+    "nigeria",
+    "colombia",
+    "thailand",
+    "netherlands",
+    "poland",
+    "pakistan",
+    "germany",
+    "turkey",
+    "bangladesh",
+    "italy",
+    "portugal",
+    "saudi-arabia",
+    "viet-nam",
+    "malaysia"
+  ]
+}

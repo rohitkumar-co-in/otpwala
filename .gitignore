@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env.local
+api-key-use-but-dont-read.txt
 .astro/
 .wrangler/
 .turbo/
@@ -9,4 +10,5 @@ dist/
 .DS_Store
 Thumbs.db
 supabse-cred
-
+country
+services
