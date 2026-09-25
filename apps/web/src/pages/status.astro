@@ -15,12 +15,12 @@ import Breadcrumb from '../components/ui/Breadcrumb.astro';
       <div class="component-list" aria-label="Service components">
         <article class="component" data-component="website"><div><strong>Website &amp; API</strong><p>Customer dashboard and application endpoints</p></div><span class="component-state">Checking…</span></article>
         <article class="component" data-component="database"><div><strong>Database &amp; wallets</strong><p>Orders, balances, and account records</p></div><span class="component-state">Checking…</span></article>
-        <article class="component" data-component="smsProvider"><div><strong>SMS number provider</strong><p>Phone-number inventory and OTP delivery connection</p></div><span class="component-state">Checking…</span></article>
+        <article class="component" data-component="smsProvider"><div><strong>OTP delivery</strong><p>Number availability and SMS delivery status</p></div><span class="component-state">Checking…</span></article>
       </div>
       <p class="updated" id="updated">Status refreshes automatically every 60 seconds.</p>
       <aside class="help-card">
         <strong>Having trouble with an order?</strong>
-        <p>If no OTP arrives, you may request cancellation at any time. The SMS provider determines whether it is allowed, and OTPWala only marks the number cancelled and starts a refund after provider confirmation.</p>
+        <p>While an order is waiting, you can request cancellation. OTPWala checks the latest order status before marking it cancelled or adding an eligible refund. If the request is declined, the order stays active. Your Orders page shows the current status.</p>
         <a class="btn btn-primary" href="/dashboard/support">Contact support</a>
       </aside>
     </section>

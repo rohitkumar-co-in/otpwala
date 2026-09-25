@@ -457,7 +457,7 @@ export default function BuyNumber() {
       setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
       setOtpData(null);
       setStep('messages');
-      showSuccessToast('The provider confirmed cancellation. Your refund is being processed.');
+      showSuccessToast('Cancellation confirmed. Your OTPWala wallet refund is being processed.');
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
@@ -483,18 +483,18 @@ export default function BuyNumber() {
             setOrder((prev: any) => ({ ...prev, ...status, status: 'waiting' }));
             setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
             setError(providerRejectedCancel
-              ? 'The provider still reports this number as waiting and denied cancellation. No refund was issued.'
+              ? 'OTPWala still shows this number as waiting. Cancellation was declined, so no refund was issued.'
               : unexpectedCancelResponse
                 ? 'The cancellation service returned an invalid response. The latest status is still waiting, so no refund was issued.'
-              : 'The provider has not confirmed cancellation. The number remains active and no refund was issued.');
+              : 'Cancellation is not confirmed yet. The number remains active and no refund was issued.');
           }
         } catch {
           setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
           setError(providerRejectedCancel
-            ? 'Cancellation was denied and the latest provider status could not be verified. No refund was issued.'
+              ? 'Cancellation was declined, and OTPWala could not check the latest order status. No refund was issued.'
             : unexpectedCancelResponse
               ? 'The cancellation service returned an invalid response, and the latest order status could not be verified. No refund has been assumed; refresh the order status before trying again.'
-            : 'The provider did not confirm cancellation. The number remains active and no refund was issued.');
+              : 'OTPWala could not confirm cancellation. The number remains active and no refund was issued.');
         }
         return;
       }
@@ -898,7 +898,7 @@ export default function BuyNumber() {
         </div>
 
         <p style={{ margin: '-0.5rem 0 0', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-          The listed price is deducted when a number is reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry.
+          The listed price is deducted when a number is reserved. If no OTP arrives, an eligible refund is added to your OTPWala wallet after cancellation or expiry is confirmed.
         </p>
 
         {error && (
@@ -1298,7 +1298,7 @@ export default function BuyNumber() {
                             {mins}:{secs.toString().padStart(2, '0')}
                           </strong>
                         </>
-                      ) : <span>Waiting for the provider’s latest status...</span>}
+                      ) : <span>Checking the latest OTPWala order status...</span>}
                     </div>
                     {/* Progress Bar */}
                     <div style={{ height: '4px', width: '100%', maxWidth: '240px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '999px', overflow: 'hidden', marginTop: '0.2rem' }}>
@@ -1353,10 +1353,10 @@ export default function BuyNumber() {
                 {(isExpired || isCancelled) && (
                   <div style={{ textAlign: 'center', width: '100%' }}>
                     <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0 0 0.5rem', fontWeight: 600 }}>
-                      {isCancelled ? 'The provider confirmed this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
+                      {isCancelled ? 'OTPWala confirmed that this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
                     </p>
                     <p style={{ color: '#15803d', fontSize: '0.8rem', margin: 0 }}>
-                      The number price is deducted when reserved. If no OTP arrives, a refund is issued after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.
+                      The number price is deducted when reserved. If no OTP arrives, an eligible refund is added to your OTPWala wallet after cancellation or expiry is confirmed. Wallet updates can take 5 to 10 minutes.
                     </p>
                   </div>
                 )}
@@ -1366,7 +1366,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: isExpired || isCancelled ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry. Wallet credit may take 5 to 10 minutes.</span>
+                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, an eligible refund is added to your OTPWala wallet after cancellation or expiry is confirmed. Wallet updates can take 5 to 10 minutes.</span>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -1374,7 +1374,7 @@ export default function BuyNumber() {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
                     {cancelDenied && (
                       <span style={{ color: '#f59e0b', fontSize: '0.75rem', maxWidth: '300px', textAlign: 'right' }}>
-                        Provider denied the last cancellation request. The number is still waiting; you may try again.
+                        Your cancellation request was declined. The number is still waiting; you may try again.
                       </span>
                     )}
                     <button

@@ -137,8 +137,8 @@ export default function OrderHistory() {
           <strong className="orders-important-note-title">Important Note</strong>
           <ul>
             <li>It is <strong>not guaranteed</strong> that every phone number will receive an OTP.</li>
-            <li>You may request cancellation while a number is waiting. The SMS provider determines whether cancellation is allowed.</li>
-            <li>A cancellation is shown as complete and refunded only after the provider confirms it. A rejected request leaves the number active and waiting for its provider status.</li>
+            <li>You may request cancellation while a number is waiting. OTPWala checks the order status before confirming it.</li>
+            <li>Your order changes to cancelled only after cancellation is confirmed. If the request is declined, the number stays active and no refund is issued.</li>
           </ul>
         </div>
       </div>
