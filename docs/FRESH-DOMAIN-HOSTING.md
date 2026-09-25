@@ -246,7 +246,7 @@ Only run this after DNS, HTTPS, the database, required secrets, and the Worker a
 
 ## 12. Backup and rollback
 
-Before launch, record the commit SHA, deployment ID, Pages project/domain mapping, Supabase project reference, migration versions, and secret names (not secret values). Keep an encrypted copy of required credentials in a password manager or secrets vault.
+Before launch, record the commit SHA, deployment ID, Pages project/domain mapping, Supabase project reference, migration versions, and secret names (not secret values). Follow [`DATABASE-BACKUPS.md`](./DATABASE-BACKUPS.md) to enable the GitHub Actions logical database dump and test restoring it. This dump excludes Supabase-managed Auth and Storage schemas, so it is not a full project recovery plan. Keep an encrypted copy of required credentials in a password manager or secrets vault.
 
 - Run `npm run clean` before making a source backup if you want to omit generated output. This removes root/web/API `dist` and `apps/web/.astro`; it does not remove `node_modules`, `.wrangler`, source files, or local `.env` files. Exclude secrets deliberately from archives.
 - Confirm scheduled Supabase backups/PITR and document how to restore a snapshot into a separate test project before relying on recovery.

@@ -6,6 +6,8 @@
 
 **Launching on a new domain?** Follow the [fresh-domain hosting guide](./docs/FRESH-DOMAIN-HOSTING.md) before configuring DNS or production credentials.
 
+**Database backups:** The optional GitHub Actions backup workflow and its one-time setup/restore instructions are in the [database backup guide](./docs/DATABASE-BACKUPS.md). It must be enabled with a GitHub secret and variable before it runs.
+
 ---
 
 ## Architecture Overview

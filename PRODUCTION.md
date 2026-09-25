@@ -24,6 +24,7 @@ For a clean deployment on a new domain, follow [`docs/FRESH-DOMAIN-HOSTING.md`](
 
 ## Daily checks
 
+- Confirm the private repository's **Supabase database backup** workflow had a recent successful run and that its backup commit includes a matching `SHA256SUMS` file. The GitHub workflow only starts after `SUPABASE_DB_URL` and `BACKUP_ENABLED=true` are configured; see [`docs/DATABASE-BACKUPS.md`](./docs/DATABASE-BACKUPS.md).
 - Refunds pending or failed for more than 10 minutes: zero.
 - Waiting orders past `expires_at`: zero after reconciliation.
 - Wallet transactions without a business reference: investigate.

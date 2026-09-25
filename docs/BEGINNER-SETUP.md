@@ -4,6 +4,8 @@ This guide explains how to install, configure, run, deploy, and back up OTPWala.
 
 For a new domain and separate production environment, use the [fresh-domain hosting guide](./FRESH-DOMAIN-HOSTING.md), which includes DNS, Cloudflare Pages, Supabase Auth, Google sign-in, and the scheduled Worker.
 
+For the daily GitHub Actions database dump, required GitHub settings, scope limitations, and restore testing, see the [database backup guide](./DATABASE-BACKUPS.md).
+
 ## 1. What You Need
 
 Install these tools:
