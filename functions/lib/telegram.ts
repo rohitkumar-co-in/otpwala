@@ -6,6 +6,8 @@ export interface TelegramConfig {
   botToken: string;
   adminChatId: string;
   enabled: boolean;
+  orderNotificationsEnabled: boolean;
+  orderNotificationMode: 'completion_only' | 'lifecycle';
 }
 
 function cleanJsonVal(v: any): string {
@@ -30,17 +32,24 @@ export async function getTelegramConfig(env?: any): Promise<TelegramConfig> {
     const { data } = await supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['telegram_bot_token', 'telegram_admin_chat_id', 'telegram_notifications_enabled']);
+      .in('key', ['telegram_bot_token', 'telegram_admin_chat_id', 'telegram_notifications_enabled', 'telegram_order_notifications_enabled', 'telegram_order_notification_mode']);
 
     const map = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
     const botToken = cleanJsonVal(map['telegram_bot_token']);
     const adminChatId = cleanJsonVal(map['telegram_admin_chat_id']);
     const enabledRaw = cleanJsonVal(map['telegram_notifications_enabled']);
     const enabled = enabledRaw === 'false' ? false : Boolean(botToken && adminChatId);
+    const orderMode = cleanJsonVal(map['telegram_order_notification_mode']);
 
-    return { botToken, adminChatId, enabled };
+    return {
+      botToken,
+      adminChatId,
+      enabled,
+      orderNotificationsEnabled: cleanJsonVal(map['telegram_order_notifications_enabled']) === 'true',
+      orderNotificationMode: orderMode === 'lifecycle' ? 'lifecycle' : 'completion_only',
+    };
   } catch {
-    return { botToken: '', adminChatId: '', enabled: false };
+    return { botToken: '', adminChatId: '', enabled: false, orderNotificationsEnabled: false, orderNotificationMode: 'completion_only' };
   }
 }
 
@@ -153,9 +162,9 @@ export async function editTelegramMessageText(
   messageId: number,
   text: string,
   botToken: string
-): Promise<void> {
+): Promise<boolean> {
   try {
-    await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -166,8 +175,90 @@ export async function editTelegramMessageText(
         disable_web_page_preview: true,
       }),
     });
+    const result = await response.json() as any;
+    return Boolean((response.ok && result.ok) || String(result.description || '').toLowerCase().includes('message is not modified'));
   } catch (e) {
     console.warn('Failed to edit telegram message text:', e);
+    return false;
+  }
+}
+
+function escapeTelegramHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[character]!));
+}
+
+/** Send one order message and edit that same message as its status changes. */
+export async function notifyTelegramOrder(order: any, status: string, env?: any): Promise<void> {
+  try {
+    const config = await getTelegramConfig(env);
+    if (!config.botToken || !config.adminChatId || !config.orderNotificationsEnabled || !order?.id) return;
+
+    const normalizedStatus = String(status || order.status || '').toLowerCase();
+    const completed = Boolean(order.sms_code) || normalizedStatus === 'code_received' || normalizedStatus === 'completed';
+    if (config.orderNotificationMode === 'completion_only' && !completed) return;
+    if (!['waiting', 'code_received', 'completed', 'cancelled', 'expired', 'refunded'].includes(normalizedStatus)) return;
+
+    const supabase = getSupabaseAdmin(env);
+    const alertKey = `telegram_order:${order.id}`;
+    const { data: existing } = await supabase.from('operational_alerts')
+      .select('status,details,updated_at').eq('alert_key', alertKey).maybeSingle();
+    const details = existing?.details && typeof existing.details === 'object' ? existing.details : {};
+    if (existing?.status === 'sent' && details.order_status === normalizedStatus) return;
+    if (existing?.status === 'pending' && Date.now() - new Date(existing.updated_at).getTime() < 2 * 60 * 1000) return;
+
+    const pendingAlert = {
+      alert_key: alertKey,
+      alert_type: 'order_status',
+      channel: 'telegram',
+      status: 'pending',
+      details: { order_id: order.id, order_status: normalizedStatus, message_id: details.message_id || null },
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    };
+    if (!existing) {
+      const { error: claimError } = await supabase.from('operational_alerts').insert(pendingAlert);
+      if (claimError) {
+        if (claimError.code === '23505') return;
+        throw claimError;
+      }
+    } else {
+      await supabase.from('operational_alerts').update(pendingAlert).eq('alert_key', alertKey);
+    }
+
+    const label = completed ? 'OTP RECEIVED' : normalizedStatus.toUpperCase();
+    const message = [
+      `${completed ? '✅' : normalizedStatus === 'waiting' ? '🕒' : '⚪'} <b>OTPWala order · ${escapeTelegramHtml(label)}</b>`,
+      '',
+      `<b>Service:</b> ${escapeTelegramHtml(order.service_name || order.service_code || 'Unknown')}`,
+      `<b>Country:</b> ${escapeTelegramHtml(order.country_name || 'Unknown')}`,
+      `<b>Number:</b> <code>${escapeTelegramHtml(order.phone_number || '—')}</code>`,
+      ...(completed ? [`<b>OTP:</b> <code>${escapeTelegramHtml(order.sms_code || '—')}</code>`] : []),
+      `<b>Price:</b> ₹${Number(order.sell_price_inr || order.price_inr || 0).toFixed(2)}`,
+      `<b>Order:</b> <code>${escapeTelegramHtml(String(order.id).slice(0, 8))}</code>`,
+      `<i>${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</i>`,
+    ].join('\n');
+
+    let messageId = Number(details.message_id) || undefined;
+    let delivered = false;
+    if (messageId) delivered = await editTelegramMessageText(config.adminChatId, messageId, message, config.botToken);
+    if (!delivered) {
+      const sent = await sendTelegramMessage(message, undefined, env);
+      delivered = sent.success;
+      if (sent.messageId) messageId = sent.messageId;
+      if (!sent.success) console.warn('Telegram order notification failed:', sent.error);
+    }
+
+    await supabase.from('operational_alerts').upsert({
+      alert_key: alertKey,
+      alert_type: 'order_status',
+      channel: 'telegram',
+      status: delivered ? 'sent' : 'failed',
+      details: { order_id: order.id, order_status: normalizedStatus, message_id: messageId || null },
+      last_error: delivered ? null : 'Telegram order notification could not be delivered or edited',
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'alert_key' });
+  } catch (error) {
+    console.warn('Telegram order notification failed:', error);
   }
 }
 

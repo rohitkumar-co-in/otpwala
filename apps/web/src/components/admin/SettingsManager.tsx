@@ -90,6 +90,8 @@ export default function SettingsManager() {
   const [telegramAdminChatId, setTelegramAdminChatId] = useState(cachedS.telegram_admin_chat_id || '');
   const [providerLowBalanceThreshold, setProviderLowBalanceThreshold] = useState(cachedS.provider_low_balance_threshold || '5');
   const [telegramNotificationsEnabled, setTelegramNotificationsEnabled] = useState(cachedS.telegram_notifications_enabled !== 'false');
+  const [telegramOrderNotificationsEnabled, setTelegramOrderNotificationsEnabled] = useState(cachedS.telegram_order_notifications_enabled === 'true');
+  const [telegramOrderNotificationMode, setTelegramOrderNotificationMode] = useState(cachedS.telegram_order_notification_mode === 'lifecycle' ? 'lifecycle' : 'completion_only');
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramTestResult, setTelegramTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -180,6 +182,10 @@ export default function SettingsManager() {
       if (s.provider_low_balance_threshold_usd) setProviderLowBalanceThreshold(s.provider_low_balance_threshold_usd);
       if (s.telegram_notifications_enabled !== undefined) {
         setTelegramNotificationsEnabled(s.telegram_notifications_enabled !== 'false');
+      }
+      if (s.telegram_order_notifications_enabled !== undefined) setTelegramOrderNotificationsEnabled(s.telegram_order_notifications_enabled === 'true');
+      if (s.telegram_order_notification_mode === 'lifecycle' || s.telegram_order_notification_mode === 'completion_only') {
+        setTelegramOrderNotificationMode(s.telegram_order_notification_mode);
       }
 
       if (s.maintenance_mode) setMaintenanceMode(s.maintenance_mode);
@@ -330,6 +336,8 @@ export default function SettingsManager() {
         telegram_bot_token: telegramBotToken.trim(),
         telegram_admin_chat_id: telegramAdminChatId.trim(),
         telegram_notifications_enabled: String(telegramNotificationsEnabled),
+        telegram_order_notifications_enabled: String(telegramOrderNotificationsEnabled),
+        telegram_order_notification_mode: telegramOrderNotificationMode,
         provider_low_balance_threshold_usd: providerLowBalanceThreshold,
         maintenance_mode: maintenanceMode,
         auth_allow_email_signup: String(allowEmailSignup),
@@ -1512,6 +1520,29 @@ export default function SettingsManager() {
                 </>
               )}
             </button>
+          </div>
+
+          <div style={{ marginTop: '1.25rem', padding: '1rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', display: 'grid', gap: '0.8rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '0.95rem' }}>Order Notifications</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
+                Uses the bot token and chat ID above. Order messages are private to the configured admin chat.
+              </p>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={telegramOrderNotificationsEnabled} onChange={(e) => setTelegramOrderNotificationsEnabled(e.target.checked)} style={{ width: '18px', height: '18px' }} />
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Enable Telegram order notifications</span>
+            </label>
+            <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '460px', fontSize: '0.82rem', fontWeight: 600 }}>
+              Notification mode
+              <select className="input" value={telegramOrderNotificationMode} onChange={(e) => setTelegramOrderNotificationMode(e.target.value as 'completion_only' | 'lifecycle')}>
+                <option value="completion_only">Only notify when an OTP is received (recommended)</option>
+                <option value="lifecycle">Create one message per order, then edit it as status changes</option>
+              </select>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 400 }}>
+                Lifecycle mode posts the order as waiting, then updates the same message for OTP received, cancellation, or expiry. It does not send separate messages for each change.
+              </span>
+            </label>
           </div>
 
           {telegramTestResult && (

@@ -4,7 +4,7 @@ import { calculateSellPrice, getPricingSettings } from './pricing';
 import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 import { assertProviderCanFund, assertPurchaseAllowed, classifyExpiredProviderStatus } from './policies';
-import { notifyLowProviderBalance } from './telegram';
+import { notifyLowProviderBalance, notifyTelegramOrder } from './telegram';
 
 async function enforcePurchaseLimits(supabase: any, userId: string) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -143,6 +143,8 @@ export async function buyNumber(
     console.warn('Failed to increment user order stats:', statErr);
   }
 
+  await notifyTelegramOrder(order, 'waiting', env);
+
   return {
     orderId,
     activationId,
@@ -165,17 +167,19 @@ async function findOrder(supabase: any, orderId: string, userId: string) {
   return data;
 }
 
-async function refundOrder(supabase: any, orderId: string, terminalStatus: 'cancelled' | 'expired', reason: string) {
+async function refundOrder(supabase: any, orderId: string, terminalStatus: 'cancelled' | 'expired', reason: string, env?: any) {
   const { data, error } = await supabase.rpc('refund_order_atomic', {
     p_order_id: orderId,
     p_terminal_status: terminalStatus,
     p_reason: reason,
   });
   if (error) throw new Error(error.message || 'Order refund failed');
+  const { data: updatedOrder } = await supabase.from('orders').select('*').eq('id', orderId).maybeSingle();
+  if (updatedOrder) await notifyTelegramOrder(updatedOrder, terminalStatus, env);
   return data?.[0];
 }
 
-async function reconcileProviderTerminalStatus(supabase: any, tiger: TigerSmsClient, order: any, reason: string) {
+async function reconcileProviderTerminalStatus(supabase: any, tiger: TigerSmsClient, order: any, reason: string, env?: any) {
   let providerStatus: Awaited<ReturnType<typeof tiger.getStatus>>;
   try {
     providerStatus = await tiger.getStatus(order.activation_id);
@@ -184,7 +188,7 @@ async function reconcileProviderTerminalStatus(supabase: any, tiger: TigerSmsCli
   }
 
   if (providerStatus.status === 'cancelled') {
-    await refundOrder(supabase, order.id, 'cancelled', reason);
+    await refundOrder(supabase, order.id, 'cancelled', reason, env);
     return true;
   }
 
@@ -201,6 +205,7 @@ async function reconcileProviderTerminalStatus(supabase: any, tiger: TigerSmsCli
         })
         .eq('id', order.id)
         .eq('status', 'waiting');
+      await notifyTelegramOrder({ ...order, status: 'code_received', sms_code: providerStatus.code }, 'code_received', env);
     }
     const error: any = new Error('SMS_RECEIVED');
     error.code = 'SMS_RECEIVED';
@@ -222,6 +227,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
 
   // If already terminal status, return saved status
   if (['completed', 'cancelled', 'refunded', 'expired'].includes(order.status)) {
+    await notifyTelegramOrder(order, order.status, env);
     return {
       orderId: order.id,
       status: order.status,
@@ -250,6 +256,8 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
         updated_at: new Date().toISOString(),
       })
       .eq('id', order.id);
+
+    await notifyTelegramOrder({ ...order, status: 'code_received', sms_code: statusResult.code }, 'code_received', env);
 
     return {
       orderId: order.id,
@@ -281,7 +289,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
       };
     }
 
-    await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled (${order.service_name})`);
+    await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled (${order.service_name})`, env);
 
     return {
       orderId: order.id,
@@ -305,7 +313,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
       // Keep the local order waiting until Tiger explicitly confirms cancellation.
     }
     if (cancelled) {
-      await refundOrder(supabase, order.id, 'cancelled', `Refund: Provider cancelled expired activation (${order.service_name})`);
+      await refundOrder(supabase, order.id, 'cancelled', `Refund: Provider cancelled expired activation (${order.service_name})`, env);
       return {
         orderId: order.id,
         status: 'cancelled',
@@ -319,6 +327,7 @@ export async function checkOrderStatus(orderId: string, userId: string, env?: an
     }
   }
 
+  await notifyTelegramOrder(order, order.status, env);
   return {
     orderId: order.id,
     status: order.status,
@@ -345,7 +354,7 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   }
 
   const refundReason = `Refund: Order cancelled by user (${order.service_name})`;
-  if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason)) return { success: true };
+  if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason, env)) return { success: true };
 
   // Tiger is the source of truth. Never refund or change the local status unless
   // it explicitly confirms the cancellation with ACCESS_CANCEL.
@@ -357,14 +366,14 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
   } catch (err) {
     // The activation may already have been cancelled from Tiger's cabinet. A
     // repeated setStatus request can then be rejected, so check current state.
-    if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason)) return { success: true };
+    if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason, env)) return { success: true };
     if (err instanceof TigerSmsError) throw err;
     throw new TigerSmsError('SERVICE_TEMPORARILY_UNAVAILABLE', 'SERVICE_TEMPORARILY_UNAVAILABLE');
   }
 
   // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
   // now is it safe to credit the user's OTPWala wallet.
-  await refundOrder(supabase, order.id, 'cancelled', refundReason);
+  await refundOrder(supabase, order.id, 'cancelled', refundReason, env);
 
   return { success: true };
 }
@@ -407,6 +416,7 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
           status: 'code_received', sms_code: provider.code, sms_text: provider.text || '',
           tiger_status: 'STATUS_OK', updated_at: new Date().toISOString(),
         }).eq('id', order.id).eq('status', 'waiting');
+        await notifyTelegramOrder({ ...order, status: 'code_received', sms_code: provider.code }, 'code_received', env);
         result.delivered++;
         continue;
       }
@@ -416,7 +426,7 @@ export async function reconcileExpiredOrders(env?: any, limit = 50) {
 
       if (isProviderWaiting) await tiger.setStatus(order.activation_id, 8);
       if (isProviderWaiting || isTerminalWithoutOtp) {
-        await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`);
+        await refundOrder(supabase, order.id, 'expired', `Refund: Order automatically expired (${order.service_name})`, env);
         result.refunded++;
         continue;
       }
