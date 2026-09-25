@@ -278,8 +278,9 @@ const formattedTitle = formatPageTitle(title);
     /* Sidebar */
     .sidebar {
       width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border-subtle);
+      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+      border-right: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 12px 0 34px rgba(15, 23, 42, 0.045);
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -291,16 +292,17 @@ const formattedTitle = formatPageTitle(title);
     }
 
     .sidebar-header {
-      padding: var(--space-lg);
-      border-bottom: 1px solid var(--border-subtle);
+      min-height: 76px;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
     .sidebar-header .logo { flex: 1; min-width: 0; }
-    .sidebar-close-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: #fff; color: var(--text-secondary); cursor: pointer; }
-    .sidebar-close-btn:hover { color: var(--accent-primary); background: var(--bg-glass); }
+    .sidebar-close-btn { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(148, 163, 184, 0.26); border-radius: 14px; background: #fff; color: #64748b; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); transition: color 0.18s, background 0.18s, border-color 0.18s, transform 0.18s; }
+    .sidebar-close-btn:hover { color: var(--accent-primary); background: #eff6ff; border-color: rgba(37, 99, 235, 0.25); transform: translateX(-2px); }
 
     .logo {
       display: inline-flex;
@@ -352,8 +354,10 @@ const formattedTitle = formatPageTitle(title);
       display: flex;
       align-items: center;
       gap: var(--space-sm);
-      padding: 0.65rem 0.85rem;
-      border-radius: var(--radius-md);
+      min-height: 46px;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid transparent;
+      border-radius: 14px;
       color: var(--text-secondary);
       font-size: 0.9rem;
       font-weight: 500;
@@ -362,14 +366,15 @@ const formattedTitle = formatPageTitle(title);
     }
 
     .nav-item:hover {
-      background: var(--bg-glass);
+      background: rgba(37, 99, 235, 0.045);
       color: var(--text-primary);
     }
 
     .nav-item.active {
-      background: var(--accent-glow);
+      background: linear-gradient(100deg, rgba(37, 99, 235, 0.11), rgba(37, 99, 235, 0.055));
       color: var(--accent-primary);
-      border: 1px solid var(--border-glow);
+      border-color: rgba(37, 99, 235, 0.16);
+      box-shadow: inset 3px 0 0 var(--accent-primary);
     }
 
     .nav-icon {
@@ -422,7 +427,19 @@ const formattedTitle = formatPageTitle(title);
     .mobile-menu-btn {
       display: flex;
       flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      color: #334155;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      transition: color 0.18s, background 0.18s, border-color 0.18s, transform 0.18s;
     }
+    .mobile-menu-btn:hover { color: var(--accent-primary); background: #eff6ff; border-color: rgba(37, 99, 235, 0.25); transform: translateY(-1px); }
 
     .wallet-badge {
       display: flex;
@@ -587,8 +604,15 @@ const formattedTitle = formatPageTitle(title);
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar {
-        width: min(280px, calc(100vw - 2rem));
-        transform: translateX(-100%);
+        width: min(300px, calc(100vw - 1.5rem));
+        top: max(0.75rem, env(safe-area-inset-top));
+        left: 0.75rem;
+        bottom: max(0.75rem, env(safe-area-inset-bottom));
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+        transform: translateX(calc(-100% - 1.25rem));
       }
 
       .dashboard-layout.sidebar-open .sidebar {
