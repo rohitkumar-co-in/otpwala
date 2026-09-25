@@ -905,7 +905,7 @@ export default function AdminDashboard() {
                         <div>Waiting: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                       ) : o.status === 'code_received' || o.sms_code ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.15rem' }}>
-                          <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
+                          <div className="order-price-emphasis">Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                           {o.cost_price_inr != null && (
                             <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
                               Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
@@ -913,7 +913,7 @@ export default function AdminDashboard() {
                           )}
                         </div>
                       ) : o.refund_status === 'refunded' ? (
-                        <div style={{ color: 'var(--text-muted)' }}>Refunded: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
+                        <div className="order-price-emphasis">Refunded: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                       ) : (
                         <div style={{ color: 'var(--text-muted)' }}>
                           {o.refund_status === 'failed' ? 'Refund failed: ' : ['pending', 'processing'].includes(o.refund_status) ? 'Refund pending: ' : `${String(o.status || 'unknown').replace(/_/g, ' ')}: `}₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}

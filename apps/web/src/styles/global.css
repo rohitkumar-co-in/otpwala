@@ -618,6 +618,12 @@ td {
   font-weight: 600 !important;
 }
 
+.order-price-emphasis {
+  color: var(--success) !important;
+  font-size: inherit !important;
+  font-weight: 700 !important;
+}
+
 tr:last-child td {
   border-bottom: none;
 }
