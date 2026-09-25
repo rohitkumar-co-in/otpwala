@@ -687,13 +687,13 @@ export default function PricingManager() {
                         return (
                           <span className="badge badge-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.25rem 0.55rem' }}>
                             <img
-                              src={matchedCountry?.flagUrl || `https://tiger-sms.com/img/country/${iso.toUpperCase()}.svg`}
+                              src={matchedCountry?.flagUrl || `/api/catalog/country-flag/${iso.toLowerCase()}`}
                               alt={matchedCountry?.name || String(rule.country_code)}
-                              width="18"
-                              height="13"
-                              style={{ borderRadius: '2px', objectFit: 'cover', boxShadow: '0 0 0 1px rgba(255,255,255,0.1)' }}
+                              width="20"
+                              height="20"
+                              style={{ borderRadius: '50%', objectFit: 'cover', boxShadow: '0 0 0 1px rgba(255,255,255,0.1)' }}
                               onError={(e) => {
-                                const fb = `https://flagcdn.com/${iso.toLowerCase()}.svg`;
+                                const fb = `/api/catalog/country-flag/${iso.toLowerCase()}`;
                                 if (e.currentTarget.src !== fb) e.currentTarget.src = fb;
                               }}
                             />

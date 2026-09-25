@@ -1,5 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import tigerServiceDirectory from '../data/tiger-service-directory.json';
+
+const featuredTigerSlugs = {
+  whatsapp: 'whatsapp', telegram: 'telegram', google: 'googleyoutubegmail', instagram: 'instagramthreads',
+  facebook: 'facebook', twitter: 'twitter', tiktok: 'tiktokdouyin', openai: 'chatgpt',
+  netflix: 'netflix', discord: 'discord', amazon: 'amazon', spotify: 'spotify', steam: 'steam', microsoft: 'microsoft',
+};
+const featuredTigerIcons = Object.fromEntries(Object.entries(featuredTigerSlugs).map(([key, slug]) => {
+  const service = tigerServiceDirectory.services.find((entry) => entry.slug === slug);
+  return [key, service ? `https://tiger-sms.com${service.iconUrl}` : 'https://tiger-sms.com/img/service/unknown.svg'];
+}));
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -158,35 +169,35 @@ const faqSchema = {
             <div class="phone-services">
               <div class="ps-row active" id="ps-wa">
                 <div class="ps-icon" style="background:#25d36620; color:#25d366">
-                  <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                  <img src={featuredTigerIcons.whatsapp} width="14" height="14" alt="" aria-hidden="true" />
                 </div>
                 <span class="ps-name">WhatsApp</span>
                 <span class="ps-status ps-received">OTP Received</span>
               </div>
               <div class="ps-row" id="ps-tg">
                 <div class="ps-icon" style="background:#0088cc20; color:#0088cc">
-                  <img src="https://api.iconify.design/logos:telegram.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                  <img src={featuredTigerIcons.telegram} width="14" height="14" alt="" aria-hidden="true" />
                 </div>
                 <span class="ps-name">Telegram</span>
                 <span class="ps-status ps-waiting">Waiting...</span>
               </div>
               <div class="ps-row" id="ps-gg">
                 <div class="ps-icon" style="background:#4285f420; color:#4285f4">
-                  <img src="https://api.iconify.design/logos:google-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                  <img src={featuredTigerIcons.google} width="14" height="14" alt="" aria-hidden="true" />
                 </div>
                 <span class="ps-name">Google</span>
                 <span class="ps-status ps-idle">Ready</span>
               </div>
               <div class="ps-row" id="ps-ig">
                 <div class="ps-icon" style="background:#e1306c20; color:#e1306c">
-                  <img src="https://api.iconify.design/logos:instagram-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                  <img src={featuredTigerIcons.instagram} width="14" height="14" alt="" aria-hidden="true" />
                 </div>
                 <span class="ps-name">Instagram</span>
                 <span class="ps-status ps-received">OTP Received</span>
               </div>
               <div class="ps-row" id="ps-ai">
                 <div class="ps-icon" style="background:#10a37f20; color:#10a37f">
-                  <img src="https://api.iconify.design/logos:openai-icon.svg?width=14&height=14" width="14" height="14" alt="" aria-hidden="true" />
+                  <img src={featuredTigerIcons.openai} width="14" height="14" alt="" aria-hidden="true" />
                 </div>
                 <span class="ps-name">ChatGPT</span>
                 <span class="ps-status ps-idle">Ready</span>
@@ -225,144 +236,144 @@ const faqSchema = {
       <div class="ticker-track">
         <!-- Set 1 -->
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.whatsapp} width="18" height="18" alt="" />
           <span class="tp-name">WhatsApp</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.telegram} width="18" height="18" alt="" />
           <span class="tp-name">Telegram</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.google} width="18" height="18" alt="" />
           <span class="tp-name">Google</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.instagram} width="18" height="18" alt="" />
           <span class="tp-name">Instagram</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.facebook} width="18" height="18" alt="" />
           <span class="tp-name">Facebook</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.openai} width="18" height="18" alt="" />
           <span class="tp-name">ChatGPT</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
+          <img src={featuredTigerIcons.twitter} width="18" height="18" alt="" />
           <span class="tp-name">X / Twitter</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.tiktok} width="18" height="18" alt="" />
           <span class="tp-name">TikTok</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.netflix} width="18" height="18" alt="" />
           <span class="tp-name">Netflix</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.discord} width="18" height="18" alt="" />
           <span class="tp-name">Discord</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.amazon} width="18" height="18" alt="" />
           <span class="tp-name">Amazon</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.spotify} width="18" height="18" alt="" />
           <span class="tp-name">Spotify</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.steam} width="18" height="18" alt="" />
           <span class="tp-name">Steam</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.microsoft} width="18" height="18" alt="" />
           <span class="tp-name">Microsoft</span>
           <span class="tp-price">Live pricing</span>
         </div>
 
         <!-- Set 2 (duplicate for seamless loop) -->
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.whatsapp} width="18" height="18" alt="" />
           <span class="tp-name">WhatsApp</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:telegram.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.telegram} width="18" height="18" alt="" />
           <span class="tp-name">Telegram</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:google-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.google} width="18" height="18" alt="" />
           <span class="tp-name">Google</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:instagram-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.instagram} width="18" height="18" alt="" />
           <span class="tp-name">Instagram</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:facebook.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.facebook} width="18" height="18" alt="" />
           <span class="tp-name">Facebook</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.openai} width="18" height="18" alt="" />
           <span class="tp-name">ChatGPT</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=16&height=16" width="16" height="16" alt="" />
+          <img src={featuredTigerIcons.twitter} width="18" height="18" alt="" />
           <span class="tp-name">X / Twitter</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.tiktok} width="18" height="18" alt="" />
           <span class="tp-name">TikTok</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:netflix-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.netflix} width="18" height="18" alt="" />
           <span class="tp-name">Netflix</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:discord-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.discord} width="18" height="18" alt="" />
           <span class="tp-name">Discord</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9900&width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.amazon} width="18" height="18" alt="" />
           <span class="tp-name">Amazon</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:spotify-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.spotify} width="18" height="18" alt="" />
           <span class="tp-name">Spotify</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:steam.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.steam} width="18" height="18" alt="" />
           <span class="tp-name">Steam</span>
           <span class="tp-price">Live pricing</span>
         </div>
         <div class="ticker-pill">
-          <img src="https://api.iconify.design/logos:microsoft-icon.svg?width=18&height=18" width="18" height="18" alt="" />
+          <img src={featuredTigerIcons.microsoft} width="18" height="18" alt="" />
           <span class="tp-name">Microsoft</span>
           <span class="tp-price">Live pricing</span>
         </div>
@@ -382,7 +393,7 @@ const faqSchema = {
       <div class="services-grid">
         <div class="service-card reveal-card" id="service-whatsapp" style="--i:0">
           <div class="service-icon-wrap" style="--ic:#25d366; --ib:rgba(37,211,102,0.12)">
-            <img src="https://api.iconify.design/logos:whatsapp-icon.svg?width=26&height=26" width="26" height="26" alt="WhatsApp" loading="lazy" />
+            <img src={featuredTigerIcons.whatsapp} width="26" height="26" alt="WhatsApp" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>WhatsApp</h3>
@@ -393,7 +404,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-telegram" style="--i:1">
           <div class="service-icon-wrap" style="--ic:#0088cc; --ib:rgba(0,136,204,0.12)">
-            <img src="https://api.iconify.design/logos:telegram.svg?width=26&height=26" width="26" height="26" alt="Telegram" loading="lazy" />
+            <img src={featuredTigerIcons.telegram} width="26" height="26" alt="Telegram" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>Telegram</h3>
@@ -404,7 +415,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-google" style="--i:2">
           <div class="service-icon-wrap" style="--ic:#4285f4; --ib:rgba(66,133,244,0.12)">
-            <img src="https://api.iconify.design/logos:google-icon.svg?width=26&height=26" width="26" height="26" alt="Google" loading="lazy" />
+            <img src={featuredTigerIcons.google} width="26" height="26" alt="Google" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>Google</h3>
@@ -415,7 +426,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-instagram" style="--i:3">
           <div class="service-icon-wrap" style="--ic:#e4405f; --ib:rgba(228,64,95,0.12)">
-            <img src="https://api.iconify.design/logos:instagram-icon.svg?width=26&height=26" width="26" height="26" alt="Instagram" loading="lazy" />
+            <img src={featuredTigerIcons.instagram} width="26" height="26" alt="Instagram" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>Instagram</h3>
@@ -426,7 +437,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-facebook" style="--i:4">
           <div class="service-icon-wrap" style="--ic:#1877f2; --ib:rgba(24,119,242,0.12)">
-            <img src="https://api.iconify.design/logos:facebook.svg?width=26&height=26" width="26" height="26" alt="Facebook" loading="lazy" />
+            <img src={featuredTigerIcons.facebook} width="26" height="26" alt="Facebook" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>Facebook</h3>
@@ -437,7 +448,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-twitter" style="--i:5">
           <div class="service-icon-wrap" style="--ic:#0f172a; --ib:rgba(15,23,42,0.08)">
-            <img src="https://api.iconify.design/simple-icons:x.svg?color=black&width=22&height=22" width="22" height="22" alt="X / Twitter" loading="lazy" />
+            <img src={featuredTigerIcons.twitter} width="26" height="26" alt="X / Twitter" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>X / Twitter</h3>
@@ -448,7 +459,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-tiktok" style="--i:6">
           <div class="service-icon-wrap" style="--ic:#fe2c55; --ib:rgba(254,44,85,0.12)">
-            <img src="https://api.iconify.design/logos:tiktok-icon.svg?width=26&height=26" width="26" height="26" alt="TikTok" loading="lazy" />
+            <img src={featuredTigerIcons.tiktok} width="26" height="26" alt="TikTok" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>TikTok</h3>
@@ -459,7 +470,7 @@ const faqSchema = {
 
         <div class="service-card reveal-card" id="service-openai" style="--i:7">
           <div class="service-icon-wrap" style="--ic:#10b981; --ib:rgba(16,185,129,0.12)">
-            <img src="https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f&width=26&height=26" width="26" height="26" alt="ChatGPT" loading="lazy" />
+            <img src={featuredTigerIcons.openai} width="26" height="26" alt="ChatGPT" loading="lazy" />
           </div>
           <div class="sc-info">
             <h3>ChatGPT</h3>
@@ -1021,7 +1032,9 @@ const faqSchema = {
 .ps-row.active { background: rgba(37,99,235,0.05); }
 .ps-icon {
   width: 28px; height: 28px;
-  border-radius: 8px;
+  border-radius: 50%;
+  background: #fff !important;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1033,6 +1046,7 @@ const faqSchema = {
   width: 14px;
   height: 14px;
   object-fit: contain;
+  border-radius: 50%;
   display: block;
 }
 .ps-name { font-size: 0.75rem; font-weight: 600; color: #0f172a; flex: 1; }
@@ -1146,6 +1160,7 @@ const faqSchema = {
   width: 18px;
   height: 18px;
   object-fit: contain;
+  border-radius: 50%;
   flex-shrink: 0;
   display: block;
 }
@@ -1200,9 +1215,9 @@ const faqSchema = {
 
 .service-icon-wrap {
   width: 46px; height: 46px;
-  border-radius: var(--radius-md);
-  background: var(--ib);
-  color: var(--ic);
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1213,6 +1228,7 @@ const faqSchema = {
   width: 26px;
   height: 26px;
   object-fit: contain;
+  border-radius: 50%;
   display: block;
 }
 .service-card:hover .service-icon-wrap { transform: scale(1.1); }

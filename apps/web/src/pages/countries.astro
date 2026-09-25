@@ -8,7 +8,7 @@ const displayIdByName = new Map(catalog.countries.map((country) => [country.name
 const countries = displayCountryLists.countries.map((country) => ({
   ...country,
   id: displayIdByName.get(country.name.toLowerCase().trim()) || catalog.countries.find((entry) => entry.name.toLowerCase().replace(/\s/g, '') === country.name.toLowerCase().replace(/\s/g, ''))?.id || 0,
-  flagUrl: `https://tiger-sms.com${country.iconUrl}`,
+    flagUrl: `https://tiger-sms.com${country.iconUrl || '/img/country/UN.svg'}`,
   phoneCode: country.phoneCode || '',
 }));
 const regionNames = { europe: 'Europe', asia: 'Asia', africa: 'Africa', 'north-america': 'North America', 'south-america': 'South America', oceania: 'Oceania' };
@@ -114,7 +114,7 @@ const breadcrumbSchema = {
   .popular-country-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .7rem; }
   .country-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .45rem; min-height: 92px; padding: .8rem .5rem; border: 1px solid #e2e8f0; border-radius: 10px; background: rgba(255,255,255,.9); color: #172033; text-decoration: none; box-shadow: 0 3px 12px rgba(15,23,42,.04); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
   .country-tile:hover { transform: translateY(-2px); border-color: #93c5fd; box-shadow: 0 8px 20px rgba(37,99,235,.1); }
-  .country-flag { width: 28px; height: 18px; aspect-ratio: 3 / 2; object-fit: cover; object-position: center; display: block; border-radius: 0; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: 0 0 auto; }
+  .country-flag { width: 28px; height: 28px; aspect-ratio: 1; object-fit: cover; object-position: center; display: block; border-radius: 50%; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: 0 0 auto; }
   .country-tile span { font-size: .9rem; font-weight: 700; text-align: center; }
   .all-country-section { padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255,255,255,.82); box-shadow: 0 8px 26px rgba(15,23,42,.05); }
   .all-country-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
@@ -141,8 +141,8 @@ const breadcrumbSchema = {
   .popular-country-grid { gap: .75rem; grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .country-tile { min-height: 112px; border-radius: 10px; padding: .8rem .5rem; box-shadow: 0 3px 12px rgba(15, 23, 42, .04); }
   .country-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, .1); }
-  .country-flag { width: 28px; height: 18px; aspect-ratio: 3 / 2; flex: 0 0 auto; border-radius: 0; }
-  .popular-country-grid .country-flag { width: 28px; height: 28px; aspect-ratio: 1; object-fit: contain; box-shadow: none; border-radius: 50%; }
+  .country-flag { width: 28px; height: 28px; aspect-ratio: 1; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+  .popular-country-grid .country-flag { width: 28px; height: 28px; aspect-ratio: 1; object-fit: cover; box-shadow: none; border-radius: 50%; }
   .all-country-section { margin-top: 2rem; padding: 1.5rem; }
   .all-country-heading { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .5rem 1rem; }
   .all-country-heading h2 { margin: 0; font-size: 1.25rem; }
@@ -156,7 +156,7 @@ const breadcrumbSchema = {
   .all-country-grid .directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; }
   .all-country-grid .all-country-item { min-height: 42px; padding: .45rem .25rem; border: 0; border-top: 1px solid #e9edf2; border-radius: 0; background: transparent; box-shadow: none; color: #263246; text-decoration: none; font-size: .86rem; transition: background .15s; display: flex; align-items: center; }
   .all-country-grid .all-country-item:hover { transform: none; border-color: #e9edf2; background: #f8fafc; box-shadow: none; }
-  .all-country-grid .country-flag { width: 28px; height: 28px; object-fit: contain; box-shadow: none; }
+  .all-country-grid .country-flag { width: 28px; height: 28px; object-fit: cover; box-shadow: none; border-radius: 50%; }
   .all-country-item .country-label { flex: 1; }
   .dial-code { color: #657185; font-size: .8rem; white-space: nowrap; }
   @media (max-width: 900px) { .popular-country-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .all-country-grid .directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -175,7 +175,7 @@ const breadcrumbSchema = {
     id: Number(new URL(item.getAttribute('href'), location.origin).searchParams.get('country')),
     name: item.querySelector('.country-label')?.textContent || '',
     iso: item.querySelector('img')?.getAttribute('src')?.match(/\/country\/([A-Z]+)\.svg/i)?.[1]?.toLowerCase() || '',
-    flagUrl: item.querySelector('img')?.getAttribute('src') || '/icons/services/default.svg',
+    flagUrl: item.querySelector('img')?.getAttribute('src') || 'https://tiger-sms.com/img/country/UN.svg',
     phoneCode: item.querySelector('.dial-code')?.textContent || '',
     region: item.closest('.directory-group')?.id.replace('reg-', '') || 'other',
     slug: item.dataset.slug || '',
@@ -183,7 +183,7 @@ const breadcrumbSchema = {
   let visibleCount = 60;
   let letterFilter = '';
   function flagUrl(country) {
-    return country.flagUrl || '/icons/flags/default.svg';
+    return country.flagUrl || 'https://tiger-sms.com/img/country/UN.svg';
   }
 
   function countryTile(country, compact = false) {

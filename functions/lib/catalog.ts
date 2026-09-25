@@ -24,18 +24,37 @@ for (const [key, val] of Object.entries(_icons)) {
   _iconLookup[key.toLowerCase().trim()] = val;
 }
 
+const TIGER_DIRECTORY_ICON_IDS: Record<string, string> = {
+  '1xbet': '34',
+  myntra: '607',
+};
+const TIGER_SERVICE_NAME_ALIASES: Record<string, string> = {
+  hinge: 'hing',
+  'googlegmailyoutube': 'googleyoutubegmail',
+  googlemessages: 'googlemessenger',
+  indrive: 'indriver',
+  line: 'linemessenger',
+  ola: 'olacabs',
+  xtwitter: 'twitter',
+  appleid: 'apple',
+  chatgptopenai: 'chatgpt',
+  claudeanthropic: 'claude',
+  microsoftoutlookhotmail: 'microsoft',
+  yahoomail: 'yahoo',
+};
+
 function lookupServiceIcon(code: string, name: string): string | null {
-  // 1. Try code directly (e.g. "wa", "tg")
-  if (_iconLookup[code.toLowerCase()]) return _iconLookup[code.toLowerCase()];
-  // 2. Try exact lowercased name
-  const lowerName = name.toLowerCase().trim();
-  if (_iconLookup[lowerName]) return _iconLookup[lowerName];
-  // 3. Try normalized name (strip special chars)
+  // Provider codes can collide with another service's alias, so resolve by
+  // service name first and only use the code as a last resort.
   const norm = normalizeName(name);
+  if (TIGER_DIRECTORY_ICON_IDS[norm]) return TIGER_DIRECTORY_ICON_IDS[norm];
+  const alias = TIGER_SERVICE_NAME_ALIASES[norm];
+  if (alias && _iconLookup[normalizeName(alias)]) return _iconLookup[normalizeName(alias)];
   if (_iconLookup[norm]) return _iconLookup[norm];
-  // 4. Try first word of name (e.g. "WhatsApp Business" -> "whatsapp")
   const firstWord = normalizeName(name.split(/[^a-z0-9]/i)[0]);
   if (firstWord && _iconLookup[firstWord]) return _iconLookup[firstWord];
+  const lowerCode = code.toLowerCase().trim();
+  if (_iconLookup[lowerCode]) return _iconLookup[lowerCode];
   return null;
 }
 
@@ -250,46 +269,8 @@ export async function getServices(featuredOnly = false, env?: any) {
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
         
-        // Consistent local SVG icons when a matching brand asset exists
-        const LOCAL_SERVICE_ICONS: Record<string, string> = {
-          wa: '/icons/services/wa.svg',
-          wa2: '/icons/services/wa.svg',
-          tg: '/icons/services/tg.svg',
-          eh: '/icons/services/tg.svg',
-          go: '/icons/services/go.svg',
-          gch: '/icons/services/go.svg',
-          gms: '/icons/services/go.svg',
-          gpy: '/icons/services/go.svg',
-          gf: '/icons/services/go.svg',
-          ig: '/icons/services/ig.svg',
-          dr: '/icons/services/dr.svg',
-          fb: '/icons/services/fb.svg',
-          tw: '/icons/services/tw.svg',
-          lf: '/icons/services/lf.svg',
-          mm: '/icons/services/mm.svg',
-          wx: '/icons/services/wx.svg',
-          am: '/icons/services/am.svg',
-          nf: '/icons/services/nf.svg',
-          ds: '/icons/services/ds.svg',
-          ub: '/icons/services/ub.svg',
-          fu: '/icons/services/fu.svg',
-          oi: '/icons/services/oi.svg',
-          so: '/icons/services/so.svg',
-          spot: '/icons/services/so.svg',
-          ln: '/icons/services/ln.svg',
-          rd: '/icons/services/rd.svg',
-          mt: '/icons/services/mt.svg',
-          steam: '/icons/services/mt.svg',
-          ts: '/icons/services/ts.svg',
-          mb: '/icons/services/mb.svg',
-          vi: '/icons/services/vi.svg',
-          me: '/icons/services/me.svg',
-        };
-
         const iconId = lookupServiceIcon(s.code, s.name);
-        const iconUrl = LOCAL_SERVICE_ICONS[lowerCode] || ((iconId && iconId !== 'unknown')
-          ? `/api/catalog/service-icon/${encodeURIComponent(iconId)}`
-          : '/icons/services/default.svg');
+        const iconUrl = `/api/catalog/service-icon/${encodeURIComponent(iconId || 'unknown')}`;
 
         return {
           code: s.code,
@@ -315,7 +296,7 @@ export async function getCountries(env?: any) {
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
       const iso = countryIsoByName.get(normalizeCountryName(c.eng)) || '';
-      const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
+      const flagUrl = `/api/catalog/country-flag/${iso || 'un'}`;
 
       return {
         id: c.id,
@@ -447,7 +428,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
     const priceInr = sellPrices[index];
     const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
     const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
-    const flagUrl = iso ? `/api/catalog/country-flag/${iso}` : '/icons/services/default.svg';
+    const flagUrl = `/api/catalog/country-flag/${iso || 'un'}`;
 
     return {
       countryId,

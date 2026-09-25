@@ -654,18 +654,18 @@ export default function CatalogManager() {
                       }}
                     >
                       <img
-                        src={c.flagUrl || (c.iso ? `https://tiger-sms.com/img/country/${c.iso.toUpperCase()}.svg` : 'https://flagcdn.com/un.svg')}
+                        src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
                         alt={c.name}
                         width="26"
-                        height="18"
+                        height="26"
                         style={{
-                          borderRadius: '3px',
+                          borderRadius: '50%',
                           objectFit: 'cover',
                           boxShadow: '0 0 0 1px rgba(255,255,255,0.15)',
                         }}
                         loading="lazy"
                         onError={(e) => {
-                          const fallback = c.iso ? `https://flagcdn.com/${c.iso.toLowerCase()}.svg` : 'https://flagcdn.com/un.svg';
+                          const fallback = `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`;
                           if (e.currentTarget.src !== fallback) {
                             e.currentTarget.src = fallback;
                           }

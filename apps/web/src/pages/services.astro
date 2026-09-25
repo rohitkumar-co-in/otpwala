@@ -19,7 +19,7 @@ const services = referenceServiceData.services.map((entry) => {
     ...(localService || { code: entry.slug }),
     name: entry.name,
     displayName: entry.name,
-    iconUrl: entry.iconUrl && !entry.iconUrl.endsWith('/unknown.svg') ? `https://tiger-sms.com${entry.iconUrl}` : '/icons/services/default.svg',
+    iconUrl: `https://tiger-sms.com${entry.iconUrl || '/img/service/unknown.svg'}`,
     isFeatured: false,
   };
 });
@@ -462,7 +462,7 @@ const servicesFaqSchema = {
   .service-icon-box {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 50%;
     background: #f8fafc;
     border: 1px solid #f1f5f9;
     display: flex;
@@ -768,14 +768,14 @@ const servicesFaqSchema = {
     width: 52px;
     height: 52px;
     flex: 0 0 52px;
-    border-radius: 12px;
+    border-radius: 50%;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  #services-grid .service-icon-box img { width: 34px; height: 34px; display: block; object-fit: contain; }
+  #services-grid .service-icon-box img { width: 34px; height: 34px; display: block; object-fit: contain; border-radius: 50%; }
   #services-grid .delivery-rate-badge { font-size: .75rem; font-weight: 700; color: #b45309; background: #fffbeb; padding: .25rem .55rem; border-radius: 6px; border: 1px solid #fde68a; }
   #services-grid .card-body { display: block; }
   #services-grid .service-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0 0 .4rem; }
@@ -795,7 +795,7 @@ const servicesFaqSchema = {
   .popular-services-grid { gap: .75rem; grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .popular-services-grid .service-card { min-width: 0; min-height: 112px; overflow: hidden; border-radius: 12px; padding: 1rem .7rem; align-items: center; justify-content: center; gap: .5rem; text-align: center; box-shadow: 0 2px 8px rgba(15, 23, 42, .035); }
   .popular-services-grid .service-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, .1); }
-  .popular-services-grid .hub-icon { width: 44px; height: 44px; object-fit: contain; }
+  .popular-services-grid .hub-icon { width: 44px; height: 44px; object-fit: contain; border-radius: 50%; }
   .popular-services-grid .hub-name { color: #172033; font-size: .88rem; font-weight: 600; line-height: 1.25; }
   .catalog-panel { padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255, 255, 255, .88); box-shadow: 0 8px 26px rgba(15, 23, 42, .05); }
   .all-services-heading { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .5rem 1rem; margin-bottom: .8rem; }
@@ -812,8 +812,8 @@ const servicesFaqSchema = {
   #services-grid .service-card { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-height: 68px; padding: .75rem .4rem; border: 0; border-top: 1px solid #eef2f7; border-radius: 0; background: transparent; box-shadow: none; }
   #services-grid .service-card:hover { transform: none; border-color: #eef2f7; background: #f8fbff; box-shadow: none; }
   #services-grid .card-top { margin: 0; }
-  #services-grid .service-icon-box { width: 36px; height: 36px; border-radius: 8px; }
-  #services-grid .service-icon-box img { width: 28px; height: 28px; }
+  #services-grid .service-icon-box { width: 36px; height: 36px; border-radius: 50%; }
+  #services-grid .service-icon-box img { width: 28px; height: 28px; border-radius: 50%; }
   #services-grid .card-body { min-width: 0; }
   #services-grid .service-title { font-size: .9rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #services-grid .service-desc { display: none; }
@@ -828,8 +828,7 @@ const servicesFaqSchema = {
   #services-grid .directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; }
   #services-grid .directory-grid .service-directory-item { min-height: 42px; padding: .45rem .25rem; border: 0; border-top: 1px solid #e9edf2; border-radius: 0; background: transparent; box-shadow: none; color: #263246; text-decoration: none; font-size: .86rem; display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: .55rem; }
   #services-grid .directory-grid .service-directory-item:hover { transform: none; border-color: #e9edf2; background: #f8fafc; box-shadow: none; }
-  .service-row-icon { width: 28px; height: 28px; object-fit: contain; flex: 0 0 auto; }
-  .service-row-icon[src$="default.svg"] { padding: 5px; border-radius: 50%; background: #eef2ff; }
+  .service-row-icon { width: 28px; height: 28px; object-fit: contain; border-radius: 50%; flex: 0 0 auto; }
   .service-directory-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #service-alpha { margin: .25rem 0 1rem; }
   @media (max-width: 900px) { .popular-services-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } #services-grid .directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -876,7 +875,7 @@ const servicesFaqSchema = {
     name: card.querySelector('.service-directory-name')?.textContent || '',
     displayName: card.dataset.displayName || card.querySelector('.service-directory-name')?.textContent || '',
     code: card.getAttribute('data-code') || '',
-    iconUrl: card.querySelector('img')?.getAttribute('src') || '/icons/services/default.svg',
+    iconUrl: card.querySelector('img')?.getAttribute('src') || 'https://tiger-sms.com/img/service/unknown.svg',
     isFeatured: false,
   }));
   let alphaFilter = '';
@@ -945,13 +944,13 @@ const servicesFaqSchema = {
 
     const icon = document.createElement('img');
     icon.className = 'service-row-icon';
-    icon.src = String(service.iconUrl || '/icons/services/default.svg');
+    icon.src = String(service.iconUrl || 'https://tiger-sms.com/img/service/unknown.svg');
     icon.alt = String(service.name || 'Service');
     icon.width = 32;
     icon.height = 32;
     icon.loading = 'lazy';
     icon.addEventListener('error', () => {
-      if (!icon.src.includes('/icons/services/default.svg')) icon.src = '/icons/services/default.svg';
+      if (!icon.src.endsWith('/unknown.svg')) icon.src = 'https://tiger-sms.com/img/service/unknown.svg';
     });
     const title = document.createElement('span');
     title.className = 'service-directory-name';

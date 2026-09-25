@@ -168,7 +168,7 @@ export default function UserDashboard() {
                 <tr>
                   <th>Service</th>
                   <th>Country</th>
-                  <th>Number</th>
+                  <th>Phone Number</th>
                   <th>Status</th>
                   <th>Price</th>
                   <th>Date</th>
@@ -180,7 +180,7 @@ export default function UserDashboard() {
                     <td style={{ fontWeight: 600 }}>{order.service_name}</td>
                     <td><strong>{order.country_name || 'Unknown country'}</strong></td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
+                      <span>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
                     <td><StatusBadge status={order.status} /></td>
                     <td>{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency, usdRate).primary}</td>

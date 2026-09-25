@@ -616,7 +616,7 @@ const pricingFaqSchema = {
 <style is:global>
   #pricing-services-body .rate-row td { padding: 1.1rem 1.5rem; border-bottom: 1px solid #f1f5f9; }
   #pricing-services-body .service-cell { display: flex; align-items: center; gap: 1rem; }
-  #pricing-services-body .srv-img { width: 30px; height: 30px; display: block; object-fit: contain; border-radius: 6px; }
+  #pricing-services-body .srv-img { width: 30px; height: 30px; display: block; object-fit: cover; border-radius: 50%; }
   #pricing-services-body .srv-name { display: block; color: #0f172a; font-size: .98rem; }
   #pricing-services-body .price-pill { display: inline-block; font-size: .95rem; font-weight: 800; color: #0f172a; }
   #pricing-services-body .refund-badge { font-size: .78rem; color: #0284c7; background: #f0f9ff; padding: .2rem .55rem; border-radius: 6px; border: 1px solid #bae6fd; font-weight: 600; }
@@ -692,12 +692,12 @@ const pricingFaqSchema = {
     serviceCell.style.alignItems = 'center';
     serviceCell.style.gap = 'var(--space-sm)';
     const icon = document.createElement('img');
-    icon.src = `/icons/services/${service.code}.svg`;
+    icon.src = service.iconUrl || '/api/catalog/service-icon/unknown';
     icon.alt = service.name || service.code;
     icon.className = 'srv-img';
     icon.loading = 'lazy';
     icon.addEventListener('error', () => {
-      if (!icon.src.endsWith('/icons/services/default.svg')) icon.src = '/icons/services/default.svg';
+      if (!icon.src.endsWith('/unknown')) icon.src = '/api/catalog/service-icon/unknown';
     });
     const name = document.createElement('strong');
     name.className = 'srv-name';
@@ -794,7 +794,7 @@ const pricingFaqSchema = {
             html += `
               <tr style="border-bottom: 1px solid var(--border-subtle);">
                 <td style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                  <img src="${c.flagUrl || '/icons/services/default.svg'}" alt="" style="width: 20px; height: 15px; border-radius: 2px; object-fit: cover;" onerror="if(!this.src.endsWith('/icons/services/default.svg')) this.src='/icons/services/default.svg'">
+                  <img src="${c.flagUrl || '/api/catalog/country-flag/un'}" alt="" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover;" onerror="if(!this.src.endsWith('/un')) this.src='/api/catalog/country-flag/un'">
                   <span style="font-weight: 500;">${c.name}</span>
                 </td>
                 <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: var(--primary-light);">${formatted}</td>
