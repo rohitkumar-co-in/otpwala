@@ -2,6 +2,8 @@ import { Fragment, useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import { toast } from '../../lib/toast';
 import { getActiveCurrency, formatDualPrice, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
+import { ISO_TO_DIAL_CODE } from '../../lib/phone';
+import countryDirectory from '../../data/tiger-country-directory.json';
 import {
   ShoppingCartIcon,
   SearchIcon,
@@ -47,6 +49,17 @@ import {
 } from '../ui/BrandIcons';
 
 type Step = 'service' | 'country' | 'confirm' | 'waiting' | 'received' | 'expired' | 'messages';
+
+const normalizeCountryName = (name: unknown) => String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const countryDialCodeByName = new Map(countryDirectory.countries.map((country) => [normalizeCountryName(country.name), country.phoneCode]));
+
+function getCountryDialCode(country: any): string {
+  if (!country) return '';
+  const isoDialCode = ISO_TO_DIAL_CODE[String(country.iso || '').toLowerCase()];
+  if (isoDialCode) return `+${isoDialCode}`;
+  const localDialCode = countryDialCodeByName.get(normalizeCountryName(country.name));
+  return String(country.phoneCode || localDialCode || '');
+}
 
 function playNotificationSound() {
   try {
@@ -1286,8 +1299,15 @@ export default function BuyNumber() {
                 </div>
                 {(() => {
                   const apiPhoneNumber = String(order?.phoneNumber || '');
+                  const countryDialCode = getCountryDialCode(selectedCountry || { name: order?.countryName });
                   return (
                     <>
+                      {countryDialCode && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Country code</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '0.18rem 0.55rem', borderRadius: '999px', background: 'var(--accent-glow)', color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.9rem' }}>{countryDialCode}</span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <span
                           onClick={() => apiPhoneNumber && copyToClipboard(apiPhoneNumber)}
@@ -1317,7 +1337,8 @@ export default function BuyNumber() {
                         )}
                       </div>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '0.6rem 0 0', lineHeight: 1.4 }}>
-                        Use this OTPWala number exactly as provided in <b>{order?.serviceName || 'your app'}</b>.
+                        {countryDialCode ? <>If the app asks for a country code separately, enter <b>{countryDialCode}</b> there, then enter the number above in the phone number field. </> : <>Use this OTPWala number exactly as shown. </>}
+                        Use it in <b>{order?.serviceName || 'your app'}</b>.
                       </p>
                     </>
                   );
