@@ -785,11 +785,7 @@ const pricingFaqSchema = {
             if (numPrice > 0) {
               const usdVal = (numPrice / rate).toFixed(2);
               const inrVal = numPrice.toFixed(2);
-              if (activeCurr === 'USD') {
-                formatted = `$${usdVal} <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">(≈ ₹${inrVal})</span>`;
-              } else {
-                formatted = `₹${inrVal} <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">(≈ $${usdVal})</span>`;
-              }
+              formatted = activeCurr === 'USD' ? `$${usdVal}` : `₹${inrVal}`;
             }
             html += `
               <tr style="border-bottom: 1px solid var(--border-subtle);">

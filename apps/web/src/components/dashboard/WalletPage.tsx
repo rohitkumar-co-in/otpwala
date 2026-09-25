@@ -265,11 +265,11 @@ export default function WalletPage() {
       const maxUsdt = walletConfig.binanceMaxDeposit || 500;
 
       if (usdtVal < minUsdt) {
-        setTopUpError(`Minimum deposit amount is ${minUsdt} USDT (≈ ₹${Math.round(minUsdt * rate).toLocaleString('en-IN')})`);
+        setTopUpError(`Minimum deposit amount is ${minUsdt} USDT`);
         return;
       }
       if (usdtVal > maxUsdt) {
-        setTopUpError(`Maximum deposit amount is ${maxUsdt} USDT (≈ ₹${Math.round(maxUsdt * rate).toLocaleString('en-IN')})`);
+        setTopUpError(`Maximum deposit amount is ${maxUsdt} USDT`);
         return;
       }
       const cleanBinance = binanceTxId.trim().replace(/\s+/g, '');
@@ -293,15 +293,15 @@ export default function WalletPage() {
       if (upiVal < walletConfig.minDeposit) {
         setTopUpError(
           currency === 'USD'
-            ? `Minimum deposit amount is $${(walletConfig.minDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})`
-            : `Minimum deposit amount is ₹${walletConfig.minDeposit} (~$${(walletConfig.minDeposit / rate).toFixed(2)})`
+            ? `Minimum deposit amount is $${(walletConfig.minDeposit / rate).toFixed(2)}`
+            : `Minimum deposit amount is ₹${walletConfig.minDeposit}`
         );
         return;
       }
       if (upiVal > walletConfig.maxDeposit) {
         setTopUpError(
           currency === 'USD'
-            ? `Maximum deposit amount is $${(walletConfig.maxDeposit / rate).toFixed(2)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
+            ? `Maximum deposit amount is $${(walletConfig.maxDeposit / rate).toFixed(2)}`
             : `Maximum deposit amount is ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`
         );
         return;
@@ -337,10 +337,10 @@ export default function WalletPage() {
       const succMsg = paymentMethod === 'upi'
         ? (data.data?.message ||
           (currency === 'USD'
-            ? `UPI deposit request of $${displayUsdt} (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`
+            ? `UPI deposit request of $${displayUsdt} submitted! Admin will verify and credit your wallet.`
             : `UPI deposit request of ₹${finalAmountInr} submitted! Admin will verify and credit your wallet.`))
         : (data.data?.message ||
-          `Binance Pay deposit request of ${displayUsdt} USDT (≈ ₹${finalAmountInr}) submitted! Admin will verify and credit your wallet.`);
+          `Binance Pay deposit request of ${displayUsdt} USDT submitted! Admin will verify and credit your wallet.`);
       
       setTopUpSuccess(succMsg);
       setRecentDepositSubmit(true);
@@ -509,17 +509,6 @@ export default function WalletPage() {
           }}
         >
           {currency === 'USD' ? `$${(balance / usdtRate).toFixed(2)}` : `₹${balance.toFixed(2)}`}
-        </div>
-        <div
-          style={{
-            fontSize: '1.05rem',
-            color: '#047857',
-            marginTop: '0.25rem',
-            fontWeight: 700,
-            fontFamily: 'var(--font-mono)',
-          }}
-        >
-          {currency === 'USD' ? `≈ ₹${balance.toFixed(2)} INR` : `≈ $${(balance / usdtRate).toFixed(2)} USD`}
         </div>
         <div
           style={{
@@ -711,32 +700,16 @@ export default function WalletPage() {
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', margin: 0 }}>
-              {paymentMethod === 'binance'
-                ? '1. Select or Enter Amount in USDT / USD:'
-                : currency === 'USD'
-                  ? '1. Select or Enter Amount (INR / USD):'
-                  : '1. Select or Enter Amount (INR):'}
+              {paymentMethod === 'binance' ? '1. Select or Enter Amount in USDT:' : '1. Select or Enter Amount in INR:'}
             </label>
-            {paymentMethod === 'binance' ? (
-              <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 700, background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #fde68a' }}>
-                Exchange Rate: 1 USDT = $1.00 (≈ ₹{usdtRate})
-              </span>
-            ) : (
-              currency === 'USD' && (
-                <span style={{ fontSize: '0.78rem', color: '#1e40af', fontWeight: 600, background: 'rgba(37, 99, 235, 0.08)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                  $1 ≈ ₹{usdtRate}
-                </span>
-              )
-            )}
           </div>
 
           {/* Dynamic Suggestions (Displays all 5 Admin-configured quick chips) */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
             {paymentMethod === 'binance' ? (
-              /* Binance USDT Suggestions (USD/USDT Priority First, Rupees Equivalent on Right) */
+              /* Binance USDT Suggestions */
               (walletConfig.binanceSuggestions || [1, 2, 5, 10, 20]).slice(0, 5).map((usdtVal) => {
                 const isSelected = parseFloat(binanceAmount) === usdtVal;
-                const inrVal = Math.round(usdtVal * usdtRate);
                 return (
                   <button
                     key={usdtVal}
@@ -756,15 +729,14 @@ export default function WalletPage() {
                       borderColor: isSelected ? '#d97706' : undefined,
                     }}
                   >
-                    ${usdtVal} (≈ ₹{inrVal.toLocaleString('en-IN')})
+                    {usdtVal} USDT
                   </button>
                 );
               })
             ) : (
-              /* UPI INR Suggestions */
+              /* UPI amounts use INR */
               walletConfig.suggestions.slice(0, 5).map((amount) => {
                 const isSelected = upiAmount === String(amount);
-                const estUsdt = (amount / usdtRate).toFixed(2);
                 return (
                   <button
                     key={amount}
@@ -782,7 +754,7 @@ export default function WalletPage() {
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    {currency === 'USD' ? `$${estUsdt} (≈ ₹${amount})` : `₹${amount} (≈ $${estUsdt})`}
+                    ₹{amount}
                   </button>
                 );
               })
@@ -865,27 +837,15 @@ export default function WalletPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem', flexWrap: 'wrap', gap: '0.25rem' }}>
               {paymentMethod === 'binance' ? (
                 <>
-                  <span>Min: ${walletConfig.binanceMinDeposit || 1} (≈ ₹{Math.round((walletConfig.binanceMinDeposit || 1) * usdtRate).toLocaleString('en-IN')})</span>
-                  <span style={{ fontWeight: 700, color: '#b45309' }}>
-                    ≈ ₹{calculatedInr.toFixed(2)}
-                  </span>
-                  <span>Max: ${walletConfig.binanceMaxDeposit || 500} (≈ ₹{Math.round((walletConfig.binanceMaxDeposit || 500) * usdtRate).toLocaleString('en-IN')})</span>
+                  <span>Min: {walletConfig.binanceMinDeposit || 1} USDT</span>
+                  <span style={{ fontWeight: 700, color: '#b45309' }}>Amount: {usdtAmount} USDT</span>
+                  <span>Max: {walletConfig.binanceMaxDeposit || 500} USDT</span>
                 </>
               ) : (
                 <>
-                  <span>
-                    {currency === 'USD'
-                      ? `Min: $${(walletConfig.minDeposit / usdtRate).toFixed(2)} (≈ ₹${walletConfig.minDeposit})`
-                      : `Min: ₹${walletConfig.minDeposit}`}
-                  </span>
-                  <span style={{ fontWeight: 700, color: '#2563eb' }}>
-                    ≈ ${(numericUpiAmount / usdtRate).toFixed(2)} USD
-                  </span>
-                  <span>
-                    {currency === 'USD'
-                      ? `Max: $${(walletConfig.maxDeposit / usdtRate).toFixed(0)} (≈ ₹${walletConfig.maxDeposit.toLocaleString('en-IN')})`
-                      : `Max: ₹${walletConfig.maxDeposit.toLocaleString('en-IN')}`}
-                  </span>
+                  <span>Min: ₹{walletConfig.minDeposit}</span>
+                  <span style={{ fontWeight: 700, color: '#2563eb' }}>Amount: ₹{numericUpiAmount.toFixed(2)}</span>
+                  <span>Max: ₹{walletConfig.maxDeposit.toLocaleString('en-IN')}</span>
                 </>
               )}
             </div>
@@ -1013,7 +973,7 @@ export default function WalletPage() {
                 </label>
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '999px', border: '1px solid #fde68a' }}>
-                Amount to Send: {usdtAmount} USDT (≈ ₹{numericAmount.toFixed(2)})
+                Amount to Send: {usdtAmount} USDT
               </div>
             </div>
 
@@ -1041,9 +1001,6 @@ export default function WalletPage() {
                   />
                   <span style={{ color: '#111827', fontSize: '0.78rem', fontWeight: 700, marginTop: '8px' }}>
                     Pay {usdtAmount} USDT
-                  </span>
-                  <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600, marginTop: '2px' }}>
-                    ≈ ₹{numericAmount.toFixed(2)}
                   </span>
                 </div>
               ) : (
@@ -1127,7 +1084,7 @@ export default function WalletPage() {
                   <ol style={{ margin: '0.3rem 0 0 1.1rem', padding: 0 }}>
                     <li>Open <strong>Binance App</strong> → tap <strong>Pay</strong> (or scan the QR above).</li>
                     <li>Choose <strong>Send</strong> → select <strong>Pay ID</strong> and paste <code>{walletConfig.binancePayId}</code>.</li>
-                    <li>Send exactly <strong>{usdtAmount} USDT</strong> (≈ ₹{numericAmount.toFixed(2)}) (zero gas fees!).</li>
+                    <li>Send exactly <strong>{usdtAmount} USDT</strong> (zero gas fees!).</li>
                     <li>Copy the numeric <strong>Order ID</strong> (e.g. <code>430406748854015744</code>) from your payment receipt.</li>
                   </ol>
                 </div>
@@ -1275,9 +1232,9 @@ export default function WalletPage() {
                   : recentDepositSubmit
                     ? 'Deposit Submitted!'
                     : paymentMethod === 'binance'
-                      ? `Submit Binance Pay Deposit (${usdtAmount} USDT / ≈ ₹${numericAmount.toFixed(2)})`
+                      ? `Submit Binance Pay Deposit (${usdtAmount} USDT)`
                       : (currency === 'USD'
-                        ? `Submit Deposit ($${usdtAmount} / ≈ ₹${numericAmount})`
+                        ? `Submit Deposit ($${usdtAmount})`
                         : `Submit Deposit (₹${numericAmount})`)}
               </span>
             </button>
@@ -1332,15 +1289,10 @@ export default function WalletPage() {
                   const isPending = st === 'pending' || st === 'created';
                   const isApproved = st === 'approved' || st === 'paid';
                   const isRejected = st === 'rejected' || st === 'failed';
-                  const method = (req.payment_method || req.gateway || 'UPI').toLowerCase();
-                  const isBinanceMethod = method.includes('binance');
-
                   return (
                     <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#10b981', fontFamily: 'var(--font-mono)' }}>
-                        {isBinanceMethod || currency === 'USD'
-                          ? `$${(amt / usdtRate).toFixed(2)} (≈ ₹${amt.toFixed(2)})`
-                          : `₹${amt.toFixed(2)} (≈ $${(amt / usdtRate).toFixed(2)})`}
+                        {currency === 'USD' ? `$${(amt / usdtRate).toFixed(2)}` : `₹${amt.toFixed(2)}`}
                       </td>
                       <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                         {utrId ? (

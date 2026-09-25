@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import { toast } from '../../lib/toast';
-import { getActiveCurrency, formatDualPrice, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
+import { getActiveCurrency, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
 import { ISO_TO_DIAL_CODE } from '../../lib/phone';
 import countryDirectory from '../../data/tiger-country-directory.json';
 import {
@@ -360,9 +360,9 @@ export default function BuyNumber() {
 
     // Instant wallet check
     if (walletBalance !== null && country.priceInr && walletBalance < country.priceInr) {
-      const pDual = formatDualPrice(country.priceInr, currency, usdRate);
-      const bDual = formatDualPrice(walletBalance, currency, usdRate);
-      setError(`Insufficient wallet balance. This number costs ${pDual.full}, but your current balance is ${bDual.primary}.`);
+      const price = formatCurrencyAmount(country.priceInr, currency, usdRate);
+      const balance = formatCurrencyAmount(walletBalance, currency, usdRate);
+      setError(`Insufficient wallet balance. This number costs ${price}, but your current balance is ${balance}.`);
       return;
     }
 
@@ -397,8 +397,8 @@ export default function BuyNumber() {
       if (code && code !== 'purchase_in_progress') purchaseRequestIdRef.current = null;
       const msg = (err?.message || '').toLowerCase();
       if (code === 'user_insufficient_funds' || msg.includes('insufficient wallet balance')) {
-        const pDual = formatDualPrice(country.priceInr || 0, currency, usdRate);
-        setError(`Insufficient wallet balance. This number costs ${pDual.full}, but your current wallet balance is insufficient.`);
+        const price = formatCurrencyAmount(country.priceInr || 0, currency, usdRate);
+        setError(`Insufficient wallet balance. This number costs ${price}, but your current wallet balance is insufficient.`);
         return;
       }
       setError(err.message || 'Carrier numbers are temporarily unavailable for this country. Please choose another country or retry.');
@@ -953,7 +953,7 @@ export default function BuyNumber() {
                   </div>
                   <div className="country-card-grid">
                     {group.countries.map((country) => {
-                      const dual = country.priceInr > 0 ? formatDualPrice(country.priceInr, currency, usdRate) : null;
+                      const price = country.priceInr > 0 ? formatCurrencyAmount(country.priceInr, currency, usdRate) : null;
                       return (
                         <article key={country.id} className="card country-option-card">
                           <div className="country-option-heading">
@@ -971,8 +971,7 @@ export default function BuyNumber() {
                             </div>
                             <div className="country-option-price">
                               <span>Price</span>
-                              <strong>{dual?.primary || '—'}</strong>
-                              {dual && <small>{dual.secondary}</small>}
+                              <strong>{price || '—'}</strong>
                             </div>
                           </div>
                           <button
@@ -1131,7 +1130,7 @@ export default function BuyNumber() {
                         {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 28, 18)}
                     <span>{order?.countryName || selectedCountry?.name}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatDualPrice(parseFloat(order?.priceInr || 0), currency, usdRate).full}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatCurrencyAmount(parseFloat(order?.priceInr || 0), currency, usdRate)}</span>
                   </div>
                 </div>
               </div>
@@ -1491,7 +1490,7 @@ export default function BuyNumber() {
                           </span>
                         )}
                       </td>
-                      <td style={{ fontWeight: 600 }}>{formatDualPrice(parseFloat(ro.sell_price_inr || 0), currency, usdRate).full}</td>
+                      <td style={{ fontWeight: 600 }}>{formatCurrencyAmount(parseFloat(ro.sell_price_inr || 0), currency, usdRate)}</td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(ro.created_at).toLocaleString()}
                       </td>
