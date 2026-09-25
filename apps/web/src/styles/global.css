@@ -604,7 +604,7 @@ th {
   background: var(--bg-glass);
   color: var(--text-secondary);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border-subtle);
@@ -614,6 +614,8 @@ td {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 0.9rem;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
 }
 
 tr:last-child td {
