@@ -520,7 +520,7 @@ const breadcrumbSchema = {
     }
 
     .nav-links {
-      display: none !important;
+      display: flex;
       gap: 0.4rem;
       align-items: center;
       background: rgba(241, 245, 249, 0.55);
@@ -622,7 +622,7 @@ const breadcrumbSchema = {
 
     /* Mobile Nav Drawer Styles */
     .mobile-nav-toggle {
-      display: flex;
+      display: none;
       background: none;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
@@ -638,6 +638,7 @@ const breadcrumbSchema = {
     }
 
     .mobile-nav-drawer {
+      display: none;
       position: fixed;
       inset: 0;
       width: 100%;
@@ -651,7 +652,7 @@ const breadcrumbSchema = {
       transform: translateX(-105%);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1001;
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       gap: clamp(1.25rem, 3vh, 2rem);
@@ -727,6 +728,7 @@ const breadcrumbSchema = {
     .mobile-nav-note { width: min(100%, 760px); margin: auto 0 0; padding-top: 1rem; color: #94a3b8; font-size: 0.78rem; text-align: center; }
 
     .mobile-nav-backdrop {
+      display: none;
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.45);
@@ -798,6 +800,12 @@ const breadcrumbSchema = {
     }
 
     @media (max-width: 768px) {
+      .nav-links { display: none !important; }
+      .mobile-nav-toggle { display: inline-flex; }
+      .mobile-nav-drawer { display: flex; }
+      .mobile-nav-backdrop { display: block; }
+      .header-actions #login-btn,
+      .header-actions #register-btn { display: none !important; }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     }
     @media (max-width: 480px) {
@@ -1010,6 +1018,10 @@ const breadcrumbSchema = {
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape' || !navDrawer?.classList.contains('open')) return;
       setMobileNavOpen(false, true);
+    });
+
+    window.matchMedia('(max-width: 768px)').addEventListener('change', event => {
+      if (!event.matches) setMobileNavOpen(false);
     });
 
     // Run on mount and listen to auth changes
