@@ -567,9 +567,13 @@ const formattedTitle = formatPageTitle(title);
       overflow-x: hidden;
     }
 
+    .header-right { min-width: 0; gap: clamp(0.4rem, 1.5vw, 1rem); }
+    .header-right > * { flex-shrink: 0; }
+
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar {
+        width: min(280px, calc(100vw - 2rem));
         transform: translateX(-100%);
       }
 
@@ -594,6 +598,20 @@ const formattedTitle = formatPageTitle(title);
       .dashboard-content {
         padding: 1rem;
       }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-header { gap: 0.5rem; }
+      .header-right { gap: 0.4rem; }
+      #dashboard-health-pill { padding: 0.35rem 0.5rem; }
+      #dashboard-health-text { display: none; }
+      .currency-btn { padding-inline: 0.4rem; }
+    }
+
+    @media (max-width: 360px) {
+      .dashboard-header { padding-inline: 0.65rem !important; }
+      .header-right { gap: 0.3rem; }
+      .dashboard-content { padding-inline: 0.75rem !important; }
     }
   </style>
 

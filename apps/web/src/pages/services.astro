@@ -860,6 +860,7 @@ const servicesFaqSchema = {
   #services-grid .directory-grid .card-top { flex: 0 0 36px; margin: 0; }
   #services-grid .directory-grid .card-body { min-width: 0; }
   #services-grid .directory-grid .service-title { max-width: 100%; margin: 0; overflow: hidden; font-size: .9rem; white-space: nowrap; text-overflow: ellipsis; }
+  @media (max-width: 640px) { .services-page .popular-services-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 640px) { #services-grid .directory-grid { grid-template-columns: 1fr; } #services-grid .service-card { grid-template-columns: 38px minmax(0, 1fr) auto; } }
 </style>
 

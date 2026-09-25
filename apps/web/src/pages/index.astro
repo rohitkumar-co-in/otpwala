@@ -1337,6 +1337,7 @@ const faqSchema = {
   border: 1.5px solid #e5e7eb;
   border-radius: var(--radius-xl);
   padding: 1.75rem;
+  min-width: 0;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   transition: all 0.25s;
 }
@@ -1734,6 +1735,9 @@ const faqSchema = {
     font-size: 0.75rem;
   }
   .services-grid { grid-template-columns: 1fr; }
+  .feat-card { padding: 1.25rem; }
+  .feat-wide { flex-wrap: wrap; gap: 0.75rem; }
+  .feat-uptime { padding-left: 0; border-left: 0; }
   .cta-card-new {
     padding: 2rem 1.25rem;
   }

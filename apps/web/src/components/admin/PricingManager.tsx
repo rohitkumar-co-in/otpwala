@@ -617,14 +617,14 @@ export default function PricingManager() {
 
       {/* Rules Table */}
       <div className="card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <div>
+        <div className="pricing-override-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div className="pricing-override-heading">
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Specific Service & Country Override Rules</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
               Custom rules that override the global baseline above for selected services or countries. Each rule is saved individually.
             </p>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button className="btn btn-primary btn-sm pricing-override-add-button" onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <span>+</span>
             <span>Add Override Rule</span>
           </button>

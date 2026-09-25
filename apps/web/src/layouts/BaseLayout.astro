@@ -310,7 +310,7 @@ const breadcrumbSchema = {
 
         <a href="/auth/login" style="font-size:0.875rem; font-weight:600; color:#64748b; text-decoration:none; transition:color 0.15s;" id="login-btn" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">Log In</a>
         <a href="/auth/register" style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.5rem 1.1rem; background:#2563eb; color:#fff; border-radius:8px; font-size:0.875rem; font-weight:700; text-decoration:none; transition:all 0.2s; box-shadow:0 2px 10px rgba(37,99,235,0.2);" id="register-btn" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Get Started</a>
-        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle Navigation Menu">
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-controls="mobile-nav-drawer" aria-expanded="false">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -536,6 +536,9 @@ const breadcrumbSchema = {
       box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
     }
 
+    .site-header > .container { gap: clamp(0.5rem, 2vw, 1.5rem); }
+    .header-actions { flex-shrink: 0; gap: clamp(0.45rem, 1.5vw, 1rem); }
+
     main {
       padding-top: var(--header-height);
       position: relative;
@@ -730,12 +733,24 @@ const breadcrumbSchema = {
       }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     }
+    /* Switch to the compact navigation before tablet headers run out of room. */
+    @media (max-width: 960px) {
+      .nav-links { display: none !important; }
+      .mobile-nav-toggle { display: flex; }
+    }
     @media (max-width: 480px) {
       .footer-grid { grid-template-columns: 1fr; }
       .header-actions #login-btn,
       .header-actions #register-btn {
         display: none !important;
       }
+    }
+    @media (max-width: 380px) {
+      :root { --container-padding: 0.75rem; }
+      .site-header .logo { gap: 0.4rem; font-size: 1.12rem; }
+      .site-header .logo-icon svg { width: 28px; height: 28px; }
+      .header-actions { gap: 0.35rem; }
+      .currency-btn { padding-inline: 0.4rem; }
     }
   </style>
 
@@ -910,6 +925,8 @@ const breadcrumbSchema = {
     function toggleMobileNav() {
       const isOpen = navDrawer?.classList.toggle('open');
       navBackdrop?.classList.toggle('active', !!isOpen);
+      navToggle?.setAttribute('aria-expanded', String(!!isOpen));
+      navToggle?.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
       document.body.style.overflow = isOpen ? 'hidden' : '';
     }
 
@@ -921,8 +938,20 @@ const breadcrumbSchema = {
       a.addEventListener('click', () => {
         navDrawer.classList.remove('open');
         navBackdrop?.classList.remove('active');
+        navToggle?.setAttribute('aria-expanded', 'false');
+        navToggle?.setAttribute('aria-label', 'Open navigation menu');
         document.body.style.overflow = '';
       });
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !navDrawer?.classList.contains('open')) return;
+      navDrawer.classList.remove('open');
+      navBackdrop?.classList.remove('active');
+      navToggle?.setAttribute('aria-expanded', 'false');
+      navToggle?.setAttribute('aria-label', 'Open navigation menu');
+      document.body.style.overflow = '';
+      navToggle?.focus();
     });
 
     // Run on mount and listen to auth changes
