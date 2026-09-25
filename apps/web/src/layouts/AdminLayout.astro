@@ -114,6 +114,9 @@ const formattedTitle = formatPageTitle(title);
           <span class="logo-text"><span data-brand-name>OTPWala</span></span>
         </a>
         <span class="badge badge-error" style="margin-left: 0.5rem; font-size: 0.65rem;">ADMIN</span>
+        <button class="sidebar-close-btn" id="admin-sidebar-close-btn" type="button" aria-label="Hide admin navigation menu" title="Hide menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /><path d="M20 12H9" /></svg>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -234,7 +237,10 @@ const formattedTitle = formatPageTitle(title);
   <style>
     .dashboard-layout { display: flex; min-height: 100vh; }
     .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
-    .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; }
+    .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 0.35rem; }
+    .sidebar-header .logo { flex: 1; min-width: 0; }
+    .sidebar-close-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: #fff; color: var(--text-secondary); cursor: pointer; }
+    .sidebar-close-btn:hover { color: var(--accent-primary); background: var(--bg-glass); }
     .sidebar-nav { flex: 1; padding: var(--space-md); display: flex; flex-direction: column; gap: 0.25rem; }
     .nav-item { display: flex; align-items: center; gap: var(--space-sm); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; transition: all var(--transition-fast); text-decoration: none; }
     .nav-item:hover { background: var(--bg-glass); color: var(--text-primary); }
@@ -243,9 +249,11 @@ const formattedTitle = formatPageTitle(title);
     .nav-divider { height: 1px; background: var(--border-subtle); margin: var(--space-sm) 0; }
     .sidebar-footer { padding: var(--space-md); border-top: 1px solid var(--border-subtle); }
     .dashboard-main { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; min-width: 0; width: calc(100% - var(--sidebar-width)); }
+    .dashboard-layout.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+    .dashboard-layout.sidebar-collapsed .dashboard-main { margin-left: 0; width: 100%; }
     .dashboard-header { height: var(--header-height); border-bottom: 1px solid rgba(229, 231, 235, 0.7); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-xl); background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.85); position: sticky; top: 0; z-index: 50; transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
     .dashboard-content { flex: 1; padding: var(--space-xl); max-width: 1200px; width: 100%; min-width: 0; overflow-x: hidden; }
-    .mobile-menu-btn { display: none; }
+    .mobile-menu-btn { display: flex; flex: 0 0 auto; }
     .admin-header-title { min-width: 0; }
     .admin-header-title > div:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -254,15 +262,12 @@ const formattedTitle = formatPageTitle(title);
         width: min(280px, calc(100vw - 2rem));
         transform: translateX(-100%);
       }
-      .sidebar.open {
+      .dashboard-layout.sidebar-open .sidebar {
         transform: translateX(0);
       }
       .dashboard-main {
         margin-left: 0;
         width: 100%;
-      }
-      .mobile-menu-btn {
-        display: flex;
       }
       .dashboard-header {
         padding: 0 1rem !important;
@@ -519,46 +524,43 @@ const formattedTitle = formatPageTitle(title);
         })
         .catch(function() {});
 
-      // Admin mobile menu toggle
+      // Shared drawer behavior: overlay on phones, collapsible fixed rail on desktop.
       var adminMenuBtn = document.getElementById('admin-mobile-menu-btn');
       var adminSidebar = document.querySelector('.sidebar');
       var adminBackdrop = document.getElementById('admin-sidebar-backdrop');
-      function toggleAdmin() {
-        var isOpen = adminSidebar && adminSidebar.classList.toggle('open');
-        if (adminBackdrop) adminBackdrop.classList.toggle('active', !!isOpen);
-        if (adminMenuBtn) {
-          adminMenuBtn.setAttribute('aria-expanded', String(!!isOpen));
-          adminMenuBtn.setAttribute('aria-label', isOpen ? 'Close admin menu' : 'Open admin menu');
+      var adminCloseBtn = document.getElementById('admin-sidebar-close-btn');
+      var adminLayout = document.querySelector('.dashboard-layout');
+      var adminMobileQuery = window.matchMedia('(max-width: 768px)');
+      var adminSidebarIsOpen = !adminMobileQuery.matches;
+      function setAdminSidebarOpen(isOpen, returnFocus) {
+        adminSidebarIsOpen = isOpen;
+        if (adminLayout) {
+          adminLayout.classList.toggle('sidebar-open', isOpen && adminMobileQuery.matches);
+          adminLayout.classList.toggle('sidebar-collapsed', !isOpen && !adminMobileQuery.matches);
         }
-        document.body.style.overflow = isOpen ? 'hidden' : '';
+        if (adminBackdrop) adminBackdrop.classList.toggle('active', !!isOpen && adminMobileQuery.matches);
+        if (adminSidebar) adminSidebar.inert = !isOpen;
+        if (adminMenuBtn) {
+          adminMenuBtn.setAttribute('aria-expanded', String(isOpen));
+          adminMenuBtn.setAttribute('aria-label', isOpen ? 'Hide admin menu' : 'Open admin menu');
+        }
+        document.body.style.overflow = isOpen && adminMobileQuery.matches ? 'hidden' : '';
+        if (returnFocus) adminMenuBtn?.focus();
       }
-      if (adminMenuBtn) adminMenuBtn.addEventListener('click', toggleAdmin);
-      if (adminBackdrop) adminBackdrop.addEventListener('click', toggleAdmin);
+      setAdminSidebarOpen(adminSidebarIsOpen);
+      if (adminMenuBtn) adminMenuBtn.addEventListener('click', function() { setAdminSidebarOpen(!adminSidebarIsOpen); });
+      if (adminCloseBtn) adminCloseBtn.addEventListener('click', function() { setAdminSidebarOpen(false, true); });
+      if (adminBackdrop) adminBackdrop.addEventListener('click', function() { setAdminSidebarOpen(false); });
+      adminMobileQuery.addEventListener('change', function(event) { setAdminSidebarOpen(!event.matches); });
       if (adminSidebar) {
         adminSidebar.querySelectorAll('.nav-item').forEach(function(item) {
           item.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-              adminSidebar.classList.remove('open');
-              if (adminBackdrop) adminBackdrop.classList.remove('active');
-              if (adminMenuBtn) {
-                adminMenuBtn.setAttribute('aria-expanded', 'false');
-                adminMenuBtn.setAttribute('aria-label', 'Open admin menu');
-              }
-              document.body.style.overflow = '';
-            }
+            if (adminMobileQuery.matches) setAdminSidebarOpen(false);
           });
         });
       }
       document.addEventListener('keydown', function(event) {
-        if (event.key !== 'Escape' || !adminSidebar?.classList.contains('open')) return;
-        adminSidebar.classList.remove('open');
-        if (adminBackdrop) adminBackdrop.classList.remove('active');
-        if (adminMenuBtn) {
-          adminMenuBtn.setAttribute('aria-expanded', 'false');
-          adminMenuBtn.setAttribute('aria-label', 'Open admin menu');
-          adminMenuBtn.focus();
-        }
-        document.body.style.overflow = '';
+        if (event.key === 'Escape' && adminSidebarIsOpen && adminMobileQuery.matches) setAdminSidebarOpen(false, true);
       });
     })();
   </script>

@@ -114,6 +114,9 @@ const formattedTitle = formatPageTitle(title);
           </span>
           <span class="logo-text"><span data-brand-name>OTPWala</span></span>
         </a>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" type="button" aria-label="Hide navigation menu" title="Hide menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /><path d="M20 12H9" /></svg>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -290,7 +293,14 @@ const formattedTitle = formatPageTitle(title);
     .sidebar-header {
       padding: var(--space-lg);
       border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
+
+    .sidebar-header .logo { flex: 1; min-width: 0; }
+    .sidebar-close-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: #fff; color: var(--text-secondary); cursor: pointer; }
+    .sidebar-close-btn:hover { color: var(--accent-primary); background: var(--bg-glass); }
 
     .logo {
       display: inline-flex;
@@ -389,12 +399,15 @@ const formattedTitle = formatPageTitle(title);
       width: calc(100% - var(--sidebar-width));
     }
 
+    .dashboard-layout.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+    .dashboard-layout.sidebar-collapsed .dashboard-main { margin-left: 0; width: 100%; }
+
     .dashboard-header {
       height: var(--header-height);
       border-bottom: 1px solid rgba(229, 231, 235, 0.7);
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       padding: 0 var(--space-xl);
       background: rgba(255, 255, 255, 0.75);
       backdrop-filter: blur(20px) saturate(180%);
@@ -407,7 +420,8 @@ const formattedTitle = formatPageTitle(title);
     }
 
     .mobile-menu-btn {
-      display: none;
+      display: flex;
+      flex: 0 0 auto;
     }
 
     .wallet-badge {
@@ -577,17 +591,13 @@ const formattedTitle = formatPageTitle(title);
         transform: translateX(-100%);
       }
 
-      .sidebar.open {
+      .dashboard-layout.sidebar-open .sidebar {
         transform: translateX(0);
       }
 
       .dashboard-main {
         margin-left: 0;
         width: 100%;
-      }
-
-      .mobile-menu-btn {
-        display: flex;
       }
 
       .dashboard-header {
@@ -628,39 +638,42 @@ const formattedTitle = formatPageTitle(title);
       getStoredSessionSync,
     } from '../lib/sessionManager';
 
-    // Mobile menu toggle & outside-click close
+    // Shared drawer behavior: overlay on phones, collapsible fixed rail on desktop.
     const menuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.getElementById('sidebar');
     const backdrop = document.getElementById('sidebar-backdrop');
+    const closeMenuBtn = document.getElementById('sidebar-close-btn');
+    const layout = document.querySelector('.dashboard-layout');
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    let sidebarIsOpen = !mobileQuery.matches;
 
-    function toggleSidebar() {
-      const isOpen = sidebar?.classList.toggle('open');
-      backdrop?.classList.toggle('active', !!isOpen);
-      menuBtn?.setAttribute('aria-expanded', String(!!isOpen));
-      menuBtn?.setAttribute('aria-label', isOpen ? 'Close dashboard menu' : 'Open dashboard menu');
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+    function setSidebarOpen(isOpen: boolean, returnFocus = false) {
+      sidebarIsOpen = isOpen;
+      layout?.classList.toggle('sidebar-open', isOpen && mobileQuery.matches);
+      layout?.classList.toggle('sidebar-collapsed', !isOpen && !mobileQuery.matches);
+      backdrop?.classList.toggle('active', isOpen && mobileQuery.matches);
+      menuBtn?.setAttribute('aria-expanded', String(isOpen));
+      menuBtn?.setAttribute('aria-label', isOpen ? 'Hide dashboard menu' : 'Open dashboard menu');
+      if (sidebar) sidebar.inert = !isOpen;
+      document.body.style.overflow = isOpen && mobileQuery.matches ? 'hidden' : '';
+      if (returnFocus) menuBtn?.focus();
     }
 
-    menuBtn?.addEventListener('click', toggleSidebar);
-    backdrop?.addEventListener('click', () => {
-      sidebar?.classList.remove('open');
-      backdrop?.classList.remove('active');
-      menuBtn?.setAttribute('aria-expanded', 'false');
-      menuBtn?.setAttribute('aria-label', 'Open dashboard menu');
-      document.body.style.overflow = '';
-    });
+    setSidebarOpen(sidebarIsOpen);
+    menuBtn?.addEventListener('click', () => setSidebarOpen(!sidebarIsOpen));
+    closeMenuBtn?.addEventListener('click', () => setSidebarOpen(false, true));
+    backdrop?.addEventListener('click', () => setSidebarOpen(false));
+    mobileQuery.addEventListener('change', (event) => setSidebarOpen(!event.matches));
 
     // Close mobile sidebar on nav click
     sidebar?.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          sidebar?.classList.remove('open');
-          backdrop?.classList.remove('active');
-          menuBtn?.setAttribute('aria-expanded', 'false');
-          menuBtn?.setAttribute('aria-label', 'Open dashboard menu');
-          document.body.style.overflow = '';
-        }
+        if (mobileQuery.matches) setSidebarOpen(false);
       });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && sidebarIsOpen && mobileQuery.matches) setSidebarOpen(false, true);
     });
 
     // Logout
