@@ -1,10 +1,10 @@
 # Automated Supabase database backups
 
-This repository includes a daily GitHub Actions workflow at `.github/workflows/backup.yml`. It follows Supabase's CLI backup pattern and stores the latest compressed role, schema, and data dumps under `backups/supabase/latest/` on the separate `database-backups` branch. Keeping dumps off `main` avoids triggering the production website deployment for each backup.
+This repository includes a daily GitHub Actions workflow at `.github/workflows/backup.yml`. It follows Supabase's CLI backup pattern and stores each day's compressed role, schema, and data dumps in `backups/supabase/YYYY-MM-DD/` on the separate `database-backups` branch. `backups/supabase/latest/` is also refreshed with the newest snapshot. Keeping dumps off `main` avoids triggering the production website deployment for each backup.
 
 The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests.
 
-The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup. The `database-backups` branch contains only database snapshots, not a duplicate copy of the application. When converting an older branch that contains project files, prior successful snapshots are moved into `backups/supabase/archive/` before the branch history is cleaned.
+The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup. The `database-backups` branch contains only dated database snapshots, not a duplicate copy of the application. When converting an older branch that contains project files, prior successful snapshots are moved into date folders before the branch history is cleaned.
 
 Each roles, schema, and data dump is logged as a separate stage with its start time, duration, CLI output, and exit status. If one fails, the workflow prints its captured output with connection passwords redacted.
 
@@ -31,7 +31,7 @@ The dump files are compressed but not separately encrypted by this workflow. Rep
 
 Do not test restoration over the live project. Restore to a separate disposable Supabase project and verify row counts, constraints, policies, triggers, functions, indexes, and representative wallet/order records before considering the backup usable.
 
-Download the files from `backups/supabase/latest/` at the desired `database-backups` commit. From that downloaded directory, decompress and verify them:
+For a specific day's snapshot, download that date's folder, for example `backups/supabase/2026-09-25/`. `backups/supabase/latest/` is a duplicate of the newest snapshot for convenience. From the downloaded folder, decompress and verify the files:
 
 ```bash
 gzip -dc roles.sql.gz > roles.sql

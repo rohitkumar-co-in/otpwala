@@ -108,11 +108,12 @@ jobs:
 
           backup_dir="$backup_tmp/latest"
           mkdir -p "$backup_dir"
+          backup_date="$(TZ=Asia/Kolkata date +'%Y-%m-%d')"
           for dump in roles schema data; do
             gzip -n -9 -c "$backup_tmp/$dump.sql" > "$backup_dir/$dump.sql.gz"
           done
 
-          printf 'created_at_utc=%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "$backup_dir/manifest.txt"
+          printf 'created_at_utc=%s\nbackup_date_ist=%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$backup_date" > "$backup_dir/manifest.txt"
           (
             cd "$backup_dir"
             sha256sum roles.sql.gz schema.sql.gz data.sql.gz > SHA256SUMS
@@ -133,14 +134,15 @@ jobs:
               while IFS= read -r commit; do
                 manifest="$(git show "$commit:backups/supabase/latest/manifest.txt" 2>/dev/null || true)"
                 created_at="$(printf '%s\n' "$manifest" | sed -n 's/^created_at_utc=//p' | head -n 1)"
-                archive_id="$(printf '%s' "$created_at" | tr -cd '[:alnum:]')"
-                if [[ -z "$archive_id" ]]; then
-                  archive_id="legacy-${commit:0:8}"
-                else
-                  archive_id="${archive_id}-${commit:0:8}"
+                archive_date="$(TZ=Asia/Kolkata date --date="$created_at" +'%Y-%m-%d' 2>/dev/null || true)"
+                if [[ -z "$archive_date" ]]; then
+                  archive_date="legacy-${commit:0:8}"
                 fi
 
-                snapshot_dir="$archive_root/$archive_id"
+                snapshot_dir="$archive_root/$archive_date"
+                if [[ -d "$snapshot_dir" ]]; then
+                  snapshot_dir="$archive_root/${archive_date}-${commit:0:8}"
+                fi
                 mkdir -p "$snapshot_dir"
                 for file in roles.sql.gz schema.sql.gz data.sql.gz manifest.txt SHA256SUMS; do
                   if git cat-file -e "$commit:backups/supabase/latest/$file" 2>/dev/null; then
@@ -152,8 +154,8 @@ jobs:
               git switch --orphan database-backup-clean
               git rm -r -f --ignore-unmatch -- .
               if [[ -n "$(find "$archive_root" -type f -print -quit)" ]]; then
-                mkdir -p backups/supabase/archive
-                cp -R "$archive_root"/. backups/supabase/archive/
+                mkdir -p backups/supabase
+                cp -R "$archive_root"/. backups/supabase/
               fi
               rewrite_backup_branch=true
             else
@@ -166,7 +168,12 @@ jobs:
             rewrite_backup_branch=true
           fi
 
-          mkdir -p backups/supabase/latest
+          mkdir -p "backups/supabase/$backup_date" backups/supabase/latest
+          cp "$backup_dir/roles.sql.gz" "backups/supabase/$backup_date/roles.sql.gz"
+          cp "$backup_dir/schema.sql.gz" "backups/supabase/$backup_date/schema.sql.gz"
+          cp "$backup_dir/data.sql.gz" "backups/supabase/$backup_date/data.sql.gz"
+          cp "$backup_dir/manifest.txt" "backups/supabase/$backup_date/manifest.txt"
+          cp "$backup_dir/SHA256SUMS" "backups/supabase/$backup_date/SHA256SUMS"
           cp "$backup_dir/roles.sql.gz" backups/supabase/latest/roles.sql.gz
           cp "$backup_dir/schema.sql.gz" backups/supabase/latest/schema.sql.gz
           cp "$backup_dir/data.sql.gz" backups/supabase/latest/data.sql.gz
