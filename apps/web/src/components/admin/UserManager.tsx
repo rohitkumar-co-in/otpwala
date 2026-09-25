@@ -946,23 +946,25 @@ export default function UserManager() {
                         )}
                       </td>
                       <td data-label="Registered" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                          {new Date(u.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                            {new Date(u.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
                       </td>
                       <td data-label="Last Login" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
                         {u.last_sign_in_at ? (
-                          <>
-                            <div style={{ fontWeight: 600, color: '#38bdf8' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                            <span style={{ fontWeight: 600, color: '#38bdf8' }}>
                               {new Date(u.last_sign_in_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            </div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                            </span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
                               {new Date(u.last_sign_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </>
+                            </span>
+                          </div>
                         ) : (
                           <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.75rem' }}>Never</span>
                         )}
