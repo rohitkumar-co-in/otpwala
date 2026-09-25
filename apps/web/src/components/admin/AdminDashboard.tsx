@@ -704,7 +704,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -728,13 +728,13 @@ export default function AdminDashboard() {
 
                       return (
                         <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                          <td style={{ padding: '0.75rem', fontWeight: 500 }}>
+                          <td data-label="User Email" style={{ padding: '0.75rem', fontWeight: 500 }}>
                             {req.profiles?.email || req.user_id}
                           </td>
-                          <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
+                          <td data-label="Amount" style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
                             ₹{amt.toFixed(2)}
                           </td>
-                          <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                          <td data-label="UTR / Ref ID" style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                             {utr ? (
                               <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.03em' }}>
                                 {utr}
@@ -743,10 +743,10 @@ export default function AdminDashboard() {
                               <span style={{ color: 'var(--text-muted)' }}>—</span>
                             )}
                           </td>
-                          <td style={{ padding: '0.75rem' }}>
+                          <td data-label="Method" style={{ padding: '0.75rem' }}>
                             <span className="badge badge-info">{method.toUpperCase()}</span>
                           </td>
-                          <td style={{ padding: '0.75rem' }}>
+                          <td data-label="Status" style={{ padding: '0.75rem' }}>
                             {isApproved ? (
                               <span className="badge badge-success">Approved</span>
                             ) : isPending ? (
@@ -755,10 +755,10 @@ export default function AdminDashboard() {
                               <span className="badge badge-danger">Rejected</span>
                             )}
                           </td>
-                          <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <td data-label="Requested At" style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                             {new Date(req.created_at).toLocaleString()}
                           </td>
-                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                          <td data-label="Action" style={{ padding: '0.75rem', textAlign: 'right' }}>
                             {isPending ? (
                               <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                                 <button
@@ -831,7 +831,7 @@ export default function AdminDashboard() {
             No orders found for selected filter.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -848,19 +848,19 @@ export default function AdminDashboard() {
               <tbody>
                 {recentOrders.map((o) => (
                   <tr key={o.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <td data-label="ID" style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {o.id.slice(0, 8)}...
                     </td>
-                    <td style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
+                    <td data-label="User Email" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                         {o.profiles?.email || 'Unknown User'}
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Service" style={{ padding: '0.75rem' }}>
                       <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
                     </td>
-                    <td style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Phone Number" style={{ padding: '0.75rem' }}>
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
@@ -879,10 +879,10 @@ export default function AdminDashboard() {
                         <span style={{ color: 'var(--text-muted)' }}>—</span>
                       )}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Status" style={{ padding: '0.75rem' }}>
                       {o.sms_code ? <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{o.sms_code}</span><button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(o.sms_code, `code-${o.id}`)} title="Copy OTP">{copiedId === `code-${o.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}</button></div> : <span className={`badge ${['code_received', 'completed'].includes(o.status) ? 'badge-success' : o.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(o.status) ? 'badge-error' : o.status === 'refunded' ? 'badge-info' : 'badge-warning'}`} style={{ fontWeight: 700 }}>{['code_received', 'completed'].includes(o.status) ? 'OTP Received' : o.status.replace('_', ' ')}</span>}
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 700, color: o.status === 'waiting' ? 'var(--info)' : o.status === 'code_received' || o.sms_code ? '#34d399' : 'var(--text-muted)' }}>
+                    <td data-label="Price" style={{ padding: '0.75rem', fontWeight: 700, color: o.status === 'waiting' ? 'var(--info)' : o.status === 'code_received' || o.sms_code ? '#34d399' : 'var(--text-muted)' }}>
                       {o.status === 'waiting' ? (
                         <div>Waiting: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                       ) : o.status === 'code_received' || o.sms_code ? (
@@ -902,7 +902,7 @@ export default function AdminDashboard() {
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                    <td data-label="Time" style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(o.created_at).toLocaleString([], {
                         month: 'short',
                         day: 'numeric',

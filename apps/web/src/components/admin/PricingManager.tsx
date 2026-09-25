@@ -646,7 +646,7 @@ export default function PricingManager() {
             </button>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -661,10 +661,10 @@ export default function PricingManager() {
               <tbody>
                 {rules.map((rule) => (
                   <tr key={rule.id} style={{ borderBottom: '1px solid var(--border-subtle)', opacity: rule.is_active ? 1 : 0.5 }}>
-                    <td style={{ padding: '0.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                    <td data-label="Priority" style={{ padding: '0.75rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
                       #{rule.priority || 0}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Service" style={{ padding: '0.75rem' }}>
                       {rule.service_code ? (() => {
                         const matchedService = services.find((s) => s.code.toLowerCase() === rule.service_code?.toLowerCase());
                         return (
@@ -680,7 +680,7 @@ export default function PricingManager() {
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Country" style={{ padding: '0.75rem' }}>
                       {rule.country_code !== null && rule.country_code !== undefined ? (() => {
                         const matchedCountry = countries.find((c) => Number(c.id) === Number(rule.country_code));
                         const iso = matchedCountry?.iso || 'un';
@@ -707,12 +707,12 @@ export default function PricingManager() {
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
+                    <td data-label="Markup" style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
                       {rule.markup_type === 'percentage'
                         ? `+${rule.markup_value}%`
                         : `+₹${parseFloat(rule.markup_value).toFixed(2)}`}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Status" style={{ padding: '0.75rem' }}>
                       <button
                         onClick={() => handleToggleActive(rule)}
                         className={`badge ${rule.is_active ? 'badge-success' : 'badge-ghost'}`}
@@ -722,7 +722,7 @@ export default function PricingManager() {
                         {rule.is_active ? 'Active' : 'Inactive'}
                       </button>
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                    <td data-label="Actions" style={{ padding: '0.75rem', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         <button
                           className="btn btn-secondary btn-sm"

@@ -162,7 +162,7 @@ export default function UserDashboard() {
             No orders yet. <a href="/dashboard/buy" style={{ color: 'var(--accent-primary)' }}>Buy your first number!</a>
           </div>
         ) : (
-          <div className="table-container">
+          <div className="table-container responsive-card-table">
             <table>
               <thead>
                 <tr>
@@ -177,14 +177,14 @@ export default function UserDashboard() {
               <tbody>
                 {recentOrders.map(order => (
                   <tr key={order.id}>
-                    <td style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td><strong>{order.country_name || 'Unknown country'}</strong></td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                    <td data-label="Service" style={{ fontWeight: 600 }}>{order.service_name}</td>
+                    <td data-label="Country"><strong>{order.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Phone Number" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                       <span>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
-                    <td><StatusBadge status={order.status} /></td>
-                    <td>{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency, usdRate).primary}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <td data-label="Status"><StatusBadge status={order.status} /></td>
+                    <td data-label="Price">{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency, usdRate).primary}</td>
+                    <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
                   </tr>

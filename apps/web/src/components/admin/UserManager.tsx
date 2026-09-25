@@ -617,18 +617,18 @@ export default function UserManager() {
           ) : purgeHistory.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No retained purge history.</div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                 <thead><tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.55rem' }}>Reference</th><th style={{ padding: '0.55rem' }}>Mode</th><th style={{ padding: '0.55rem' }}>Orders</th><th style={{ padding: '0.55rem' }}>Deposits</th><th style={{ padding: '0.55rem' }}>Purged At</th>
                 </tr></thead>
                 <tbody>{purgeHistory.map((entry) => (
                   <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.55rem', fontFamily: 'var(--font-mono)' }}>{entry.user_reference}</td>
-                    <td style={{ padding: '0.55rem' }}><span className="badge badge-warning">{entry.purge_mode}</span></td>
-                    <td style={{ padding: '0.55rem' }}>{entry.orders_count}</td>
-                    <td style={{ padding: '0.55rem' }}>₹{Number(entry.total_deposits || 0).toFixed(2)}</td>
-                    <td style={{ padding: '0.55rem', color: 'var(--text-muted)' }}>{new Date(entry.purged_at).toLocaleString()}</td>
+                    <td data-label="Reference" style={{ padding: '0.55rem', fontFamily: 'var(--font-mono)' }}>{entry.user_reference}</td>
+                    <td data-label="Mode" style={{ padding: '0.55rem' }}><span className="badge badge-warning">{entry.purge_mode}</span></td>
+                    <td data-label="Orders" style={{ padding: '0.55rem' }}>{entry.orders_count}</td>
+                    <td data-label="Deposits" style={{ padding: '0.55rem' }}>₹{Number(entry.total_deposits || 0).toFixed(2)}</td>
+                    <td data-label="Purged At" style={{ padding: '0.55rem', color: 'var(--text-muted)' }}>{new Date(entry.purged_at).toLocaleString()}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -733,7 +733,7 @@ export default function UserManager() {
             No users found matching your search.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -769,7 +769,7 @@ export default function UserManager() {
                         background: isSelected ? 'rgba(37, 99, 235, 0.03)' : 'transparent',
                       }}
                     >
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                      <td data-label="Select" style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
                         <input
                           type="checkbox"
                           disabled={isProtected}
@@ -779,7 +779,7 @@ export default function UserManager() {
                           style={{ cursor: isProtected ? 'not-allowed' : 'pointer', width: '16px', height: '16px' }}
                         />
                       </td>
-                      <td style={{ padding: '0.75rem' }}>
+                      <td data-label="User Profile" style={{ padding: '0.75rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                           {u.avatar_url ? (
                             <img
@@ -839,7 +839,7 @@ export default function UserManager() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '0.75rem' }}>
+                      <td data-label="Balance" style={{ padding: '0.75rem' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(90px, 1fr))', gap: '0.5rem', minWidth: '210px' }}>
                           <div style={{ padding: '0.4rem 0.55rem', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '8px' }}>
                             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Remaining</div>
@@ -851,12 +851,12 @@ export default function UserManager() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '0.75rem' }}>
+                      <td data-label="Role" style={{ padding: '0.75rem' }}>
                         <span className={`badge ${u.role === 'superadmin' ? 'badge-error' : isAdmin ? 'badge-primary' : 'badge-ghost'}`}>
                           {u.role === 'superadmin' ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'User'}
                         </span>
                       </td>
-                      <td style={{ padding: '0.75rem' }}>
+                      <td data-label="Pricing Rate" style={{ padding: '0.75rem' }}>
                         {isAdmin || u.role === 'superadmin' ? (
                           <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.35)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
                             <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }}></span>
@@ -888,14 +888,14 @@ export default function UserManager() {
                           </button>
                         )}
                       </td>
-                      <td style={{ padding: '0.75rem' }}>
+                      <td data-label="Status" style={{ padding: '0.75rem' }}>
                         {u.is_banned ? (
                           <span className="badge badge-error">Banned</span>
                         ) : (
                           <span className="badge badge-success">Active</span>
                         )}
                       </td>
-                      <td style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
+                      <td data-label="Registered" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
                         <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                           {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </div>
@@ -903,7 +903,7 @@ export default function UserManager() {
                           {new Date(u.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
-                      <td style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
+                      <td data-label="Last Login" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
                         {u.last_sign_in_at ? (
                           <>
                             <div style={{ fontWeight: 600, color: '#38bdf8' }}>
@@ -1419,7 +1419,7 @@ export default function UserManager() {
                   No balance transactions recorded for this user yet.
                 </div>
               ) : (
-                <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflowX: 'auto' }}>
+                <div className="responsive-card-table" style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-tertiary)', color: 'var(--text-muted)', textAlign: 'left', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1435,21 +1435,21 @@ export default function UserManager() {
                         const isCredit = tx.type === 'topup' || tx.type === 'admin_credit' || tx.type === 'refund';
                         return (
                           <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            <td style={{ padding: '0.5rem 0.75rem' }}>
+                            <td data-label="Type" style={{ padding: '0.5rem 0.75rem' }}>
                               <span className={`badge ${isCredit ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '0.65rem' }}>
                                 {tx.type}
                               </span>
                             </td>
-                            <td style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: isCredit ? '#10b981' : '#ef4444' }}>
+                            <td data-label="Amount" style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: isCredit ? '#10b981' : '#ef4444' }}>
                               {isCredit ? '+' : '-'}₹{parseFloat(tx.amount || 0).toFixed(2)}
                             </td>
-                            <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, color: '#38bdf8' }}>
+                            <td data-label="Balance After" style={{ padding: '0.5rem 0.75rem', fontWeight: 600, color: '#38bdf8' }}>
                               ₹{parseFloat(tx.balance_after || 0).toFixed(2)}
                             </td>
-                            <td style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={tx.description}>
+                            <td data-label="Description" style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', maxWidth: '200px', overflowWrap: 'anywhere' }} title={tx.description}>
                               {tx.description || '—'}
                             </td>
-                            <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                            <td data-label="Date" style={{ padding: '0.5rem 0.75rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                               {new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}{' '}
                               {new Date(tx.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </td>

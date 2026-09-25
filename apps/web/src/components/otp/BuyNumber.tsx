@@ -571,7 +571,7 @@ export default function BuyNumber() {
         </div>
 
         {/* Search & Sort Controls Bar */}
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="responsive-buy-controls" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
             <input
               type="text"
@@ -1449,7 +1449,7 @@ export default function BuyNumber() {
               No messages received yet. Buy a number above to start receiving codes!
             </div>
           ) : (
-            <div className="table-container">
+            <div className="table-container responsive-card-table">
               <table>
                 <thead>
                   <tr>
@@ -1464,12 +1464,12 @@ export default function BuyNumber() {
                 <tbody>
                   {recentOrders.map((ro) => (
                     <tr key={ro.id}>
-                      <td style={{ fontWeight: 600 }}>{ro.service_name}</td>
-                      <td>{ro.country_name}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      <td data-label="Service" style={{ fontWeight: 600 }}>{ro.service_name}</td>
+                      <td data-label="Country">{ro.country_name}</td>
+                      <td data-label="Phone Number" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                         {ro.phone_number}
                       </td>
-                      <td>
+                      <td data-label="Status">
                         {ro.sms_code ? (
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                             <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981', fontSize: '0.95rem', background: 'rgba(16, 185, 129, 0.15)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
@@ -1490,8 +1490,8 @@ export default function BuyNumber() {
                           </span>
                         )}
                       </td>
-                      <td style={{ fontWeight: 600 }}>{formatCurrencyAmount(parseFloat(ro.sell_price_inr || 0), currency, usdRate)}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      <td data-label="Price" style={{ fontWeight: 600 }}>{formatCurrencyAmount(parseFloat(ro.sell_price_inr || 0), currency, usdRate)}</td>
+                      <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(ro.created_at).toLocaleString()}
                       </td>
                     </tr>

@@ -1270,7 +1270,7 @@ export default function WalletPage() {
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Recent Deposit Requests</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Real-time verification status of your deposit submissions</span>
           </div>
-          <div className="card" style={{ padding: '0.5rem', overflowX: 'auto', marginBottom: '1.75rem' }}>
+          <div className="card responsive-card-table" style={{ padding: '0.5rem', overflowX: 'auto', marginBottom: '1.75rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -1291,10 +1291,10 @@ export default function WalletPage() {
                   const isRejected = st === 'rejected' || st === 'failed';
                   return (
                     <tr key={req.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#10b981', fontFamily: 'var(--font-mono)' }}>
+                      <td data-label="Amount" style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#10b981', fontFamily: 'var(--font-mono)' }}>
                         {currency === 'USD' ? `$${(amt / usdtRate).toFixed(2)}` : `₹${amt.toFixed(2)}`}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      <td data-label="UTR / Order ID / Ref" style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                         {utrId ? (
                           <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)' }}>
                             {utrId}
@@ -1303,7 +1303,7 @@ export default function WalletPage() {
                           <span style={{ color: 'var(--text-muted)' }}>—</span>
                         )}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem' }}>
+                      <td data-label="Status" style={{ padding: '0.75rem 1rem' }}>
                         {isPending && (
                           <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                             <ClockIcon size={12} />
@@ -1323,13 +1323,13 @@ export default function WalletPage() {
                           </span>
                         )}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem' }}>
+                      <td data-label="Method" style={{ padding: '0.75rem 1rem' }}>
                         <span className={`badge ${method === 'binance' ? 'badge-warning' : 'badge-info'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                           {method === 'binance' ? <BinanceIcon size={14} /> : <UpiIcon size={14} />}
                           <span>{method === 'binance' ? 'BINANCE PAY' : method.toUpperCase()}</span>
                         </span>
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      <td data-label="Submitted At" style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(req.created_at).toLocaleString()}
                       </td>
                     </tr>
@@ -1347,7 +1347,7 @@ export default function WalletPage() {
           <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem', fontWeight: 700 }}>Transaction History</h3>
           {transactionsError && <button className="btn btn-ghost btn-sm" onClick={loadTransactions}>Retry history</button>}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', marginBottom: '0.75rem' }} aria-label="Filter wallet transactions">
+        <div className="responsive-filter-row" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }} aria-label="Filter wallet transactions">
           {(['all', 'topup', 'deduction', 'refund', 'admin_grant'] as const).map((filter) => (
             <button key={filter} type="button" className={`btn btn-sm ${transactionFilter === filter ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTransactionFilter(filter)}>
               {filter === 'all' ? 'All' : filter === 'admin_grant' ? 'Free funds' : filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -1361,7 +1361,7 @@ export default function WalletPage() {
             No transactions yet.
           </div>
         ) : (
-          <div className="card" style={{ padding: '0.5rem', overflowX: 'auto' }}>
+          <div className="card responsive-card-table" style={{ padding: '0.5rem', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
@@ -1378,12 +1378,13 @@ export default function WalletPage() {
                   const amount = Math.abs(parseFloat(tx.amount) || 0);
                   return (
                     <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '0.75rem 1rem' }}>
+                      <td data-label="Type" style={{ padding: '0.75rem 1rem' }}>
                         <span className={`badge ${isDebit ? 'badge-secondary' : 'badge-success'}`}>
                           {tx.type}
                         </span>
                       </td>
                       <td
+                        data-label="Amount"
                         style={{
                           padding: '0.75rem 1rem',
                           fontWeight: 700,
@@ -1393,13 +1394,13 @@ export default function WalletPage() {
                       >
                         {isDebit ? '−' : '+'}{currency === 'USD' ? `$${(amount / usdtRate).toFixed(2)}` : `₹${amount.toFixed(2)}`}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                      <td data-label="Balance After" style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                         {currency === 'USD' ? `$${(parseFloat(tx.balance_after || 0) / usdtRate).toFixed(2)}` : `₹${parseFloat(tx.balance_after || 0).toFixed(2)}`}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
+                      <td data-label="Description" style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
                         {tx.description || '—'}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      <td data-label="Date" style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(tx.created_at).toLocaleString()}
                       </td>
                     </tr>

@@ -471,7 +471,7 @@ export default function AuditLogManager() {
           background: 'var(--bg-surface)',
         }}
       >
-        <div style={{ overflowX: 'auto', width: '100%' }}>
+        <div className="responsive-card-table" style={{ overflowX: 'auto', width: '100%' }}>
           <table
             style={{
               width: '100%',
@@ -534,7 +534,7 @@ export default function AuditLogManager() {
                     className="audit-row"
                   >
                     {/* Timestamp */}
-                    <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
+                    <td data-label="Timestamp" style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.82rem' }}>{dateStr}</span>
                         <span
@@ -552,7 +552,7 @@ export default function AuditLogManager() {
                     </td>
 
                     {/* Actor */}
-                    <td style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
+                    <td data-label="Actor" style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div
                           style={{
@@ -593,7 +593,7 @@ export default function AuditLogManager() {
                     </td>
 
                     {/* Action */}
-                    <td style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
+                    <td data-label="Action" style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
                       <span
                         style={{
                           display: 'inline-block',
@@ -613,7 +613,7 @@ export default function AuditLogManager() {
                     </td>
 
                     {/* Target */}
-                    <td style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
+                    <td data-label="Target" style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
                         <span
                           style={{
@@ -646,6 +646,7 @@ export default function AuditLogManager() {
 
                     {/* Details / Payload Summary */}
                     <td
+                      data-label="Details & Payload Preview"
                       style={{
                         padding: '0.85rem 1rem',
                         verticalAlign: 'middle',
@@ -686,7 +687,7 @@ export default function AuditLogManager() {
                     </td>
 
                     {/* IP Address */}
-                    <td style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
+                    <td data-label="IP Address" style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
                       {log.ip_address ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                           <span
@@ -724,7 +725,7 @@ export default function AuditLogManager() {
                     </td>
 
                     {/* Inspect Button */}
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', verticalAlign: 'middle' }}>
+                    <td data-label="Inspect" style={{ padding: '0.85rem 1rem', textAlign: 'center', verticalAlign: 'middle' }}>
                       <button
                         type="button"
                         className="btn btn-secondary btn-sm"

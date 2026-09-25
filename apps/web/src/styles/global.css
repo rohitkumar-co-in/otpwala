@@ -852,6 +852,32 @@ tr:hover td {
     min-height: 44px;
   }
 
+  /* Filter/action strips wrap instead of clipping labels off-screen. */
+  .responsive-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: visible !important;
+    width: 100%;
+    max-width: 100%;
+    padding-bottom: 0 !important;
+  }
+
+  .responsive-filter-row > * {
+    flex: 0 0 auto;
+    max-width: 100%;
+    white-space: nowrap;
+  }
+
+  .responsive-buy-controls > div {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .responsive-buy-controls select {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   /* Preserve every table field on mobile, but render each record as a labeled card. */
   .responsive-card-table {
     width: 100%;

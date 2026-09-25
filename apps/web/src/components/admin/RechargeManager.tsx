@@ -298,7 +298,7 @@ export default function RechargeManager() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem', marginBottom: '1rem' }}>
+      <div className="responsive-filter-row" style={{ display: 'flex', gap: '0.5rem', paddingBottom: '0.25rem', marginBottom: '1rem' }}>
         {SOURCE_FILTERS.map((f) => (
           <button
             key={f.key}
@@ -311,7 +311,7 @@ export default function RechargeManager() {
       </div>
 
       <div className="card glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div className="table-responsive">
+        <div className="table-responsive responsive-card-table">
           <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
@@ -340,28 +340,28 @@ export default function RechargeManager() {
               ) : (
                 recharges.map((tx) => (
                   <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
-                    <td style={{ padding: '0.75rem 1rem' }}>
+                    <td data-label="User" style={{ padding: '0.75rem 1rem' }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{tx.email}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tx.name}</div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
+                    <td data-label="Type" style={{ padding: '0.75rem 1rem' }}>
                       <span className={`badge ${sourceBadge(tx).className}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
                         {sourceBadge(tx).label}
                       </span>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--success)' }}>
+                    <td data-label="Amount" style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--success)' }}>
                       +₹{parseFloat(tx.amount).toFixed(2)}
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                    <td data-label="Balance After" style={{ padding: '0.75rem 1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                       ₹{parseFloat(tx.balance_after || 0).toFixed(2)}
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                    <td data-label="Description" style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                       {tx.description}
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    <td data-label="Date" style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {new Date(tx.created_at).toLocaleString()}
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                    <td data-label="Actions" style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
                       <button 
                         className="btn btn-ghost btn-sm"
                         onClick={() => setCreditUserTarget(tx)}
