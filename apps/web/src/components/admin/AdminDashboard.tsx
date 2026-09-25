@@ -839,7 +839,7 @@ export default function AdminDashboard() {
                   <th style={{ padding: '0.75rem' }}>User Email</th>
                   <th style={{ padding: '0.75rem' }}>Service</th>
                   <th style={{ padding: '0.75rem' }}>Country</th>
-                  <th style={{ padding: '0.75rem' }}>Number</th>
+                  <th style={{ padding: '0.75rem' }}>Phone Number</th>
                   <th style={{ padding: '0.75rem' }}>Status</th>
                   <th style={{ padding: '0.75rem' }}>Price</th>
                   <th style={{ padding: '0.75rem' }}>Time</th>
@@ -864,7 +864,7 @@ export default function AdminDashboard() {
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                            <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Phone number</small>{formatPhoneNumber(o.phone_number, o.country_code).display || o.phone_number}</span>
+                            {formatPhoneNumber(o.phone_number, o.country_code).display || o.phone_number}
                           </span>
                           <button
                             className="btn btn-ghost btn-sm"
