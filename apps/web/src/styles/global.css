@@ -981,12 +981,45 @@ tr:hover td {
   }
 
   .responsive-card-table tbody tr {
+    position: relative;
     display: block;
     min-width: 0;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid var(--border-subtle) !important;
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
+    padding: 0.4rem 0.8rem 0.4rem 0.95rem;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    border-left: 4px solid #60a5fa !important;
+    border-radius: 16px;
+    background: linear-gradient(115deg, #f6f9ff 0%, #ffffff 48%) !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.055);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  }
+
+  .responsive-card-table tbody tr:has(.badge-success) {
+    border-left-color: #10b981 !important;
+    background: linear-gradient(115deg, #f0fdf7 0%, #ffffff 48%) !important;
+  }
+
+  .responsive-card-table tbody tr:has(.badge-error) {
+    border-left-color: #f87171 !important;
+    background: linear-gradient(115deg, #fff5f5 0%, #ffffff 48%) !important;
+  }
+
+  .responsive-card-table tbody tr:has(.badge-warning) {
+    border-left-color: #f59e0b !important;
+    background: linear-gradient(115deg, #fffbeb 0%, #ffffff 48%) !important;
+  }
+
+  .responsive-card-table tbody tr:has(.badge-info) {
+    border-left-color: #3b82f6 !important;
+    background: linear-gradient(115deg, #eff6ff 0%, #ffffff 48%) !important;
+  }
+
+  .responsive-card-table tbody tr:hover {
+    border-color: rgba(100, 116, 139, 0.32) !important;
+    box-shadow: 0 9px 22px rgba(15, 23, 42, 0.09);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .responsive-card-table tbody tr:hover { transform: translateY(-2px); }
   }
 
   .responsive-card-table tbody td {
@@ -1001,6 +1034,8 @@ tr:hover td {
     white-space: normal !important;
     text-align: left !important;
     overflow-wrap: anywhere;
+    background: transparent !important;
+    transition: border-color 0.18s ease;
   }
 
   .responsive-card-table tbody td:last-child { border-bottom: 0 !important; }
@@ -1012,6 +1047,11 @@ tr:hover td {
     line-height: 1.4;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.2rem 0.38rem;
+    border-radius: 6px;
+    background: rgba(226, 232, 240, 0.55);
   }
 
   .responsive-card-table tbody td > * { min-width: 0; max-width: 100%; }
