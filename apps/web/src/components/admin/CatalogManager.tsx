@@ -522,100 +522,47 @@ export default function CatalogManager() {
               No services match your search or filter.
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
-              {filteredServices.map((s) => (
-                <div
-                  key={s.code}
-                  className="card"
-                  style={{
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    alignItems: 'stretch',
-                    gap: '0.8rem',
-                    minHeight: '185px',
-                    background: s.enabled ? 'var(--bg-card)' : 'rgba(239, 68, 68, 0.03)',
-                    border: s.enabled ? '1px solid var(--border-subtle)' : '1px solid rgba(239, 68, 68, 0.2)',
-                    transition: 'all var(--transition-fast)',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.45rem', textAlign: 'center' }}>
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '50%',
-                        background: 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        padding: 0,
-                      }}
-                    >
-                      {renderServiceIcon(s, 48)}
-                    </div>
-                    <div style={{ width: '100%' }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
-                          lineHeight: 1.25,
-                          overflowWrap: 'anywhere',
-                          color: s.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
-                        }}
-                        title={s.name}
-                      >
-                        {s.name}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                        code: {s.code}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
-                  <button
-                    onClick={() => handleToggleFeatured(s.code, !!s.featured)}
-                    disabled={actionLoading === `featured-${s.code}`}
-                    className="btn btn-ghost btn-sm"
-                    style={{ color: s.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
-                    title={s.featured ? 'Remove from featured services' : 'Feature this service at the top'}
-                    aria-label={s.featured ? 'Remove from featured services' : 'Add to featured services'}
-                  >
-                    <StarIcon size={14} color="currentColor" />
-                    <span>{s.featured ? 'Featured' : 'Feature'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleToggleService(s.code, s.enabled)}
-                    disabled={actionLoading === `svc-${s.code}`}
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: 'var(--radius-full)',
-                      padding: '0.3rem 0.65rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      background: s.enabled ? 'var(--success-bg)' : 'var(--error-bg)',
-                      color: s.enabled ? 'var(--success)' : 'var(--error)',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: s.enabled ? 'var(--success-border)' : 'var(--error-border)',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                    title="Click to toggle live visibility"
-                  >
-                    {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
-                    <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
-                  </button>
-                  </div>
-                </div>
-              ))}
+            <div className="table-container admin-catalog-table-container">
+              <table className="admin-catalog-table">
+                <thead><tr><th>Service</th><th>Code</th><th>Catalog controls</th></tr></thead>
+                <tbody>
+                  {filteredServices.map((s) => (
+                    <tr key={s.code} className={s.enabled ? '' : 'catalog-row-disabled'}>
+                      <td data-label="Service">
+                        <div className="admin-catalog-item">
+                          {renderServiceIcon(s, 36)}
+                          <span className="admin-catalog-item-name" title={s.name}>{s.name}</span>
+                        </div>
+                      </td>
+                      <td data-label="Code"><span className="admin-catalog-code">{s.code}</span></td>
+                      <td data-label="Catalog controls">
+                        <div className="admin-catalog-actions">
+                          <button
+                            onClick={() => handleToggleFeatured(s.code, !!s.featured)}
+                            disabled={actionLoading === `featured-${s.code}`}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: s.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
+                            title={s.featured ? 'Remove from featured services' : 'Feature this service at the top'}
+                            aria-label={s.featured ? 'Remove from featured services' : 'Add to featured services'}
+                          >
+                            <StarIcon size={14} color="currentColor" />
+                            <span>{s.featured ? 'Featured' : 'Feature'}</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleService(s.code, s.enabled)}
+                            disabled={actionLoading === `svc-${s.code}`}
+                            className={`catalog-visibility-toggle ${s.enabled ? 'is-enabled' : 'is-disabled'}`}
+                            title="Click to toggle live visibility"
+                          >
+                            {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                            <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )
         ) : (
@@ -625,115 +572,58 @@ export default function CatalogManager() {
               No countries match your search or filter.
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
-              {filteredCountries.map((c) => (
-                <div
-                  key={c.id}
-                  className="card"
-                  style={{
-                    padding: '0.85rem 1rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: c.enabled ? 'var(--bg-card)' : 'rgba(239, 68, 68, 0.03)',
-                    border: c.enabled ? '1px solid var(--border-subtle)' : '1px solid rgba(239, 68, 68, 0.2)',
-                    transition: 'all var(--transition-fast)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '50%',
-                        background: 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <img
-                        src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
-                        alt={c.name}
-                        width="38"
-                        height="38"
-                        style={{
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          boxShadow: '0 0 0 1px rgba(255,255,255,0.15)',
-                        }}
-                        loading="lazy"
-                        onError={(e) => {
-                          const fallback = `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`;
-                          if (e.currentTarget.src !== fallback) {
-                            e.currentTarget.src = fallback;
-                          }
-                        }}
-                      />
-                    </div>
-                    <div style={{ overflow: 'hidden' }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          color: c.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
-                        }}
-                        title={c.name}
-                      >
-                        {c.name}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                        Country ID: {c.id}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
-                  <button
-                    onClick={() => handleToggleFeaturedCountry(c.id, c.name, !!c.featured)}
-                    disabled={actionLoading === `featured-country-${c.id}`}
-                    className="btn btn-ghost btn-sm"
-                    style={{ color: c.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
-                    title={c.featured ? 'Remove from popular countries' : 'Show in the Popular countries section'}
-                    aria-label={c.featured ? 'Remove from popular countries' : 'Add to popular countries'}
-                  >
-                    <StarIcon size={14} color="currentColor" />
-                    <span>{c.featured ? 'Popular' : 'Star'}</span>
-                  </button>
-
-                  {/* Toggle Switch Button */}
-                  <button
-                    onClick={() => handleToggleCountry(c.id, c.enabled)}
-                    disabled={actionLoading === `cnt-${c.id}`}
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: 'var(--radius-full)',
-                      padding: '0.3rem 0.65rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      background: c.enabled ? 'var(--success-bg)' : 'var(--error-bg)',
-                      color: c.enabled ? 'var(--success)' : 'var(--error)',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: c.enabled ? 'var(--success-border)' : 'var(--error-border)',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                    title="Click to toggle country visibility"
-                  >
-                    {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
-                    <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
-                  </button>
-                  </div>
-                </div>
-              ))}
+            <div className="table-container admin-catalog-table-container">
+              <table className="admin-catalog-table">
+                <thead><tr><th>Country</th><th>ID</th><th>Catalog controls</th></tr></thead>
+                <tbody>
+                  {filteredCountries.map((c) => (
+                    <tr key={c.id} className={c.enabled ? '' : 'catalog-row-disabled'}>
+                      <td data-label="Country">
+                        <div className="admin-catalog-item">
+                          <img
+                            className="admin-catalog-flag"
+                            src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
+                            alt=""
+                            width="28"
+                            height="28"
+                            loading="lazy"
+                            onError={(e) => {
+                              const fallback = `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`;
+                              if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                            }}
+                          />
+                          <span className="admin-catalog-item-name" title={c.name}>{c.name}</span>
+                        </div>
+                      </td>
+                      <td data-label="Country ID"><span className="admin-catalog-code">{c.id}</span></td>
+                      <td data-label="Catalog controls">
+                        <div className="admin-catalog-actions">
+                          <button
+                            onClick={() => handleToggleFeaturedCountry(c.id, c.name, !!c.featured)}
+                            disabled={actionLoading === `featured-country-${c.id}`}
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: c.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
+                            title={c.featured ? 'Remove from popular countries' : 'Show in the Popular countries section'}
+                            aria-label={c.featured ? 'Remove from popular countries' : 'Add to popular countries'}
+                          >
+                            <StarIcon size={14} color="currentColor" />
+                            <span>{c.featured ? 'Popular' : 'Star'}</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleCountry(c.id, c.enabled)}
+                            disabled={actionLoading === `cnt-${c.id}`}
+                            className={`catalog-visibility-toggle ${c.enabled ? 'is-enabled' : 'is-disabled'}`}
+                            title="Click to toggle country visibility"
+                          >
+                            {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                            <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )
         )}
