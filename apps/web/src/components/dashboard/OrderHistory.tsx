@@ -159,8 +159,8 @@ export default function OrderHistory() {
         </div>
       ) : (
         <>
-          <div className="table-container" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="table-container responsive-card-table" style={{ overflowX: 'auto' }}>
+            <table aria-label="Order history" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.75rem' }}>Service</th>
@@ -177,9 +177,9 @@ export default function OrderHistory() {
                   const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded';
                   return (
                   <tr key={order.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}>{order.service_name || 'Unknown service'}</strong></td>
-                    <td style={{ padding: '0.75rem' }}><strong>{order.country_name || 'Unknown country'}</strong></td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Service" style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}>{order.service_name || 'Unknown service'}</strong></td>
+                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong>{order.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Phone Number" style={{ padding: '0.75rem' }}>
                       {order.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{formattedPhone.display || order.phone_number}</span>
@@ -189,13 +189,13 @@ export default function OrderHistory() {
                         </div>
                       ) : '—'}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Status" style={{ padding: '0.75rem' }}>
                       <StatusBadge status={order.status} />
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: isRefunded ? 'var(--text-muted)' : 'inherit' }}>
+                    <td data-label="Price" style={{ padding: '0.75rem', fontWeight: 600, color: isRefunded ? 'var(--text-muted)' : 'inherit' }}>
                       {isRefunded ? 'Refunded: ' : 'Price: '}{formatDualPrice(parseFloat(order.sell_price_inr || order.price_inr || 0), currency).primary}
                     </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                    <td data-label="Time" style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(order.created_at).toLocaleString([], {
                         month: 'short',
                         day: 'numeric',

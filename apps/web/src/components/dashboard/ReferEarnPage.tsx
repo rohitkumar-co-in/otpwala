@@ -560,8 +560,8 @@ export default function ReferEarnPage() {
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
+            <table aria-label="Referred friends" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.75rem' }}>#</th>
@@ -572,10 +572,10 @@ export default function ReferEarnPage() {
               <tbody>
                 {data.referredUsers.map((user, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', width: '40px' }}>
+                    <td data-label="#" style={{ padding: '0.75rem', color: 'var(--text-muted)', width: '40px' }}>
                       {idx + 1}
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <td data-label="Referred User" style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <div
                           style={{
@@ -596,7 +596,7 @@ export default function ReferEarnPage() {
                         <span>{user.name}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    <td data-label="Date Joined" style={{ padding: '0.75rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                       {new Date(user.joinedAt).toLocaleDateString(undefined, {
                         year: 'numeric',
                         month: 'short',
@@ -637,8 +637,8 @@ export default function ReferEarnPage() {
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="responsive-card-table" style={{ overflowX: 'auto' }}>
+            <table aria-label="Referral deposit bonus history" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '0.75rem' }}>Bonus Description</th>
@@ -650,18 +650,18 @@ export default function ReferEarnPage() {
               <tbody>
                 {data.bonusLogs.map((log) => (
                   <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <td data-label="Bonus Description" style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <GiftIcon size={16} color="#10b981" aria-hidden="true" />
                         <span>{log.description}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td data-label="Status" style={{ padding: '0.75rem' }}>
                       <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
                         Added to Balance
                       </span>
                     </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    <td data-label="Date & Time" style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {new Date(log.createdAt).toLocaleString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -670,7 +670,7 @@ export default function ReferEarnPage() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 700, color: '#10b981', fontSize: '0.95rem' }}>
+                    <td data-label="Amount" style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 700, color: '#10b981', fontSize: '0.95rem' }}>
                       +₹{log.amount.toFixed(2)}
                     </td>
                   </tr>
