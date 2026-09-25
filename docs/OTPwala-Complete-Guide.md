@@ -31,11 +31,13 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - Live session command center showing Public IP, telecom carrier / ISP name, ASN, and geo location.
 - TOTP authenticator MFA after password, email OTP, and Google login.
 - Service and country catalog with live provider pricing.
+- Catalog service artwork and country flags beside their names in the buy flow and order history; customer prices use only the selected currency.
 - Wallet balance, top-up requests, ledger history with running balance after each transaction, and auto-refunds.
 - Strict 12-digit numeric UPI UTR and numeric Binance Pay Order ID validation on deposits.
 - Virtual-number purchase and live OTP polling with audio alert and 1-click clipboard copy.
-- Order history with phone number formatted as `+country dialing code national number`.
-- Automatic refund after eligible cancellation, provider failure, or expiry.
+- Order history with service and country icons and phone numbers formatted as `+country dialing code national number`.
+- An order remains `waiting` until the provider confirms a cancellation, sends an OTP, or reports expiry. A denied cancellation does not refund the order.
+- Refunds are recorded only after a provider-confirmed cancellation or expiry, or another confirmed eligible provider failure.
 - Multi-tier referral earnings with automated network fraud protection.
 - Support tickets with General Help, Payment Issue, Order/OTP Issue, Bug Report, and Account Security types.
 - Optional bug-report image attachment (PNG/JPG/WEBP/GIF, maximum 1.5 MB).
@@ -57,6 +59,9 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - Multi-tier referral fraud logs and automated network collision protection.
 - Support queue with status, priority, internal notes, threaded replies, and ticket-type context.
 - Super Admin privacy & data erasure queue with in-site modal confirmations.
+- User-history controls separate from account purge: hide activity while keeping deposits and balance, or hide all user-visible history and reset the spendable balance. Existing banned-user purge options remain separate.
+- Optional Telegram order notifications: alert only when an OTP arrives, or create one message per order and edit it as its status changes.
+- Recent order tables show service artwork and country flags beside their names.
 - Immutable wallet ledger, reconciliation, audit log, operational alerts, retention controls, and RLS protections.
 - Universal in-site toast notification engine on all refresh, save, and update actions.
 
@@ -134,9 +139,17 @@ The base script creates profiles, orders, wallet transactions, settings, pricing
 
 For a new Supabase project, you can alternatively paste the single consolidated file [`../supabase/otpwala-standalone.sql`](../supabase/otpwala-standalone.sql). It contains the base schema followed by every hardening migration in dependency order. Do not run the consolidated file after separately running the same migrations on the same database.
 
-### 6.2 Apply hardening migrations in order
+### 6.2 Check and apply migrations safely
 
-Run each file once, in filename order, in Supabase SQL Editor:
+First compare the local and remote migration history:
+
+```bash
+npx supabase migration list --linked --workdir apps/api
+```
+
+The repository's incremental migration files live in `apps/api/supabase/migrations`. A local-only migration may already have been applied manually, so do not blindly run `db push` or paste every local-only file into production. Compare the actual schema and `supabase_migrations.schema_migrations` history, then reconcile with the database owner before applying SQL. Never mark unknown changes as applied.
+
+After confirming the remote database state, apply only approved, unapplied migrations in filename order:
 
 ```text
 apps/api/supabase/migrations/20260914183228_update_role_constraint.sql
@@ -159,11 +172,17 @@ apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
 apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
 apps/api/supabase/migrations/20260923120000_fix_deposit_approval_compatibility.sql
+apps/api/supabase/migrations/20260924100000_admin_user_purge.sql
+apps/api/supabase/migrations/20260924110000_currency_preference.sql
+apps/api/supabase/migrations/20260924120000_allow_superadmin_admin_purge.sql
+apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
+apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
+apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
 ```
 
 Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
 
-The final migration adds `ticket_type` and `attachment` to `support_tickets`. Without it, ticket creation with a type or image will fail.
+The support-ticket migrations add ticket types, replies, and optional image attachments. Check that the applicable migrations have been applied before relying on these features.
 
 The admin funding migration separates wallet credits into three categories:
 
@@ -199,7 +218,8 @@ The admin settings screen controls the `settings` table. At minimum configure:
 - Default markup percentage.
 - UPI/payment instructions.
 - Maintenance mode and catalog visibility.
-- Telegram support configuration, if enabled.
+- Telegram admin bot settings only if admin notifications are required. OTPWala does not advertise a public Telegram channel.
+- Order notification mode (`completion_only` or `lifecycle`) if order alerts are enabled.
 
 ## 7. Pricing and wallet accounting
 
@@ -219,13 +239,13 @@ The admin user list derives total spend from non-refunded, non-cancelled order r
 
 ## 8. Order lifecycle
 
-The platform standardizes on the canonical provider lifecycle values: `waiting`, `code_received`, `cancelled`, `refunded`, and `expired`.
+The platform standardizes on the canonical order lifecycle values: `waiting`, `code_received`, `cancelled`, `refunded`, and `expired`.
 
-- **`waiting`**: Virtual number has been provisioned; actively polling for incoming SMS verification code from upstream provider.
-- **`code_received`**: Verification code delivered from Tiger SMS provider (`STATUS_OK:<code>`); displayed across all customer and admin dashboards with the label **OTP Received** (`badge-success`).
-- **`cancelled`**: Cancelled by the user within the cancellation window or cancelled by the provider.
-- **`refunded`**: Order cost automatically credited back to the customer's wallet balance.
-- **`expired`**: Activation window expired without receiving an SMS code; triggers automatic wallet refund.
+- **`waiting`**: The number is active and waiting for an SMS. No refund has been confirmed.
+- **`code_received`**: An SMS code arrived; customer and admin order views show it in the status column as **OTP Received**.
+- **`cancelled`**: The provider confirmed cancellation. A denied request leaves the order waiting.
+- **`refunded`**: The provider confirmed an eligible cancellation, expiry, or failure and the wallet refund was recorded.
+- **`expired`**: The activation window ended without an SMS; the refund is shown only after the provider confirms expiry and the refund ledger is updated.
 
 Typical flow:
 
@@ -233,7 +253,7 @@ Typical flow:
 2. Wallet balance is deducted atomically and order enters `waiting` status.
 3. Provider delivers the SMS verification code; order transitions to `code_received`.
 4. Customer dashboard displays **OTP Received** with 1-click clipboard copy and audio alert.
-5. If no code is received within the active window, cancellation or expiry invokes the automatic wallet refund workflow.
+5. If no code arrives, the customer may request cancellation. The order stays waiting if the provider denies it. A refund is shown only after confirmed cancellation or expiry and a successful wallet-ledger update.
 
 ## 9. Support workflow
 
@@ -244,7 +264,7 @@ Typical flow:
 - Resolved and Closed are final. Reply API calls to either status are rejected.
 - A customer needing more help after closure must create a new ticket.
 
-Telegram support is highlighted for urgent payment and top-up issues. Keep the Telegram handle configured consistently in the frontend and server settings.
+Customers use the website's contact and support-ticket flows. The optional Telegram bot is for admin notifications and payment operations; it is not a public OTPWala support channel.
 
 ## 10. MFA and login behavior
 
@@ -279,12 +299,9 @@ Pop-Location
 npx wrangler deploy --config workers/wrangler.jsonc
 ```
 
-The GitHub Actions workflow also runs the build, dependency audit, guardrails, and production verification. A successful commit to `main` triggers the connected deployment workflow.
+The GitHub Actions workflow runs the build, dependency audit, guardrails, and production verification. Cloudflare Pages is connected to GitHub and deploys commits from `main` separately from that verification job.
 
-Current deployment endpoints:
-
-- Pages preview: `https://3fcecbcd.otpwala-c9r.pages.dev`
-- Reconciliation Worker: `https://otpwala-reconciliation.banhoga.workers.dev`
+Production site: `https://otpwala.me`. Cloudflare creates a unique preview URL for each deployment; find the current one in the Cloudflare Pages deployment list. The reconciliation Worker is configured separately in `workers/wrangler.jsonc`.
 
 Never commit `.env`, service-role keys, Tiger keys, payment secrets, or OAuth client secrets.
 
@@ -311,21 +328,23 @@ The smoke suite checks homepage, status, health, auth configuration, protected s
 ## 13. Production checklist
 
 - [ ] Base SQL and every hardening migration applied.
+- [ ] `npx supabase migration list --linked --workdir apps/api` shows reviewed, reconciled local/remote history.
+- [ ] Supabase Security Advisor findings reviewed. Leaked-password protection is an Auth dashboard setting, not an SQL migration.
 - [ ] Admin and superadmin roles verified.
 - [ ] Admin TOTP enrolled and tested with a wrong and correct code.
 - [ ] Tiger API key works and provider balance is funded.
 - [ ] USD/INR rate and markup verified with a live quote.
 - [ ] UPI/payment settings verified.
 - [ ] One successful OTP purchase tested.
-- [ ] One provider failure/cancellation refund tested.
-- [ ] One expired order refund tested.
+- [ ] A provider-confirmed cancellation is tested; a denied cancellation remains waiting and is not refunded.
+- [ ] One provider-confirmed expired order refund tested.
 - [ ] Support ticket, image attachment, reply, resolved, and closed behavior tested.
 - [ ] Google login, email OTP login, and password login tested with MFA.
 - [ ] Account export and deletion-review workflow tested.
 - [ ] `npm run verify:production` passes.
 - [ ] GitHub Actions is green after the deployment commit.
 - [ ] Cloudflare production deployment and `/api/health` are operational.
-- [ ] A deposit is submitted once, approved from Telegram, and verified as `approved` in the admin panel.
+- [ ] A deposit is submitted once, approved from the admin panel or configured Telegram action, and verified as `approved` in the admin panel.
 - [ ] The approved deposit creates one `topup` ledger entry and updates the wallet balance in both the wallet page and dashboard navigation.
 
 ## 14. Troubleshooting
@@ -473,3 +492,22 @@ OTPWala features an automated multi-tier network fraud detection system designed
      - `DollarIcon`
      - `UsersIcon`
    - Guarantees visual consistency across iOS, Android, macOS, Windows, and Linux devices.
+
+## 23. Admin user history and account purge
+
+These are separate operations and are restricted to the superadmin role:
+
+- **Clear activity; keep deposits and balance** hides the selected user's visible orders, non-deposit activity, support/referral activity, and login history while preserving the account, deposit history, and current balance.
+- **Clear all visible history and reset balance** hides the same activity plus deposit history, and resets spendable balance to zero through the wallet ledger. The account remains.
+- **Purge User** is the existing account-removal operation for a banned account. Its retained-history and complete-purge modes are not the same as clearing visible history.
+
+History clearing requires no waiting orders. Clearing all history also requires no pending deposit. Hidden data remains in protected accounting/audit records; the UI action does not delete the append-only wallet ledger.
+
+## 24. Telegram order bot modes
+
+Admin Settings supports two optional order-message modes:
+
+- **Completion only** sends an alert after an OTP is received. Waiting, cancelled, and expired orders do not generate order alerts.
+- **Lifecycle** sends a message when the order is created and edits that same message as the order moves through waiting, OTP received, cancelled, expired, or refunded states. Telegram edit failures are recorded for operational review.
+
+Payment-request alerts and approvals are separate from order notifications. Keep the bot token and webhook secret server-side.

@@ -27,6 +27,12 @@ The build synchronizes the shared Pages Functions source into the web project be
 
 The wallet page and dashboard navigation use the same authenticated wallet response. Wallet refreshes publish the current balance to the navigation, so an approved deposit is reflected without a full page reload.
 
+The public site, customer dashboard, and admin panel are designed to work across phone, tablet, and desktop widths. Customer order and catalog views reuse the configured service artwork and country flags. Customer-facing prices use the selected currency only.
+
+Order cancellation is provider-confirmed. A denied cancellation remains `waiting`; the UI must not show a refund until cancellation/expiry is confirmed and the wallet ledger records it.
+
+Admin user-history clearing is not account purge. The superadmin can hide activity while preserving deposits and balance, or hide all visible history and reset the spendable balance. The existing Purge User action remains a separate, irreversible account operation.
+
 ## Deployment
 
 GitHub `main` is connected to the `otpwala` Cloudflare Pages project. A successful push triggers a production deployment. Required server-side variables belong in Cloudflare Pages environment settings, never in client code or committed files:
@@ -51,6 +57,8 @@ Pop-Location
 
 The reconciliation Worker is deployed separately with `npx wrangler deploy --config workers/wrangler.jsonc`.
 
+Cloudflare Pages preview URLs are unique per deployment. Use the deployment list rather than storing an old preview URL in documentation. The Worker has a one-minute cron trigger configured in `workers/wrangler.jsonc`; set its `CRON_SECRET` to match the API secret.
+
 ## Financial data boundary
 
 Wallet balances are written only through the atomic Supabase wallet RPCs. `wallet_transactions` is the immutable ledger; the separate read-only views are used for reporting:
@@ -62,3 +70,9 @@ Wallet balances are written only through the atomic Supabase wallet RPCs. `walle
 - `wallet_referral_bonuses`
 
 Do not edit balances or ledger rows directly in the browser, Pages Functions, or Supabase table editor.
+
+## Production verification
+
+From the repository root, run `npm run verify:production`. This builds the static web site and API, runs unit tests and production guardrails, and sends unauthenticated smoke requests to the production site. It does not test signed-in journeys, payments, real OTP delivery, responsive screenshots, or destructive admin features; use staging and disposable accounts for those checks.
+
+Before applying Supabase SQL, compare local and remote history with `npx supabase migration list --linked --workdir apps/api`. A local-only migration might already have been run manually, so reconcile the actual schema before applying or repairing migration history.

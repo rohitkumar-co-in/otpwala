@@ -1,6 +1,6 @@
 # OTPWala
 
-> High-speed virtual number marketplace for instant SMS & OTP verification powered by **Astro.js**, **React Islands**, **Cloudflare Pages Functions (Edge)**, **Express.js API**, **Supabase (PostgreSQL)**, and **Tiger SMS Provider API**.
+> OTPWala helps customers check service and country availability, view current prices, and use virtual numbers for SMS verification. The production web app uses **Astro**, **React**, **Cloudflare Pages Functions**, and **Supabase**. An optional Express API is also included for local or alternate deployments.
 
 **New here? Start with [the beginner setup guide](./docs/BEGINNER-SETUP.md) or [the complete architecture guide](./docs/OTPwala-Complete-Guide.md).**
 
@@ -32,13 +32,15 @@
 ## Key Features & Capabilities
 
 ### 1. Lightning Fast Astro Frontend (`apps/web`)
-- **Astro SSG/SSR Architecture**: Blazing fast load times with modern glassmorphism dark aesthetic, responsive layouts, and pure SVG vector icons (zero platform emojis).
+- **Astro static-site architecture**: Public pages are prebuilt for fast delivery, with responsive layouts and interactive React components for account and admin tasks.
 - **Interactive React Islands (`client:load`)**:
-  - **Live Buy Flow**: Real-time service picker (WhatsApp, Telegram, Google, Instagram, 100+ services), country selector (190+ countries), and instant pricing quotes in ₹ INR / $ USD.
-  - **Real-Time OTP Room**: Live order status polling, countdown timer, sound alerts, 1-click clipboard copy for phone numbers and SMS verification codes, and automatic refunds for expired/cancelled orders.
-  - **User Wallet (`/dashboard/wallet`)**: Live balance display shared with dashboard navigation, quick deposit presets, transaction ledger with running balance after every entry, and strict payment reference validation (strictly 12-digit numeric UPI UTR and numeric Binance Pay Order IDs).
-  - **Order History (`/dashboard/orders`)**: Filter orders by status (`waiting`, `code_received`, `completed`, `cancelled`, `expired`) with in-place refresh feedback and toast notifications.
-  - **Account Settings & Security (`/dashboard/settings`)**: Two-Factor Authentication (TOTP Authenticator app), active session command center with live IP and ISP carrier telemetry, single-device session protection, formatted data export, and in-site account deletion requests.
+  - **Service and country browsing**: Search available services and countries, see provider catalog icons and country flags, filter by availability, and view prices in the selected currency.
+  - **Number purchase and OTP status**: Follow a number from waiting to OTP received, cancellation, or expiry. Copy the phone number without its country calling code, or copy a received OTP.
+  - **Refund status**: A waiting order is not treated as refunded. A refund is recorded only after the provider confirms cancellation or expiry; a denied cancellation leaves the order active.
+  - **Wallet (`/dashboard/wallet`)**: Shared balance display, deposit requests, and a transaction history. User-facing prices show only the currency selected by the user.
+  - **Order history (`/dashboard/orders`)**: Filter orders by status, view service and country icons, and refresh the current history.
+  - **Settings and security (`/dashboard/settings`)**: TOTP authenticator MFA, active-session information, single-device session protection, data export, and account-deletion requests.
+  - **Responsive navigation and pages**: Public, customer, and admin pages adapt to phone, tablet, and desktop layouts.
 
 ### 2. Multi-Tiered Referral Fraud Prevention Engine
 - **Network-Level Fraud Defense**:
@@ -68,21 +70,23 @@
 ### 6. Admin Management Suite (`/admin`)
 - **Dashboard Overview**: Financial health checks, provider balance status, platform revenue vs wallet liabilities, pending deposits with 1-click in-site approve/reject.
 - **User Management (`/admin/users`)**: Search users, view balance details & ledger history, export complete user dossiers, credit funds with mandatory funding source, ban/unban, promote/demote, and toggle zero-markup status.
+- **History controls**: Superadmins can hide a user's visible activity while keeping the account, either preserving deposits and balance or hiding all visible history and resetting the spendable balance. This is separate from the existing irreversible Purge User action.
 - **Funding Sources & Balance Sheet (`/admin/recharges`)**: Explicit distinction between cash collected (UPI / confirmed manual funding) and free granted balance (promotional/goodwill).
 - **Dynamic Profit Margins (`/admin/pricing`)**: Percentage and fixed markup rules globally, per-service, or per-country with profit margin simulator.
 - **Catalog Controls (`/admin/catalog`)**: Enable or disable services and countries with 1-click toggles and batch actions.
-- **Order Audit Log (`/admin/orders`)**: Comprehensive platform audit log with phone numbers, OTP codes, provider cost vs selling price, and profit margins.
+- **Order Audit Log (`/admin/orders`)**: Service and country icons, phone numbers, OTP status, sale price, provider cost, and gross profit.
 - **Support & Privacy Erasure Queue (`/admin/support`)**: Support tickets with threaded replies, internal admin notes, and data erasure approval workflows.
 - **Admin Audit Trail (`/admin/audit`)**: Immutable log of privileged administrator actions with structured columns, categorized color-coded action badges, live payload previews, interactive JSON inspection modal with 1-click copy and file download, and full JSON audit trail export.
-- **System Settings (`/admin/settings`)**: Currency FX rates, USD/INR conversion, payment gateway credentials, Telegram bot token, webhook configuration, and maintenance mode toggles.
+- **System Settings (`/admin/settings`)**: Currency rates, payment instructions, Telegram admin notifications, order notification mode, provider balance alerts, and maintenance controls.
+  - **Order notifications** can be limited to OTP-completed orders or use one Telegram message per order that is updated as its status changes.
 
 ---
 
 ## Quick Setup Guide
 
 ### 1. Prerequisites
-- Node.js >= 20.0.0 (Recommended 22+)
-- `pnpm` (run `npm install -g pnpm`)
+- Node.js >= 22.12.0
+- `pnpm` 11.19.0 (run `npm install -g pnpm@11.19.0`)
 - A [Supabase](https://supabase.com) project
 - Tiger SMS API Key
 
@@ -109,8 +113,8 @@ PUBLIC_API_URL=http://localhost:3001
 
 ### 4. Database Setup (Supabase)
 - For a new Supabase project: Run [`supabase/otpwala-standalone.sql`](./supabase/otpwala-standalone.sql) once in the SQL Editor.
-- For an existing project: Apply migrations in [`apps/api/supabase/migrations`](./apps/api/supabase/migrations) in sequential order.
-- The latest deposit approval compatibility migration is `20260923120000_fix_deposit_approval_compatibility.sql`; apply it after the earlier migrations and before testing approvals.
+- For an existing project: first compare migration history with `npx supabase migration list --linked --workdir apps/api`. Do not blindly apply local-only migrations to a database that may have received the same SQL manually. Review and reconcile the schema and migration history before applying changes.
+- Current migrations include user-history controls and Supabase security-policy hardening. See [the complete setup guide](./docs/OTPwala-Complete-Guide.md) for the migration list and safe procedure.
 
 To promote your account to Admin:
 ```sql
@@ -144,14 +148,7 @@ pnpm dev:web
 ## Testing & Verification
 
 ```bash
-# Run unit tests
-npm run test:unit
-
-# Verify production safeguards
-npm run test:guardrails
-
-# Build web frontend for production
-npm run build:web
+npm run verify:production
 ```
 
 Cloudflare deployment after `npx wrangler login`:
@@ -167,8 +164,8 @@ npx wrangler deploy --config workers/wrangler.jsonc
 ---
 
 ## Security & Privacy Compliance
-- **Server-Side Secret Isolation**: Provider API keys, service-role keys, and Telegram tokens are strictly isolated in server/edge runtimes and are **never** exposed in client bundles.
+- **Server-Side Secret Isolation**: Provider API keys, service-role keys, and Telegram tokens belong in server/edge settings and must never be exposed in client bundles.
 - **Single-Device Protection**: Automatic invalidation of displaced sessions protects user accounts against concurrent unauthorized use.
 - **Pseudonymized Data Erasure**: Compliant with data privacy standards; user account deletion erases authentication and personal data while preserving legally mandated financial accounting records in pseudonymized form.
 - **Zero Browser Popups**: All user confirmation flows are rendered within custom accessible styled dialogs.
-- **Vector Design System**: All icons throughout the platform use crisp SVG vector graphics, completely eliminating emojis for a clean, consistent enterprise look.
+- **Catalog visuals**: Service artwork and country flags come from the configured catalog; status, action, and navigation symbols use the site's SVG icon set.

@@ -13,6 +13,8 @@ Install these tools:
 - A Tiger SMS API account
 - A Telegram bot if you want admin notifications
 
+The Telegram bot is optional and is used for admin payment/order alerts. OTPWala does not have a public Telegram channel.
+
 Install pnpm:
 
 ```bash
@@ -83,7 +85,15 @@ The standalone file is for a fresh project only. Do not run it over an existing 
 
 ## 5. Update an Existing Database
 
-For an existing project, apply only migrations that have not already been applied, in filename order:
+For an existing project, first compare the linked database migration history with the repository:
+
+```bash
+npx supabase migration list --linked --workdir apps/api
+```
+
+Some SQL may already have been run manually. A migration listed as local-only is not proof that it is safe to apply. Compare the production schema and migration history before applying SQL; never blindly run `db push` or mark unknown migrations as applied.
+
+After the schema and history are reconciled, apply only the approved migrations that have not already been applied, in filename order:
 
 ```text
 apps/api/supabase/migrations/20260914183228_update_role_constraint.sql
@@ -108,6 +118,12 @@ apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
 apps/api/supabase/migrations/20260918233000_user_security_logs.sql
 apps/api/supabase/migrations/20260918234500_referral_fraud_detection.sql
 apps/api/supabase/migrations/20260923120000_fix_deposit_approval_compatibility.sql
+apps/api/supabase/migrations/20260924100000_admin_user_purge.sql
+apps/api/supabase/migrations/20260924110000_currency_preference.sql
+apps/api/supabase/migrations/20260924120000_allow_superadmin_admin_purge.sql
+apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
+apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
+apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
 ```
 
 Run each file once and wait for success before running the next file. Never rerun a migration blindly.
@@ -132,7 +148,11 @@ Funding categories:
 
 Never edit `profiles.wallet_balance` or delete ledger rows directly. Use the application admin flow or restore from Supabase backup/PITR when history was removed accidentally.
 
-Deposit requests are idempotent by payment reference. A UPI UTR or Binance order ID can be submitted only once, and duplicate checks cover both current and legacy payment-request columns. Telegram and the admin panel approve through the same atomic RPC, which updates the request status and wallet ledger together. The dashboard navigation and wallet page read the same refreshed balance.
+Deposit requests are idempotent by payment reference. A UPI UTR or Binance order ID can be submitted only once, and duplicate checks cover both current and legacy payment-request columns. Telegram and the admin panel approve through the same atomic RPC, which updates the request status and wallet ledger together. The dashboard navigation and wallet page read the same refreshed balance. Customer prices show only the currency selected by that customer.
+
+An order stays `waiting` if the provider denies cancellation. Do not treat it as refunded until the provider confirms cancellation or expiry and the wallet ledger records the refund.
+
+Superadmins can clear visible user history without deleting the account. One option preserves deposit history and balance; another hides all visible history and resets the spendable balance. This is separate from Purge User, which removes the account and requires the user to be banned first.
 
 ## 7. Run Locally
 
@@ -155,9 +175,9 @@ Local addresses:
 - Admin: `http://localhost:4321/admin`
 - Express API: `http://localhost:3001`
 
-## 8. Configure Telegram Alerts
+## 8. Configure Telegram Admin Alerts
 
-Open Admin -> Settings -> Telegram Bot Alerts.
+Open Admin -> Settings -> Telegram Bot Alerts. This is an optional admin feature, not a public customer support channel.
 
 Configure:
 
@@ -165,6 +185,7 @@ Configure:
 - Admin chat ID
 - Telegram notifications enabled
 - Low Provider Balance Threshold (USD)
+- Order notifications enabled and mode selected: OTP-only completion, or one lifecycle message edited as status changes
 
 The default threshold is `$5.00`. Low-balance notifications are limited to two IST windows per day: one before noon and one after noon.
 
@@ -208,10 +229,9 @@ Pop-Location
 npx wrangler deploy --config workers/wrangler.jsonc
 ```
 
-Production endpoints:
+Production site: `https://otpwala.me`. Cloudflare preview URLs change with each deployment; find the current one in the Cloudflare Pages deployment list.
 
-- Pages preview: `https://3fcecbcd.otpwala-c9r.pages.dev`
-- Reconciliation Worker: `https://otpwala-reconciliation.banhoga.workers.dev`
+The reconciliation Worker is deployed separately with `npx wrangler deploy --config workers/wrangler.jsonc`. Its cron trigger runs every minute and its `CRON_SECRET` must match the secret configured for the Pages API.
 
 Required production variables belong in Cloudflare Pages settings, not in Git:
 
