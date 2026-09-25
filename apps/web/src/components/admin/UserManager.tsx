@@ -951,7 +951,7 @@ export default function UserManager() {
                             {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                           </span>
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                            {new Date(u.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(u.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                           </span>
                         </div>
                       </td>
@@ -962,7 +962,7 @@ export default function UserManager() {
                               {new Date(u.last_sign_in_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
-                              {new Date(u.last_sign_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(u.last_sign_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                             </span>
                           </div>
                         ) : (
@@ -1496,14 +1496,14 @@ export default function UserManager() {
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>Registered: </span>
                 <strong style={{ color: 'var(--text-primary)' }}>
-                  {new Date(inspectTarget.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                  {new Date(inspectTarget.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', hour12: true })}
                 </strong>
               </div>
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>Last Login: </span>
                 <strong style={{ color: inspectTarget.last_sign_in_at ? '#38bdf8' : 'var(--text-muted)' }}>
                   {inspectTarget.last_sign_in_at
-                    ? new Date(inspectTarget.last_sign_in_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+                    ? new Date(inspectTarget.last_sign_in_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', hour12: true })
                     : 'Never'}
                 </strong>
               </div>
