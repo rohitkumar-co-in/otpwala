@@ -1,5 +1,44 @@
 import { getSupabaseAdmin } from './supabase';
 
+export async function labelOrderTransactions(
+  transactions: any[],
+  userId: string,
+  env?: any,
+  knownOrders?: any[],
+): Promise<any[]> {
+  const orderTransactions = transactions.filter((transaction) =>
+    transaction.type === 'deduction'
+    && transaction.reference_type === 'order'
+    && transaction.reference_id,
+  );
+  if (!orderTransactions.length) return transactions;
+
+  let orders = knownOrders;
+  if (!orders) {
+    const orderIds = [...new Set(orderTransactions.map((transaction) => String(transaction.reference_id)))];
+    const { data, error } = await getSupabaseAdmin(env)
+      .from('orders')
+      .select('id,service_name')
+      .eq('user_id', userId)
+      .in('id', orderIds);
+    if (error) return transactions;
+    orders = data || [];
+  }
+
+  const serviceNameByOrderId = new Map(
+    orders
+      .filter((order) => order?.id && order?.service_name)
+      .map((order) => [String(order.id), String(order.service_name)]),
+  );
+
+  return transactions.map((transaction) => {
+    if (transaction.type !== 'deduction' || transaction.reference_type !== 'order') return transaction;
+    const serviceName = serviceNameByOrderId.get(String(transaction.reference_id));
+    if (!serviceName) return transaction;
+    return { ...transaction, description: `Number purchase: ${serviceName}` };
+  });
+}
+
 export async function getBalance(userId: string, env?: any): Promise<number> {
   const supabase = getSupabaseAdmin(env);
   const { data, error } = await supabase

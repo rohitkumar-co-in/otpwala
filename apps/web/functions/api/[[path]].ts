@@ -1,7 +1,7 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
 import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry, getServiceIconUrl, resolveCountryIso } from '../lib/catalog';
 import { buyNumber, checkOrderStatus, cancelOrder, retryOrder, reconcileExpiredOrders } from '../lib/order';
-import { getBalance, getWalletConfig } from '../lib/wallet';
+import { getBalance, getWalletConfig, labelOrderTransactions } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
 import { getReferralStats, attributeReferral } from '../lib/referrals';
 import { calculateSellPrice, getZeroMarkupUsers, setZeroMarkupUser } from '../lib/pricing';
@@ -639,7 +639,7 @@ export const onRequest = async (context: any) => {
         success: true,
         data: {
           balance,
-          transactions: transactions || [],
+          transactions: await labelOrderTransactions(transactions || [], auth.userId, env),
           totalTransactions: count || 0,
           config,
         },
@@ -663,7 +663,7 @@ export const onRequest = async (context: any) => {
 
       return jsonResponse({
         success: true,
-        data: { transactions: data || [], total: count || 0 },
+        data: { transactions: await labelOrderTransactions(data || [], auth.userId, env), total: count || 0 },
       });
     }
 
@@ -1307,7 +1307,7 @@ export const onRequest = async (context: any) => {
           success: true,
           data: {
             user: { ...profile, wallet_balance: parseFloat(profile.wallet_balance || 0), full_name: resolvedName, name: resolvedName, avatar_url: authMeta.avatar_url || null, last_sign_in_at: authMeta.last_sign_in_at || null, has_zero_markup: zeroUsers.includes(targetId) },
-            transactions: txRes.data || [],
+            transactions: await labelOrderTransactions(txRes.data || [], targetId, env, ordersRes.data || []),
             orders: ordersRes.data || [],
             deposits: depositsRes.data || [],
             tickets: ticketsRes.data || [],

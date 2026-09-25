@@ -64,10 +64,14 @@ export async function buyNumber(
   const { rate: fxRate } = await getPricingSettings(env);
   const costPriceInr = Math.round(costPriceUsd * fxRate * 10000) / 10000;
   const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env);
+  // Resolve the provider's display label before creating the wallet debit so
+  // new ledger entries show the same readable service name as their refunds.
+  const tigerServices = await tiger.getServicesList().catch(() => []);
+  const serviceName = tigerServices.find((service: any) => String(service.code).toLowerCase() === serviceCode.toLowerCase())?.name || serviceCode;
 
   // 4. Deduct balance from user wallet
   try {
-    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceCode.toUpperCase()}`, env, 'order', orderId, `purchase:${orderId}`);
+    await deductBalance(userId, sellPriceInr, `Number purchase: ${serviceName}`, env, 'order', orderId, `purchase:${orderId}`);
   } catch (err: any) {
     const error = new Error('Insufficient wallet balance');
     (error as any).code = 'USER_INSUFFICIENT_FUNDS';
@@ -84,7 +88,7 @@ export async function buyNumber(
     phoneNumber = result.phoneNumber;
   } catch (err: any) {
     // Auto-refund on purchase failure
-    await creditBalance(userId, sellPriceInr, `Auto-refund: Purchase failed for ${serviceCode.toUpperCase()}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
+    await creditBalance(userId, sellPriceInr, `Auto-refund: Purchase failed for ${serviceName}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
     throw err;
   }
 
@@ -92,11 +96,7 @@ export async function buyNumber(
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString(); // 20 min TTL
   // Store Tiger's catalog labels rather than maintaining a separate country ID
   // or service-name mapping that can drift from the provider.
-  const [tigerServices, tigerCountries] = await Promise.all([
-    tiger.getServicesList().catch(() => []),
-    tiger.getCountries().catch(() => []),
-  ]);
-  const serviceName = tigerServices.find((service: any) => service.code === serviceCode)?.name || serviceCode;
+  const tigerCountries = await tiger.getCountries().catch(() => []);
   const countryName = tigerCountries.find((country: any) => Number(country.id) === countryCode)?.eng || String(countryCode);
 
   const { data: order, error: orderError } = await supabase
@@ -125,7 +125,7 @@ export async function buyNumber(
   if (orderError) {
     console.error('Failed to create order record:', orderError);
     try { await tiger.setStatus(activationId, 8); } catch {}
-    await creditBalance(userId, sellPriceInr, `Auto-refund: Order recording failed for ${serviceCode.toUpperCase()}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
+    await creditBalance(userId, sellPriceInr, `Auto-refund: Order recording failed for ${serviceName}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
     throw new Error('Purchase could not be recorded. Your wallet has been refunded.');
   }
 
