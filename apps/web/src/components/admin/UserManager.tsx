@@ -874,7 +874,7 @@ export default function UserManager() {
                             </div>
                             <a href={`/admin/users/details?id=${encodeURIComponent(u.id)}`} style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', textDecoration: 'none' }} title="Open user details">{u.email}</a>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                              <span>ID: {u.id.substring(0, 16)}...</span>
+                              <span>User ID: {u.id.substring(0, 16)}...</span>
                               <button
                                 type="button"
                                 className="btn btn-ghost btn-sm"

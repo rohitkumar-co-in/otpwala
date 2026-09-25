@@ -842,8 +842,7 @@ export default function AdminDashboard() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem' }}>ID</th>
-                  <th style={{ padding: '0.75rem' }}>User Email</th>
+                  <th style={{ padding: '0.75rem' }}>Order ID</th>
                   <th style={{ padding: '0.75rem' }}>Service</th>
                   <th style={{ padding: '0.75rem' }}>Country</th>
                   <th style={{ padding: '0.75rem' }}>Phone Number</th>
@@ -855,12 +854,10 @@ export default function AdminDashboard() {
               <tbody>
                 {recentOrders.map((o) => (
                   <tr key={o.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td data-label="ID" style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {o.id.slice(0, 8)}...
-                    </td>
-                    <td data-label="User Email" style={{ padding: '0.75rem', fontSize: '0.8rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {o.profiles?.email || 'Unknown User'}
+                    <td data-label="Order ID" style={{ padding: '0.75rem', minWidth: '150px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-secondary)' }} title={o.id}>{o.id.slice(0, 8)}...</span>
+                        <span style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}>{o.profiles?.email || 'Unknown User'}</span>
                       </div>
                     </td>
                     <td data-label="Service" style={{ padding: '0.75rem' }}>
