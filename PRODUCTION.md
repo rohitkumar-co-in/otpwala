@@ -71,15 +71,15 @@ Use a staging project and disposable accounts for flows that spend money, change
 
 ## Audit snapshot (2026-09-25)
 
-- Cloudflare Pages deployment list showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational.
+- At the time of the earlier web check, Cloudflare Pages showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational. Commit `2703e4c` was later pushed to GitHub `main`; confirm its Cloudflare deployment before treating it as the live web release.
 - Production verification passed: web build, API type-check, 24 unit tests, production guardrails, and 10/10 unauthenticated smoke checks.
 - Read-only GET checks returned HTTP 200 for the listed public pages, auth screens, customer dashboard pages, and admin page shells. This does not prove authenticated flows work.
 - Web and API production dependency audits reported no known vulnerabilities.
-- Supabase migration history needs reconciliation: 28 local migration files were compared with the linked production project; 5 versions matched and 23 local versions were absent from remote history. SQL may have been applied without migration tracking; do not apply those files blindly.
-- Supabase Advisors reported 18 warnings: 1 Auth leaked-password-protection setting and 17 performance warnings (RLS init-plan, permissive-policy overlap, and duplicate indexes). No errors were returned. Review before changing RLS or indexes.
+- Supabase production migration history was reconciled against the live schema. All 29 local migration versions now appear in remote history through `20260925140000`; older schema/data effects were verified before recording their versions, and only the history-clear and RLS/index optimization migrations were newly applied in this reconciliation.
+- After the RLS and duplicate-index fixes, Supabase Advisors reported only the Auth leaked-password-protection warning. Enable it in the project's Auth settings (Pro plan or higher) and rerun Advisors to clear the final warning.
 - Visual walkthrough of signed-in, payment, OTP, and responsive interactions was not completed because the connected in-app browser could not be opened.
 
-The automated release gate passed, but migration history, Advisor findings, and authenticated visual flows remain to be reviewed before claiming that nothing needs attention.
+The earlier automated release gate passed. Authenticated visual and payment/OTP flows still require staging checks; the Auth leaked-password setting also remains outstanding.
 
 ## Release verification
 

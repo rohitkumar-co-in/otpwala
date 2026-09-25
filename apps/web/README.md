@@ -33,6 +33,8 @@ Order cancellation is provider-confirmed. A denied cancellation remains `waiting
 
 Admin user-history clearing is not account purge. The superadmin can hide activity while preserving deposits and balance, or hide all visible history and reset the spendable balance. The existing Purge User action remains a separate, irreversible account operation.
 
+The Supabase migration chain includes RLS query optimizations and removes duplicate indexes. The latest production migration is `20260925140000_optimize_rls_policies_and_indexes.sql`; all local migration versions have been reconciled with production. Leaked-password protection is an Auth project setting, not a database migration.
+
 ## Deployment
 
 GitHub `main` is connected to the `otpwala` Cloudflare Pages project. A successful push triggers a production deployment. Required server-side variables belong in Cloudflare Pages environment settings, never in client code or committed files:

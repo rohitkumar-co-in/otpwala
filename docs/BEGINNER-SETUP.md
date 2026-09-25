@@ -124,9 +124,16 @@ apps/api/supabase/migrations/20260924120000_allow_superadmin_admin_purge.sql
 apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
 apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
 apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
+apps/api/supabase/migrations/20260925140000_optimize_rls_policies_and_indexes.sql
 ```
 
-Run each file once and wait for success before running the next file. Never rerun a migration blindly.
+For a new or correctly reconciled project, use the Supabase CLI migration runner so successful versions are tracked:
+
+```bash
+npx supabase db push --linked --workdir apps/api
+```
+
+Do not run this against a production project until you have compared the migration list and confirmed no local-only SQL was already applied manually. Never rerun a migration blindly or mark an unverified migration as applied. The latest migration optimizes RLS policies and removes verified duplicate indexes.
 
 ## 6. Understand Wallet Accounting
 

@@ -114,7 +114,7 @@ PUBLIC_API_URL=http://localhost:3001
 ### 4. Database Setup (Supabase)
 - For a new Supabase project: Run [`supabase/otpwala-standalone.sql`](./supabase/otpwala-standalone.sql) once in the SQL Editor.
 - For an existing project: first compare migration history with `npx supabase migration list --linked --workdir apps/api`. Do not blindly apply local-only migrations to a database that may have received the same SQL manually. Review and reconcile the schema and migration history before applying changes.
-- Current migrations include user-history controls and Supabase security-policy hardening. See [the complete setup guide](./docs/OTPwala-Complete-Guide.md) for the migration list and safe procedure.
+- Current migrations include user-history controls, hardened and optimized RLS policies, and removal of duplicate indexes. Supabase production migration history was reconciled through `20260925140000`; only the Auth leaked-password-protection setting remains an Advisor warning, and it must be enabled in Supabase Auth settings. See [the complete setup guide](./docs/OTPwala-Complete-Guide.md) for safe migration procedures.
 
 To promote your account to Admin:
 ```sql

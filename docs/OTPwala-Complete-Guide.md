@@ -147,7 +147,7 @@ First compare the local and remote migration history:
 npx supabase migration list --linked --workdir apps/api
 ```
 
-The repository's incremental migration files live in `apps/api/supabase/migrations`. A local-only migration may already have been applied manually, so do not blindly run `db push` or paste every local-only file into production. Compare the actual schema and `supabase_migrations.schema_migrations` history, then reconcile with the database owner before applying SQL. Never mark unknown changes as applied.
+The repository's incremental migration files live in `apps/api/supabase/migrations`. A local-only migration may already have been applied manually, so do not blindly run `db push` or paste every local-only file into production. Compare the actual schema and `supabase_migrations.schema_migrations` history, then reconcile with the database owner before applying SQL. Never mark unknown changes as applied. Once history is reconciled, use `npx supabase db push --linked --workdir apps/api` to apply pending migrations and track them.
 
 After confirming the remote database state, apply only approved, unapplied migrations in filename order:
 
@@ -171,6 +171,8 @@ apps/api/supabase/migrations/20260915210000_admin_funding_sources.sql
 apps/api/supabase/migrations/20260917100000_fix_financial_integrity_baseline.sql
 apps/api/supabase/migrations/20260917110000_financial_ledger_views.sql
 apps/api/supabase/migrations/20260917120000_provider_balance_alert_settings.sql
+apps/api/supabase/migrations/20260918233000_user_security_logs.sql
+apps/api/supabase/migrations/20260918234500_referral_fraud_detection.sql
 apps/api/supabase/migrations/20260923120000_fix_deposit_approval_compatibility.sql
 apps/api/supabase/migrations/20260924100000_admin_user_purge.sql
 apps/api/supabase/migrations/20260924110000_currency_preference.sql
@@ -178,9 +180,10 @@ apps/api/supabase/migrations/20260924120000_allow_superadmin_admin_purge.sql
 apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
 apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
 apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
+apps/api/supabase/migrations/20260925140000_optimize_rls_policies_and_indexes.sql
 ```
 
-Paste one file, run it, and only then continue to the next file. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
+The latest migration wraps auth identity checks in scalar subqueries so PostgreSQL can evaluate them once per statement, combines the user/admin security-log read rules, and removes three verified duplicate indexes. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.
 
 The support-ticket migrations add ticket types, replies, and optional image attachments. Check that the applicable migrations have been applied before relying on these features.
 
@@ -329,7 +332,7 @@ The smoke suite checks homepage, status, health, auth configuration, protected s
 
 - [ ] Base SQL and every hardening migration applied.
 - [ ] `npx supabase migration list --linked --workdir apps/api` shows reviewed, reconciled local/remote history.
-- [ ] Supabase Security Advisor findings reviewed. Leaked-password protection is an Auth dashboard setting, not an SQL migration.
+- [ ] Supabase Security Advisor findings reviewed. The remaining leaked-password-protection warning is an Auth project setting, not an SQL migration; enable it in the Supabase Auth settings (Pro plan or higher) and rerun Advisors.
 - [ ] Admin and superadmin roles verified.
 - [ ] Admin TOTP enrolled and tested with a wrong and correct code.
 - [ ] Tiger API key works and provider balance is funded.
