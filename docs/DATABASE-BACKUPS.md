@@ -6,6 +6,8 @@ The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It ru
 
 The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup.
 
+Each roles, schema, and data dump is logged as a separate stage with its start time, duration, CLI output, and exit status. If one fails, the workflow prints its captured output with connection passwords redacted.
+
 ## One-time GitHub setup
 
 1. Confirm the GitHub repository visibility is **Private**. Backups can contain customer email addresses, order and wallet history, security logs, and other personal data. Everyone with repository read access can access these backups. Keep repository access limited and protected with two-factor authentication.

@@ -64,9 +64,39 @@ jobs:
           printf 'project_id = "otpwala-backup"\n' > "$cli_workdir/supabase/config.toml"
           cd "$cli_workdir"
 
-          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/roles.sql" --role-only
-          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/schema.sql"
-          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/data.sql" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes
+          run_dump() {
+            local label="$1"
+            shift
+            local log_file="$backup_tmp/${label}.log"
+            local started_at status elapsed
+
+            started_at="$(date +%s)"
+            echo "::group::Dump ${label}"
+            echo "Starting ${label} dump at $(date -u +'%Y-%m-%dT%H:%M:%SZ')."
+
+            set +e
+            "$@" >"$log_file" 2>&1
+            status=$?
+            set -e
+
+            elapsed=$(( $(date +%s) - started_at ))
+            if [[ "$status" -eq 0 ]]; then
+              sed -E 's#(postgres(ql)?://[^:/[:space:]]+):[^@[:space:]]+@#\1:[REDACTED]@#g' "$log_file"
+              echo "${label} dump completed in ${elapsed}s."
+            else
+              echo "::error title=Database dump failed::${label} dump exited with status ${status} after ${elapsed}s."
+              echo "Last 80 lines of captured output (connection passwords redacted):"
+              tail -n 80 "$log_file" | sed -E 's#(postgres(ql)?://[^:/[:space:]]+):[^@[:space:]]+@#\1:[REDACTED]@#g'
+              echo "::endgroup::"
+              return "$status"
+            fi
+            echo "::endgroup::"
+          }
+
+          echo "Supabase CLI version: $(supabase --version)"
+          run_dump roles supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/roles.sql" --role-only
+          run_dump schema supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/schema.sql"
+          run_dump data supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/data.sql" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes
 
           test -s "$backup_tmp/roles.sql"
           test -s "$backup_tmp/schema.sql"
