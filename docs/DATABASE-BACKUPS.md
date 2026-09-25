@@ -4,6 +4,8 @@ This repository includes a daily GitHub Actions workflow at `.github/workflows/b
 
 The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It runs daily at 02:00 India Standard Time and can also be started manually from GitHub Actions. It refuses to run if the repository is public. Only scheduled and manual runs on `main` can access the database secret; it does not run for pull requests.
 
+The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup.
+
 ## One-time GitHub setup
 
 1. Confirm the GitHub repository visibility is **Private**. Backups can contain customer email addresses, order and wallet history, security logs, and other personal data. Everyone with repository read access can access these backups. Keep repository access limited and protected with two-factor authentication.

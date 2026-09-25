@@ -55,6 +55,15 @@ jobs:
           backup_tmp="$(mktemp -d)"
           trap 'rm -rf "$backup_tmp"' EXIT
 
+          # Do not load the application's local Supabase config here. The CLI may
+          # reject local-only settings (for example, [local_smtp]) even though
+          # this job only connects to the hosted database. Use a minimal config
+          # in an isolated workdir for the dump commands.
+          cli_workdir="$backup_tmp/cli-project"
+          mkdir -p "$cli_workdir/supabase"
+          printf 'project_id = "otpwala-backup"\n' > "$cli_workdir/supabase/config.toml"
+          cd "$cli_workdir"
+
           supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/roles.sql" --role-only
           supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/schema.sql"
           supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/data.sql" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes
