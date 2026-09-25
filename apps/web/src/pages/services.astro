@@ -853,13 +853,14 @@ const servicesFaqSchema = {
   #services-grid .directory-group:first-child { margin-top: 0; }
   .directory-group-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: 0 0 .65rem; color: #172033; font-family: var(--font-display); font-size: 1rem; }
   .directory-group-heading small { min-width: 26px; padding: .18rem .45rem; border-radius: 999px; background: #eff6ff; color: #2563eb; font-size: .7rem; text-align: center; }
-  #services-grid .directory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1rem; }
+  #services-grid .directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.5rem; }
   #services-grid .directory-grid .service-card { min-height: 68px; padding: .75rem .85rem; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; box-shadow: 0 3px 12px rgba(15, 23, 42, .04); }
   #services-grid .directory-grid .service-card:hover { transform: translateY(-2px); border-color: #93c5fd; background: #fff; box-shadow: 0 8px 20px rgba(37, 99, 235, .1); }
   #services-grid .directory-grid .service-card { display: flex; flex-direction: row; grid-template-columns: none; align-items: center; gap: .75rem; }
   #services-grid .directory-grid .card-top { flex: 0 0 36px; margin: 0; }
   #services-grid .directory-grid .card-body { min-width: 0; }
   #services-grid .directory-grid .service-title { max-width: 100%; margin: 0; overflow: hidden; font-size: .9rem; white-space: nowrap; text-overflow: ellipsis; }
+  @media (max-width: 900px) { #services-grid .directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 640px) { .services-page .popular-services-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 640px) { #services-grid .directory-grid { grid-template-columns: 1fr; } #services-grid .service-card { grid-template-columns: 38px minmax(0, 1fr) auto; } }
 </style>
