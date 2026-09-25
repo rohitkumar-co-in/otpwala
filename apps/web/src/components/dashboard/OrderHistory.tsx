@@ -5,6 +5,7 @@ import { ClipboardListIcon, ClockIcon, CheckIcon, CopyIcon, XIcon, RefreshCwIcon
 import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
 import { toast } from '../../lib/toast';
 import { readDashboardCache, writeDashboardCache } from '../../lib/dashboardCache';
+import OrderCatalogLabel from '../orders/OrderCatalogLabel';
 
 export default function OrderHistory() {
   const [page, setPage] = useState(0);
@@ -177,8 +178,8 @@ export default function OrderHistory() {
                   const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded';
                   return (
                   <tr key={order.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td data-label="Service" style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}>{order.service_name || 'Unknown service'}</strong></td>
-                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong>{order.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Service" style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}><OrderCatalogLabel kind="service" name={order.service_name} code={order.service_code} /></strong></td>
+                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong><OrderCatalogLabel kind="country" name={order.country_name} /></strong></td>
                     <td data-label="Phone Number" style={{ padding: '0.75rem' }}>
                       {order.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

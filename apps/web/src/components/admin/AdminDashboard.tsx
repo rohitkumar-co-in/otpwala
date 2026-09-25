@@ -3,6 +3,7 @@ import { getAdminDashboard, clearAdminOperationalAlerts, getAdminOrders, getAdmi
 import { formatPhoneNumber } from '../../lib/phone';
 import { toast } from '../../lib/toast';
 import { showConfirm } from '../../lib/confirm';
+import OrderCatalogLabel from '../orders/OrderCatalogLabel';
 import {
   ServerIcon,
   DollarIcon,
@@ -863,9 +864,9 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td data-label="Service" style={{ padding: '0.75rem' }}>
-                      <strong style={{ color: 'var(--text-primary)' }}>{o.service_name || o.service_code || 'Unknown service'}</strong>
+                      <strong style={{ color: 'var(--text-primary)' }}><OrderCatalogLabel kind="service" name={o.service_name || o.service_code} code={o.service_code} /></strong>
                     </td>
-                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong>{o.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Country" style={{ padding: '0.75rem' }}><strong><OrderCatalogLabel kind="country" name={o.country_name} /></strong></td>
                     <td data-label="Phone Number" style={{ padding: '0.75rem' }}>
                       {o.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

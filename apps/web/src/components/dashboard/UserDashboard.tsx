@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getWallet, getOrders } from '../../lib/api';
 import { formatPhoneNumber } from '../../lib/phone';
+import OrderCatalogLabel from '../orders/OrderCatalogLabel';
 import {
   DollarIcon,
   ClipboardListIcon,
@@ -177,8 +178,8 @@ export default function UserDashboard() {
               <tbody>
                 {recentOrders.map(order => (
                   <tr key={order.id}>
-                    <td data-label="Service" style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td data-label="Country"><strong>{order.country_name || 'Unknown country'}</strong></td>
+                    <td data-label="Service" style={{ fontWeight: 600 }}><OrderCatalogLabel kind="service" name={order.service_name} code={order.service_code} /></td>
+                    <td data-label="Country"><strong><OrderCatalogLabel kind="country" name={order.country_name} /></strong></td>
                     <td data-label="Phone Number" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                       <span>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
@@ -220,7 +221,10 @@ function ActiveOrderCard({ order }: { order: any }) {
           <SmartphoneIcon size={18} color="var(--accent-primary)" />
         </div>
         <div>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.service_name}: {order.country_name || 'Virtual Number'}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+            <OrderCatalogLabel kind="service" name={order.service_name} code={order.service_code} />
+            <OrderCatalogLabel kind="country" name={order.country_name || 'Virtual Number'} />
+          </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             {formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}
           </div>
