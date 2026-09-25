@@ -23,7 +23,7 @@ export class TigerSmsClient {
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: { 'Accept': '*/*' },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(action === 'getServicesList' ? 15_000 : 4000),
     });
 
     const text = (await response.text()).trim();

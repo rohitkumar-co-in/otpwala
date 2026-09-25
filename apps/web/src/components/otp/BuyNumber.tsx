@@ -126,7 +126,7 @@ export function renderServiceIcon(serviceOrCode: any, size = 26) {
   return <SmartphoneIcon size={Math.max(16, size - 4)} color="var(--accent-primary)" />;
 }
 
-export function renderCountryFlag(country: any, width = 22, height = 15) {
+export function renderCountryFlag(country: any, width = 28, height = 18) {
   if (!country) return null;
   const iso = (country.iso || 'un').toUpperCase();
   const fallbackUrl = `/api/catalog/country-flag/${iso.toLowerCase()}`;
@@ -1013,7 +1013,7 @@ export default function BuyNumber() {
                   <tr key={country.id} className="country-row">
                     <td className="country-name-cell" data-label="Country" style={{ fontWeight: 600 }}>
                       <div className="country-name-content" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        {renderCountryFlag(country, 24, 16)}
+                        {renderCountryFlag(country, 28, 18)}
                         <span>{country.name}</span>
                         {group.id === 'delivery' && (
                           <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>#{country.deliveryRank}</span>
@@ -1197,7 +1197,7 @@ export default function BuyNumber() {
                     {order?.serviceName || selectedService?.name || 'SMS Verification'}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 24, 16)}
+                        {renderCountryFlag(selectedCountry || { iso: order?.countryIso, name: order?.countryName }, 28, 18)}
                     <span>{order?.countryName || selectedCountry?.name}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatDualPrice(parseFloat(order?.priceInr || 0), currency, usdRate).full}</span>

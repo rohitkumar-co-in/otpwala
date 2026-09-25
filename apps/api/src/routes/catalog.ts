@@ -172,7 +172,7 @@ router.get('/countries', async (req: AuthenticatedRequest, res) => {
           id: country.id,
           name: country.eng,
           iso: flag?.iso || 'un',
-          flagUrl: flag?.flagUrl || 'https://flagcdn.com/un.svg',
+          flagUrl: flag?.iso ? `https://flagcdn.com/${flag.iso}.svg` : 'https://flagcdn.com/un.svg',
         };
       });
     countries.sort((a, b) => sortOption === 'name_desc' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name));
@@ -217,7 +217,7 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
         countryId,
         name: countryMap.get(String(countryId)) || `Country ${countryId}`,
         iso: flag?.iso || 'un',
-        flagUrl: flag?.flagUrl || 'https://flagcdn.com/un.svg',
+        flagUrl: flag?.iso ? `https://flagcdn.com/${flag.iso}.svg` : 'https://flagcdn.com/un.svg',
         available,
         count: available,
         priceInr: await calculateSellPrice(priceUsd, code, countryId, req.userId, req.userRole),
