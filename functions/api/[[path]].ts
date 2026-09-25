@@ -1,5 +1,5 @@
 import { getSupabaseAdmin, authenticateUser } from '../lib/supabase';
-import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry } from '../lib/catalog';
+import { getServices, getCountries, getServiceCountries, getDisabledCatalog, setServiceActiveStatus, setCountryActiveStatus, setDisabledCatalog, setFeaturedService, setFeaturedCountry, getServiceIconUrl, resolveCountryIso } from '../lib/catalog';
 import { buyNumber, checkOrderStatus, cancelOrder, retryOrder, reconcileExpiredOrders } from '../lib/order';
 import { getBalance, getWalletConfig } from '../lib/wallet';
 import { registerSession, checkSession } from '../lib/session';
@@ -1617,16 +1617,22 @@ export const onRequest = async (context: any) => {
         const services = servicesList.map((s: any) => ({
           code: s.code,
           name: s.name,
+          iconUrl: getServiceIconUrl(s.code, s.name),
           enabled: !disabledServicesSet.has(s.code.toLowerCase()),
           featured: featuredServices.includes(s.code.toLowerCase()),
         }));
 
-        const countries = countriesList.map((c: any) => ({
-          id: c.id,
-          name: c.eng,
-          enabled: !disabledCountriesSet.has(Number(c.id)),
-          featured: featuredCountries.includes(Number(c.id)),
-        }));
+        const countries = countriesList.map((c: any) => {
+          const iso = resolveCountryIso(c.eng);
+          return {
+            id: c.id,
+            name: c.eng,
+            iso,
+            flagUrl: `/api/catalog/country-flag/${iso || 'un'}`,
+            enabled: !disabledCountriesSet.has(Number(c.id)),
+            featured: featuredCountries.includes(Number(c.id)),
+          };
+        });
 
         return jsonResponse({
           success: true,

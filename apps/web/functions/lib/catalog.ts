@@ -1,4 +1,5 @@
 import serviceIcons from '../data/tigerServiceIcons.json';
+import countryFlags from '../data/countryFlags.json';
 import { TigerSmsClient } from './tiger';
 import { calculateSellPrices } from './pricing';
 import { getSupabaseAdmin } from './supabase';
@@ -43,19 +44,19 @@ const TIGER_SERVICE_NAME_ALIASES: Record<string, string> = {
   yahoomail: 'yahoo',
 };
 
-function lookupServiceIcon(code: string, name: string): string | null {
+export function getServiceIconUrl(code: string, name: string): string {
   // Provider codes can collide with another service's alias, so resolve by
   // service name first and only use the code as a last resort.
   const norm = normalizeName(name);
-  if (TIGER_DIRECTORY_ICON_IDS[norm]) return TIGER_DIRECTORY_ICON_IDS[norm];
+  if (TIGER_DIRECTORY_ICON_IDS[norm]) return `/api/catalog/service-icon/${TIGER_DIRECTORY_ICON_IDS[norm]}`;
   const alias = TIGER_SERVICE_NAME_ALIASES[norm];
-  if (alias && _iconLookup[normalizeName(alias)]) return _iconLookup[normalizeName(alias)];
-  if (_iconLookup[norm]) return _iconLookup[norm];
+  if (alias && _iconLookup[normalizeName(alias)]) return `/api/catalog/service-icon/${_iconLookup[normalizeName(alias)]}`;
+  if (_iconLookup[norm]) return `/api/catalog/service-icon/${_iconLookup[norm]}`;
   const firstWord = normalizeName(name.split(/[^a-z0-9]/i)[0]);
-  if (firstWord && _iconLookup[firstWord]) return _iconLookup[firstWord];
+  if (firstWord && _iconLookup[firstWord]) return `/api/catalog/service-icon/${_iconLookup[firstWord]}`;
   const lowerCode = code.toLowerCase().trim();
-  if (_iconLookup[lowerCode]) return _iconLookup[lowerCode];
-  return null;
+  if (_iconLookup[lowerCode]) return `/api/catalog/service-icon/${_iconLookup[lowerCode]}`;
+  return '/api/catalog/service-icon/unknown';
 }
 
 type CatalogConfig = {
@@ -153,8 +154,20 @@ try {
     }
   }
 } catch {}
+// Prefer the checked-in country directory when runtime Intl region data or
+// provider-specific country names do not resolve to an ISO code.
+const savedCountryDirectory = (countryFlags as any)?.default || countryFlags;
+for (const country of Object.values(savedCountryDirectory as Record<string, any>)) {
+  if (country?.name && country?.iso) {
+    countryIsoByName.set(normalizeCountryName(country.name), String(country.iso).toLowerCase());
+  }
+}
 for (const [name, iso] of Object.entries(COUNTRY_ISO_ALIASES)) {
   countryIsoByName.set(name, iso);
+}
+
+export function resolveCountryIso(name: string): string {
+  return countryIsoByName.get(normalizeCountryName(name)) || '';
 }
 
 async function fetchTigerPage(url: string): Promise<string> {
@@ -269,8 +282,7 @@ export async function getServices(featuredOnly = false, env?: any) {
       .map(async (s) => {
         const lowerCode = s.code.toLowerCase();
         
-        const iconId = lookupServiceIcon(s.code, s.name);
-        const iconUrl = `/api/catalog/service-icon/${encodeURIComponent(iconId || 'unknown')}`;
+        const iconUrl = getServiceIconUrl(s.code, s.name);
 
         return {
           code: s.code,
@@ -295,7 +307,7 @@ export async function getCountries(env?: any) {
   const countries = tigerCountries
     .filter((c) => !disabledCountries.includes(Number(c.id)))
     .map((c) => {
-      const iso = countryIsoByName.get(normalizeCountryName(c.eng)) || '';
+      const iso = resolveCountryIso(c.eng);
       const flagUrl = `/api/catalog/country-flag/${iso || 'un'}`;
 
       return {
@@ -427,7 +439,7 @@ export async function getServiceCountries(serviceCode: string, userId?: string, 
   const results = eligiblePrices.map(({ countryId, countryIdStr, costPriceUsd, stock }, index) => {
     const priceInr = sellPrices[index];
     const countryName = countryMap.get(countryIdStr) || `Country ${countryId}`;
-    const iso = countryIsoByName.get(normalizeCountryName(countryName)) || '';
+    const iso = resolveCountryIso(countryName);
     const flagUrl = `/api/catalog/country-flag/${iso || 'un'}`;
 
     return {
