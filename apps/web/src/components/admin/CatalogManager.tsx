@@ -516,53 +516,41 @@ export default function CatalogManager() {
             Loading catalog from provider...
           </div>
         ) : activeTab === 'services' ? (
-          /* Services Table */
+          /* Services Card Grid */
           filteredServices.length === 0 ? (
             <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
               No services match your search or filter.
             </div>
           ) : (
-            <div className="table-container admin-catalog-table-container">
-              <table className="admin-catalog-table">
-                <thead><tr><th>Service</th><th>Code</th><th>Catalog controls</th></tr></thead>
-                <tbody>
-                  {filteredServices.map((s) => (
-                    <tr key={s.code} className={s.enabled ? '' : 'catalog-row-disabled'}>
-                      <td data-label="Service">
-                        <div className="admin-catalog-item">
-                          {renderServiceIcon(s, 36)}
-                          <span className="admin-catalog-item-name" title={s.name}>{s.name}</span>
-                        </div>
-                      </td>
-                      <td data-label="Code"><span className="admin-catalog-code">{s.code}</span></td>
-                      <td data-label="Catalog controls">
-                        <div className="admin-catalog-actions">
-                          <button
-                            onClick={() => handleToggleFeatured(s.code, !!s.featured)}
-                            disabled={actionLoading === `featured-${s.code}`}
-                            className="btn btn-ghost btn-sm"
-                            style={{ color: s.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
-                            title={s.featured ? 'Remove from featured services' : 'Feature this service at the top'}
-                            aria-label={s.featured ? 'Remove from featured services' : 'Add to featured services'}
-                          >
-                            <StarIcon size={14} color="currentColor" />
-                            <span>{s.featured ? 'Featured' : 'Feature'}</span>
-                          </button>
-                          <button
-                            onClick={() => handleToggleService(s.code, s.enabled)}
-                            disabled={actionLoading === `svc-${s.code}`}
-                            className={`catalog-visibility-toggle ${s.enabled ? 'is-enabled' : 'is-disabled'}`}
-                            title="Click to toggle live visibility"
-                          >
-                            {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
-                            <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="admin-catalog-card-grid">
+              {filteredServices.map((s) => (
+                <article key={s.code} className={`card admin-catalog-card ${s.enabled ? '' : 'is-disabled'}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleFeatured(s.code, !!s.featured)}
+                    disabled={actionLoading === `featured-${s.code}`}
+                    className={`admin-catalog-feature ${s.featured ? 'is-featured' : ''}`}
+                    title={s.featured ? 'Remove from featured services' : 'Feature this service at the top'}
+                    aria-label={s.featured ? `Remove ${s.name} from featured services` : `Feature ${s.name}`}
+                  >
+                    <StarIcon size={13} color="currentColor" />
+                    <span>{s.featured ? 'Featured' : 'Feature'}</span>
+                  </button>
+                  <div className="admin-catalog-card-icon">{renderServiceIcon(s, 50)}</div>
+                  <div className="admin-catalog-card-name" title={s.name}>{s.name}</div>
+                  <div className="admin-catalog-card-code">Code: {s.code}</div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleService(s.code, s.enabled)}
+                    disabled={actionLoading === `svc-${s.code}`}
+                    className={`catalog-visibility-toggle ${s.enabled ? 'is-enabled' : 'is-disabled'}`}
+                    title="Click to toggle live visibility"
+                  >
+                    {s.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                    <span>{s.enabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </article>
+              ))}
             </div>
           )
         ) : (
@@ -572,58 +560,47 @@ export default function CatalogManager() {
               No countries match your search or filter.
             </div>
           ) : (
-            <div className="table-container admin-catalog-table-container">
-              <table className="admin-catalog-table">
-                <thead><tr><th>Country</th><th>ID</th><th>Catalog controls</th></tr></thead>
-                <tbody>
-                  {filteredCountries.map((c) => (
-                    <tr key={c.id} className={c.enabled ? '' : 'catalog-row-disabled'}>
-                      <td data-label="Country">
-                        <div className="admin-catalog-item">
-                          <img
-                            className="admin-catalog-flag"
-                            src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
-                            alt=""
-                            width="28"
-                            height="28"
-                            loading="lazy"
-                            onError={(e) => {
-                              const fallback = `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`;
-                              if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
-                            }}
-                          />
-                          <span className="admin-catalog-item-name" title={c.name}>{c.name}</span>
-                        </div>
-                      </td>
-                      <td data-label="Country ID"><span className="admin-catalog-code">{c.id}</span></td>
-                      <td data-label="Catalog controls">
-                        <div className="admin-catalog-actions">
-                          <button
-                            onClick={() => handleToggleFeaturedCountry(c.id, c.name, !!c.featured)}
-                            disabled={actionLoading === `featured-country-${c.id}`}
-                            className="btn btn-ghost btn-sm"
-                            style={{ color: c.featured ? '#f59e0b' : 'var(--text-muted)', padding: '0.3rem 0.5rem' }}
-                            title={c.featured ? 'Remove from popular countries' : 'Show in the Popular countries section'}
-                            aria-label={c.featured ? 'Remove from popular countries' : 'Add to popular countries'}
-                          >
-                            <StarIcon size={14} color="currentColor" />
-                            <span>{c.featured ? 'Popular' : 'Star'}</span>
-                          </button>
-                          <button
-                            onClick={() => handleToggleCountry(c.id, c.enabled)}
-                            disabled={actionLoading === `cnt-${c.id}`}
-                            className={`catalog-visibility-toggle ${c.enabled ? 'is-enabled' : 'is-disabled'}`}
-                            title="Click to toggle country visibility"
-                          >
-                            {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
-                            <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="admin-catalog-card-grid">
+              {filteredCountries.map((c) => (
+                <article key={c.id} className={`card admin-catalog-card ${c.enabled ? '' : 'is-disabled'}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleFeaturedCountry(c.id, c.name, !!c.featured)}
+                    disabled={actionLoading === `featured-country-${c.id}`}
+                    className={`admin-catalog-feature ${c.featured ? 'is-featured' : ''}`}
+                    title={c.featured ? 'Remove from popular countries' : 'Show in the Popular countries section'}
+                    aria-label={c.featured ? `Remove ${c.name} from popular countries` : `Add ${c.name} to popular countries`}
+                  >
+                    <StarIcon size={13} color="currentColor" />
+                    <span>{c.featured ? 'Popular' : 'Make Popular'}</span>
+                  </button>
+                  <div className="admin-catalog-card-icon">
+                    <img
+                      src={c.flagUrl || `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`}
+                      alt={`${c.name} flag`}
+                      width="50"
+                      height="50"
+                      loading="lazy"
+                      onError={(e) => {
+                        const fallback = `/api/catalog/country-flag/${String(c.iso || 'un').toLowerCase()}`;
+                        if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                      }}
+                    />
+                  </div>
+                  <div className="admin-catalog-card-name" title={c.name}>{c.name}</div>
+                  <div className="admin-catalog-card-code">Country ID: {c.id}</div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCountry(c.id, c.enabled)}
+                    disabled={actionLoading === `cnt-${c.id}`}
+                    className={`catalog-visibility-toggle ${c.enabled ? 'is-enabled' : 'is-disabled'}`}
+                    title="Click to toggle country visibility"
+                  >
+                    {c.enabled ? <CheckIcon size={12} /> : <XIcon size={12} />}
+                    <span>{c.enabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </article>
+              ))}
             </div>
           )
         )}
