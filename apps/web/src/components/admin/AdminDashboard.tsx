@@ -637,7 +637,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Tab Switcher */}
-              <div style={{ display: 'inline-flex', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '2px', gap: '2px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', flex: '0 0 auto', width: 'fit-content', maxWidth: '100%', boxSizing: 'border-box', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '2px', gap: '2px' }}>
                 <button
                   type="button"
                   onClick={() => setPaymentTab('pending')}
@@ -650,6 +650,8 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    flex: '0 0 auto',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Pending ({pendingList.length})
@@ -666,6 +668,8 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    flex: '0 0 auto',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Approved ({approvedList.length})
@@ -682,6 +686,8 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    flex: '0 0 auto',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   All ({paymentRequests.length})
