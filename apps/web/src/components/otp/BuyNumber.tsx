@@ -549,7 +549,8 @@ export default function BuyNumber() {
       loadRecentOrders();
     } catch (err: any) {
       const providerRejectedCancel = err?.code === 'EARLY_CANCEL_DENIED';
-      if (['EARLY_CANCEL_DENIED', 'BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS', 'SMS_RECEIVED'].includes(err?.code)) {
+      const unexpectedCancelResponse = err?.code === 'INVALID_API_RESPONSE';
+      if (['EARLY_CANCEL_DENIED', 'BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS', 'SMS_RECEIVED', 'INVALID_API_RESPONSE'].includes(err?.code)) {
         try {
           const status = await getOrderStatus(order.orderId);
           if (status?.smsCode || status?.status === 'code_received') {
@@ -570,12 +571,16 @@ export default function BuyNumber() {
             setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
             setError(providerRejectedCancel
               ? 'The provider still reports this number as waiting and denied cancellation. No refund was issued.'
+              : unexpectedCancelResponse
+                ? 'The cancellation service returned an invalid response. The latest status is still waiting, so no refund was issued.'
               : 'The provider has not confirmed cancellation. The number remains active and no refund was issued.');
           }
         } catch {
           setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
           setError(providerRejectedCancel
             ? 'Cancellation was denied and the latest provider status could not be verified. No refund was issued.'
+            : unexpectedCancelResponse
+              ? 'The cancellation service returned an invalid response, and the latest order status could not be verified. No refund has been assumed; refresh the order status before trying again.'
             : 'The provider did not confirm cancellation. The number remains active and no refund was issued.');
         }
         return;
@@ -1354,11 +1359,19 @@ export default function BuyNumber() {
                 {(() => {
                   const apiPhoneNumber = String(order?.phoneNumber || '');
                   const countryDialCode = getCountryDialCode(selectedCountry || { name: order?.countryName });
+                  const dialCodeDigits = countryDialCode.replace(/\D/g, '');
+                  const providerNumberDigits = apiPhoneNumber.replace(/\D/g, '');
+                  const phoneNumberOnly = dialCodeDigits && providerNumberDigits.startsWith(dialCodeDigits)
+                    ? providerNumberDigits.slice(dialCodeDigits.length)
+                    : providerNumberDigits || apiPhoneNumber;
+                  const displayedPhoneNumber = apiPhoneNumber
+                    ? `${countryDialCode ? `${countryDialCode} ` : ''}${phoneNumberOnly}`
+                    : 'Generating...';
                   return (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <span
-                          onClick={() => apiPhoneNumber && copyToClipboard(apiPhoneNumber)}
+                          onClick={() => apiPhoneNumber && copyToClipboard(phoneNumberOnly)}
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: 'clamp(1.25rem, 4vw, 1.6rem)',
@@ -1368,16 +1381,16 @@ export default function BuyNumber() {
                             wordBreak: 'break-all',
                             cursor: order?.phoneNumber ? 'pointer' : 'default',
                           }}
-                          title={apiPhoneNumber ? `Click to copy ${apiPhoneNumber}` : undefined}
+                          title={apiPhoneNumber ? `Click to copy ${phoneNumberOnly}` : undefined}
                         >
-                          {apiPhoneNumber ? `${countryDialCode ? `${countryDialCode} ` : ''}${apiPhoneNumber}` : 'Generating...'}
+                          {displayedPhoneNumber}
                         </span>
                         {apiPhoneNumber && (
                           <button
-                            onClick={() => copyToClipboard(apiPhoneNumber)}
+                            onClick={() => copyToClipboard(phoneNumberOnly)}
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                            title={`Copy number only: ${apiPhoneNumber}`}
+                            title={`Copy number only: ${phoneNumberOnly}`}
                           >
                             {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
                             <span>{copied ? 'Copied!' : 'Copy Number'}</span>
