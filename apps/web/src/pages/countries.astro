@@ -77,7 +77,6 @@ const breadcrumbSchema = {
             </section>
           ))}
         </div>
-        <button id="load-more-countries" class="btn btn-secondary load-more" type="button" hidden>Load more countries</button>
       </section>
 
       <section class="country-footer-cta" hidden>
@@ -127,7 +126,6 @@ const breadcrumbSchema = {
   .catalog-alpha button:hover, .catalog-alpha button.active { background: #eaf2ff; color: #2563eb; }
   .all-country-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1.5rem; }
   .all-country-item { display: flex; align-items: center; gap: .6rem; min-height: 46px; border-top: 1px solid #eef2f7; color: #334155; font-size: .84rem; }
-  .load-more { display: block; margin: 1rem auto 0; }
   .catalog-status { grid-column: 1 / -1; padding: 2rem; margin: 0; text-align: center; color: #64748b; }
   .country-footer-cta { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-top: 2rem; padding: 1.5rem; border-radius: 14px; background: #172033; color: #fff; }
   .country-footer-cta h2 { margin: .45rem 0 .25rem; font-family: var(--font-display); font-size: 1.35rem; }
@@ -169,7 +167,6 @@ const breadcrumbSchema = {
   const popularContainer = document.getElementById('popular-countries');
   const allContainer = document.getElementById('all-countries');
   const countLabel = document.getElementById('country-count');
-  const loadMoreButton = document.getElementById('load-more-countries');
   const alphaContainer = document.getElementById('country-alpha');
   let countries = [...document.querySelectorAll('#all-countries .all-country-item')].map((item) => ({
     id: Number(new URL(item.getAttribute('href'), location.origin).searchParams.get('country')),
@@ -180,7 +177,6 @@ const breadcrumbSchema = {
     region: item.closest('.directory-group')?.id.replace('reg-', '') || 'other',
     slug: item.dataset.slug || '',
   }));
-  let visibleCount = 60;
   let letterFilter = '';
   function flagUrl(country) {
     return country.flagUrl || 'https://tiger-sms.com/img/country/UN.svg';
@@ -236,7 +232,6 @@ const breadcrumbSchema = {
       section.append(heading, grid);
       allContainer.append(section);
     });
-    loadMoreButton.hidden = true;
   }
 
   function renderAlphabet() {
@@ -249,7 +244,6 @@ const breadcrumbSchema = {
       button.onclick = () => {
         searchInput.value = '';
         letterFilter = '';
-        visibleCount = 60;
         render();
         document.getElementById(`reg-${region}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
@@ -257,8 +251,7 @@ const breadcrumbSchema = {
     });
   }
 
-  searchInput.addEventListener('input', () => { letterFilter = ''; visibleCount = 60; renderAlphabet(); render(); });
-  loadMoreButton.addEventListener('click', () => { visibleCount += 60; render(); });
+  searchInput.addEventListener('input', () => { letterFilter = ''; renderAlphabet(); render(); });
 
   renderAlphabet();
   render();

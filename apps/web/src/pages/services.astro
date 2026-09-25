@@ -167,7 +167,6 @@ const servicesFaqSchema = {
             ))}
             <p id="services-empty" class="text-secondary" hidden>No services matched your search query.</p>
           </div>
-          <button id="load-more-services" class="btn btn-secondary load-more" type="button" hidden>Load more services</button>
 
           <div id="no-services-found" style="display: none;" class="empty-state">
             <p>No services matched your search query.</p>
@@ -872,7 +871,6 @@ const servicesFaqSchema = {
   const serviceAlpha = document.getElementById('service-alpha');
   const emptyState = document.getElementById('services-empty');
   const serviceCount = document.getElementById('service-count');
-  const loadMoreButton = document.getElementById('load-more-services');
   let loadedServices = [...document.querySelectorAll('#services-grid .service-directory-item')].map((card) => ({
     name: card.querySelector('.service-directory-name')?.textContent || '',
     displayName: card.dataset.displayName || card.querySelector('.service-directory-name')?.textContent || '',
@@ -892,7 +890,6 @@ const servicesFaqSchema = {
     });
     const visibleServices = matches.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
     if (serviceCount) serviceCount.textContent = String(matches.length);
-    if (loadMoreButton) loadMoreButton.hidden = true;
     const groups = new Map();
     visibleServices.forEach((service) => {
       const first = (String(service.name || '#').trim()[0] || '#').toUpperCase();
