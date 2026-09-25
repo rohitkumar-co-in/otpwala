@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getServices, getServiceCountries, getPrice, buyNumber as apiBuyNumber, getOrderStatus, cancelOrder, retryOrder, getWallet, getOrders } from '../../lib/api';
 import { toast } from '../../lib/toast';
 import { getActiveCurrency, formatDualPrice, formatCurrencyAmount, type Currency, DEFAULT_USD_TO_INR_RATE } from '../../lib/currency';
@@ -18,7 +18,6 @@ import {
   ShieldIcon,
   StarIcon,
   XIcon,
-  ArrowUpDownIcon,
 } from '../ui/Icons';
 
 type Step = 'service' | 'country' | 'confirm' | 'waiting' | 'received' | 'expired' | 'messages';
@@ -944,110 +943,56 @@ export default function BuyNumber() {
           </div>
         ) : (
           <>
-            <div className="table-container country-table-container">
-            <table className="country-table">
-              <thead>
-                <tr>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setCountrySort(countrySort === 'name_asc' ? 'name_desc' : 'name_asc')}
-                    title="Click to toggle A-Z / Z-A"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span>Country</span>
-                      <ArrowUpDownIcon size={13} color={countrySort.startsWith('name') ? 'var(--accent-primary)' : 'var(--text-muted)'} />
-                      {countrySort === 'name_asc' && <span style={{ fontSize: '0.7rem', color: 'var(--accent-primary)' }}>A-Z</span>}
-                      {countrySort === 'name_desc' && <span style={{ fontSize: '0.7rem', color: 'var(--accent-primary)' }}>Z-A</span>}
-                    </div>
-                  </th>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setCountrySort(countrySort === 'stock_desc' ? 'name_asc' : 'stock_desc')}
-                    title="Click to sort by Available Stock"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span>Available</span>
-                      <ArrowUpDownIcon size={13} color={countrySort === 'stock_desc' ? 'var(--accent-primary)' : 'var(--text-muted)'} />
-                    </div>
-                  </th>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setCountrySort(countrySort === 'price_asc' ? 'price_desc' : 'price_asc')}
-                    title="Click to sort by Price Low-High / High-Low"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span>Price</span>
-                      <ArrowUpDownIcon size={13} color={countrySort.startsWith('price') ? 'var(--accent-primary)' : 'var(--text-muted)'} />
-                      {countrySort === 'price_asc' && <span style={{ fontSize: '0.7rem', color: 'var(--success)' }}>Low-High</span>}
-                      {countrySort === 'price_desc' && <span style={{ fontSize: '0.7rem', color: 'var(--warning)' }}>High-Low</span>}
-                    </div>
-                  </th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleCountryGroups.map((group) => (
-                  <Fragment key={group.id}>
-                    <tr>
-                      <td colSpan={4} style={{ padding: '0.7rem 1rem', background: 'var(--bg-tertiary)', borderTop: '1px solid var(--border-subtle)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap' }}>
-                          {group.id === 'popular' ? <StarIcon size={14} color={group.color} /> : <CheckCircleIcon size={14} color={group.color} />}
-                          <span style={{ fontWeight: 800, color: group.color }}>{group.label}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{group.note}</span>
-                        </div>
-                      </td>
-                    </tr>
-                    {group.countries.map(country => (
-                  <tr key={country.id} className="country-row">
-                    <td className="country-name-cell" data-label="Country" style={{ fontWeight: 600 }}>
-                      <div className="country-name-content" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        {renderCountryFlag(country, 28, 18)}
-                        <span>{country.name}</span>
-                        {group.id === 'delivery' && (
-                          <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>#{country.deliveryRank}</span>
-                        )}
-                        {group.id === 'popular' && <StarIcon size={13} color="#f59e0b" />}
-                      </div>
-                    </td>
-                    <td className="country-stock-cell" data-label="Available"><span className="badge badge-success">{country.available.toLocaleString()}</span></td>
-                    <td className="country-price-cell" data-label="Price" style={{ fontWeight: 700, color: 'var(--success)' }}>
-                      {country.priceInr > 0 ? (() => {
-                        const dual = formatDualPrice(country.priceInr, currency, usdRate);
-                        return (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1px' }}>
-                            <span style={{ fontSize: '0.98rem', fontWeight: 800 }}>{dual.primary}</span>
-                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>{dual.secondary}</span>
+            <div className="country-card-groups">
+              {visibleCountryGroups.map((group) => (
+                <section key={group.id} className="country-card-group" aria-label={group.label}>
+                  <div className="country-card-group-heading">
+                    {group.id === 'popular' ? <StarIcon size={15} color={group.color} /> : <CheckCircleIcon size={15} color={group.color} />}
+                    <span style={{ fontWeight: 800, color: group.color }}>{group.label}</span>
+                    <span className="country-card-group-note">{group.note}</span>
+                  </div>
+                  <div className="country-card-grid">
+                    {group.countries.map((country) => {
+                      const dual = country.priceInr > 0 ? formatDualPrice(country.priceInr, currency, usdRate) : null;
+                      return (
+                        <article key={country.id} className="card country-option-card">
+                          <div className="country-option-heading">
+                            {renderCountryFlag(country, 38, 38)}
+                            <div className="country-option-name-wrap">
+                              <div className="country-option-name">{country.name}</div>
+                              {group.id === 'delivery' && <span className="country-option-rank">Top delivery #{country.deliveryRank}</span>}
+                              {group.id === 'popular' && <span className="country-option-popular"><StarIcon size={11} color="#f59e0b" /> Popular</span>}
+                            </div>
                           </div>
-                        );
-                      })() : '—'}
-                    </td>
-                    <td className="country-action-cell" style={{ textAlign: 'right' }}>
-                      <button
-                        onClick={() => handleDirectBuy(country)}
-                        disabled={buyingCountryId === country.id}
-                        className="btn btn-primary btn-sm"
-                        style={{ minWidth: '78px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
-                      >
-                        {buyingCountryId === country.id ? (
-                          <>
-                            <RefreshCwIcon size={12} className="animate-spin" />
-                            <span>Buying...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCartIcon size={13} />
-                            <span>Buy</span>
-                          </>
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                    ))}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          <div className="country-option-details">
+                            <div className="country-option-stock">
+                              <span>Available</span>
+                              <strong>{country.available.toLocaleString()}</strong>
+                            </div>
+                            <div className="country-option-price">
+                              <span>Price</span>
+                              <strong>{dual?.primary || '—'}</strong>
+                              {dual && <small>{dual.secondary}</small>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDirectBuy(country)}
+                            disabled={buyingCountryId === country.id}
+                            className="btn btn-primary btn-sm country-option-buy"
+                          >
+                            {buyingCountryId === country.id ? (
+                              <><RefreshCwIcon size={13} className="animate-spin" /><span>Buying...</span></>
+                            ) : (
+                              <><ShoppingCartIcon size={14} /><span>Buy Number</span></>
+                            )}
+                          </button>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
           {countryVisibleCount < totalCountryCount && (
             <LoadMoreSentinel onLoadMore={() => setCountryVisibleCount((count) => Math.min(count + 30, totalCountryCount))} />
           )}
