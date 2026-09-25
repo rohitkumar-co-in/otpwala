@@ -222,7 +222,7 @@ const formattedTitle = formatPageTitle(title);
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
             </svg>
-            <span id="wallet-amount" style="font-weight: 700; font-family: var(--font-mono); font-size: 0.84rem;">$0.00</span>
+            <span id="wallet-amount" aria-live="polite" style="font-weight: 700; font-family: var(--font-mono); font-size: 0.84rem;">…</span>
           </a>
 
           <div class="system-status-pill" id="dashboard-health-pill" title="Service, country, and pricing data are loaded from the live catalog">
@@ -934,11 +934,14 @@ const formattedTitle = formatPageTitle(title);
       function updateDisplayBalance() {
         const curr = getActiveCurrency();
         const safeRate = Number((window as any).__otpwala_rate) || 115;
-        const safeBal = Number((window as any).__otpwala_balance) || 0;
-        const formatted = curr === 'USD' ? `$${(safeBal / safeRate).toFixed(2)}` : `₹${safeBal.toFixed(2)}`;
-        
         const amountEl = document.getElementById('wallet-amount');
-        if (amountEl) amountEl.textContent = formatted;
+        if (!amountEl) return;
+        const balance = Number((window as any).__otpwala_balance);
+        if (!Number.isFinite(balance)) {
+          amountEl.textContent = '…';
+          return;
+        }
+        amountEl.textContent = curr === 'USD' ? `$${(balance / safeRate).toFixed(2)}` : `₹${balance.toFixed(2)}`;
       }
 
       function initCurrencyControls() {
@@ -971,14 +974,6 @@ const formattedTitle = formatPageTitle(title);
             updateDisplayBalance();
           }
         });
-      }
-      const profileWalletBalance = Number(existingProfile?.wallet_balance);
-      const cachedWalletBalanceValue = localStorage.getItem(walletBalanceStorageKey);
-      const cachedWalletBalance = cachedWalletBalanceValue === null ? Number.NaN : Number(cachedWalletBalanceValue);
-      const initialWalletBalance = Number.isFinite(profileWalletBalance) ? profileWalletBalance : cachedWalletBalance;
-      if (Number.isFinite(initialWalletBalance)) {
-        (window as any).__otpwala_balance = initialWalletBalance;
-        localStorage.setItem(walletBalanceStorageKey, String(initialWalletBalance));
       }
       initCurrencyControls();
       void loadCurrencyPreference();

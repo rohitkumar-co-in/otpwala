@@ -234,6 +234,7 @@ export default function BuyNumber() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [countrySearch, setCountrySearch] = useState('');
+  const [countryLoadFailed, setCountryLoadFailed] = useState(false);
   const [serviceSort, setServiceSort] = useState<ServiceSortOption>('featured');
   const [countrySort, setCountrySort] = useState<CountrySortOption>('name_asc');
   const [countryFilter, setCountryFilter] = useState<'all' | 'cheap'>('all');
@@ -251,6 +252,7 @@ export default function BuyNumber() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countryRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countryRequestIdRef = useRef(0);
+  const countryRetryCountRef = useRef(0);
   const [countryVisibleCount, setCountryVisibleCount] = useState(30);
   const servicesRefreshRef = useRef(false);
   const purchaseInFlightRef = useRef(false);
@@ -377,27 +379,26 @@ export default function BuyNumber() {
     servicesRefreshRef.current = true;
     if (!silent) setServicesLoading(true);
     if (!silent) setError('');
-    let loaded = false;
     try {
       const allData = await getServices(false);
       if (Array.isArray(allData) && allData.length > 0) {
         setServices(allData);
         setTotalServicesCount(allData.length);
         setAllServicesLoaded(true);
-        loaded = true;
       }
     } catch (err: any) {
       if (!silent) {
         console.warn('Failed to load services:', err);
       }
     } finally {
-      if (loaded) setServicesLoading(false);
+      setServicesLoading(false);
       servicesRefreshRef.current = false;
     }
   }
 
   async function loadServiceCountries(service: any, requestId: number) {
     setLoading(true);
+    setCountryLoadFailed(false);
     try {
       const apiCountries = await getServiceCountries(service.code);
       if (requestId !== countryRequestIdRef.current) return;
@@ -405,11 +406,20 @@ export default function BuyNumber() {
       setAllCountries(apiCountries);
       setShowAllCountries(true);
       setLoading(false);
+      setCountryLoadFailed(false);
+      countryRetryCountRef.current = 0;
     } catch (err: any) {
       if (requestId !== countryRequestIdRef.current) return;
-      countryRetryRef.current = setTimeout(() => {
-        void loadServiceCountries(service, requestId);
-      }, 5_000);
+      if (countryRetryCountRef.current < 2) {
+        countryRetryCountRef.current += 1;
+        countryRetryRef.current = setTimeout(() => {
+          void loadServiceCountries(service, requestId);
+        }, 5_000);
+      } else {
+        setLoading(false);
+        setCountryLoadFailed(true);
+        setError(err?.message || 'Could not load countries right now. Please try again.');
+      }
     }
   }
 
@@ -417,6 +427,8 @@ export default function BuyNumber() {
     countryRequestIdRef.current += 1;
     if (countryRetryRef.current) clearTimeout(countryRetryRef.current);
     const requestId = countryRequestIdRef.current;
+    countryRetryCountRef.current = 0;
+    setCountryLoadFailed(false);
     setSelectedService(service);
     setStep('country');
     setCountrySearch('');
@@ -460,7 +472,6 @@ export default function BuyNumber() {
       };
       setOrder(newOrder);
       setCancelDenied(false);
-      setCancelBlocked(false);
       setOtpData(null);
       setSecondsLeft(1200);
       setStep('messages');
@@ -932,7 +943,7 @@ export default function BuyNumber() {
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.65rem' }}>
           {[
             { id: 'all', label: `All Countries (${allCountries.length || countries.length})` },
-            { id: 'cheap', label: currency === 'USD' ? `Budget (< $0.50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` : `Budget (< ₹50) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
+            { id: 'cheap', label: `Budget (≤ ${formatCurrencyAmount(50, currency, usdRate)}) (${(allCountries.length ? allCountries : countries).filter(c => (c.priceInr || 0) <= 50).length})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -966,6 +977,10 @@ export default function BuyNumber() {
           )}
         </div>
 
+        <p style={{ margin: '-0.5rem 0 0', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+          The listed price is deducted when a number is reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry.
+        </p>
+
         {error && (
           <div style={{ padding: '0.75rem 1rem', background: 'var(--error-bg)', border: '1px solid var(--error-border)', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.65rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -977,6 +992,21 @@ export default function BuyNumber() {
                 Recharge Wallet →
               </a>
             )}
+            {countryLoadFailed && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={loading}
+                onClick={() => {
+                  if (!selectedService) return;
+                  countryRetryCountRef.current = 0;
+                  setError('');
+                  void loadServiceCountries(selectedService, countryRequestIdRef.current);
+                }}
+              >
+                Try Again
+              </button>
+            )}
           </div>
         )}
 
@@ -987,7 +1017,9 @@ export default function BuyNumber() {
           </div>
         ) : totalCountryCount === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            No countries found matching "{countrySearch}".
+            {countrySearch
+              ? <>No countries found matching "{countrySearch}".</>
+              : 'No countries are currently available for this service.'}
           </div>
         ) : (
           <>
@@ -1457,7 +1489,7 @@ export default function BuyNumber() {
                       {isCancelled ? 'The provider confirmed this number was cancelled.' : 'No SMS code arrived within 20 minutes.'}
                     </p>
                     <p style={{ color: '#10b981', fontSize: '0.8rem', margin: 0 }}>
-                      If no OTP was received, the charge will be refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.
+                      The number price was deducted when it was reserved. If no OTP was received, the refund follows provider-confirmed cancellation or expiry and may take 5–10 minutes to appear.
                     </p>
                   </div>
                 )}
@@ -1467,7 +1499,7 @@ export default function BuyNumber() {
             {/* Bottom Actions Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />If no OTP is received, the charge is refunded to your wallet within 5–10 minutes after cancellation or automatic expiry.</span>
+                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.35rem' }}><ShieldIcon size={15} aria-hidden="true" />The number price is deducted when reserved. If no OTP arrives, a refund is issued only after the provider confirms cancellation or expiry; wallet updates may take 5–10 minutes.</span>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -1490,7 +1522,7 @@ export default function BuyNumber() {
                           ? 'Cancelling...'
                           : cancelDenied
                           ? 'Try Cancel Again'
-                          : 'Cancel Order & Refund'}
+                          : 'Request Cancellation'}
                       </span>
                     </button>
                   </div>
