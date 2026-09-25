@@ -302,6 +302,17 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
   if (error) throw error;
   const orders = data || [];
   const orderIds = orders.map((order: any) => order.id);
+  const profileIds = [...new Set(orders.map((order: any) => String(order.user_id || '')).filter(Boolean))];
+  const avatarEntries = await Promise.all(profileIds.map(async (userId) => {
+    try {
+      const { data: authData } = await supabase.auth.admin.getUserById(userId);
+      const metadata = authData?.user?.user_metadata || {};
+      return [userId, metadata.avatar_url || metadata.picture || null] as const;
+    } catch {
+      return [userId, null] as const;
+    }
+  }));
+  const avatarByUserId = new Map(avatarEntries);
   let events: any[] = [];
   if (orderIds.length) {
     const eventResult = await supabase.from('order_events').select('*').in('order_id', orderIds).order('created_at', { ascending: true });
@@ -309,7 +320,11 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
     events = eventResult.data || [];
   }
   return {
-    orders: orders.map((order: any) => ({ ...order, events: events.filter((event: any) => event.order_id === order.id) })),
+    orders: orders.map((order: any) => ({
+      ...order,
+      profiles: order.profiles ? { ...order.profiles, avatar_url: avatarByUserId.get(String(order.user_id)) || null } : order.profiles,
+      events: events.filter((event: any) => event.order_id === order.id),
+    })),
     total: count || 0,
   };
 }
