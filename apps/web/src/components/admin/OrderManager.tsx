@@ -115,13 +115,13 @@ export default function OrderManager() {
       )}
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+      <div className="order-status-filters" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.25rem' }}>
         {['all', 'stuck', 'failed_refund', 'waiting', 'code_received', 'cancelled', 'expired'].map((st) => (
           <button
             key={st}
             onClick={() => { setStatusFilter(st); setPage(0); }}
             className={`btn btn-sm ${statusFilter === st ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ textTransform: 'capitalize' }}
+            style={{ textTransform: 'capitalize', flex: '0 0 auto', whiteSpace: 'nowrap' }}
           >
             {st.replace('_', ' ')}
           </button>
