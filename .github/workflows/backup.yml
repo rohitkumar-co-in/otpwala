@@ -64,9 +64,9 @@ jobs:
           printf 'project_id = "otpwala-backup"\n' > "$cli_workdir/supabase/config.toml"
           cd "$cli_workdir"
 
-          supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/roles.sql" --role-only
-          supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/schema.sql"
-          supabase db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/data.sql" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes
+          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/roles.sql" --role-only
+          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/schema.sql"
+          supabase --workdir "$cli_workdir" db dump --db-url "$SUPABASE_DB_URL" --file "$backup_tmp/data.sql" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes
 
           test -s "$backup_tmp/roles.sql"
           test -s "$backup_tmp/schema.sql"
