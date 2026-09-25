@@ -193,7 +193,7 @@ export default function OrderHistory() {
                       <StatusBadge status={order.status} />
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 600, color: isRefunded ? 'var(--text-muted)' : 'inherit' }}>
-                      {isRefunded ? 'Refunded: ' : 'Price: '}{formatDualPrice(parseFloat(order.sell_price_inr || order.price_inr || 0), currency).full}
+                      {isRefunded ? 'Refunded: ' : 'Price: '}{formatDualPrice(parseFloat(order.sell_price_inr || order.price_inr || 0), currency).primary}
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(order.created_at).toLocaleString([], {
