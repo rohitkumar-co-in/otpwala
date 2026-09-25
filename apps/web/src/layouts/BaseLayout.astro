@@ -343,7 +343,6 @@ const breadcrumbSchema = {
       <a href="/auth/login" class="btn btn-secondary" id="mobile-login-btn">Log In</a>
       <a href="/auth/register" class="btn btn-primary" id="mobile-register-btn">Get Started Free</a>
     </div>
-    <p class="mobile-nav-note" data-brand-slogan>Check services, country availability, and prices for SMS verification.</p>
   </div>
   <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
@@ -641,7 +640,7 @@ const breadcrumbSchema = {
         radial-gradient(ellipse at 90% 10%, rgba(37, 99, 235, 0.09), transparent 40%),
         linear-gradient(145deg, #ffffff 0%, #f8fbff 58%, #f1f6ff 100%);
       padding: clamp(1rem, 4vw, 2.5rem) clamp(1rem, 6vw, 5rem) max(1.25rem, env(safe-area-inset-bottom));
-      overflow-y: auto;
+      overflow: hidden;
       transform: translateX(105%);
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1001;
@@ -649,12 +648,8 @@ const breadcrumbSchema = {
       flex-direction: column;
       align-items: center;
       gap: clamp(1.25rem, 3vh, 2rem);
-      overscroll-behavior: contain;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overscroll-behavior: none;
     }
-
-    .mobile-nav-drawer::-webkit-scrollbar { display: none; }
 
     .mobile-nav-drawer.open {
       transform: translateX(0);
@@ -722,7 +717,6 @@ const breadcrumbSchema = {
       gap: 0.85rem;
     }
     .mobile-nav-actions .btn { flex: 1; justify-content: center; min-height: 50px; border-radius: 14px; font-weight: 750; }
-    .mobile-nav-note { width: min(100%, 760px); margin: auto 0 0; padding-top: 1rem; color: #94a3b8; font-size: 0.78rem; text-align: center; }
 
     .mobile-nav-backdrop {
       display: none;
@@ -741,6 +735,12 @@ const breadcrumbSchema = {
       visibility: visible;
     }
 
+    html.mobile-nav-open {
+      overflow: hidden !important;
+      scrollbar-width: none;
+    }
+    html.mobile-nav-open::-webkit-scrollbar { display: none; }
+
     @media (max-width: 480px) {
       .mobile-nav-drawer { gap: 1rem; }
       .mobile-nav-intro { padding-top: 0; }
@@ -754,7 +754,20 @@ const breadcrumbSchema = {
       .mobile-nav-intro { padding-top: 0; }
       .mobile-nav-intro h2 { margin-top: 0.55rem; font-size: clamp(1.75rem, 5vh, 2.5rem); }
       .mobile-nav-links a { min-height: 46px; padding-block: 0.55rem; }
-      .mobile-nav-note { padding-top: 0.25rem; }
+      .mobile-nav-actions { flex-direction: row; }
+    }
+    @media (max-height: 560px) {
+      .mobile-nav-drawer { gap: 0.35rem; padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+      .mobile-nav-drawer-header { min-height: 40px; padding-bottom: 0.35rem; }
+      .mobile-nav-brand img { width: 32px; height: 32px; }
+      .mobile-nav-intro { padding: 0; }
+      .mobile-nav-intro h2 { margin: 0.3rem 0; font-size: 1.5rem; }
+      .mobile-nav-intro p { font-size: 0.84rem; line-height: 1.35; }
+      .mobile-nav-eyebrow { padding: 0.3rem 0.6rem; }
+      .mobile-nav-links { gap: 0.1rem; }
+      .mobile-nav-links a { min-height: 36px; padding-block: 0.35rem; }
+      .mobile-nav-actions { gap: 0.5rem; }
+      .mobile-nav-actions .btn { min-height: 40px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .mobile-nav-drawer, .mobile-nav-backdrop, .mobile-nav-links a, .mobile-nav-link-arrow { transition-duration: 0.01ms !important; }
@@ -989,6 +1002,11 @@ const breadcrumbSchema = {
     const navDrawer = document.getElementById('mobile-nav-drawer');
     const navBackdrop = document.getElementById('mobile-nav-backdrop');
     const navClose = document.getElementById('mobile-nav-close');
+    let lockedScrollY = 0;
+    let savedBodyPosition = '';
+    let savedBodyTop = '';
+    let savedBodyWidth = '';
+    let savedBodyOverflow = '';
 
     function setMobileNavOpen(isOpen: boolean, returnFocus = false) {
       navDrawer?.classList.toggle('open', isOpen);
@@ -996,7 +1014,25 @@ const breadcrumbSchema = {
       navToggle?.setAttribute('aria-expanded', String(isOpen));
       navToggle?.setAttribute('aria-label', isOpen ? 'Hide navigation menu' : 'Open navigation menu');
       if (navDrawer) navDrawer.inert = !isOpen;
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+      if (isOpen && !document.documentElement.classList.contains('mobile-nav-open')) {
+        lockedScrollY = window.scrollY;
+        savedBodyPosition = document.body.style.position;
+        savedBodyTop = document.body.style.top;
+        savedBodyWidth = document.body.style.width;
+        savedBodyOverflow = document.body.style.overflow;
+        document.documentElement.classList.add('mobile-nav-open');
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${lockedScrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+      } else if (!isOpen && document.documentElement.classList.contains('mobile-nav-open')) {
+        document.documentElement.classList.remove('mobile-nav-open');
+        document.body.style.position = savedBodyPosition;
+        document.body.style.top = savedBodyTop;
+        document.body.style.width = savedBodyWidth;
+        document.body.style.overflow = savedBodyOverflow;
+        window.scrollTo(0, lockedScrollY);
+      }
       if (returnFocus) navToggle?.focus();
     }
 
