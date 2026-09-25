@@ -51,15 +51,16 @@ export default function OrderCatalogLabel({
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, maxWidth: '100%' }}>
       {iconUrl && (
-        <img
-          src={iconUrl}
-          alt=""
-          aria-hidden="true"
-          width={22}
-          height={22}
-          loading="lazy"
-          style={{ width: 22, height: 22, flex: '0 0 22px', objectFit: 'contain', borderRadius: '50%' }}
-        />
+        <span aria-hidden="true" style={{ width: 24, height: 24, flex: '0 0 24px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '50%' }}>
+          <img
+            src={iconUrl}
+            alt=""
+            width={24}
+            height={24}
+            loading="lazy"
+            style={{ width: 24, height: 24, maxWidth: 'none', objectFit: kind === 'country' ? 'cover' : 'contain', borderRadius: '50%' }}
+          />
+        </span>
       )}
       <span style={{ minWidth: 0 }}>{name || (kind === 'service' ? 'Unknown service' : 'Unknown country')}</span>
     </span>
