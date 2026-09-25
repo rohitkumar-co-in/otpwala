@@ -548,13 +548,8 @@ export default function BuyNumber() {
       loadWalletBalance();
       loadRecentOrders();
     } catch (err: any) {
-      if (err?.code === 'EARLY_CANCEL_DENIED') {
-        setCancelDenied(true);
-        setError('The provider denied cancellation. Your number is still waiting for an OTP; no refund was issued.');
-        return;
-      }
-      if (['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS', 'SMS_RECEIVED'].includes(err?.code)) {
-        let providerResolved = false;
+      const providerRejectedCancel = err?.code === 'EARLY_CANCEL_DENIED';
+      if (['EARLY_CANCEL_DENIED', 'BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS', 'SMS_RECEIVED'].includes(err?.code)) {
         try {
           const status = await getOrderStatus(order.orderId);
           if (status?.smsCode || status?.status === 'code_received') {
@@ -562,20 +557,27 @@ export default function BuyNumber() {
             setOtpData(status);
             setCancelDenied(false);
             setError('');
-            providerResolved = true;
+            if (pollRef.current) clearInterval(pollRef.current);
           } else if (status?.status === 'cancelled' || status?.status === 'expired') {
             setOrder((prev: any) => ({ ...prev, ...status, status: status.status }));
             setCancelDenied(false);
             setError('');
-            providerResolved = true;
+            if (pollRef.current) clearInterval(pollRef.current);
+            loadWalletBalance();
+            loadRecentOrders();
           } else {
             setOrder((prev: any) => ({ ...prev, ...status, status: 'waiting' }));
-            setCancelDenied(true);
+            setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
+            setError(providerRejectedCancel
+              ? 'The provider still reports this number as waiting and denied cancellation. No refund was issued.'
+              : 'The provider has not confirmed cancellation. The number remains active and no refund was issued.');
           }
         } catch {
-          setCancelDenied(true);
+          setCancelDenied(providerRejectedCancel || ['BAD_STATUS', 'NO_ACTIVATION', 'INVALID_STATUS'].includes(err?.code));
+          setError(providerRejectedCancel
+            ? 'Cancellation was denied and the latest provider status could not be verified. No refund was issued.'
+            : 'The provider did not confirm cancellation. The number remains active and no refund was issued.');
         }
-        if (!providerResolved) setError('The provider did not confirm cancellation. The number remains active and no refund was issued.');
         return;
       }
       setError(err.message || 'Failed to cancel order');
@@ -1354,12 +1356,6 @@ export default function BuyNumber() {
                   const countryDialCode = getCountryDialCode(selectedCountry || { name: order?.countryName });
                   return (
                     <>
-                      {countryDialCode && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Country code</span>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '0.18rem 0.55rem', borderRadius: '999px', background: 'var(--accent-glow)', color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.9rem' }}>{countryDialCode}</span>
-                        </div>
-                      )}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <span
                           onClick={() => apiPhoneNumber && copyToClipboard(apiPhoneNumber)}
@@ -1374,14 +1370,14 @@ export default function BuyNumber() {
                           }}
                           title={apiPhoneNumber ? `Click to copy ${apiPhoneNumber}` : undefined}
                         >
-                          {apiPhoneNumber || 'Generating...'}
+                          {apiPhoneNumber ? `${countryDialCode ? `${countryDialCode} ` : ''}${apiPhoneNumber}` : 'Generating...'}
                         </span>
                         {apiPhoneNumber && (
                           <button
                             onClick={() => copyToClipboard(apiPhoneNumber)}
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}
-                            title={`Copy ${apiPhoneNumber}`}
+                            title={`Copy number only: ${apiPhoneNumber}`}
                           >
                             {copied ? <CheckIcon size={13} color="#10b981" /> : <CopyIcon size={13} />}
                             <span>{copied ? 'Copied!' : 'Copy Number'}</span>

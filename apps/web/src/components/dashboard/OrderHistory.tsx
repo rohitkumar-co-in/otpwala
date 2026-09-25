@@ -159,61 +159,43 @@ export default function OrderHistory() {
         </div>
       ) : (
         <>
-          <div className="table-container">
-            <table>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Country</th>
-                  <th>Number</th>
-                  <th>Status</th>
-                  <th>Price</th>
-                  <th>Time</th>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '0.75rem' }}>Service</th>
+                  <th style={{ padding: '0.75rem' }}>Country</th>
+                  <th style={{ padding: '0.75rem' }}>Number</th>
+                  <th style={{ padding: '0.75rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem' }}>Price</th>
+                  <th style={{ padding: '0.75rem' }}>Time</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map(order => {
                   const formattedPhone = formatPhoneNumber(order.phone_number, order.country_code);
+                  const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded';
                   return (
-                  <tr key={order.id}>
-                    <td style={{ fontWeight: 600 }}>{order.service_name}</td>
-                    <td><strong>{order.country_name || 'Unknown country'}</strong></td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600 }}>
+                  <tr key={order.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}>{order.service_name || 'Unknown service'}</strong></td>
+                    <td style={{ padding: '0.75rem' }}><strong>{order.country_name || 'Unknown country'}</strong></td>
+                    <td style={{ padding: '0.75rem' }}>
                       {order.phone_number ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 400 }}>Phone number</small>{formattedPhone.display || order.phone_number}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}><small style={{ display: 'block', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 400 }}>Phone number</small>{formattedPhone.display || order.phone_number}</span>
                           <button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }} onClick={() => copyToClipboard(String(order.phone_number || ''), `number-${order.id}`)} title="Copy number">
                             {copiedId === `number-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
                           </button>
                         </div>
                       ) : '—'}
                     </td>
-                    <td>
-                      {order.sms_code ? (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#10b981', fontSize: '0.95rem', background: 'rgba(16, 185, 129, 0.15)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                            {order.sms_code}
-                          </span>
-                          <button
-                            onClick={() => copyToClipboard(order.sms_code, `code-${order.id}`)}
-                            className="btn btn-ghost btn-sm"
-                            style={{ padding: '0.15rem 0.35rem', fontSize: '0.7rem' }}
-                            title="Copy OTP"
-                          >
-                            {copiedId === `code-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
-                          </button>
-                        </div>
-                      ) : order.status === 'waiting' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontSize: '0.78rem', fontWeight: 600 }}>
-                          <RefreshCwIcon size={12} className="animate-spin" />
-                          <span>Waiting for OTP...</span>
-                        </span>
-                      ) : <StatusBadge status={order.status} />}
+                    <td style={{ padding: '0.75rem' }}>
+                      <StatusBadge status={order.status} />
                     </td>
-                    <td style={{ fontWeight: 600, color: order.status === 'code_received' || order.sms_code ? 'inherit' : 'var(--text-muted)' }}>
-                      {order.status === 'code_received' || order.sms_code ? 'Price: ' : 'Refund: '}{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency).full}
+                    <td style={{ padding: '0.75rem', fontWeight: 600, color: isRefunded ? 'var(--text-muted)' : 'inherit' }}>
+                      {isRefunded ? 'Refunded: ' : 'Price: '}{formatDualPrice(parseFloat(order.sell_price_inr || order.price_inr || 0), currency).full}
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(order.created_at).toLocaleString([], {
                         month: 'short',
                         day: 'numeric',

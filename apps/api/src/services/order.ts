@@ -49,6 +49,39 @@ async function refundOrderAtomically(
   if (error) throw new Error(error.message || 'Order refund failed');
 }
 
+async function reconcileProviderTerminalStatus(order: Order, reason: string): Promise<boolean> {
+  let providerStatus: Awaited<ReturnType<typeof tigerSms.getStatus>>;
+  try {
+    providerStatus = await tigerSms.getStatus(order.activation_id);
+  } catch {
+    return false;
+  }
+
+  if (providerStatus.status === 'cancelled') {
+    await refundOrderAtomically(order.id, 'cancelled', reason);
+    return true;
+  }
+
+  if (providerStatus.status === 'code_received') {
+    if (providerStatus.code) {
+      await supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'code_received',
+          sms_code: providerStatus.code,
+          sms_text: providerStatus.text || `Your code is ${providerStatus.code}`,
+          tiger_status: providerStatus.providerStatus || 'STATUS_OK',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id)
+        .eq('status', 'waiting');
+    }
+    throw new OrderError('SMS_RECEIVED', 'SMS_RECEIVED');
+  }
+
+  return false;
+}
+
 /**
  * Buy a number — full transactional flow.
  */
@@ -305,6 +338,9 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
     throw new OrderError('INVALID_STATUS', 'Cannot cancel order in current status');
   }
 
+  const refundReason = `Refund: Cancelled ${order.service_name} (${order.country_name})`;
+  if (await reconcileProviderTerminalStatus(order as Order, refundReason)) return;
+
   // Tiger is the source of truth. Do not refund or mutate the local order unless
   // the provider explicitly confirms this exact cancellation operation.
   try {
@@ -313,6 +349,9 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
       throw new TigerSmsError(tigerStatus, tigerStatus);
     }
   } catch (e) {
+    // If cancellation was already completed on the provider side, setStatus may
+    // reject a second cancel request. Re-read status before reporting denial.
+    if (await reconcileProviderTerminalStatus(order as Order, refundReason)) return;
     if (e instanceof TigerSmsError) {
       console.error(`Tiger SMS cancel rejected activation ${order.activation_id}:`, e.code);
       throw new OrderError(e.code, e.code);
@@ -326,7 +365,7 @@ export async function cancelOrder(orderId: string, userId: string): Promise<void
   await refundOrderAtomically(
     orderId,
     'cancelled',
-    `Refund: Cancelled ${order.service_name} (${order.country_name})`
+    refundReason
   );
 }
 

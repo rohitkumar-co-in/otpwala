@@ -175,6 +175,41 @@ async function refundOrder(supabase: any, orderId: string, terminalStatus: 'canc
   return data?.[0];
 }
 
+async function reconcileProviderTerminalStatus(supabase: any, tiger: TigerSmsClient, order: any, reason: string) {
+  let providerStatus: Awaited<ReturnType<typeof tiger.getStatus>>;
+  try {
+    providerStatus = await tiger.getStatus(order.activation_id);
+  } catch {
+    return false;
+  }
+
+  if (providerStatus.status === 'cancelled') {
+    await refundOrder(supabase, order.id, 'cancelled', reason);
+    return true;
+  }
+
+  if (providerStatus.status === 'code_received') {
+    if (providerStatus.code) {
+      await supabase
+        .from('orders')
+        .update({
+          status: 'code_received',
+          sms_code: providerStatus.code,
+          sms_text: providerStatus.text || `Your code is ${providerStatus.code}`,
+          tiger_status: 'STATUS_OK',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id)
+        .eq('status', 'waiting');
+    }
+    const error: any = new Error('SMS_RECEIVED');
+    error.code = 'SMS_RECEIVED';
+    throw error;
+  }
+
+  return false;
+}
+
 export async function checkOrderStatus(orderId: string, userId: string, env?: any) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
@@ -309,6 +344,9 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
     throw new Error('Order cannot be cancelled in its current status');
   }
 
+  const refundReason = `Refund: Order cancelled by user (${order.service_name})`;
+  if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason)) return { success: true };
+
   // Tiger is the source of truth. Never refund or change the local status unless
   // it explicitly confirms the cancellation with ACCESS_CANCEL.
   try {
@@ -317,13 +355,16 @@ export async function cancelOrder(orderId: string, userId: string, env?: any) {
       throw new TigerSmsError(tigerStatus, tigerStatus);
     }
   } catch (err) {
+    // The activation may already have been cancelled from Tiger's cabinet. A
+    // repeated setStatus request can then be rejected, so check current state.
+    if (await reconcileProviderTerminalStatus(supabase, tiger, order, refundReason)) return { success: true };
     if (err instanceof TigerSmsError) throw err;
     throw new TigerSmsError('SERVICE_TEMPORARILY_UNAVAILABLE', 'SERVICE_TEMPORARILY_UNAVAILABLE');
   }
 
   // ACCESS_CANCEL confirms that Tiger accepted the cancellation/refund. Only
   // now is it safe to credit the user's OTPWala wallet.
-  await refundOrder(supabase, order.id, 'cancelled', `Refund: Order cancelled by user (${order.service_name})`);
+  await refundOrder(supabase, order.id, 'cancelled', refundReason);
 
   return { success: true };
 }
