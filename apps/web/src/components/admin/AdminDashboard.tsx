@@ -856,9 +856,13 @@ export default function AdminDashboard() {
                   <tr key={o.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td data-label="Order ID" style={{ padding: '0.75rem', minWidth: '150px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                        <span aria-hidden="true" style={{ width: '34px', height: '34px', borderRadius: '50%', flex: '0 0 34px', display: 'grid', placeItems: 'center', background: 'rgba(37, 99, 235, 0.12)', color: 'var(--accent-primary)', fontWeight: 800 }}>
-                          {(o.profiles?.email || 'U')[0].toUpperCase()}
-                        </span>
+                        {o.profiles?.avatar_url ? (
+                          <img src={o.profiles.avatar_url} alt="" style={{ width: '34px', height: '34px', borderRadius: '50%', flex: '0 0 34px', objectFit: 'cover', border: '1px solid var(--border-subtle)' }} />
+                        ) : (
+                          <span aria-hidden="true" style={{ width: '34px', height: '34px', borderRadius: '50%', flex: '0 0 34px', display: 'grid', placeItems: 'center', background: 'rgba(37, 99, 235, 0.12)', color: 'var(--accent-primary)', fontWeight: 800 }}>
+                            {(o.profiles?.email || 'U')[0].toUpperCase()}
+                          </span>
+                        )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
                           <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.84rem', overflowWrap: 'anywhere' }}>{o.profiles?.email || 'Unknown User'}</span>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', minWidth: 0, fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
