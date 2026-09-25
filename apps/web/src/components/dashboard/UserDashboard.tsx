@@ -233,17 +233,18 @@ function ActiveOrderCard({ order }: { order: any }) {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-    waiting: { label: 'Waiting', className: 'badge badge-warning', icon: <ClockIcon size={12} /> },
+    waiting: { label: 'Waiting', className: 'badge badge-info', icon: <ClockIcon size={12} /> },
     code_received: { label: 'OTP Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
+    completed: { label: 'OTP Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
     cancelled: { label: 'Cancelled', className: 'badge badge-error', icon: <XIcon size={12} /> },
     refunded: { label: 'Refunded', className: 'badge badge-info', icon: <DollarIcon size={12} /> },
-    expired: { label: 'Expired', className: 'badge badge-ghost', icon: <XIcon size={12} /> },
+    expired: { label: 'Expired', className: 'badge badge-error', icon: <XIcon size={12} /> },
   };
 
-  const badge = config[status] || { label: status, className: 'badge badge-ghost', icon: null };
+  const badge = config[status] || { label: status, className: 'badge badge-warning', icon: null };
 
   return (
-    <span className={badge.className} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+    <span className={badge.className} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontWeight: 700 }}>
       {badge.icon}
       <span>{badge.label}</span>
     </span>

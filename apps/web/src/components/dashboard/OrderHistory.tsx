@@ -240,17 +240,17 @@ function eventLabel(event: any) {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; icon: any; className: string }> = {
-    waiting: { label: 'Waiting', icon: <ClockIcon size={12} />, className: 'badge badge-warning' },
+    waiting: { label: 'Waiting', icon: <ClockIcon size={12} />, className: 'badge badge-info' },
     code_received: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
     completed: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
     cancelled: { label: 'Cancelled', icon: <XIcon size={12} />, className: 'badge badge-error' },
-    refunded: { label: 'Refunded', icon: <RefreshCwIcon size={12} />, className: 'badge badge-accent' },
+    refunded: { label: 'Refunded', icon: <RefreshCwIcon size={12} />, className: 'badge badge-info' },
     expired: { label: 'Expired', icon: <ClockIcon size={12} />, className: 'badge badge-error' },
   };
   const item = config[status];
-  if (!item) return <span className="badge">{status}</span>;
+  if (!item) return <span className="badge badge-warning" style={{ fontWeight: 700 }}>{status}</span>;
   return (
-    <span className={item.className} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+    <span className={item.className} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}>
       {item.icon}
       {item.label}
     </span>

@@ -1570,8 +1570,8 @@ export default function BuyNumber() {
                             </button>
                           </div>
                         ) : (
-                          <span className={`badge badge-${ro.status === 'waiting' ? 'warning' : 'ghost'}`}>
-                            {ro.status === 'code_received' ? 'OTP Received' : ro.status}
+                          <span className={`badge ${['code_received', 'completed'].includes(ro.status) ? 'badge-success' : ro.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(ro.status) ? 'badge-error' : ro.status === 'refunded' ? 'badge-info' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
+                            {['code_received', 'completed'].includes(ro.status) ? 'OTP Received' : ro.status.replace('_', ' ')}
                           </span>
                         )}
                       </td>
