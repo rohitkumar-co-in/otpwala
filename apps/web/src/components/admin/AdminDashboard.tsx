@@ -886,14 +886,14 @@ export default function AdminDashboard() {
                       {o.status === 'waiting' ? (
                         <div>Waiting: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                       ) : o.status === 'code_received' || o.sms_code ? (
-                        <>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.15rem' }}>
                           <div>Sale: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                           {o.cost_price_inr != null && (
                             <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>
                               Gross profit: ₹{(parseFloat(o.sell_price_inr || 0) - parseFloat(o.cost_price_inr || 0)).toFixed(2)}
                             </div>
                           )}
-                        </>
+                        </div>
                       ) : o.refund_status === 'refunded' ? (
                         <div style={{ color: 'var(--text-muted)' }}>Refunded: ₹{parseFloat(o.sell_price_inr || 0).toFixed(2)}</div>
                       ) : (
