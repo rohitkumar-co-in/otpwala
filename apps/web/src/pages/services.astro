@@ -23,6 +23,11 @@ const services = referenceServiceData.services.map((entry) => {
   };
 });
 const popularServiceOrder = referenceServiceData.popular;
+const getServiceGroup = (name) => {
+  const first = (name.trim()[0] || '#').toUpperCase();
+  return /\d/.test(first) ? '0-9' : /^[A-Z]$/.test(first) ? first : '#';
+};
+const serviceGroupOrder = (key) => key === '0-9' ? 0 : key === '#' ? 27 : key.charCodeAt(0) - 64;
 
 // SEO Structured Data
 const breadcrumbSchema = {
@@ -154,7 +159,7 @@ const servicesFaqSchema = {
           </div>
           <nav id="service-alpha" class="catalog-alpha" aria-label="Service initials"></nav>
           <div class="services-grid" id="services-grid" aria-live="polite">
-            {Object.entries(Object.groupBy(services, (service) => (service.name.trim()[0] || '#').toUpperCase().match(/[A-Z]/) ? service.name.trim()[0].toUpperCase() : '#')).sort(([a], [b]) => a.localeCompare(b)).map(([letter, group]) => (
+            {Object.entries(Object.groupBy(services, (service) => getServiceGroup(service.name))).sort(([a], [b]) => serviceGroupOrder(a) - serviceGroupOrder(b)).map(([letter, group]) => (
               <section class="directory-group" id={`svc-${letter}`}>
                 <h3 class="directory-group-heading"><span>{letter}</span><small>{group.length}</small></h3>
                 <div class="directory-grid">{group.map((service) => (
@@ -899,7 +904,10 @@ const servicesFaqSchema = {
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)?.push(service);
     });
-    const sections = [...groups.entries()].map(([key, group]) => {
+    const sections = [...groups.entries()].sort(([a], [b]) => {
+      const order = (key) => key === '0-9' ? 0 : key === '#' ? 27 : key.charCodeAt(0) - 64;
+      return order(a) - order(b);
+    }).map(([key, group]) => {
       const section = document.createElement('section');
       section.className = 'directory-group';
       section.id = `svc-${key}`;

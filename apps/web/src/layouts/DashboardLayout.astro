@@ -708,7 +708,7 @@ const formattedTitle = formatPageTitle(title);
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('id, role, is_banned')
+          .select('id, role, is_banned, wallet_balance')
           .eq('id', session.user.id)
           .maybeSingle();
         existingProfile = data;
@@ -972,9 +972,13 @@ const formattedTitle = formatPageTitle(title);
           }
         });
       }
-      const cachedWalletBalance = Number(localStorage.getItem(walletBalanceStorageKey));
-      if (Number.isFinite(cachedWalletBalance)) {
-        (window as any).__otpwala_balance = cachedWalletBalance;
+      const profileWalletBalance = Number(existingProfile?.wallet_balance);
+      const cachedWalletBalanceValue = localStorage.getItem(walletBalanceStorageKey);
+      const cachedWalletBalance = cachedWalletBalanceValue === null ? Number.NaN : Number(cachedWalletBalanceValue);
+      const initialWalletBalance = Number.isFinite(profileWalletBalance) ? profileWalletBalance : cachedWalletBalance;
+      if (Number.isFinite(initialWalletBalance)) {
+        (window as any).__otpwala_balance = initialWalletBalance;
+        localStorage.setItem(walletBalanceStorageKey, String(initialWalletBalance));
       }
       initCurrencyControls();
       void loadCurrencyPreference();
