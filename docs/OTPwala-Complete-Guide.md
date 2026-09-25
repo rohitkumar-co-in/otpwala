@@ -4,7 +4,7 @@ This document explains how OTPWala works, how to install it locally, how to init
 
 For a step-by-step launch on a new domain, see the [fresh-domain hosting guide](./FRESH-DOMAIN-HOSTING.md).
 
-For automated GitHub Actions database dumps and restore testing, see the [database backup guide](./DATABASE-BACKUPS.md). The logical CLI dump does not include Supabase Auth users or Storage files.
+For automated GitHub Actions database dumps, the exact Supabase Session Pooler URI selection path, and restore testing, see the [database backup guide](./DATABASE-BACKUPS.md). The logical CLI dump does not include Supabase Auth users or Storage files.
 
 ## 1. What OTPWala is
 
