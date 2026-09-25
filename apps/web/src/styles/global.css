@@ -820,6 +820,75 @@ tr:hover td {
 }
 
 /* ─── Responsive Standards for All Devices ─── */
+.wallet-upi-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.wallet-upi-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+  color: var(--text-primary);
+}
+
+.wallet-upi-heading > img { flex: 0 0 auto; margin-top: 1px; }
+.wallet-upi-heading label { min-width: 0; margin: 0; font-size: 0.95rem; font-weight: 700; line-height: 1.45; }
+
+.wallet-upi-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 220px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  min-width: 0;
+}
+
+.wallet-upi-qr-card {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+.wallet-upi-qr-image {
+  display: block;
+  width: min(180px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 7px;
+  image-rendering: pixelated;
+}
+
+.wallet-upi-qr-caption { margin-top: 0.45rem; color: #111827; font-size: 0.8rem; font-weight: 750; text-align: center; }
+.wallet-upi-details { display: flex; flex-direction: column; gap: 1.15rem; min-width: 0; width: 100%; }
+.wallet-upi-label { display: block; margin-bottom: 0.35rem; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
+.wallet-upi-payee { color: var(--text-primary); font-size: clamp(1rem, 2vw, 1.15rem); font-weight: 750; line-height: 1.4; overflow-wrap: anywhere; }
+.wallet-upi-id-row { display: flex; align-items: stretch; gap: 0.55rem; min-width: 0; width: 100%; }
+.wallet-upi-id { display: flex; align-items: center; min-width: 0; flex: 1 1 auto; box-sizing: border-box; padding: 0.7rem 0.8rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--accent-primary); font-family: var(--font-mono); font-size: clamp(0.82rem, 2vw, 0.95rem); font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; word-break: break-word; }
+.wallet-upi-app-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; width: fit-content; max-width: 100%; min-height: 42px; white-space: normal; text-align: center; }
+
+@media (max-width: 680px) {
+  .wallet-upi-layout { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .wallet-upi-qr-card { width: fit-content; }
+  .wallet-upi-details { gap: 1rem; }
+  .wallet-upi-app-button { width: 100%; }
+}
+
+@media (max-width: 380px) {
+  .wallet-upi-card { padding: 1rem !important; }
+  .wallet-upi-id-row { gap: 0.4rem; }
+  .wallet-upi-id { padding-inline: 0.6rem; }
+  .wallet-upi-id-row .btn { padding-inline: 0.65rem; }
+}
+
 .sidebar-backdrop {
   position: fixed;
   inset: 0;

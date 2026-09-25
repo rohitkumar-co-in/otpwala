@@ -856,6 +856,7 @@ export default function WalletPage() {
         {paymentMethod === 'upi' ? (
           /* UPI Payment Details */
           <div
+            className="wallet-upi-card"
             style={{
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-subtle)',
@@ -864,75 +865,52 @@ export default function WalletPage() {
               marginBottom: '1.5rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div className="wallet-upi-heading">
               <UpiIcon size={20} />
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
+              <label>
                 2. Scan QR or Pay to Admin UPI ID:
               </label>
             </div>
 
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className="wallet-upi-layout">
               {/* Dynamic QR Box */}
-              <div
-                style={{
-                  background: '#ffffff',
-                  padding: '10px',
-                  borderRadius: 'var(--radius-md)',
-                  display: 'inline-flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                }}
-              >
+              <div className="wallet-upi-qr-card">
                 <img
+                  className="wallet-upi-qr-image"
                   src={qrUrl}
                   alt="UPI Deposit QR Code"
                   width={170}
                   height={170}
-                  style={{ display: 'block', borderRadius: '4px' }}
                 />
-                <span style={{ color: '#111827', fontSize: '0.75rem', fontWeight: 700, marginTop: '6px' }}>
+                <span className="wallet-upi-qr-caption">
                   Scan to Pay ₹{numericAmount}
                 </span>
               </div>
 
               {/* UPI Details & Intent */}
-              <div style={{ flex: 1, minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="wallet-upi-details">
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                  <span className="wallet-upi-label">
                     Payee Business Name
                   </span>
-                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                  <div className="wallet-upi-payee">
                     {walletConfig.upiName}
                   </div>
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
+                  <span className="wallet-upi-label">
                     Admin UPI ID / VPA
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        background: 'var(--bg-tertiary)',
-                        border: '1px solid var(--border-subtle)',
-                        padding: '0.5rem 0.85rem',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        color: 'var(--accent-primary)',
-                        flex: 1,
-                        maxWidth: '280px',
-                      }}
-                    >
+                  <div className="wallet-upi-id-row">
+                    <div className="wallet-upi-id">
                       {walletConfig.upiId}
                     </div>
                     <button
                       type="button"
                       onClick={handleCopyUpi}
                       className="btn btn-secondary btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flex: '0 0 auto' }}
                     >
                       {copied ? <CheckIcon size={14} color="#34d399" /> : <CopyIcon size={14} />}
                       <span>{copied ? 'Copied!' : 'Copy'}</span>
@@ -944,8 +922,7 @@ export default function WalletPage() {
                 <div>
                   <a
                     href={upiPayUri}
-                    className="btn btn-secondary btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    className="btn btn-secondary btn-sm wallet-upi-app-button"
                   >
                     <QrCodeIcon size={14} />
                     <span>Open in UPI App (GPay/PhonePe/Paytm)</span>
