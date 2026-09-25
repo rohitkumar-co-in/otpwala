@@ -102,6 +102,10 @@ jobs:
           test -s "$backup_tmp/schema.sql"
           test -s "$backup_tmp/data.sql"
 
+          # The dumps run from a temporary Supabase workdir. Return to the
+          # checked-out repository before using its origin remote or git index.
+          cd "$GITHUB_WORKSPACE"
+
           backup_dir="$backup_tmp/latest"
           mkdir -p "$backup_dir"
           for dump in roles schema data; do
