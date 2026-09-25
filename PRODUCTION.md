@@ -61,7 +61,7 @@ Use a staging project and disposable accounts for flows that spend money, change
 
 1. Sign in as admin. Confirm a normal user cannot retrieve admin data or use admin APIs. Enroll and verify MFA for privileged accounts.
 2. Check dashboard financial totals and integrity warnings against the ledger. A waiting order must not be displayed as refunded.
-3. At phone and desktop widths, review Orders and Users. Check service/country icons, copying, OTP status, currency, sale/cost/profit placement, filters, and pagination.
+3. At phone and desktop widths, review Orders and Users. Check service/country icons, copying, OTP status, currency, sale/cost/profit placement, filters, and pagination. In the Users cards, confirm Registered and Last Login each show date and time together in the value column.
 4. In staging, test global, service, country, and service-country pricing overrides. Confirm a quote before buying.
 5. Test catalog enable/disable, featured ordering, and search in staging.
 6. Test recharge review, one-time approve/reject, funding-source classification, and resulting ledger balance.
@@ -71,7 +71,7 @@ Use a staging project and disposable accounts for flows that spend money, change
 
 ## Audit snapshot (2026-09-25)
 
-- At the time of the earlier web check, Cloudflare Pages showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational. Commit `2703e4c` was later pushed to GitHub `main`; confirm its Cloudflare deployment before treating it as the live web release.
+- Historical live check: Cloudflare Pages showed production `main` at commit `be0f79c`; `/api/health` reported the website, database, and SMS provider operational. GitHub `main` has since advanced to `6ac9703` (including the responsive admin-user timestamp fix). Confirm the Cloudflare deployment separately before treating that commit as live.
 - Production verification passed: web build, API type-check, 24 unit tests, production guardrails, and 10/10 unauthenticated smoke checks.
 - Read-only GET checks returned HTTP 200 for the listed public pages, auth screens, customer dashboard pages, and admin page shells. This does not prove authenticated flows work.
 - Web and API production dependency audits reported no known vulnerabilities.

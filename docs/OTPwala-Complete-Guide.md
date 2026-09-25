@@ -54,7 +54,7 @@ Supabase (Auth + Postgres)  Tiger SMS provider
 - Pricing rules by global fallback, service, country, or service+country.
 - Catalog visibility controls with 1-click batch actions.
 - Top-up approval/rejection and manual wallet credits declaring funding sources (cash vs free grant).
-- User search, details inspect modal with running balance ledger, ban/unban, promote/demote, and zero-markup toggle.
+- User search, details inspect modal with running balance ledger, ban/unban, promote/demote, and zero-markup toggle. On mobile, Registered and Last Login dates keep their times grouped in the value column.
 - Full user dossier export (1-click download of all user profile data, IP/ISP security logs, orders, ledger, payment requests, and tickets).
 - Multi-tier referral fraud logs and automated network collision protection.
 - Support queue with status, priority, internal notes, threaded replies, and ticket-type context.
@@ -335,6 +335,7 @@ The smoke suite checks homepage, status, health, auth configuration, protected s
 - [ ] `npx supabase migration list --linked --workdir apps/api` shows reviewed, reconciled local/remote history.
 - [ ] Supabase Security Advisor findings reviewed. The remaining leaked-password-protection warning is an Auth project setting, not an SQL migration; enable it in the Supabase Auth settings (Pro plan or higher) and rerun Advisors.
 - [ ] Admin and superadmin roles verified.
+- [ ] At phone width, admin Users cards keep Registered and Last Login dates and times together without clipping or placing the time under the field label.
 - [ ] Admin TOTP enrolled and tested with a wrong and correct code.
 - [ ] Tiger API key works and provider balance is funded.
 - [ ] USD/INR rate and markup verified with a live quote.

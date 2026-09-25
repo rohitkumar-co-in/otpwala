@@ -162,6 +162,8 @@ An order stays `waiting` if the provider denies cancellation. Do not treat it as
 
 Superadmins can clear visible user history without deleting the account. One option preserves deposit history and balance; another hides all visible history and resets the spendable balance. This is separate from Purge User, which removes the account and requires the user to be banned first.
 
+On phones, admin user cards show Registered and Last Login dates with their corresponding times together in the value column.
+
 ## 7. Run Locally
 
 Start both applications:
@@ -240,6 +242,8 @@ npx wrangler deploy --config workers/wrangler.jsonc
 Production site: `https://otpwala.me`. Cloudflare preview URLs change with each deployment; find the current one in the Cloudflare Pages deployment list.
 
 The reconciliation Worker is deployed separately with `npx wrangler deploy --config workers/wrangler.jsonc`. Its cron trigger runs every minute and its `CRON_SECRET` must match the secret configured for the Pages API.
+
+Before making a source backup, clear generated output with `npm run clean`. This removes `dist`, `apps/web/dist`, `apps/api/dist`, and `apps/web/.astro`; it does not remove source, installed dependencies, environment files, or Wrangler state. Keep secrets out of the backup or store them in an encrypted vault.
 
 Required production variables belong in Cloudflare Pages settings, not in Git:
 

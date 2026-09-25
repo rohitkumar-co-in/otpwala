@@ -69,7 +69,7 @@
 
 ### 6. Admin Management Suite (`/admin`)
 - **Dashboard Overview**: Financial health checks, provider balance status, platform revenue vs wallet liabilities, pending deposits with 1-click in-site approve/reject.
-- **User Management (`/admin/users`)**: Search users, view balance details & ledger history, export complete user dossiers, credit funds with mandatory funding source, ban/unban, promote/demote, and toggle zero-markup status.
+- **User Management (`/admin/users`)**: Search users, view balance details & ledger history, export complete user dossiers, credit funds with mandatory funding source, ban/unban, promote/demote, and toggle zero-markup status. Registration and last-login dates keep their times grouped beside them on mobile.
 - **History controls**: Superadmins can hide a user's visible activity while keeping the account, either preserving deposits and balance or hiding all visible history and resetting the spendable balance. This is separate from the existing irreversible Purge User action.
 - **Funding Sources & Balance Sheet (`/admin/recharges`)**: Explicit distinction between cash collected (UPI / confirmed manual funding) and free granted balance (promotional/goodwill).
 - **Dynamic Profit Margins (`/admin/pricing`)**: Percentage and fixed markup rules globally, per-service, or per-country with profit margin simulator.
@@ -150,6 +150,8 @@ pnpm dev:web
 ```bash
 npm run verify:production
 ```
+
+To remove generated build output before making a source backup, run `npm run clean`. This removes the root/web/API `dist` folders and Astro's generated cache; it does not remove source files, dependencies, local environment files, or Wrangler state.
 
 Cloudflare deployment after `npx wrangler login`:
 

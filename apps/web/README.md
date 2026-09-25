@@ -29,6 +29,8 @@ The wallet page and dashboard navigation use the same authenticated wallet respo
 
 The public site, customer dashboard, and admin panel are designed to work across phone, tablet, and desktop widths. Customer order and catalog views reuse the configured service artwork and country flags. Customer-facing prices use the selected currency only.
 
+Responsive table cards keep related content grouped within each value cell. In the admin user list, registration and last-login dates keep their times directly beneath the date, rather than wrapping into the label column.
+
 Order cancellation is provider-confirmed. A denied cancellation remains `waiting`; the UI must not show a refund until cancellation/expiry is confirmed and the wallet ledger records it.
 
 Admin user-history clearing is not account purge. The superadmin can hide activity while preserving deposits and balance, or hide all visible history and reset the spendable balance. The existing Purge User action remains a separate, irreversible account operation.
@@ -78,3 +80,5 @@ Do not edit balances or ledger rows directly in the browser, Pages Functions, or
 From the repository root, run `npm run verify:production`. This builds the static web site and API, runs unit tests and production guardrails, and sends unauthenticated smoke requests to the production site. It does not test signed-in journeys, payments, real OTP delivery, responsive screenshots, or destructive admin features; use staging and disposable accounts for those checks.
 
 Before applying Supabase SQL, compare local and remote history with `npx supabase migration list --linked --workdir apps/api`. A local-only migration might already have been run manually, so reconcile the actual schema before applying or repairing migration history.
+
+Before creating a source backup, `npm run clean` removes generated root, web, and API build output plus Astro's generated cache. It leaves source, dependencies, environment files, and Wrangler state untouched.
