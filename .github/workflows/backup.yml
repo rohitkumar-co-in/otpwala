@@ -184,7 +184,7 @@ jobs:
             echo "The database dump has not changed; no backup commit is needed."
             exit 0
           fi
-          git commit -m "chore(backup): refresh Supabase database dump"
+          git commit -m "[CF-Pages-Skip] chore(backup): refresh Supabase database dump"
           if [[ "$rewrite_backup_branch" == "true" ]]; then
             git push --force-with-lease="refs/heads/database-backups:$remote_sha" origin HEAD:database-backups
           else

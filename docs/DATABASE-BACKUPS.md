@@ -6,6 +6,8 @@ The workflow is intentionally off until `BACKUP_ENABLED` is set to `true`. It ru
 
 The dump step runs from a minimal temporary Supabase project config, not the app's local config. This keeps local-only settings from preventing the remote database backup. The `database-backups` branch contains only dated database snapshots, not a duplicate copy of the application. When converting an older branch that contains project files, prior successful snapshots are moved into date folders before the branch history is cleaned.
 
+Automated backup commits use Cloudflare Pages' `[CF-Pages-Skip]` prefix so database-only changes do not trigger website preview builds.
+
 Each roles, schema, and data dump is logged as a separate stage with its start time, duration, CLI output, and exit status. If one fails, the workflow prints its captured output with connection passwords redacted.
 
 ## One-time GitHub setup
