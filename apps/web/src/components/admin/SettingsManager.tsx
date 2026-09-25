@@ -15,7 +15,6 @@ import {
   CheckIcon,
   XIcon,
   ZapIcon,
-  TagIcon,
 } from '../ui/Icons';
 
 const getCachedSettings = () => {
@@ -43,12 +42,7 @@ export default function SettingsManager() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Category 1: Brand & Slogan Configuration
-  const [brandName, setBrandName] = useState(cachedS.brand_name || 'OTPWala');
-  const [titleSeparator, setTitleSeparator] = useState(cachedS.title_separator && !/[\u2014\u2013]/.test(cachedS.title_separator) ? cachedS.title_separator : '|');
-  const [brandSlogan, setBrandSlogan] = useState(cachedS.brand_slogan && cachedS.brand_slogan !== 'Instant Virtual Numbers for SMS Verification' ? cachedS.brand_slogan : 'Check services, country availability, and prices for SMS verification.');
-
-  // Category 3: Currency & Pricing
+  // Category 1: Currency & Pricing
   const cachedRateMode = cachedS.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom';
   const cachedUnifiedRate = cachedS.custom_dollar_rate || cachedS.usd_to_inr_rate || cachedS.usdt_inr_rate || '86.50';
   const [rateMode, setRateMode] = useState<'tiger_default' | 'custom'>(cachedRateMode);
@@ -57,7 +51,7 @@ export default function SettingsManager() {
   const [usdToInr, setUsdToInr] = useState(cachedS.usd_to_inr_rate || cachedUnifiedRate);
   const [defaultMarkup, setDefaultMarkup] = useState(cachedS.default_markup_percentage || cachedS.default_markup_percent || '25');
 
-  // Category 4: Wallet Limits & Suggestions
+  // Category 2: Wallet Limits & Suggestions
   const [minDeposit, setMinDeposit] = useState(cachedS.min_deposit_inr || cachedS.min_topup_amount || '50');
   const [maxDeposit, setMaxDeposit] = useState(cachedS.max_deposit_inr || '50000');
   const [suggestion1, setSuggestion1] = useState(cachedS.deposit_suggestion_1 || '50');
@@ -66,7 +60,7 @@ export default function SettingsManager() {
   const [suggestion4, setSuggestion4] = useState(cachedS.deposit_suggestion_4 || '300');
   const [suggestion5, setSuggestion5] = useState(cachedS.deposit_suggestion_5 || '500');
 
-  // Category 5: UPI & Support
+  // Category 3: UPI & Support
   const [upiId, setUpiId] = useState(cachedS.upi_id || 'otpwala@upi');
   const [upiName, setUpiName] = useState(cachedS.upi_merchant_name || 'OTPWala Services');
   const [supportTelegram, setSupportTelegram] = useState(cachedS.support_telegram || '@OTPWalaSupport');
@@ -95,19 +89,19 @@ export default function SettingsManager() {
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramTestResult, setTelegramTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Category 6: Referral Tiers & Window
+  // Category 4: Referral Tiers & Window
   const [refTier1, setRefTier1] = useState(cachedS.referral_bonus_tier1_percent || '20');
   const [refTier2, setRefTier2] = useState(cachedS.referral_bonus_tier2_percent || '5');
   const [refTier3, setRefTier3] = useState(cachedS.referral_bonus_tier3_percent || '5');
   const [refWindowDays, setRefWindowDays] = useState(cachedS.referral_bonus_window_days || '30');
 
-  // Category 7: Access & Maintenance
+  // Category 5: Access & Maintenance
   const [maintenanceMode, setMaintenanceMode] = useState(cachedS.maintenance_mode || 'false');
   const [allowEmailSignup, setAllowEmailSignup] = useState(cachedS.allow_email_signup !== 'false');
   const [allowGoogleLogin, setAllowGoogleLogin] = useState(cachedS.allow_google_login !== 'false');
   const [allowRegistration, setAllowRegistration] = useState(cachedS.allow_registration !== 'false');
 
-  const loadSettings = async () => {
+  const loadSettings = async (isManual = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -125,10 +119,6 @@ export default function SettingsManager() {
       } else {
         setTigerStatus('error');
       }
-
-      if (s.brand_name) setBrandName(s.brand_name);
-      if (s.title_separator) setTitleSeparator(s.title_separator);
-      if (s.brand_slogan) setBrandSlogan(s.brand_slogan === 'Instant Virtual Numbers for SMS Verification' ? 'Check services, country availability, and prices for SMS verification.' : s.brand_slogan);
 
       if (s.dollar_rate_mode) {
         setRateMode(s.dollar_rate_mode === 'tiger_default' ? 'tiger_default' : 'custom');
@@ -309,9 +299,6 @@ export default function SettingsManager() {
 
     try {
       await saveAdminSettingsBatch({
-        brand_name: brandName.trim() || 'OTPWala',
-        title_separator: titleSeparator.trim() || '|',
-        brand_slogan: brandSlogan.trim() || 'Check services, country availability, and prices for SMS verification.',
         dollar_rate_mode: rateMode,
         tiger_default_rate: tigerDefaultRate,
         custom_dollar_rate: customDollarRate,
@@ -351,46 +338,19 @@ export default function SettingsManager() {
 
       if (typeof window !== 'undefined') {
         try {
-          const finalBrand = brandName.trim() || 'OTPWala';
-          const finalSep = titleSeparator.trim() || '|';
-          const finalSlogan = brandSlogan.trim() || 'Check services, country availability, and prices for SMS verification.';
-
-          localStorage.setItem('otpwala_branding', JSON.stringify({
-            brandName: finalBrand,
-            separator: finalSep,
-            slogan: finalSlogan,
-          }));
-
           localStorage.setItem('otpwala_auth_config', JSON.stringify({
             allowEmailSignup,
             allowGoogleLogin,
             allowRegistration,
           }));
-
-          // Immediately update DOM title & elements
-          const path = window.location.pathname;
-          if (path === '/' || path === '') {
-            document.title = `${finalBrand} ${finalSep} ${finalSlogan}`;
-          } else {
-            document.title = `Settings ${finalSep} ${finalBrand}`;
-          }
-          document.querySelectorAll('[data-brand-name]').forEach((el) => {
-            el.textContent = finalBrand;
-          });
-          document.querySelectorAll('[data-brand-slogan]').forEach((el) => {
-            el.textContent = finalSlogan;
-          });
-          document.querySelectorAll('[data-brand-separator]').forEach((el) => {
-            el.textContent = finalSep;
-          });
         } catch { }
       }
 
       setUsdToInr(effectiveRate);
-      setSuccess(`All system settings successfully saved! Brand: "${brandName}", Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%, Referral Window: ${refWindowDays} days.`);
+      setSuccess(`All system settings successfully saved! Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%, Referral Window: ${refWindowDays} days.`);
       setRecentSave(true);
       setTimeout(() => setRecentSave(false), 2500);
-      toast.success(`All system settings successfully saved! Brand: "${brandName}", Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%`, 'Settings Saved');
+      toast.success(`All system settings successfully saved! Rate: ₹${effectiveRate}/USD, Markup: ${defaultMarkup}%`, 'Settings Saved');
     } catch (err: any) {
       setError(err.message || 'Failed to save settings');
       toast.error(err.message || 'Failed to save settings', 'Save Failed');
@@ -441,7 +401,7 @@ export default function SettingsManager() {
             System <span className="text-gradient">Settings</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Branding, Tiger SMS gateway, currency exchange rates, wallet limits, UPI, referrals, and access controls
+            Tiger SMS gateway, currency exchange rates, wallet limits, UPI, referrals, and access controls
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -548,107 +508,6 @@ export default function SettingsManager() {
 
       {/* Main Settings Form */}
       <form onSubmit={handleSaveAll} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-        {/* BRANDING, TITLE SEPARATOR & HOMEPAGE TAB SLOGAN */}
-        <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #6366f1' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <div>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <TagIcon size={20} color="#6366f1" />
-                <span>Brand Identity &amp; Browser Tab Slogan</span>
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
-                Global website brand name, browser title separator, and homepage tab slogan. Changing here updates the whole site at once.
-              </p>
-            </div>
-            <span className="badge badge-accent" style={{ fontSize: '0.75rem' }}>
-              Site-Wide Variable
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Brand Name
-              </label>
-              <input
-                type="text"
-                required
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                className="input"
-                style={{ width: '100%' }}
-                placeholder="e.g. OTPWala"
-              />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Shown in the logo, header, navbar, footer copyright, and notifications.
-              </span>
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Title Separator Character
-              </label>
-              <input
-                type="text"
-                required
-                value={titleSeparator}
-                onChange={(e) => setTitleSeparator(e.target.value)}
-                className="input"
-                style={{ width: '100%' }}
-                placeholder="e.g. | or •"
-              />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Separator between page name and brand in browser tabs, such as &quot;|&quot; or &quot;•&quot;.
-              </span>
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-                Homepage Tab Slogan
-              </label>
-              <input
-                type="text"
-                required
-                value={brandSlogan}
-                onChange={(e) => setBrandSlogan(e.target.value)}
-                className="input"
-                style={{ width: '100%' }}
-                placeholder="e.g. Instant Virtual Numbers for SMS Verification"
-              />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.3rem' }}>
-                Tagline appended to the brand name on the homepage browser tab.
-              </span>
-            </div>
-
-          </div>
-
-          {/* Live Browser Tab Preview Box */}
-          <div style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1rem',
-          }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-              Live Browser Tab Title Preview:
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)', width: '90px', fontSize: '0.75rem' }}>Homepage:</span>
-                <strong style={{ color: 'var(--accent-primary)', background: 'rgba(99, 102, 241, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
-                  {brandName || 'OTPWala'} {titleSeparator || '|'} {brandSlogan || 'Check services, country availability, and prices for SMS verification.'}
-                </strong>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)', width: '90px', fontSize: '0.75rem' }}>Subpages:</span>
-                <strong style={{ color: 'var(--text-primary)', background: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
-                  Dashboard {titleSeparator || '|'} {brandName || 'OTPWala'}
-                </strong>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* UPSTREAM TIGER SMS PROVIDER HEALTH */}
         <div className="card glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-primary)' }}>
@@ -1923,7 +1782,7 @@ export default function SettingsManager() {
               Ready to save all settings?
             </div>
             <div style={{ fontSize: '0.785rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              Commits all platform configuration: Brand Identity, Tiger SMS Gateway, Dollar Exchange Rate, Margins, Wallet Limits, UPI Setup, Referrals, and Maintenance Controls.
+              Saves the Tiger SMS gateway, currency rates, pricing, wallet limits, payment setup, referrals, and access controls.
             </div>
           </div>
           <button

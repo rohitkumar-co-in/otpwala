@@ -77,7 +77,7 @@
 - **Order Audit Log (`/admin/orders`)**: Service and country icons, phone numbers, OTP status, sale price, provider cost, and gross profit.
 - **Support & Privacy Erasure Queue (`/admin/support`)**: Support tickets with threaded replies, internal admin notes, and data erasure approval workflows.
 - **Admin Audit Trail (`/admin/audit`)**: Immutable log of privileged administrator actions with structured columns, categorized color-coded action badges, live payload previews, interactive JSON inspection modal with 1-click copy and file download, and full JSON audit trail export.
-- **System Settings (`/admin/settings`)**: Currency rates, payment instructions, Telegram admin notifications, order notification mode, provider balance alerts, and maintenance controls.
+- **System Settings (`/admin/settings`)**: Currency rates, payment instructions, Telegram admin notifications, order notification mode, provider balance alerts, and maintenance controls. Site identity and the homepage slogan are fixed in the site templates, not editable settings.
   - **Order notifications** can be limited to OTP-completed orders or use one Telegram message per order that is updated as its status changes.
 
 ---
@@ -114,7 +114,7 @@ PUBLIC_API_URL=http://localhost:3001
 ### 4. Database Setup (Supabase)
 - For a new Supabase project: Run [`supabase/otpwala-standalone.sql`](./supabase/otpwala-standalone.sql) once in the SQL Editor.
 - For an existing project: first compare migration history with `npx supabase migration list --linked --workdir apps/api`. Do not blindly apply local-only migrations to a database that may have received the same SQL manually. Review and reconcile the schema and migration history before applying changes.
-- Current migrations include user-history controls, hardened and optimized RLS policies, and removal of duplicate indexes. Supabase production migration history was reconciled through `20260925140000`; only the Auth leaked-password-protection setting remains an Advisor warning, and it must be enabled in Supabase Auth settings. See [the complete setup guide](./docs/OTPwala-Complete-Guide.md) for safe migration procedures.
+- Current migrations include user-history controls, hardened and optimized RLS policies, removal of duplicate indexes, and cleanup of unused dynamic-branding settings. Supabase production migration history is reconciled through `20260925150000`; only the Auth leaked-password-protection setting remains an Advisor warning, and it must be enabled in Supabase Auth settings. See [the complete setup guide](./docs/OTPwala-Complete-Guide.md) for safe migration procedures.
 
 To promote your account to Admin:
 ```sql

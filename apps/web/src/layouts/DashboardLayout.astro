@@ -27,24 +27,6 @@ const formattedTitle = formatPageTitle(title);
     body.dashboard-auth-pending::before { content: ''; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; }
   </style>
 
-  <!-- Instant Site Branding Pre-Hydration (Zero FOUC) -->
-  <script is:inline>
-    (function() {
-      try {
-        var rawB = localStorage.getItem('otpwala_branding');
-        if (rawB) {
-          var b = JSON.parse(rawB);
-          var bName = b.brandName || 'OTPWala';
-          var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
-          var parts = document.title.split(/ [|•\u2014\u2013-] /);
-          var prefix = parts[0] ? parts[0].trim() : '';
-          if (prefix && prefix !== bName) {
-            document.title = prefix + ' ' + bSep + ' ' + bName;
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
 </head>
 <body class="dashboard-auth-pending">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -1018,31 +1000,8 @@ const formattedTitle = formatPageTitle(title);
       }
     })();
 
-    // Dynamic Branding Sync
-    (function syncBranding() {
-      function applyBrand(b) {
-        if (!b) return;
-        var bName = b.brandName || 'OTPWala';
-        var bSep = b.separator && !/[\u2014\u2013]/.test(b.separator) ? b.separator : '|';
-        if (document.title) {
-          var parts = document.title.split(/ [|•\u2014\u2013-] /);
-          var prefix = parts[0] ? parts[0].trim() : '';
-          if (prefix && prefix !== bName) {
-            document.title = prefix + ' ' + bSep + ' ' + bName;
-          }
-        }
-        document.querySelectorAll('[data-brand-name]').forEach(function(el) {
-          el.textContent = bName;
-        });
-        document.querySelectorAll('[data-brand-separator]').forEach(function(el) {
-          el.textContent = bSep;
-        });
-
-        if (typeof b.maintenanceMode !== 'undefined') {
-          checkMaintenance(b.maintenanceMode);
-        }
-      }
-
+    // Branding is fixed in the page templates. Maintenance mode stays dynamic.
+    (function syncMaintenanceMode() {
       function checkMaintenance(isMaint) {
         var overlay = document.getElementById('fullsite-maintenance-overlay');
         if (!overlay) return;
@@ -1068,20 +1027,14 @@ const formattedTitle = formatPageTitle(title);
         if (cachedMaint === 'true') checkMaintenance(true);
       } catch(e) {}
 
-      try {
-        var cached = localStorage.getItem('otpwala_branding');
-        if (cached) applyBrand(JSON.parse(cached));
-      } catch(e) {}
-
-      fetch('/api/branding')
+      fetch('/api/site-config')
         .then(function(res) { return res.json(); })
         .then(function(json) {
           if (json && json.success && json.data) {
-            localStorage.setItem('otpwala_branding', JSON.stringify(json.data));
             if (typeof json.data.maintenanceMode !== 'undefined') {
               localStorage.setItem('otpwala_maintenance_mode', String(json.data.maintenanceMode));
+              checkMaintenance(json.data.maintenanceMode);
             }
-            applyBrand(json.data);
           }
         })
         .catch(function() {});

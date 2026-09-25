@@ -19,14 +19,14 @@ export function getApiBaseUrl(): string {
 
 const API_URL = getApiBaseUrl();
 
-const PUBLIC_PATHS = ['/api/services', '/api/countries', '/api/branding', '/api/health', '/api/auth/config'];
+const PUBLIC_PATHS = ['/api/services', '/api/countries', '/api/site-config', '/api/health', '/api/auth/config'];
 
 async function getAuthToken(isPublic = false): Promise<string | null> {
   // 1. Instant synchronous check from localStorage (0ms)
   const syncSession = getStoredSessionSync();
   if (syncSession?.access_token) return syncSession.access_token;
 
-  // If this is a public catalog/branding route, never block on auth resolution
+  // If this is a public catalog or site-config route, never block on auth resolution
   if (isPublic) {
     return null;
   }

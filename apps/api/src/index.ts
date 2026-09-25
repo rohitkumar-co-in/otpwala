@@ -103,38 +103,28 @@ app.get('/api/wallet/config', async (_req, res) => {
   }
 });
 
-// ─── Public Branding & Site Configuration ───
-app.get('/api/branding', async (_req, res) => {
+// ─── Public Site Configuration ───
+app.get('/api/site-config', async (_req, res) => {
   try {
     const { supabaseAdmin } = await import('./config/supabase.js');
     const { data, error } = await supabaseAdmin
       .from('settings')
-      .select('key, value')
-      .in('key', ['brand_name', 'title_separator', 'brand_slogan', 'maintenance_mode']);
+      .select('value')
+      .eq('key', 'maintenance_mode')
+      .maybeSingle();
 
     if (error) throw error;
-
-    const map: Record<string, string> = {};
-    (data || []).forEach((r) => {
-      map[r.key] = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
-    });
 
     res.json({
       success: true,
       data: {
-        brandName: map['brand_name'] || 'OTPWala',
-        separator: map['title_separator'] || '—',
-        slogan: map['brand_slogan'] || 'Instant Virtual Numbers for SMS Verification',
-        maintenanceMode: map['maintenance_mode'] === 'true',
+        maintenanceMode: data?.value === true || data?.value === 'true',
       },
     });
   } catch (e: any) {
     res.json({
       success: true,
       data: {
-        brandName: 'OTPWala',
-        separator: '—',
-        slogan: 'Instant Virtual Numbers for SMS Verification',
         maintenanceMode: false,
       },
     });

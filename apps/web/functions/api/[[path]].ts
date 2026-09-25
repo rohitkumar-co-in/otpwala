@@ -276,26 +276,19 @@ export const onRequest = async (context: any) => {
       return jsonResponse({ success: true, data: result });
     }
 
-    // ─── Branding ───
-    if (path === '/api/branding') {
+    // ─── Fixed site identity and dynamic maintenance state ───
+    if (path === '/api/site-config') {
       const supabase = getSupabaseAdmin(env);
       const { data } = await supabase
         .from('settings')
-        .select('key, value')
-        .in('key', ['brand_name', 'title_separator', 'brand_slogan', 'maintenance_mode']);
-
-      const map: Record<string, string> = {};
-      (data || []).forEach((r: any) => {
-        map[r.key] = typeof r.value === 'string' ? r.value : JSON.stringify(r.value);
-      });
+        .select('value')
+        .eq('key', 'maintenance_mode')
+        .maybeSingle();
 
       return jsonResponse({
         success: true,
         data: {
-          brandName: map['brand_name'] || 'OTPWala',
-          separator: map['title_separator'] || '—',
-          slogan: map['brand_slogan'] || 'Instant Virtual Numbers for SMS Verification',
-          maintenanceMode: map['maintenance_mode'] === 'true',
+          maintenanceMode: data?.value === true || data?.value === 'true',
         },
       });
     }

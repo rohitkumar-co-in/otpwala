@@ -24,7 +24,7 @@ async function runTests() {
 
   const tests = [
     { name: 'Health Check', url: 'https://otpwala.me/api/health', method: 'GET' },
-    { name: 'Branding', url: 'https://otpwala.me/api/branding', method: 'GET' },
+    { name: 'Site config', url: 'https://otpwala.me/api/site-config', method: 'GET' },
     { name: 'Auth Config', url: 'https://otpwala.me/api/auth/config', method: 'GET' },
     {
       name: 'Check Email (Existing or non-existing)',

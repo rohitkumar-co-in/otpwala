@@ -181,6 +181,7 @@ apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
 apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
 apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
 apps/api/supabase/migrations/20260925140000_optimize_rls_policies_and_indexes.sql
+apps/api/supabase/migrations/20260925150000_remove_dynamic_branding_settings.sql
 ```
 
 The latest migration wraps auth identity checks in scalar subqueries so PostgreSQL can evaluate them once per statement, combines the user/admin security-log read rules, and removes three verified duplicate indexes. Do not repeatedly run a migration that contains a non-idempotent statement unless you have checked its contents.

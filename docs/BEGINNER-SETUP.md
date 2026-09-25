@@ -125,6 +125,7 @@ apps/api/supabase/migrations/20260925100000_admin_user_history_clear.sql
 apps/api/supabase/migrations/20260925130000_fix_supabase_security_advisor_warnings.sql
 apps/api/supabase/migrations/20260925133000_drop_legacy_referral_fraud_policy.sql
 apps/api/supabase/migrations/20260925140000_optimize_rls_policies_and_indexes.sql
+apps/api/supabase/migrations/20260925150000_remove_dynamic_branding_settings.sql
 ```
 
 For a new or correctly reconciled project, use the Supabase CLI migration runner so successful versions are tracked:
