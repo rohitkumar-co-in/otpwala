@@ -4,6 +4,8 @@
 
 **New here? Start with [the beginner setup guide](./docs/BEGINNER-SETUP.md) or [the complete architecture guide](./docs/OTPwala-Complete-Guide.md).**
 
+**Launching on a new domain?** Follow the [fresh-domain hosting guide](./docs/FRESH-DOMAIN-HOSTING.md) before configuring DNS or production credentials.
+
 ---
 
 ## Architecture Overview

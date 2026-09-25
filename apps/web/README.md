@@ -1,5 +1,7 @@
 # OTPWala Web
 
+For first-time hosting on a different domain, follow the repository's [fresh-domain hosting guide](../../docs/FRESH-DOMAIN-HOSTING.md). This web app has domain-specific canonical and deployment settings that must be updated before launch.
+
 The production web application is an Astro site with React islands and Cloudflare Pages Functions.
 
 ## Local development

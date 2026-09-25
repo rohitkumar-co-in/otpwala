@@ -1,5 +1,7 @@
 # OTPWala production operations
 
+For a clean deployment on a new domain, follow [`docs/FRESH-DOMAIN-HOSTING.md`](./docs/FRESH-DOMAIN-HOSTING.md) before using this release runbook.
+
 ## Release gates
 
 1. For a new Supabase project, run `supabase/otpwala-standalone.sql` once. For an existing project, compare `npx supabase migration list --linked --workdir apps/api` with the real production schema before applying changes. Never blindly apply local-only migrations or rerun the standalone script over production.
