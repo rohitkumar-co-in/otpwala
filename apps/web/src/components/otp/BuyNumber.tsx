@@ -1486,12 +1486,16 @@ export default function BuyNumber() {
                             </button>
                           </div>
                         ) : (
-                          <span className={`badge ${['code_received', 'completed'].includes(ro.status) ? 'badge-success' : ro.status === 'waiting' ? 'badge-info' : ['cancelled', 'expired'].includes(ro.status) ? 'badge-error' : ro.status === 'refunded' ? 'badge-info' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
+                          <span className={`badge ${['code_received', 'completed'].includes(ro.status) ? 'badge-success' : ro.status === 'waiting' ? 'badge-warning' : ['cancelled', 'expired'].includes(ro.status) ? 'badge-error' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
                             {['code_received', 'completed'].includes(ro.status) ? 'OTP Received' : ro.status.replace('_', ' ')}
                           </span>
                         )}
                       </td>
-                      <td data-label="Price" style={{ fontWeight: 600 }}>{formatCurrencyAmount(Number(ro.net_price_inr ?? ro.sell_price_inr ?? 0), currency, usdRate)}</td>
+                      <td data-label="Price" style={{ fontWeight: 600 }}>
+                        <span className={`order-price-emphasis ${ro.refund_status === 'refunded' || ro.status === 'refunded' ? 'is-refund' : ro.sms_code ? 'is-debit' : ro.status === 'waiting' ? 'is-waiting' : ''}`}>
+                          {ro.refund_status === 'refunded' || ro.status === 'refunded' ? 'Refunded: ' : ro.sms_code ? '−' : ''}{formatCurrencyAmount(Number(ro.net_price_inr ?? ro.sell_price_inr ?? 0), currency, usdRate)}
+                        </span>
+                      </td>
                       <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(ro.created_at).toLocaleString()}
                       </td>

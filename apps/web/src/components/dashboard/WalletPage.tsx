@@ -1356,7 +1356,7 @@ export default function WalletPage() {
                   return (
                     <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td data-label="Type" style={{ padding: '0.75rem 1rem' }}>
-                        <span className={`badge ${isDebit ? 'badge-secondary' : 'badge-success'}`}>
+                        <span className={`badge ${tx.type === 'refund' ? 'badge-warning' : isDebit ? 'badge-secondary' : 'badge-success'}`}>
                           {tx.type}
                         </span>
                       </td>
@@ -1366,7 +1366,7 @@ export default function WalletPage() {
                           padding: '0.75rem 1rem',
                           fontWeight: 700,
                           fontFamily: 'var(--font-mono)',
-                          color: isDebit ? 'var(--error)' : 'var(--success)',
+                          color: tx.type === 'refund' ? 'var(--warning)' : isDebit ? 'var(--error)' : 'var(--success)',
                         }}
                       >
                         {isDebit ? '−' : '+'}{currency === 'USD' ? `$${(amount / usdtRate).toFixed(2)}` : `₹${amount.toFixed(2)}`}

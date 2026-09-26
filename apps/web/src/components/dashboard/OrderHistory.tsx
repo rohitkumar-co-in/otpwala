@@ -175,7 +175,8 @@ export default function OrderHistory() {
               <tbody>
                 {orders.map(order => {
                   const formattedPhone = formatPhoneNumber(order.phone_number, order.country_code);
-                  const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded';
+                  const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded' || order.status === 'refunded';
+                  const hasOtp = Boolean(order.sms_code);
                   return (
                   <tr key={order.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td data-label="Service" style={{ padding: '0.75rem' }}><strong style={{ color: 'var(--text-primary)' }}><OrderCatalogLabel kind="service" name={order.service_name} code={order.service_code} /></strong></td>
@@ -191,10 +192,19 @@ export default function OrderHistory() {
                       ) : 'N/A'}
                     </td>
                     <td data-label="Status" style={{ padding: '0.75rem' }}>
-                      <StatusBadge status={order.status} />
+                      {hasOtp ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{order.sms_code}</span>
+                          <button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem' }} onClick={() => copyToClipboard(String(order.sms_code), `code-${order.id}`)} title="Copy OTP" aria-label={`Copy OTP ${order.sms_code}`}>
+                            {copiedId === `code-${order.id}` ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
+                          </button>
+                        </div>
+                      ) : <StatusBadge status={order.status} />}
                     </td>
                     <td data-label="Price" style={{ padding: '0.75rem' }}>
-                      <span className="order-price-emphasis">{isRefunded ? 'Refunded: ' : 'Net price: '}{formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? order.price_inr ?? 0), currency).primary}</span>
+                      <span className={`order-price-emphasis ${isRefunded ? 'is-refund' : hasOtp ? 'is-debit' : order.status === 'waiting' ? 'is-waiting' : ''}`}>
+                        {isRefunded ? 'Refunded: ' : hasOtp ? '−' : 'Net price: '}{formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? order.price_inr ?? 0), currency).primary}
+                      </span>
                       {Number(order.pricing_adjustment_inr || 0) > 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Number(order.pricing_adjustment_inr).toFixed(2)} price correction credited</div>}
                     </td>
                     <td data-label="Time" style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
@@ -242,11 +252,11 @@ function eventLabel(event: any) {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; icon: any; className: string }> = {
-    waiting: { label: 'Waiting', icon: <ClockIcon size={12} />, className: 'badge badge-info' },
+    waiting: { label: 'Waiting', icon: <ClockIcon size={12} />, className: 'badge badge-warning' },
     code_received: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
     completed: { label: 'OTP Received', icon: <CheckIcon size={12} />, className: 'badge badge-success' },
     cancelled: { label: 'Cancelled', icon: <XIcon size={12} />, className: 'badge badge-error' },
-    refunded: { label: 'Refunded', icon: <RefreshCwIcon size={12} />, className: 'badge badge-info' },
+    refunded: { label: 'Refunded', icon: <RefreshCwIcon size={12} />, className: 'badge badge-warning' },
     expired: { label: 'Expired', icon: <ClockIcon size={12} />, className: 'badge badge-error' },
   };
   const item = config[status];

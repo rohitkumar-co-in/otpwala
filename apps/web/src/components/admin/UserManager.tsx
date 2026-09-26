@@ -1549,11 +1549,11 @@ export default function UserManager() {
                         return (
                           <tr key={tx.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                             <td data-label="Type" style={{ padding: '0.5rem 0.75rem' }}>
-                              <span className={`badge ${isCredit ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '0.65rem' }}>
+                              <span className={`badge ${tx.type === 'refund' ? 'badge-warning' : isCredit ? 'badge-success' : 'badge-error'}`} style={{ fontSize: '0.65rem' }}>
                                 {tx.type}
                               </span>
                             </td>
-                            <td data-label="Amount" style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: isCredit ? '#10b981' : '#ef4444' }}>
+                            <td data-label="Amount" style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: tx.type === 'refund' ? 'var(--warning)' : isCredit ? '#10b981' : '#ef4444' }}>
                               {isCredit ? '+' : '-'}₹{parseFloat(tx.amount || 0).toFixed(2)}
                             </td>
                             <td data-label="Balance After" style={{ padding: '0.5rem 0.75rem', fontWeight: 600, color: '#38bdf8' }}>

@@ -624,6 +624,10 @@ td {
   font-weight: 700 !important;
 }
 
+.order-price-emphasis.is-debit { color: var(--error) !important; }
+.order-price-emphasis.is-refund { color: var(--warning) !important; }
+.order-price-emphasis.is-waiting { color: var(--warning) !important; }
+
 tr:last-child td {
   border-bottom: none;
 }

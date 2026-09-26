@@ -9,6 +9,7 @@ import {
   ShoppingCartIcon,
   SmartphoneIcon,
   CheckIcon,
+  CopyIcon,
   XIcon,
 } from '../ui/Icons';
 import { getActiveCurrency, formatDualPrice, type Currency } from '../../lib/currency';
@@ -23,6 +24,15 @@ export default function UserDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>(getActiveCurrency());
   const [usdRate, setUsdRate] = useState<number>(cached?.usdRate || 115);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function copyOtp(code: string, orderId: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedId(orderId);
+      window.setTimeout(() => setCopiedId((current) => current === orderId ? null : current), 1500);
+    } catch {}
+  }
 
   useEffect(() => {
     loadDashboard();
@@ -176,23 +186,38 @@ export default function UserDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map(order => (
+                {recentOrders.map(order => {
+                  const isRefunded = String(order.refund_status || '').toLowerCase() === 'refunded' || order.status === 'refunded';
+                  const hasOtp = Boolean(order.sms_code);
+                  return (
                   <tr key={order.id}>
                     <td data-label="Service" style={{ fontWeight: 600 }}><OrderCatalogLabel kind="service" name={order.service_name} code={order.service_code} /></td>
                     <td data-label="Country"><strong><OrderCatalogLabel kind="country" name={order.country_name} /></strong></td>
                     <td data-label="Phone Number" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                       <span>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
-                    <td data-label="Status"><StatusBadge status={order.status} /></td>
+                    <td data-label="Status">
+                      {hasOtp ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="badge badge-success" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.9rem' }}>{order.sms_code}</span>
+                          <button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem' }} onClick={() => copyOtp(String(order.sms_code), order.id)} title="Copy OTP" aria-label={`Copy OTP ${order.sms_code}`}>
+                            {copiedId === order.id ? <CheckIcon size={12} color="var(--success)" /> : <CopyIcon size={12} />}
+                          </button>
+                        </div>
+                      ) : <StatusBadge status={order.status} />}
+                    </td>
                     <td data-label="Price">
-                      {formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? 0), currency, usdRate).primary}
+                      <span className={`order-price-emphasis ${isRefunded ? 'is-refund' : hasOtp ? 'is-debit' : order.status === 'waiting' ? 'is-waiting' : ''}`}>
+                        {isRefunded ? 'Refunded: ' : hasOtp ? '−' : ''}{formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? 0), currency, usdRate).primary}
+                      </span>
                       {Number(order.pricing_adjustment_inr || 0) > 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Number(order.pricing_adjustment_inr).toFixed(2)} credited</div>}
                     </td>
                     <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -240,11 +265,11 @@ function ActiveOrderCard({ order }: { order: any }) {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-    waiting: { label: 'Waiting', className: 'badge badge-info', icon: <ClockIcon size={12} /> },
+    waiting: { label: 'Waiting', className: 'badge badge-warning', icon: <ClockIcon size={12} /> },
     code_received: { label: 'OTP Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
     completed: { label: 'OTP Received', className: 'badge badge-success', icon: <CheckIcon size={12} /> },
     cancelled: { label: 'Cancelled', className: 'badge badge-error', icon: <XIcon size={12} /> },
-    refunded: { label: 'Refunded', className: 'badge badge-info', icon: <DollarIcon size={12} /> },
+    refunded: { label: 'Refunded', className: 'badge badge-warning', icon: <DollarIcon size={12} /> },
     expired: { label: 'Expired', className: 'badge badge-error', icon: <XIcon size={12} /> },
   };
 
