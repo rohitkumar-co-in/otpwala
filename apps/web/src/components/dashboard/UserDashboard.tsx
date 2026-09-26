@@ -184,7 +184,10 @@ export default function UserDashboard() {
                       <span>{formatPhoneNumber(order.phone_number, order.country_code).display || order.phone_number}</span>
                     </td>
                     <td data-label="Status"><StatusBadge status={order.status} /></td>
-                    <td data-label="Price">{formatDualPrice(parseFloat(order.sell_price_inr || 0), currency, usdRate).primary}</td>
+                    <td data-label="Price">
+                      {formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? 0), currency, usdRate).primary}
+                      {Number(order.pricing_adjustment_inr || 0) > 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Number(order.pricing_adjustment_inr).toFixed(2)} credited</div>}
+                    </td>
                     <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>

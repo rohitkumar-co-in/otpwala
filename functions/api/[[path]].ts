@@ -37,6 +37,7 @@ import {
 import { TigerSmsClient } from '../lib/tiger';
 import { createSupportTicket, getUserSupportTickets, getAdminSupportTickets, updateSupportTicket, replyToSupportTicket } from '../lib/support';
 import { getUserHistoryClear, applyOrderHistoryClear, applyWalletHistoryClear, applyPaymentHistoryClear } from '../lib/user-history';
+import { addNetOrderPrices } from '../lib/order-adjustments';
 
 function jsonResponse(data: any, status = 200, cacheControl = 'no-store') {
   return new Response(JSON.stringify(data), {
@@ -852,7 +853,7 @@ export const onRequest = async (context: any) => {
       if (ordersError) throw ordersError;
       if (summaryError) throw summaryError;
 
-      const orders = data || [];
+      const orders = await addNetOrderPrices(supabase, data || []);
       const orderIds = orders.map((order: any) => order.id);
       let events: any[] = [];
       if (orderIds.length) {

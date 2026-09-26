@@ -5,6 +5,7 @@ import serviceIcons from '../data/tigerServiceIcons.json';
 import countryFlags from '../data/countryFlags.json';
 import { assertValidAdminCredit, assertValidAdminFundingSource, resolveAdminCreditLedgerType, adminFundingLedgerTypes } from './policies';
 import { processReferralDepositBonus } from './referrals';
+import { addNetOrderPrices, getDeliveredPricingCorrectionTotal } from './order-adjustments';
 
 export async function logAdminAction(
   actorId: string,
@@ -47,6 +48,7 @@ export async function getAdminDashboard(env?: any) {
   const tiger = new TigerSmsClient(env);
   const { data: metrics, error: metricsError } = await supabase.rpc('admin_dashboard_metrics');
   if (metricsError) throw metricsError;
+  const pricingCorrections = await getDeliveredPricingCorrectionTotal(supabase);
 
   let tigerBalance = 0;
   let providerAvailable = true;
@@ -72,6 +74,9 @@ export async function getAdminDashboard(env?: any) {
 
   return {
     ...(metrics || {}),
+    pricingCorrections,
+    netOtpSales: Number(metrics?.grossOtpSales || 0) - pricingCorrections,
+    netProfit: Number(metrics?.grossProfit || 0) - pricingCorrections,
     tigerBalance,
     providerAvailable,
     providerError,
@@ -300,7 +305,7 @@ export async function getAdminOrders(limit = 20, offset = 0, status = 'all', env
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  const orders = data || [];
+  const orders = await addNetOrderPrices(supabase, data || []);
   const orderIds = orders.map((order: any) => order.id);
   const profileIds = [...new Set(orders.map((order: any) => String(order.user_id || '')).filter(Boolean))];
   const avatarEntries = await Promise.all(profileIds.map(async (userId) => {

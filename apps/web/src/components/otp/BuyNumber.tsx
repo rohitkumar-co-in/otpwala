@@ -1491,7 +1491,7 @@ export default function BuyNumber() {
                           </span>
                         )}
                       </td>
-                      <td data-label="Price" style={{ fontWeight: 600 }}>{formatCurrencyAmount(parseFloat(ro.sell_price_inr || 0), currency, usdRate)}</td>
+                      <td data-label="Price" style={{ fontWeight: 600 }}>{formatCurrencyAmount(Number(ro.net_price_inr ?? ro.sell_price_inr ?? 0), currency, usdRate)}</td>
                       <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                         {new Date(ro.created_at).toLocaleString()}
                       </td>
