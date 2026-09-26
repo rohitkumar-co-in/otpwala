@@ -280,7 +280,7 @@ const formattedTitle = formatPageTitle(title);
     }
 
     .sidebar-header .logo { flex: 1; min-width: 0; }
-    .sidebar-close-btn { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(148, 163, 184, 0.26); border-radius: 14px; background: #fff; color: #64748b; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); transition: color 0.18s, background 0.18s, border-color 0.18s, transform 0.18s; }
+    .sidebar-close-btn { display: none; align-items: center; justify-content: center; width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(148, 163, 184, 0.26); border-radius: 14px; background: #fff; color: #64748b; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); transition: color 0.18s, background 0.18s, border-color 0.18s, transform 0.18s; }
     .sidebar-close-btn:hover { color: var(--accent-primary); background: #eff6ff; border-color: rgba(37, 99, 235, 0.25); transform: translateX(-2px); }
 
     .logo {
@@ -383,9 +383,6 @@ const formattedTitle = formatPageTitle(title);
       width: calc(100% - var(--sidebar-width));
     }
 
-    .dashboard-layout.sidebar-collapsed .sidebar { transform: translateX(-100%); }
-    .dashboard-layout.sidebar-collapsed .dashboard-main { margin-left: 0; width: 100%; }
-
     .dashboard-header {
       height: var(--header-height);
       border-bottom: 1px solid rgba(229, 231, 235, 0.7);
@@ -404,7 +401,7 @@ const formattedTitle = formatPageTitle(title);
     }
 
     .mobile-menu-btn {
-      display: flex;
+      display: none;
       flex: 0 0 auto;
       align-items: center;
       justify-content: center;
@@ -582,6 +579,11 @@ const formattedTitle = formatPageTitle(title);
 
     /* Responsive */
     @media (max-width: 768px) {
+      .sidebar-close-btn,
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+
       .sidebar {
         width: min(300px, calc(100vw - 1.5rem));
         top: max(0.75rem, env(safe-area-inset-top));
@@ -641,7 +643,7 @@ const formattedTitle = formatPageTitle(title);
       getStoredSessionSync,
     } from '../lib/sessionManager';
 
-    // Shared drawer behavior: overlay on phones, collapsible fixed rail on desktop.
+    // The sidebar is permanently visible on desktop and behaves as a drawer on phones.
     const menuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.getElementById('sidebar');
     const backdrop = document.getElementById('sidebar-backdrop');
@@ -651,14 +653,14 @@ const formattedTitle = formatPageTitle(title);
     let sidebarIsOpen = !mobileQuery.matches;
 
     function setSidebarOpen(isOpen: boolean, returnFocus = false) {
-      sidebarIsOpen = isOpen;
-      layout?.classList.toggle('sidebar-open', isOpen && mobileQuery.matches);
-      layout?.classList.toggle('sidebar-collapsed', !isOpen && !mobileQuery.matches);
-      backdrop?.classList.toggle('active', isOpen && mobileQuery.matches);
-      menuBtn?.setAttribute('aria-expanded', String(isOpen));
-      menuBtn?.setAttribute('aria-label', isOpen ? 'Hide dashboard menu' : 'Open dashboard menu');
-      if (sidebar) sidebar.inert = !isOpen;
-      document.body.style.overflow = isOpen && mobileQuery.matches ? 'hidden' : '';
+      const effectiveOpen = mobileQuery.matches ? isOpen : true;
+      sidebarIsOpen = effectiveOpen;
+      layout?.classList.toggle('sidebar-open', effectiveOpen && mobileQuery.matches);
+      backdrop?.classList.toggle('active', effectiveOpen && mobileQuery.matches);
+      menuBtn?.setAttribute('aria-expanded', String(effectiveOpen));
+      menuBtn?.setAttribute('aria-label', effectiveOpen ? 'Hide dashboard menu' : 'Open dashboard menu');
+      if (sidebar) sidebar.inert = !effectiveOpen;
+      document.body.style.overflow = effectiveOpen && mobileQuery.matches ? 'hidden' : '';
       if (returnFocus) menuBtn?.focus();
     }
 

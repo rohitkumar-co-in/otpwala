@@ -1090,7 +1090,7 @@ export default function BuyNumber() {
             style={{
               padding: '1.5rem',
               background: hasOtp
-                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.95))'
+                ? 'linear-gradient(135deg, var(--success-bg), var(--bg-card) 58%)'
                 : isExpired || isCancelled
                 ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.06), var(--bg-card))'
                 : 'var(--bg-card)',
@@ -1273,7 +1273,7 @@ export default function BuyNumber() {
                   alignItems: hasOtp ? 'flex-start' : 'center',
                   padding: '1.15rem',
                   borderRadius: '10px',
-                  background: hasOtp ? 'rgba(16, 185, 129, 0.12)' : isExpired || isCancelled ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.06)',
+                  background: hasOtp ? 'var(--success-bg)' : isExpired || isCancelled ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.06)',
                   border: hasOtp ? '1px solid rgba(16, 185, 129, 0.45)' : isExpired || isCancelled ? '1px solid rgba(239, 68, 68, 0.3)' : '1px dashed rgba(245, 158, 11, 0.4)',
                 }}
               >
@@ -1322,9 +1322,10 @@ export default function BuyNumber() {
                           fontFamily: 'var(--font-mono)',
                           fontSize: '2rem',
                           fontWeight: 900,
-                          color: '#10b981',
+                          color: 'var(--success)',
                           letterSpacing: '0.12em',
-                          background: 'rgba(16, 185, 129, 0.22)',
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--success-border)',
                           padding: '0.25rem 0.95rem',
                           borderRadius: '8px',
                           display: 'inline-block',
@@ -1343,7 +1344,7 @@ export default function BuyNumber() {
                       </button>
                     </div>
                     {smsText && (
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.3)', padding: '0.5rem 0.75rem', borderRadius: '6px', marginTop: '0.4rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', background: 'var(--bg-input)', padding: '0.5rem 0.75rem', borderRadius: '6px', marginTop: '0.4rem', border: '1px solid var(--border-subtle)', lineHeight: 1.45 }}>
                         "{smsText}"
                       </div>
                     )}
