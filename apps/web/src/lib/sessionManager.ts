@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, authStorageKey } from './supabase';
 
 function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -67,13 +67,19 @@ export function clearLocalSessionId(): void {
  * Register a new device session with the backend API.
  * This assigns this device as the sole active session and invalidates any previous device.
  */
-export async function registerCurrentSession(
+let registeringSession: Promise<{ success: boolean; sessionId: string }> | null = null;
+
+export function registerCurrentSession(
   accessToken: string,
   customSessionId?: string
 ): Promise<{ success: boolean; sessionId: string }> {
-  const sessionId = customSessionId || generateSessionId();
-  setLocalSessionId(sessionId);
+  if (registeringSession) return registeringSession;
+  registeringSession = performSessionRegistration(accessToken, customSessionId).finally(() => { registeringSession = null; });
+  return registeringSession;
+}
 
+async function performSessionRegistration(accessToken: string, customSessionId?: string): Promise<{ success: boolean; sessionId: string }> {
+  const sessionId = customSessionId || generateSessionId();
   try {
     const res = await fetch(`${API_BASE}/api/auth/register-session`, {
       method: 'POST',
@@ -90,6 +96,7 @@ export async function registerCurrentSession(
       return { success: false, sessionId };
     }
 
+    setLocalSessionId(sessionId);
     return { success: true, sessionId };
   } catch (err) {
     console.error('registerCurrentSession network error:', err);
@@ -106,11 +113,11 @@ export function getStoredSessionSync(): any {
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+      if (key === authStorageKey) {
         const item = localStorage.getItem(key);
         if (item) {
           const parsed = JSON.parse(item);
-          if (parsed?.access_token && parsed?.user) {
+          if (parsed?.access_token && parsed?.user && parsed.expires_at * 1000 > Date.now() + 30000) {
             return parsed;
           }
         }
@@ -125,80 +132,37 @@ export function getStoredSessionSync(): any {
  * Handles OAuth redirects (PKCE code, access_token in hash),
  * localStorage restoration delays, and navigator.locks concurrency.
  */
-export async function getOrWaitForSession(maxWaitMs = 3000): Promise<any> {
-  // 0. Synchronous instant check: 0ms, never blocks
-  const syncSession = getStoredSessionSync();
-  if (syncSession?.user) return syncSession;
+let restoringSession: Promise<any> | null = null;
 
-  // 1. Check if session is available via Supabase memory / cache
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) return session;
-  } catch {}
-
-  // 2. Check if there are any signs of an active session or incoming OAuth callback
-  const hasUrlToken = typeof window !== 'undefined' && (
-    window.location.hash.includes('access_token') || 
-    window.location.search.includes('code')
-  );
-  const hasLocalToken = typeof localStorage !== 'undefined' && Object.keys(localStorage).some(
-    k => (k.startsWith('sb-') && k.endsWith('-auth-token')) || k === 'otpwala_session_id'
-  );
-
-  // If there are no tokens in URL and no tokens in localStorage, user is definitely not signed in
-  if (!hasUrlToken && !hasLocalToken) {
-    return null;
+export function getOrWaitForSession(_maxWaitMs = 3000): Promise<any> {
+  if (!restoringSession) {
+    restoringSession = (async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      let session = data.session;
+      if (session && (!session.expires_at || session.expires_at * 1000 <= Date.now() + 30000)) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (refreshed.error) throw refreshed.error;
+        session = refreshed.data.session;
+      }
+      return session;
+    })().finally(() => { restoringSession = null; });
   }
+  return restoringSession;
+}
 
-  // 3. Wait for onAuthStateChange OR poll getSession
-  return new Promise((resolve) => {
-    let resolved = false;
-    let subscription: any = null;
-
-    try {
-      const sub = supabase.auth.onAuthStateChange((_event, newSession) => {
-        if (newSession?.user && !resolved) {
-          resolved = true;
-          if (subscription) subscription.unsubscribe();
-          resolve(newSession);
-        }
-      });
-      subscription = sub?.data?.subscription;
-    } catch {}
-
-    const startTime = Date.now();
-    const interval = setInterval(async () => {
-      // Periodic sync check in case localStorage was written by another tab
-      const currentSync = getStoredSessionSync();
-      if (currentSync?.user && !resolved) {
-        resolved = true;
-        clearInterval(interval);
-        if (subscription) subscription.unsubscribe();
-        resolve(currentSync);
-        return;
-      }
-
-      try {
-        const { data: { session: retrySession } } = await supabase.auth.getSession();
-        if (retrySession?.user && !resolved) {
-          resolved = true;
-          clearInterval(interval);
-          if (subscription) subscription.unsubscribe();
-          resolve(retrySession);
-          return;
-        }
-      } catch {}
-
-      if (Date.now() - startTime > maxWaitMs && !resolved) {
-        resolved = true;
-        clearInterval(interval);
-        if (subscription) subscription.unsubscribe();
-        // Last-chance check against localStorage before concluding null
-        const lastChance = getStoredSessionSync();
-        resolve(lastChance || null);
-      }
-    }, 150);
-  });
+/** All protected requests wait for SDK restoration and device registration. */
+export async function getReadySession(): Promise<any> {
+  const session = await getOrWaitForSession();
+  if (!session) return null;
+  if (registeringSession) {
+    const result = await registeringSession;
+    if (!result.success) throw new Error('Unable to prepare your session. Please try again.');
+  } else if (!getLocalSessionId() || getLocalSessionId()?.startsWith('sess_')) {
+    const result = await registerCurrentSession(session.access_token);
+    if (!result.success) throw new Error('Unable to prepare your session. Please try again.');
+  }
+  return session;
 }
 
 export interface SessionCheckResult {
@@ -286,6 +250,8 @@ export function startSessionHeartbeat(
       if (!result.valid && (result.reason === 'account_banned' || result.reason === 'account_deleted')) {
         await handleSessionTermination(result.reason);
       }
+    } catch {
+      // A temporary refresh failure must not terminate a valid login.
     } finally {
       isChecking = false;
     }

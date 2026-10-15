@@ -42,7 +42,7 @@ await check('User support auth boundary', '/api/support/tickets', 401, (r) =>
   && r.headers.get('x-content-type-options') === 'nosniff');
 await check('Account export auth boundary', '/api/account/export', 401);
 await check('Data erasure auth boundary', '/api/account/deletion-request', 401);
-await check('Admin auth boundary', '/api/admin/audit-logs', 403);
+await check('Admin auth boundary', '/api/admin/audit-logs', 401);
 await check('Dashboard support page', '/dashboard/support/', 200);
 await check('Admin support page', '/admin/support/', 200);
 

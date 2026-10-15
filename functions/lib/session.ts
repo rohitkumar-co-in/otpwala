@@ -29,7 +29,7 @@ export async function checkSession(token: string, clientSessionId?: string, env?
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) {
     if (error?.code === 'user_banned') return { valid: false, reason: 'account_banned', message: 'Your account has been suspended' };
-    return { valid: false, reason: 'account_deleted', message: 'Your session is no longer valid' };
+    return { valid: false, reason: error?.code === 'user_not_found' ? 'account_deleted' : 'session_expired', message: 'Please refresh your session and try again' };
   }
 
   const { data: profile, error: profileError } = await supabase

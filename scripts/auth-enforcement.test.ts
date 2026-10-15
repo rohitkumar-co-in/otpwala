@@ -44,3 +44,8 @@ test('native Auth bans are enforced even if the profile flag has not caught up',
   await assert.rejects(authenticateUser(request(),env),(e:any)=>e.code==='account_banned');
   assert.equal((await checkSession('test-token',undefined,env,true)).reason,'account_banned');
 });
+
+test('expired tokens do not label a live account as deleted', async(t)=>{
+  t.mock.method(globalThis,'fetch',async()=>Response.json({code:'bad_jwt',message:'JWT expired'},{status:401}));
+  assert.equal((await checkSession('expired-token',sessionId,env)).reason,'session_expired');
+});

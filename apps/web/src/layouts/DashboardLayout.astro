@@ -24,7 +24,7 @@ const formattedTitle = formatPageTitle(title);
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
   <style is:inline>
     body.dashboard-auth-pending > * { visibility: hidden; }
-    body.dashboard-auth-pending::before { content: ''; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; }
+    body.dashboard-auth-pending::before { content: 'Connecting to your account…'; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; display: grid; place-items: center; color: #64748b; }
   </style>
 
 </head>
@@ -634,13 +634,12 @@ const formattedTitle = formatPageTitle(title);
     import { supabase } from '../lib/supabase';
     import {
       getLocalSessionId,
-      registerCurrentSession,
       verifyActiveSession,
       handleSessionTermination,
       startSessionHeartbeat,
       clearLocalSessionId,
       getOrWaitForSession,
-      getStoredSessionSync,
+      getReadySession,
         assertAccountCanSignIn,
     } from '../lib/sessionManager';
 
@@ -702,19 +701,16 @@ const formattedTitle = formatPageTitle(title);
 
     // Check auth & load user info
     (async () => {
-      // 0. Synchronous instant check from localStorage (0ms)
-      let session = getStoredSessionSync();
-      if (!session?.user) {
-        session = await getOrWaitForSession(3000);
-      }
+      // Restore and refresh authentication before loading protected data.
+      const session = await getReadySession();
 
       if (!session?.user) {
         window.location.replace('/auth/login');
         return;
       }
 
-      try { await assertAccountCanSignIn(session.access_token); } catch { window.location.replace('/auth/login'); return; }
-      startSessionHeartbeat(() => getStoredSessionSync()?.access_token || '');
+      await assertAccountCanSignIn(session.access_token);
+      startSessionHeartbeat(async () => (await getOrWaitForSession())?.access_token || '');
       document.body.classList.remove('dashboard-auth-pending');
 
       // Check profile existence and ban status
@@ -740,6 +736,7 @@ const formattedTitle = formatPageTitle(title);
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.access_token}`,
+              'x-session-id': getLocalSessionId() || '',
             },
           });
           if (ensureRes.ok) {
@@ -761,9 +758,7 @@ const formattedTitle = formatPageTitle(title);
       }
 
       // 3. Device session registration
-      if (!getLocalSessionId() || getLocalSessionId()?.startsWith('sess_')) {
-        registerCurrentSession(session.access_token).catch(() => {});
-      }
+
 
       // 4. Supabase auth state listener: only act on SIGNED_OUT if it persists
       // (ignore transient SIGNED_OUT that happens during token refresh)
@@ -801,6 +796,7 @@ const formattedTitle = formatPageTitle(title);
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session.access_token}`,
+              'x-session-id': getLocalSessionId() || '',
                 'x-session-id': getLocalSessionId() || '',
               },
               body: JSON.stringify({ referralCode: pendingRef }),
@@ -1003,7 +999,19 @@ const formattedTitle = formatPageTitle(title);
         const adminNav = document.getElementById('nav-admin');
         if (adminNav) adminNav.style.display = 'flex';
       }
-    })();
+    })().catch(() => {
+      document.body.classList.remove('dashboard-auth-pending');
+      const notice = document.createElement('div');
+      notice.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#f8fafc;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#334155';
+      const message = document.createElement('p');
+      message.textContent = 'We could not reconnect to your account. Please try again.';
+      const retry = document.createElement('button');
+      retry.textContent = 'Retry';
+      retry.style.cssText = 'padding:12px 24px;background:#2563eb;color:white;border:0;border-radius:8px;cursor:pointer';
+      retry.onclick = () => window.location.reload();
+      notice.append(message, retry);
+      document.body.append(notice);
+    });
 
     // Branding is fixed in the page templates. Maintenance mode stays dynamic.
     (function syncMaintenanceMode() {

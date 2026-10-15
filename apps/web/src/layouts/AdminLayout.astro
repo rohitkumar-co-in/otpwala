@@ -24,7 +24,7 @@ const formattedTitle = formatPageTitle(title);
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
   <style is:inline>
     body.dashboard-auth-pending > * { visibility: hidden; }
-    body.dashboard-auth-pending::before { content: ''; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; }
+    body.dashboard-auth-pending::before { content: 'Connecting to your account…'; position: fixed; inset: 0; z-index: 9999; background: #f8fafc; display: grid; place-items: center; color: #64748b; }
   </style>
 
 </head>
@@ -314,31 +314,27 @@ const formattedTitle = formatPageTitle(title);
     import { supabase } from '../lib/supabase';
     import {
       getLocalSessionId,
-      registerCurrentSession,
       verifyActiveSession,
       handleSessionTermination,
       startSessionHeartbeat,
       assertAccountCanSignIn,
       clearLocalSessionId,
       getOrWaitForSession,
-      getStoredSessionSync,
+      getReadySession,
     } from '../lib/sessionManager';
     import { getAdminTigerBalance } from '../lib/api';
 
     (async () => {
-      // 0. Synchronous instant check from localStorage (0ms)
-      let session = getStoredSessionSync();
-      if (!session?.user) {
-        session = await getOrWaitForSession(3000);
-      }
+      // Restore and refresh authentication before loading protected data.
+      const session = await getReadySession();
 
       if (!session?.user) {
         window.location.replace('/auth/login');
         return;
       }
 
-      try { await assertAccountCanSignIn(session.access_token); } catch { window.location.replace('/auth/login'); return; }
-      startSessionHeartbeat(() => getStoredSessionSync()?.access_token || '');
+      await assertAccountCanSignIn(session.access_token);
+      startSessionHeartbeat(async () => (await getOrWaitForSession())?.access_token || '');
       document.body.classList.remove('dashboard-auth-pending');
 
       // 1. Verify admin profile - with network failure tolerance
@@ -363,6 +359,7 @@ const formattedTitle = formatPageTitle(title);
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.access_token}`,
+              'x-session-id': getLocalSessionId() || '',
             },
           });
           if (ensureRes.ok) {
@@ -387,11 +384,6 @@ const formattedTitle = formatPageTitle(title);
 
       // If profile is null (network failure), allow admin to stay - don't kick on uncertainty
       // They'll be blocked by API calls if truly unauthorized
-
-      // 2. Device session registration
-      if (!getLocalSessionId() || getLocalSessionId()?.startsWith('sess_')) {
-        registerCurrentSession(session.access_token).catch(() => {});
-      }
 
       // 3. Auth state listener - ignore transient SIGNED_OUT during token refresh
       let signedOutTimer: ReturnType<typeof setTimeout> | null = null;
@@ -466,7 +458,19 @@ const formattedTitle = formatPageTitle(title);
       };
 
       checkTigerStatus();
-    })();
+    })().catch(() => {
+      document.body.classList.remove('dashboard-auth-pending');
+      const notice = document.createElement('div');
+      notice.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#f8fafc;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#334155';
+      const message = document.createElement('p');
+      message.textContent = 'We could not reconnect to your account. Please try again.';
+      const retry = document.createElement('button');
+      retry.textContent = 'Retry';
+      retry.style.cssText = 'padding:12px 24px;background:#2563eb;color:white;border:0;border-radius:8px;cursor:pointer';
+      retry.onclick = () => window.location.reload();
+      notice.append(message, retry);
+      document.body.append(notice);
+    });
 
     document.getElementById('admin-logout-btn')?.addEventListener('click', async () => {
       clearLocalSessionId();

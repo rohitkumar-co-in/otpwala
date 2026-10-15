@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import {
   getLocalSessionId,
   handleSessionTermination,
-  getOrWaitForSession,
+  getReadySession,
   getStoredSessionSync,
 } from './sessionManager';
 
@@ -22,21 +22,10 @@ const API_URL = getApiBaseUrl();
 const PUBLIC_PATHS = ['/api/services', '/api/countries', '/api/site-config', '/api/health', '/api/auth/config'];
 
 async function getAuthToken(isPublic = false): Promise<string | null> {
-  // 1. Instant synchronous check from localStorage (0ms)
-  const syncSession = getStoredSessionSync();
-  if (syncSession?.access_token) return syncSession.access_token;
-
-  // If this is a public catalog or site-config route, never block on auth resolution
-  if (isPublic) {
-    return null;
-  }
-
-  try {
-    const session = await getOrWaitForSession(1500);
-    return session?.access_token || null;
-  } catch {
-    return null;
-  }
+  if (isPublic) return getStoredSessionSync()?.access_token || null;
+  const session = await getReadySession();
+  if (!session?.access_token) throw new Error('Please sign in to continue.');
+  return session.access_token;
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {

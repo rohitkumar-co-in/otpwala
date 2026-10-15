@@ -1181,7 +1181,8 @@ export const onRequest = async (context: any) => {
     // ─── Admin Routes ───
     if (path.startsWith('/api/admin/')) {
       const auth = await authenticateUser(request, env);
-      if (!auth || (auth.role !== 'admin' && auth.role !== 'superadmin')) {
+      if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+      if (auth.role !== 'admin' && auth.role !== 'superadmin') {
         return jsonResponse({ success: false, error: 'Admin access required' }, 403);
       }
 

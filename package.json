@@ -15,9 +15,10 @@
     "test:provider-pricing": "node apps/api/node_modules/tsx/dist/cli.mjs --test scripts/provider-pricing.test.ts scripts/checkout-pricing.test.ts",
     "test:auth": "node apps/api/node_modules/tsx/dist/cli.mjs --test scripts/auth-enforcement.test.ts",
     "test:smoke": "node scripts/smoke-production.mjs",
-    "verify:production": "npm run build && npm --prefix apps/api run build && npm run test:unit && npm run test:provider-pricing && npm run test:auth && npm run test:guardrails && npm run test:smoke",
+    "verify:production": "npm run build && npm --prefix apps/api run build && npm run test:unit && npm run test:provider-pricing && npm run test:auth && npm run test:session-bootstrap && npm run test:guardrails && npm run test:smoke",
     "clean": "node -e \"const fs=require('fs'); ['dist','apps/web/dist','apps/api/dist','apps/web/.astro'].forEach(p=>{if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})})\"",
-    "clean:all": "node -e \"const fs=require('fs'); ['dist','apps/web/dist','apps/api/dist','apps/web/.astro','node_modules','apps/web/node_modules','apps/api/node_modules'].forEach(p=>{if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})})\""
+    "clean:all": "node -e \"const fs=require('fs'); ['dist','apps/web/dist','apps/api/dist','apps/web/.astro','node_modules','apps/web/node_modules','apps/api/node_modules'].forEach(p=>{if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})})\"",
+    "test:session-bootstrap": "node --test scripts/session-bootstrap.test.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
