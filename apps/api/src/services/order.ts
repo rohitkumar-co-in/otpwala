@@ -148,7 +148,7 @@ export async function buyNumber(
   let phoneNumber: string;
 
   try {
-    const result = await tigerSms.getNumber(serviceCode, countryCode);
+    const result = await tigerSms.getNumber(serviceCode, countryCode, { maxPrice: costPriceUsd });
     activationId = result.activationId;
     phoneNumber = result.phoneNumber;
   } catch (e) {

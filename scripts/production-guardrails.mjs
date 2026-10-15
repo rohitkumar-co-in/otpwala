@@ -38,6 +38,9 @@ const requireText = (source, text, label) => {
   if (!source.includes(text)) failures.push(label);
 };
 
+requireText(files.order, 'tiger.getNumber(serviceCode, countryCode, costPriceUsd)', 'Provider purchase must be capped at the wallet quote cost');
+requireText(files.legacyOrder, 'maxPrice: costPriceUsd', 'Legacy provider purchase must be capped at the wallet quote cost');
+
 if (/sb_secret_[A-Za-z0-9_-]+/.test(files.config)) failures.push('Hardcoded Supabase service-role secret detected');
 if (/TIGER_SMS_API_KEY:\s*[^\n]*\|\|\s*['"][^'"]+/.test(files.config)) failures.push('Hardcoded Tiger API fallback detected');
 requireText(files.migration, 'post_wallet_transaction', 'Atomic wallet RPC is missing');

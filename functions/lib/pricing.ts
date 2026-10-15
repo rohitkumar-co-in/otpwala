@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from './supabase';
+import { parsePricingSettings, roundSafeSellPrice } from './pricing-safety';
 
 let cachedSettings: { rate: number; defaultMarkup: number } | null = null;
 let settingsTime = 0;
@@ -15,7 +16,7 @@ export async function getPricingSettings(env?: any): Promise<{ rate: number; def
 
   const supabase = getSupabaseAdmin(env);
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('settings')
       .select('key, value')
       .in('key', [
@@ -27,19 +28,15 @@ export async function getPricingSettings(env?: any): Promise<{ rate: number; def
         'default_markup_percent',
       ]);
 
+    if (error) throw new Error('Unable to load pricing settings');
     const map = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
-    const mode = map.dollar_rate_mode || 'custom';
-    const tigerDefaultRate = parseFloat(map.tiger_default_rate || '85.00') || 85.0;
-    const customDollarRate = parseFloat(map.custom_dollar_rate || map.usd_to_inr_rate || '86.50') || 86.5;
-
-    const rate = mode === 'tiger_default' ? tigerDefaultRate : customDollarRate;
-    const defaultMarkup = parseFloat(map.default_markup_percentage || map.default_markup_percent || '25') || 25;
+    const { rate, defaultMarkup } = parsePricingSettings(map);
 
     cachedSettings = { rate, defaultMarkup };
     settingsTime = now;
     return cachedSettings;
   } catch {
-    return { rate: 86.5, defaultMarkup: 25 };
+    throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
 }
 
@@ -49,17 +46,18 @@ async function getCachedRules(env?: any) {
 
   const supabase = getSupabaseAdmin(env);
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('pricing_rules')
       .select('*')
       .eq('is_active', true)
       .order('priority', { ascending: false });
 
+    if (error) throw new Error('Unable to load pricing rules');
     cachedRules = data || [];
     rulesTime = now;
     return cachedRules;
   } catch {
-    return [];
+    throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
 }
 
@@ -69,21 +67,23 @@ async function getCachedZeroUsers(env?: any) {
 
   const supabase = getSupabaseAdmin(env);
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'zero_markup_user_ids')
       .maybeSingle();
 
+    if (error) throw new Error('Unable to load user pricing');
     if (data?.value) {
       cachedZeroUsers = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
     } else {
       cachedZeroUsers = [];
     }
+    if (!Array.isArray(cachedZeroUsers) || !cachedZeroUsers.every((id) => typeof id === 'string')) throw new Error('Invalid user pricing');
     zeroUsersTime = now;
     return cachedZeroUsers || [];
   } catch {
-    return [];
+    throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
 }
 
@@ -100,7 +100,7 @@ export async function calculateSellPrice(
   if (userId) {
     const zeroUsers = await getCachedZeroUsers(env);
     if (Array.isArray(zeroUsers) && zeroUsers.includes(userId)) {
-      return Math.ceil(costPriceInr * 2) / 2;
+      return roundSafeSellPrice(costPriceInr, costPriceInr);
     }
   }
 
@@ -124,7 +124,7 @@ export async function calculateSellPrice(
     }
   }
 
-  return Math.ceil(sellPrice * 2) / 2;
+  return roundSafeSellPrice(sellPrice, costPriceInr);
 }
 
 export async function calculateSellPrices(
@@ -143,7 +143,7 @@ export async function calculateSellPrices(
 
   return prices.map(({ costPriceUsd, countryCode }) => {
     const costPriceInr = costPriceUsd * rate;
-    if (hasZeroMarkup) return Math.ceil(costPriceInr * 2) / 2;
+    if (hasZeroMarkup) return roundSafeSellPrice(costPriceInr, costPriceInr);
 
     let sellPrice = costPriceInr * (1 + defaultMarkup / 100);
     const exact = rules.find((r: any) => r.service_code === serviceCode && r.country_code === countryCode);
@@ -154,7 +154,7 @@ export async function calculateSellPrices(
     if (rule?.markup_type === 'percentage') sellPrice = costPriceInr * (1 + rule.markup_value / 100);
     if (rule?.markup_type === 'flat') sellPrice = costPriceInr + rule.markup_value;
     if (rule?.markup_type === 'fixed_price') sellPrice = rule.markup_value;
-    return Math.ceil(sellPrice * 2) / 2;
+    return roundSafeSellPrice(sellPrice, costPriceInr);
   });
 }
 

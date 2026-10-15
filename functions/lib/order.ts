@@ -83,7 +83,7 @@ export async function buyNumber(
   let phoneNumber: string;
 
   try {
-    const result = await tiger.getNumber(serviceCode, countryCode);
+    const result = await tiger.getNumber(serviceCode, countryCode, costPriceUsd);
     activationId = result.activationId;
     phoneNumber = result.phoneNumber;
   } catch (err: any) {

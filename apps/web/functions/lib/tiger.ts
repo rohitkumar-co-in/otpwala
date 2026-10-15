@@ -85,8 +85,9 @@ export class TigerSmsClient {
     return this.requestJson('getFreePrices', params);
   }
 
-  async getNumber(service: string, country: number): Promise<{ activationId: string; phoneNumber: string }> {
-    const text = await this.request('getNumber', { service, country });
+  async getNumber(service: string, country: number, maxPrice: number): Promise<{ activationId: string; phoneNumber: string }> {
+    if (!Number.isFinite(maxPrice) || maxPrice <= 0) throw new Error('Invalid provider price limit');
+    const text = await this.request('getNumber', { service, country, maxPrice });
     const match = text.match(/^ACCESS_NUMBER:(\d+):(\+?\d+)$/);
     if (match) {
       return { activationId: match[1], phoneNumber: match[2] };

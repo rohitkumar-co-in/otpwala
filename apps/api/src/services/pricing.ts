@@ -20,7 +20,7 @@ async function getSettings(): Promise<{ rate: number; defaultMarkup: number }> {
     return { rate: cachedRate!, defaultMarkup: cachedDefaultMarkup! };
   }
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('settings')
     .select('key, value')
     .in('key', [
@@ -32,15 +32,23 @@ async function getSettings(): Promise<{ rate: number; defaultMarkup: number }> {
       'default_markup_percent',
     ]);
 
+  if (error) throw new Error('Pricing configuration unavailable');
   const map = Object.fromEntries((data || []).map(r => [r.key, r.value]));
 
-  const mode = map.dollar_rate_mode || 'custom';
-  const tigerDefaultRate = parseFloat(map.tiger_default_rate || '85.00');
-  const customDollarRate = parseFloat(map.custom_dollar_rate || map.usd_to_inr_rate || '86.50');
+  const mode = map.dollar_rate_mode;
+  if (mode !== 'custom' && mode !== 'tiger_default') throw new Error('Pricing configuration unavailable');
+  const tigerDefaultRate = Number(map.tiger_default_rate);
+  const customDollarRate = Number(map.custom_dollar_rate ?? map.usd_to_inr_rate);
+  const rate = mode === 'tiger_default' ? tigerDefaultRate : customDollarRate;
+  const rawMarkup = map.default_markup_percentage ?? map.default_markup_percent;
+  const markup = Number(rawMarkup);
+  if (!Number.isFinite(rate) || rate <= 0 || rawMarkup == null || rawMarkup === '' || !Number.isFinite(markup) || markup < 0) {
+    throw new Error('Pricing configuration unavailable');
+  }
 
   // If tiger_default is selected, use 85.00 (or configured tiger default); otherwise use custom rate
-  cachedRate = mode === 'tiger_default' ? tigerDefaultRate : customDollarRate;
-  cachedDefaultMarkup = parseFloat(map.default_markup_percentage || map.default_markup_percent || '25');
+  cachedRate = rate;
+  cachedDefaultMarkup = markup;
   rateLastFetched = now;
 
   return { rate: cachedRate, defaultMarkup: cachedDefaultMarkup };
@@ -57,12 +65,13 @@ async function getPricingRules(): Promise<PricingRule[]> {
     return cachedRules;
   }
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('pricing_rules')
     .select('*')
     .eq('is_active', true)
     .order('priority', { ascending: false });
 
+  if (error) throw new Error('Pricing rules unavailable');
   cachedRules = (data as PricingRule[]) || [];
   rulesLastFetched = now;
   return cachedRules;
@@ -97,20 +106,21 @@ function findRule(rules: PricingRule[], serviceCode: string, countryCode: number
 // No in-memory cache for zero-markup user IDs — always read fresh from DB
 // so that admin changes are reflected immediately across all server instances.
 export async function getZeroMarkupUserIds(): Promise<Set<string>> {
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('settings')
     .select('value')
     .eq('key', 'zero_markup_user_ids')
     .maybeSingle();
 
+  if (error) throw new Error('User pricing unavailable');
   let userIds: string[] = [];
   try {
     if (data?.value) {
       userIds = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-      if (!Array.isArray(userIds)) userIds = [];
+      if (!Array.isArray(userIds) || !userIds.every(id => typeof id === 'string')) throw new Error('Invalid user pricing');
     }
   } catch {
-    userIds = [];
+    throw new Error('User pricing unavailable');
   }
 
   return new Set(userIds);
@@ -162,6 +172,7 @@ export async function calculateSellPrice(
 
   // Convert USD to INR
   const costPriceInr = costPriceUsd * rate;
+  if (!Number.isFinite(costPriceInr) || costPriceInr <= 0) throw new Error('Service pricing unavailable');
 
   // Admins always buy at Tiger SMS base cost (0% markup)
   if (userRole === 'admin') {
@@ -200,7 +211,8 @@ export async function calculateSellPrice(
   }
 
   // Round up to nearest ₹0.50
-  return Math.ceil(sellPrice * 2) / 2;
+  if (!Number.isFinite(sellPrice) || sellPrice <= 0) throw new Error('Service pricing unavailable');
+  return Math.ceil(Math.max(sellPrice, costPriceInr) * 2) / 2;
 }
 
 /**

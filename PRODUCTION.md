@@ -12,6 +12,9 @@ For a clean deployment on a new domain, follow [`docs/FRESH-DOMAIN-HOSTING.md`](
 
 ## Financial definitions
 
+- Every provider purchase must include `maxPrice` equal to the USD cost used for the wallet quote. If that price is unavailable, fail and refund the wallet; never retry without a cap. Pricing settings/rules must load successfully before charging, and selling prices cannot fall below the configured INR conversion of provider cost.
+- Historical undercharge recovery requires matching the exact activation ID to Tiger purchase history and checking the existing wallet debit, refund, and any previous adjustment. Stored `cost_price_usd` on legacy V1 purchases is a quote, not proof of the final provider charge. Never infer historical debt from today's catalog price or debit cancelled/refunded orders merely because they had a higher quote.
+
 - **Total funds collected:** completed `topup` and `admin_credit` transactions. `admin_grant` is free balance and never revenue.
 - **Funding views:** use `wallet_topups`, `wallet_deductions`, `wallet_refunds`, `wallet_admin_funding`, and `wallet_referral_bonuses` for read-only reporting. `wallet_transactions` remains the only balance source of truth.
 - **Total orders:** every successfully recorded provider number purchase, regardless of outcome.
