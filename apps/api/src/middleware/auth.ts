@@ -38,11 +38,12 @@ export async function authMiddleware(
     }
 
     // Fetch user profile for role check
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, is_banned')
       .eq('id', user.id)
       .maybeSingle();
+    if (profileError) { res.status(503).json({success:false,error:'account_unavailable'}); return; }
 
     if (!profile) {
       // Auto-create missing profile (handles Google OAuth users whose profile wasn't provisioned yet)

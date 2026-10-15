@@ -3,6 +3,17 @@ import { supabaseAdmin } from '../config/supabase.js';
 
 const router = Router();
 
+router.get('/access-check', async (req: Request, res: Response): Promise<void> => {
+  res.setHeader('Cache-Control','no-store');
+  const token=(req.headers.authorization||'').replace(/^Bearer\s+/i,'');
+  const {data:{user},error}=await supabaseAdmin.auth.getUser(token);
+  if(error||!user){res.status(403).json({valid:false,reason:error?.code==='user_banned'?'account_banned':'account_deleted'});return;}
+  const {data:profile,error:profileError}=await supabaseAdmin.from('profiles').select('is_banned').eq('id',user.id).maybeSingle();
+  if(profileError||!profile){res.status(503).json({valid:false,reason:'account_unavailable'});return;}
+  if(profile.is_banned){res.status(403).json({valid:false,reason:'account_banned',message:'Your account has been suspended'});return;}
+  res.json({valid:true});
+});
+
 /**
  * POST /api/auth/register-session
  * Registers a new active session ID for the authenticated user,
@@ -31,11 +42,12 @@ router.post('/register-session', async (req: Request, res: Response): Promise<vo
     }
 
     // Verify user is not banned
-    const { data: profile } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('is_banned')
       .eq('id', user.id)
       .maybeSingle();
+    if(profileError||!profile){res.status(503).json({success:false,error:'account_unavailable'});return;}
 
     if (profile?.is_banned) {
       res.status(403).json({ success: false, error: 'account_banned', message: 'Account has been suspended' });

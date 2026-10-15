@@ -14,6 +14,21 @@ function getApiBaseUrl(): string {
 const API_BASE = getApiBaseUrl();
 const SESSION_STORAGE_KEY = 'otpwala_session_id';
 
+export async function assertAccountCanSignIn(accessToken: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/auth/access-check`, {
+    cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || result.valid !== true) {
+    if (result.reason === 'account_banned' || result.reason === 'account_deleted') {
+      clearLocalSessionId();
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+      window.location.href = `/auth/login?error=${encodeURIComponent(result.reason)}`;
+    }
+    throw new Error(result.message || 'Unable to verify account access. Please try again.');
+  }
+}
+
 /**
  * Generate a unique session identifier for this device login.
  */
@@ -214,10 +229,10 @@ export async function verifyActiveSession(accessToken: string): Promise<SessionC
 
     const data = await res.json().catch(() => ({}));
 
-    if (data.reason === 'account_banned' || data.reason === 'account_deleted') {
+    if (data.valid === false || !res.ok) {
       return {
         valid: false,
-        reason: data.reason,
+        reason: data.reason || 'account_unavailable',
         message: data.message || 'Session invalidated.',
       };
     }
@@ -254,7 +269,7 @@ export async function handleSessionTermination(
  */
 export function startSessionHeartbeat(
   getAccessToken: () => string | Promise<string | null>,
-  intervalMs = 60000
+  intervalMs = 15000
 ): () => void {
   let isChecking = false;
 
@@ -277,8 +292,14 @@ export function startSessionHeartbeat(
   };
 
   const intervalId = setInterval(check, intervalMs);
+  const resume = () => { void check(); };
+  window.addEventListener('focus', resume);
+  document.addEventListener('visibilitychange', resume);
+  void check();
 
   return () => {
     clearInterval(intervalId);
+    window.removeEventListener('focus', resume);
+    document.removeEventListener('visibilitychange', resume);
   };
 }

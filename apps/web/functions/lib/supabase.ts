@@ -36,13 +36,15 @@ export async function authenticateUser(
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error?.code === 'user_banned') throw Object.assign(new Error('Your account has been suspended'),{code:'account_banned'});
     if (error || !user) return null;
 
-    let { data: profile } = await supabase
+    let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, email, role, is_banned')
       .eq('id', user.id)
       .maybeSingle();
+    if (profileError) return null;
 
     if (!profile) {
       const email = user.email || '';
@@ -64,7 +66,10 @@ export async function authenticateUser(
       profile = newProfile;
     }
 
-    if (profile?.is_banned) return null;
+    if (!profile) return null;
+    if (profile.is_banned || ((user as any).banned_until && Date.parse((user as any).banned_until) > Date.now())) {
+      throw Object.assign(new Error('Your account has been suspended'),{code:'account_banned'});
+    }
 
     const clientSessionId = request.headers.get('x-session-id') || '';
     const serverSessionId = String(user.user_metadata?.current_session_id || '');
@@ -88,7 +93,8 @@ export async function authenticateUser(
       aal,
       hasVerifiedMfa,
     };
-  } catch {
+  } catch (error) {
+    if ((error as any)?.code === 'account_banned') throw error;
     return null;
   }
 }

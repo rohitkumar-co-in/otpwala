@@ -418,7 +418,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   import { supabase } from '../../lib/supabase';
   import { validateAllowedEmail } from '../../lib/emailValidation';
   import { getAuthConfig, recordAuthSession } from '../../lib/api';
-  import { registerCurrentSession, clearLocalSessionId, getOrWaitForSession } from '../../lib/sessionManager';
+  import { registerCurrentSession, clearLocalSessionId, getOrWaitForSession, assertAccountCanSignIn } from '../../lib/sessionManager';
 
   // ─── Instant Session Check ───
   async function checkSessionAndRedirect() {
@@ -439,6 +439,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     const session = await getOrWaitForSession(3000);
     if (session?.user) {
+      try { await assertAccountCanSignIn(session.access_token); } catch (error: any) { showError(error.message); return; }
       // Strict Email Validation (Gmail, Yahoo, Hotmail, Outlook; no dots, no + aliases)
       const emailVal = validateAllowedEmail(session.user.email || '');
       if (!emailVal.valid) {
@@ -665,7 +666,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        await registerCurrentSession(session.access_token);
+        await assertAccountCanSignIn(session.access_token);
+        const registered = await registerCurrentSession(session.access_token);
+        if (!registered.success) throw new Error('Unable to complete sign-in. Please try again.');
         recordAuthSession('login').catch(() => {});
       }
 
@@ -682,10 +685,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
       try { localStorage.removeItem('otpwala_profile_role'); } catch {}
     } catch (err: any) {
-      if (String(err?.message || '').toLowerCase().includes('two-factor') || String(err?.message || '').toLowerCase().includes('authenticator')) {
-        showError(err.message);
-        return;
-      }
+      showError(err.message || 'Unable to complete sign-in. Please try again.');
+      return;
     }
     window.location.href = '/dashboard';
   }

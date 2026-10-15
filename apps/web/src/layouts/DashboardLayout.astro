@@ -641,6 +641,7 @@ const formattedTitle = formatPageTitle(title);
       clearLocalSessionId,
       getOrWaitForSession,
       getStoredSessionSync,
+        assertAccountCanSignIn,
     } from '../lib/sessionManager';
 
     // The sidebar is permanently visible on desktop and behaves as a drawer on phones.
@@ -712,6 +713,8 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
+      try { await assertAccountCanSignIn(session.access_token); } catch { window.location.replace('/auth/login'); return; }
+      startSessionHeartbeat(() => getStoredSessionSync()?.access_token || '');
       document.body.classList.remove('dashboard-auth-pending');
 
       // Check profile existence and ban status

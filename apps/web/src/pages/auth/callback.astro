@@ -80,7 +80,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { recordAuthSession } from '../../lib/api';
-  import { registerCurrentSession } from '../../lib/sessionManager';
+  import { registerCurrentSession, assertAccountCanSignIn } from '../../lib/sessionManager';
 
   const titleEl = document.getElementById('callback-title');
   const subEl   = document.getElementById('callback-sub');
@@ -118,6 +118,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   async function redirectUser(session, isNew) {
     if (redirectInProgress) return;
     redirectInProgress = true;
+    try { await assertAccountCanSignIn(session.access_token); } catch (error: any) {
+      redirectInProgress = false;
+      if (errEl) { errEl.textContent = error.message; errEl.style.display = 'block'; }
+      return;
+    }
     let mfaPassed = false;
     try { mfaPassed = await requireLoginMfa(); } catch (error: any) {
       redirectInProgress = false;
@@ -165,9 +170,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     // Record session telemetry for security compliance & single-device protection
     if (session?.access_token) {
       try {
-        await registerCurrentSession(session.access_token);
+        const registered = await registerCurrentSession(session.access_token);
+        if (!registered.success) {
+          redirectInProgress = false;
+          if (errEl) { errEl.textContent = 'Unable to complete sign-in. Please try again.'; errEl.style.display = 'block'; }
+          return;
+        }
         await recordAuthSession(isNew ? 'signup' : 'oauth_login');
-      } catch (e) {}
+      } catch (e) { redirectInProgress = false; return; }
     }
 
     try {

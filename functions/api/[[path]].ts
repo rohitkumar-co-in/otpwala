@@ -362,6 +362,11 @@ export const onRequest = async (context: any) => {
     }
 
     // ─── Session Management ───
+    if (path === '/api/auth/access-check' && method === 'GET') {
+      const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i,'');
+      const check = await checkSession(token, undefined, env, true);
+      return jsonResponse(check, check.valid ? 200 : 403);
+    }
     if (path === '/api/auth/register-session' && method === 'POST') {
       const auth = await authenticateUser(request, env, { allowSessionReplacement: true });
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
@@ -1781,6 +1786,7 @@ export const onRequest = async (context: any) => {
 
     return jsonResponse({ success: false, error: `Route not found: ${method} ${path}` }, 404);
   } catch (err: any) {
+    if (err?.code === 'account_banned') return jsonResponse({success:false,error:'account_banned',message:err.message},403);
     console.error(`API Error on ${method} ${path}:`, err);
     return jsonResponse({ success: false, error: err.message || 'Internal server error' }, 500);
   }

@@ -262,7 +262,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   import { supabase } from '../../lib/supabase';
   import { validateAllowedEmail } from '../../lib/emailValidation';
   import { getAuthConfig, recordAuthSession } from '../../lib/api';
-  import { registerCurrentSession } from '../../lib/sessionManager';
+  import { registerCurrentSession, assertAccountCanSignIn } from '../../lib/sessionManager';
 
   let currentEmail = '';
   let currentName = '';
@@ -343,6 +343,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     if (pendingPasswordSetup) return; // Don't redirect while user is setting up password
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
+      try { await assertAccountCanSignIn(session.access_token); } catch (error: any) { showErr(step1Error,error.message); return; }
       const card = document.querySelector('.auth-card');
       if (card) card.innerHTML = '<div style="text-align:center;padding:2rem 1rem;"><div class="spinner spinner-lg" style="margin:0 auto 1.25rem;"></div><h3 style="margin:0 0 0.5rem;font-size:1.25rem;font-weight:700;">Account Ready</h3><p style="color:var(--text-secondary);font-size:0.9rem;margin:0;">Taking you to your dashboard…</p></div>';
       try {
@@ -544,7 +545,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       pendingPasswordSetup = false;
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        await registerCurrentSession(session.access_token).catch(() => {});
+        await assertAccountCanSignIn(session.access_token);
+        const registered = await registerCurrentSession(session.access_token);
+        if (!registered.success) throw new Error('Unable to complete sign-in. Please try again.');
         recordAuthSession('signup').catch(() => {});
       }
       if (currentReferralCode && session?.access_token) {

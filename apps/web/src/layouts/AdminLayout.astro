@@ -318,6 +318,7 @@ const formattedTitle = formatPageTitle(title);
       verifyActiveSession,
       handleSessionTermination,
       startSessionHeartbeat,
+      assertAccountCanSignIn,
       clearLocalSessionId,
       getOrWaitForSession,
       getStoredSessionSync,
@@ -336,11 +337,9 @@ const formattedTitle = formatPageTitle(title);
         return;
       }
 
+      try { await assertAccountCanSignIn(session.access_token); } catch { window.location.replace('/auth/login'); return; }
+      startSessionHeartbeat(() => getStoredSessionSync()?.access_token || '');
       document.body.classList.remove('dashboard-auth-pending');
-
-      // NOTE: We do NOT call supabase.auth.getUser() here.
-      // getOrWaitForSession() already returns a cryptographically valid session.
-      // Calling getUser() adds a network round-trip that can fail and incorrectly log out the admin.
 
       // 1. Verify admin profile - with network failure tolerance
       let profile: any = null;

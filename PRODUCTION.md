@@ -28,6 +28,8 @@ For a clean deployment on a new domain, follow [`docs/FRESH-DOMAIN-HOSTING.md`](
 
 ## Daily checks
 
+- Account bans are authoritative in `profiles.is_banned`. The database trigger synchronizes the Supabase Auth ban and removes sessions and refresh tokens atomically, including bulk bans. Banned tokens are rejected by the API and restrictive database/storage policies. Unbanning clears the Auth ban. Sign-in callbacks must pass `/api/auth/access-check` before dashboard redirects; dashboard/admin heartbeats check bans every 15 seconds and on focus.
+
 - Confirm the private repository's **Supabase database backup** workflow had a recent successful run and that the dated folder at `backups/supabase/YYYY-MM-DD/` includes a matching `SHA256SUMS` file. The GitHub workflow only starts after `SUPABASE_DB_URL` and `BACKUP_ENABLED=true` are configured; the backup guide includes the exact Supabase Session Pooler URI selection path: [`docs/DATABASE-BACKUPS.md`](./docs/DATABASE-BACKUPS.md).
 - Refunds pending or failed for more than 10 minutes: zero.
 - Waiting orders past `expires_at`: zero after reconciliation.
