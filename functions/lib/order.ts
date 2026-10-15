@@ -5,6 +5,7 @@ import { deductBalance, creditBalance } from './wallet';
 import { getDisabledCatalog } from './catalog';
 import { assertProviderCanFund, assertPurchaseAllowed, classifyExpiredProviderStatus } from './policies';
 import { notifyLowProviderBalance, notifyTelegramOrder } from './telegram';
+import { assertAcceptedPrice, providerReceiptCost } from './pricing-safety';
 
 async function enforcePurchaseLimits(supabase: any, userId: string) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -25,6 +26,7 @@ export async function buyNumber(
   countryCode: number,
   env?: any,
   requestedOrderId?: string,
+  expectedPriceInr?: number,
 ) {
   const supabase = getSupabaseAdmin(env);
   const tiger = new TigerSmsClient(env);
@@ -45,14 +47,14 @@ export async function buyNumber(
   }
 
   // 2. Fetch pricing from Tiger SMS
-  const priceData = await tiger.getPrices(serviceCode, countryCode);
+  const priceData = await tiger.getLivePrices(serviceCode, countryCode);
   const countryPrices = priceData[String(countryCode)];
   if (!countryPrices || !countryPrices[serviceCode]) {
     throw new Error('Service not available for this country');
   }
   const sData = countryPrices[serviceCode] as any;
   const costPriceUsd = parseFloat(String(sData.cost ?? sData.price ?? '0'));
-  if (isNaN(costPriceUsd) || costPriceUsd <= 0) {
+  if (!Number.isFinite(costPriceUsd) || costPriceUsd <= 0 || Number(sData.count) <= 0) {
     throw new Error('Service pricing unavailable for this country');
   }
 
@@ -61,9 +63,11 @@ export async function buyNumber(
   assertProviderCanFund(providerBalance, costPriceUsd);
 
   // 3. Calculate sell price in INR
-  const { rate: fxRate } = await getPricingSettings(env);
-  const costPriceInr = Math.round(costPriceUsd * fxRate * 10000) / 10000;
-  const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env);
+  const settings = await getPricingSettings(env);
+  const fxRate = settings.rate;
+  const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, env, settings);
+  assertAcceptedPrice(expectedPriceInr, sellPriceInr);
+  const priceQuotedAt = new Date().toISOString();
   // Resolve the provider's display label before creating the wallet debit so
   // new ledger entries show the same readable service name as their refunds.
   const tigerServices = await tiger.getServicesList().catch(() => []);
@@ -79,14 +83,17 @@ export async function buyNumber(
   }
 
   // 5. Purchase from Tiger SMS
-  let activationId: string;
+  let activationId = '';
   let phoneNumber: string;
+  let actualCostUsd: number;
 
   try {
-    const result = await tiger.getNumber(serviceCode, countryCode, costPriceUsd);
+    const result = await tiger.getNumberV2(serviceCode, countryCode, costPriceUsd);
     activationId = result.activationId;
     phoneNumber = result.phoneNumber;
+    actualCostUsd = providerReceiptCost(result, costPriceUsd);
   } catch (err: any) {
+    if (activationId) { try { await tiger.setStatus(activationId, 8); } catch {} }
     // Auto-refund on purchase failure
     await creditBalance(userId, sellPriceInr, `Auto-refund: Purchase failed for ${serviceName}`, 'refund', env, 'order', orderId, `refund:${orderId}`);
     throw err;
@@ -110,8 +117,11 @@ export async function buyNumber(
       country_code: countryCode,
       country_name: countryName,
       phone_number: phoneNumber,
-      cost_price_usd: costPriceUsd,
-      cost_price_inr: costPriceInr,
+      cost_price_usd: actualCostUsd,
+      cost_price_inr: Math.round(actualCostUsd * fxRate * 10000) / 10000,
+      quoted_provider_cost_usd: costPriceUsd,
+      price_quoted_at: priceQuotedAt,
+      provider_cost_source: 'provider_receipt',
       fx_rate: fxRate,
       sell_price_inr: sellPriceInr,
       price_inr: sellPriceInr,

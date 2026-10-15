@@ -14,16 +14,6 @@ let servicesCacheTime = 0;
 let countriesCacheTime = 0;
 const CATALOG_TTL = 3600_000;
 const SERVICES_TTL = 10_000;
-const pricesCache = new Map<string, { data: Record<string, any>; expiresAt: number }>();
-
-async function getCachedPrices(code: string) {
-  const cacheKey = code.toLowerCase();
-  const cached = pricesCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) return cached.data;
-  const data = await tigerSms.getPrices(code);
-  pricesCache.set(cacheKey, { data, expiresAt: Date.now() + 5_000 });
-  return data;
-}
 const tigerServiceSlugCache = new Map<string, string>();
 const tigerDeliveryCache = new Map<string, { names: string[]; expiresAt: number }>();
 
@@ -185,6 +175,7 @@ router.get('/countries', async (req: AuthenticatedRequest, res) => {
 
 /** Returns Tiger's live stock/cost, converted with the configured pricing rules. */
 router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   try {
     const { code } = req.params;
     const sortOption = (req.query.sort as string) || 'name_asc';
@@ -194,7 +185,7 @@ router.get('/services/:code/countries', async (req: AuthenticatedRequest, res) =
     }
 
     const [livePrices, config, tigerCountries] = await Promise.all([
-      getCachedPrices(code), getCatalogFilterConfig(), getCachedCountries(),
+      tigerSms.getLivePrices(code), getCatalogFilterConfig(), getCachedCountries(),
     ]);
     const serviceName = code;
     const highDeliveryNames = await Promise.race([

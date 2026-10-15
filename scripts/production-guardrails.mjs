@@ -38,8 +38,10 @@ const requireText = (source, text, label) => {
   if (!source.includes(text)) failures.push(label);
 };
 
-requireText(files.order, 'tiger.getNumber(serviceCode, countryCode, costPriceUsd)', 'Provider purchase must be capped at the wallet quote cost');
+requireText(files.order, 'tiger.getNumberV2(serviceCode, countryCode, costPriceUsd)', 'Provider purchase must be capped at the wallet quote cost');
 requireText(files.legacyOrder, 'maxPrice: costPriceUsd', 'Legacy provider purchase must be capped at the wallet quote cost');
+requireText(files.order, 'assertAcceptedPrice(expectedPriceInr, sellPriceInr)', 'Checkout must verify the price the customer accepted');
+requireText(files.order, "provider_cost_source: 'provider_receipt'", 'Orders must distinguish actual provider receipts from quotes');
 
 if (/sb_secret_[A-Za-z0-9_-]+/.test(files.config)) failures.push('Hardcoded Supabase service-role secret detected');
 if (/TIGER_SMS_API_KEY:\s*[^\n]*\|\|\s*['"][^'"]+/.test(files.config)) failures.push('Hardcoded Tiger API fallback detected');

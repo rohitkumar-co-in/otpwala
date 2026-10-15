@@ -13,6 +13,7 @@ For a clean deployment on a new domain, follow [`docs/FRESH-DOMAIN-HOSTING.md`](
 ## Financial definitions
 
 - Every provider purchase must include `maxPrice` equal to the USD cost used for the wallet quote. If that price is unavailable, fail and refund the wallet; never retry without a cap. Pricing settings/rules must load successfully before charging, and selling prices cannot fall below the configured INR conversion of provider cost.
+- Customer quotes use fresh in-stock Tiger price buckets; no provider-price or pricing-configuration cache is used. Checkout requires `expectedPriceInr` and compares it with a fresh server calculation before debiting. A changed price returns HTTP 409 and requires a new click. Country prices refresh every 10 seconds, and stale prices are hidden with purchasing disabled. New purchases use capped `getNumberV2`; `cost_price_usd` is the purchase receipt cost, while `quoted_provider_cost_usd` and `price_quoted_at` preserve the accepted quote separately.
 - Historical undercharge recovery requires matching the exact activation ID to Tiger purchase history and checking the existing wallet debit, refund, and any previous adjustment. Stored `cost_price_usd` on legacy V1 purchases is a quote, not proof of the final provider charge. Never infer historical debt from today's catalog price or debit cancelled/refunded orders merely because they had a higher quote.
 
 - **Total funds collected:** completed `topup` and `admin_credit` transactions. `admin_grant` is free balance and never revenue.

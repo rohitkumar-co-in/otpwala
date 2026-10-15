@@ -13,7 +13,7 @@ const router = Router();
  */
 router.post('/buy', async (req: AuthenticatedRequest, res) => {
   try {
-    const { service, country, requestId } = req.body;
+    const { service, country, requestId, expectedPriceInr } = req.body;
 
     if (!service || country === undefined) {
       res.status(400).json({ success: false, error: 'Missing service or country' });
@@ -64,7 +64,7 @@ router.post('/buy', async (req: AuthenticatedRequest, res) => {
 
     let result;
     try {
-      result = await buyNumber(req.userId!, normalizedService, normalizedCountry, requestId);
+      result = await buyNumber(req.userId!, normalizedService, normalizedCountry, requestId, expectedPriceInr, req.userRole);
       await supabaseAdmin.from('purchase_intents').update({ status: 'completed', response: result, updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
     } catch (buyError: any) {
       await supabaseAdmin.from('purchase_intents').update({ status: 'failed', error_code: buyError?.code || 'purchase_failed', error_message: String(buyError?.message || 'Purchase failed').slice(0, 500), updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
@@ -72,6 +72,10 @@ router.post('/buy', async (req: AuthenticatedRequest, res) => {
     }
     res.json({ success: true, data: result });
   } catch (e) {
+    if ((e as any)?.code === 'PRICE_CHANGED' || (e as any)?.code === 'PRICE_REQUIRED') {
+      res.status(409).json({ success: false, error: (e as any).code, message: (e as Error).message, currentPriceInr: (e as any).currentPriceInr });
+      return;
+    }
     if (e instanceof OrderError) {
       const statusCode = (e.code === 'USER_INSUFFICIENT_FUNDS' || e.code === 'INSUFFICIENT_BALANCE') ? 402 : 400;
       res.status(statusCode).json({ success: false, error: e.code, message: e.message, code: e.code });

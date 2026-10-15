@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { tigerSms, TigerSmsError } from './tigerSms.js';
-import { calculateSellPrice } from './pricing.js';
+import { calculateSellPrice, getPricingSettings } from './pricing.js';
 import { deductBalance, creditBalance } from './wallet.js';
 import { isServiceActive, isCountryActive } from './catalogFilter.js';
 import type { Order, BuyNumberResponse, OrderStatusResponse } from '@otpwala/shared';
@@ -90,6 +90,8 @@ export async function buyNumber(
   serviceCode: string,
   countryCode: number,
   requestedOrderId?: string,
+  expectedPriceInr?: number,
+  userRole?: string,
 ): Promise<BuyNumberResponse> {
   const orderId = requestedOrderId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedOrderId)
     ? requestedOrderId
@@ -110,14 +112,14 @@ export async function buyNumber(
   // 1. Get pricing from Tiger SMS
   let costPriceUsd: number;
   try {
-    const priceData = await tigerSms.getPrices(serviceCode, countryCode);
+    const priceData = await tigerSms.getLivePrices(serviceCode, countryCode);
     const countryPrices = priceData[String(countryCode)];
     if (!countryPrices || !countryPrices[serviceCode]) {
       throw new OrderError('NOT_AVAILABLE', 'Service not available for this country');
     }
     const sData = countryPrices[serviceCode] as any;
     costPriceUsd = parseFloat(String(sData.cost ?? sData.price ?? '0'));
-    if (isNaN(costPriceUsd) || costPriceUsd <= 0) {
+    if (!Number.isFinite(costPriceUsd) || costPriceUsd <= 0 || Number(sData.count) <= 0) {
       throw new OrderError('PRICE_FETCH_FAILED', 'Could not fetch pricing');
     }
   } catch (e) {
@@ -128,7 +130,15 @@ export async function buyNumber(
   }
 
   // 2. Calculate sell price in INR (zero-markup users get Tiger cost)
-  const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId);
+  const settings = await getPricingSettings();
+  const sellPriceInr = await calculateSellPrice(costPriceUsd, serviceCode, countryCode, userId, userRole, settings);
+  if (typeof expectedPriceInr !== 'number' || !Number.isFinite(expectedPriceInr) || expectedPriceInr <= 0) {
+    throw new OrderError('PRICE_REQUIRED', 'Refresh the price before buying.');
+  }
+  if (Math.abs(expectedPriceInr - sellPriceInr) > 0.00001) {
+    throw Object.assign(new OrderError('PRICE_CHANGED', 'The price changed. Review the new price and click Buy again. No money was deducted.'), { currentPriceInr: sellPriceInr });
+  }
+  const priceQuotedAt = new Date().toISOString();
 
   // 3. Get names for records
   const [serviceName, countryName] = await Promise.all([
@@ -144,14 +154,20 @@ export async function buyNumber(
   }
 
   // 5. Purchase number from Tiger SMS
-  let activationId: string;
+  let activationId = '';
   let phoneNumber: string;
+  let actualCostUsd: number;
 
   try {
-    const result = await tigerSms.getNumber(serviceCode, countryCode, { maxPrice: costPriceUsd });
+    const result = await tigerSms.getNumberV2(serviceCode, countryCode, { maxPrice: costPriceUsd });
     activationId = result.activationId;
     phoneNumber = result.phoneNumber;
+    actualCostUsd = Number(result.activationCost);
+    if (!Number.isFinite(actualCostUsd) || actualCostUsd <= 0 || actualCostUsd > costPriceUsd + 0.000001 || Number(result.currency) !== 840) {
+      throw new OrderError('INVALID_PROVIDER_RECEIPT', 'Provider purchase price could not be verified within the approved limit.');
+    }
   } catch (e) {
+    if (activationId) { try { await tigerSms.setStatus(activationId, 8); } catch {} }
     // Tiger SMS failed — refund the user
     await creditBalance(
       userId,
@@ -172,6 +188,7 @@ export async function buyNumber(
   const { data: order, error } = await supabaseAdmin
     .from('orders')
     .insert({
+      id: orderId,
       user_id: userId,
       activation_id: activationId,
       service_code: serviceCode,
@@ -179,7 +196,12 @@ export async function buyNumber(
       country_code: countryCode,
       country_name: countryName,
       phone_number: phoneNumber,
-      cost_price_usd: costPriceUsd,
+      cost_price_usd: actualCostUsd,
+      cost_price_inr: Math.round(actualCostUsd * settings.rate * 10000) / 10000,
+      fx_rate: settings.rate,
+      quoted_provider_cost_usd: costPriceUsd,
+      price_quoted_at: priceQuotedAt,
+      provider_cost_source: 'provider_receipt',
       sell_price_inr: sellPriceInr,
       status: 'waiting',
       tiger_status: 'STATUS_WAIT_CODE',

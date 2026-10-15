@@ -57,6 +57,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   const baseUrl = getApiBaseUrl();
   const res = await fetch(`${baseUrl}${path}`, {
+    cache: 'no-store',
     ...options,
     headers,
   });
@@ -95,6 +96,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     }
     const errObj = new Error(data.message || data.error || 'Request failed');
     (errObj as any).code = data.error || data.code;
+    (errObj as any).currentPriceInr = data.currentPriceInr;
     throw errObj;
   }
 
@@ -113,10 +115,10 @@ export const getPrice = (service: string, country: number) =>
   );
 
 // ─── Numbers ───
-export const buyNumber = (service: string, country: number, requestId: string) =>
+export const buyNumber = (service: string, country: number, requestId: string, expectedPriceInr: number) =>
   apiFetch<any>('/api/numbers/buy', {
     method: 'POST',
-    body: JSON.stringify({ service, country, requestId }),
+    body: JSON.stringify({ service, country, requestId, expectedPriceInr }),
   });
 
 export const getOrderStatus = (orderId: string) =>

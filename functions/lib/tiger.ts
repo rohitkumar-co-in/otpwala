@@ -1,4 +1,5 @@
 import { getConfig } from './config';
+import { lowestAvailableBucket } from './pricing-safety';
 
 export class TigerSmsError extends Error {
   constructor(public code: string, message: string) {
@@ -85,6 +86,16 @@ export class TigerSmsClient {
     return this.requestJson('getFreePrices', params);
   }
 
+  async getLivePrices(service: string, country?: number): Promise<Record<string, Record<string, { cost: number; count: number }>>> {
+    const buckets = await this.getFreePrices(service, country);
+    const result: Record<string, Record<string, { cost: number; count: number }>> = {};
+    for (const [countryId, services] of Object.entries(buckets || {})) {
+      const offer = lowestAvailableBucket(services?.[service]?.prices);
+      if (offer) result[countryId] = { [service]: offer };
+    }
+    return result;
+  }
+
   async getNumber(service: string, country: number, maxPrice: number): Promise<{ activationId: string; phoneNumber: string }> {
     if (!Number.isFinite(maxPrice) || maxPrice <= 0) throw new Error('Invalid provider price limit');
     const text = await this.request('getNumber', { service, country, maxPrice });
@@ -95,6 +106,15 @@ export class TigerSmsClient {
     if (text === 'NO_NUMBERS') throw new TigerSmsError('NO_NUMBERS', 'No numbers available right now');
     if (text === 'NO_BALANCE') throw new TigerSmsError('PROVIDER_OUT_OF_STOCK', 'Carrier numbers temporarily unavailable for this service/country. Please choose another country.');
     throw new TigerSmsError(text, `Failed to get number: ${text}`);
+  }
+
+  async getNumberV2(service: string, country: number, maxPrice: number): Promise<{ activationId: string; phoneNumber: string; activationCost: unknown; currency: unknown }> {
+    if (!Number.isFinite(maxPrice) || maxPrice <= 0) throw new Error('Invalid provider price limit');
+    const result = await this.requestJson<any>('getNumberV2', { service, country, maxPrice });
+    if (result?.title || !/^\d+$/.test(String(result?.activationId || '')) || !/^\+?\d+$/.test(String(result?.phoneNumber || ''))) {
+      throw new TigerSmsError(result?.title || 'INVALID_PROVIDER_RESPONSE', result?.details || 'Provider purchase unavailable. Please refresh prices.');
+    }
+    return { ...result, activationId: String(result.activationId), phoneNumber: String(result.phoneNumber) };
   }
 
   async getStatus(activationId: string): Promise<{ status: string; code?: string; text?: string }> {

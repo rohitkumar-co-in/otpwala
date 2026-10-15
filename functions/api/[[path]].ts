@@ -495,7 +495,7 @@ export const onRequest = async (context: any) => {
       }
 
       const tiger = new TigerSmsClient(env);
-      const priceData = await tiger.getPrices(service, country);
+      const priceData = await tiger.getLivePrices(service, country);
       const countryData = priceData[String(country)];
       const sPrice = countryData ? (countryData[service] as any) : null;
 
@@ -524,7 +524,7 @@ export const onRequest = async (context: any) => {
       if (!auth) return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
 
       const body = await request.json().catch(() => ({}));
-      const { service, country, requestId } = body;
+      const { service, country, requestId, expectedPriceInr } = body;
       if (!service || country === undefined) {
         return jsonResponse({ success: false, error: 'service and country required' }, 400);
       }
@@ -549,13 +549,16 @@ export const onRequest = async (context: any) => {
       }
 
       try {
-        const result = await buyNumber(auth.userId, normalizedService, normalizedCountry, env, requestId);
+        const result = await buyNumber(auth.userId, normalizedService, normalizedCountry, env, requestId, expectedPriceInr);
         await supabase.from('purchase_intents').update({ status: 'completed', response: result, updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
         return jsonResponse({ success: true, data: result });
       } catch (buyErr: any) {
         await supabase.from('purchase_intents').update({ status: 'failed', error_code: buyErr?.code || 'purchase_failed', error_message: String(buyErr?.message || 'Purchase failed').slice(0, 500), updated_at: new Date().toISOString() }).eq('request_id', requestId).eq('status', 'processing');
         if (buyErr?.code === 'USER_INSUFFICIENT_FUNDS' || (buyErr?.message || '').toLowerCase().includes('insufficient wallet balance')) {
           return jsonResponse({ success: false, error: 'user_insufficient_funds', message: 'Insufficient wallet balance' }, 402);
+        }
+        if (buyErr?.code === 'PRICE_CHANGED' || buyErr?.code === 'PRICE_REQUIRED') {
+          return jsonResponse({ success: false, error: buyErr.code, message: buyErr.message, currentPriceInr: buyErr.currentPriceInr }, 409);
         }
         return jsonResponse({
           success: false,

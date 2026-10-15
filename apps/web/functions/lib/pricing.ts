@@ -1,19 +1,7 @@
 import { getSupabaseAdmin } from './supabase';
 import { parsePricingSettings, roundSafeSellPrice } from './pricing-safety';
 
-let cachedSettings: { rate: number; defaultMarkup: number } | null = null;
-let settingsTime = 0;
-let cachedRules: any[] | null = null;
-let rulesTime = 0;
-let cachedZeroUsers: string[] | null = null;
-let zeroUsersTime = 0;
-
 export async function getPricingSettings(env?: any): Promise<{ rate: number; defaultMarkup: number }> {
-  const now = Date.now();
-  if (cachedSettings && now - settingsTime < 60_000) {
-    return cachedSettings;
-  }
-
   const supabase = getSupabaseAdmin(env);
   try {
     const { data, error } = await supabase
@@ -32,18 +20,13 @@ export async function getPricingSettings(env?: any): Promise<{ rate: number; def
     const map = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
     const { rate, defaultMarkup } = parsePricingSettings(map);
 
-    cachedSettings = { rate, defaultMarkup };
-    settingsTime = now;
-    return cachedSettings;
+    return { rate, defaultMarkup };
   } catch {
     throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
 }
 
-async function getCachedRules(env?: any) {
-  const now = Date.now();
-  if (cachedRules && now - rulesTime < 60_000) return cachedRules;
-
+async function loadPricingRules(env?: any) {
   const supabase = getSupabaseAdmin(env);
   try {
     const { data, error } = await supabase
@@ -53,18 +36,13 @@ async function getCachedRules(env?: any) {
       .order('priority', { ascending: false });
 
     if (error) throw new Error('Unable to load pricing rules');
-    cachedRules = data || [];
-    rulesTime = now;
-    return cachedRules;
+    return data || [];
   } catch {
     throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
 }
 
-async function getCachedZeroUsers(env?: any) {
-  const now = Date.now();
-  if (cachedZeroUsers && now - zeroUsersTime < 60_000) return cachedZeroUsers;
-
+async function loadZeroMarkupUsers(env?: any) {
   const supabase = getSupabaseAdmin(env);
   try {
     const { data, error } = await supabase
@@ -74,14 +52,14 @@ async function getCachedZeroUsers(env?: any) {
       .maybeSingle();
 
     if (error) throw new Error('Unable to load user pricing');
+    let zeroUsers: string[] = [];
     if (data?.value) {
-      cachedZeroUsers = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+      zeroUsers = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
     } else {
-      cachedZeroUsers = [];
+      zeroUsers = [];
     }
-    if (!Array.isArray(cachedZeroUsers) || !cachedZeroUsers.every((id) => typeof id === 'string')) throw new Error('Invalid user pricing');
-    zeroUsersTime = now;
-    return cachedZeroUsers || [];
+    if (!Array.isArray(zeroUsers) || !zeroUsers.every((id) => typeof id === 'string')) throw new Error('Invalid user pricing');
+    return zeroUsers || [];
   } catch {
     throw new Error('Pricing configuration unavailable. Please retry shortly.');
   }
@@ -92,19 +70,20 @@ export async function calculateSellPrice(
   serviceCode: string,
   countryCode: number,
   userId?: string,
-  env?: any
+  env?: any,
+  settings?: { rate: number; defaultMarkup: number },
 ): Promise<number> {
-  const { rate, defaultMarkup } = await getPricingSettings(env);
+  const { rate, defaultMarkup } = settings || await getPricingSettings(env);
   const costPriceInr = costPriceUsd * rate;
 
   if (userId) {
-    const zeroUsers = await getCachedZeroUsers(env);
+    const zeroUsers = await loadZeroMarkupUsers(env);
     if (Array.isArray(zeroUsers) && zeroUsers.includes(userId)) {
       return roundSafeSellPrice(costPriceInr, costPriceInr);
     }
   }
 
-  const rules = await getCachedRules(env);
+  const rules = await loadPricingRules(env);
   let sellPrice = costPriceInr * (1 + defaultMarkup / 100);
 
   if (rules && rules.length > 0) {
@@ -135,8 +114,8 @@ export async function calculateSellPrices(
 ): Promise<number[]> {
   const [settings, rules, zeroUsers] = await Promise.all([
     getPricingSettings(env),
-    getCachedRules(env),
-    userId ? getCachedZeroUsers(env) : Promise.resolve([]),
+    loadPricingRules(env),
+    userId ? loadZeroMarkupUsers(env) : Promise.resolve([]),
   ]);
   const { rate, defaultMarkup } = settings;
   const hasZeroMarkup = Boolean(userId && zeroUsers.includes(userId));
@@ -159,12 +138,12 @@ export async function calculateSellPrices(
 }
 
 export async function getZeroMarkupUsers(env?: any): Promise<string[]> {
-  return getCachedZeroUsers(env) as Promise<string[]>;
+  return loadZeroMarkupUsers(env) as Promise<string[]>;
 }
 
 export async function setZeroMarkupUser(userId: string, hasZeroMarkup: boolean, env?: any): Promise<boolean> {
   const supabase = getSupabaseAdmin(env);
-  const current = await getCachedZeroUsers(env) as string[];
+  const current = await loadZeroMarkupUsers(env) as string[];
   let updated: string[];
 
   if (hasZeroMarkup) {
@@ -181,9 +160,6 @@ export async function setZeroMarkupUser(userId: string, hasZeroMarkup: boolean, 
 
   if (error) throw error;
 
-  // Invalidate cache
-  cachedZeroUsers = updated;
-  zeroUsersTime = Date.now();
   return hasZeroMarkup;
 }
 

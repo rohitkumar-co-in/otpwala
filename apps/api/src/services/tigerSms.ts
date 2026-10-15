@@ -112,6 +112,18 @@ class TigerSmsClient {
     return this.requestJson('getServiceNumbersCount', { service });
   }
 
+  async getLivePrices(service: string, country?: number): Promise<Record<string, Record<string, { cost: number; count: number }>>> {
+    const buckets = await this.getFreePrices(service, country);
+    const result: Record<string, Record<string, { cost: number; count: number }>> = {};
+    for (const [countryId, services] of Object.entries(buckets || {})) {
+      const offers = Object.entries(services?.[service]?.prices || {}).map(([price, stock]) => ({ cost: Number(price), count: Number(stock) }))
+        .filter(offer => Number.isFinite(offer.cost) && offer.cost > 0 && Number.isFinite(offer.count) && offer.count > 0)
+        .sort((a, b) => a.cost - b.cost);
+      if (offers[0]) result[countryId] = { [service]: offers[0] };
+    }
+    return result;
+  }
+
   // ─── Number Purchase ───
 
   /**

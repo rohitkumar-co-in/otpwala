@@ -8,18 +8,7 @@ import type { PricingRule } from '@otpwala/shared';
  * Priority: service+country > service-only > country-only > global default
  */
 
-// In-memory cache for settings
-let cachedRate: number | null = null;
-let cachedDefaultMarkup: number | null = null;
-let rateLastFetched = 0;
-const RATE_CACHE_TTL = 60_000; // 1 minute
-
-async function getSettings(): Promise<{ rate: number; defaultMarkup: number }> {
-  const now = Date.now();
-  if (cachedRate !== null && cachedDefaultMarkup !== null && now - rateLastFetched < RATE_CACHE_TTL) {
-    return { rate: cachedRate!, defaultMarkup: cachedDefaultMarkup! };
-  }
-
+export async function getPricingSettings(): Promise<{ rate: number; defaultMarkup: number }> {
   const { data, error } = await supabaseAdmin
     .from('settings')
     .select('key, value')
@@ -46,35 +35,13 @@ async function getSettings(): Promise<{ rate: number; defaultMarkup: number }> {
     throw new Error('Pricing configuration unavailable');
   }
 
-  // If tiger_default is selected, use 85.00 (or configured tiger default); otherwise use custom rate
-  cachedRate = rate;
-  cachedDefaultMarkup = markup;
-  rateLastFetched = now;
-
-  return { rate: cachedRate, defaultMarkup: cachedDefaultMarkup };
+  return { rate, defaultMarkup: markup };
 }
 
-// In-memory cache for pricing rules
-let cachedRules: PricingRule[] | null = null;
-let rulesLastFetched = 0;
-const RULES_CACHE_TTL = 30_000; // 30 seconds
-
 async function getPricingRules(): Promise<PricingRule[]> {
-  const now = Date.now();
-  if (cachedRules && now - rulesLastFetched < RULES_CACHE_TTL) {
-    return cachedRules;
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from('pricing_rules')
-    .select('*')
-    .eq('is_active', true)
-    .order('priority', { ascending: false });
-
+  const { data, error } = await supabaseAdmin.from('pricing_rules').select('*').eq('is_active', true).order('priority', { ascending: false });
   if (error) throw new Error('Pricing rules unavailable');
-  cachedRules = (data as PricingRule[]) || [];
-  rulesLastFetched = now;
-  return cachedRules;
+  return (data as PricingRule[]) || [];
 }
 
 /**
@@ -166,9 +133,10 @@ export async function calculateSellPrice(
   serviceCode: string,
   countryCode: number,
   userId?: string,
-  userRole?: string
+  userRole?: string,
+  settings?: { rate: number; defaultMarkup: number },
 ): Promise<number> {
-  const { rate, defaultMarkup } = await getSettings();
+  const { rate, defaultMarkup } = settings || await getPricingSettings();
 
   // Convert USD to INR
   const costPriceInr = costPriceUsd * rate;
@@ -219,9 +187,5 @@ export async function calculateSellPrice(
  * Invalidate pricing caches (called from admin when settings change)
  */
 export function invalidatePricingCache(): void {
-  cachedRate = null;
-  cachedDefaultMarkup = null;
-  cachedRules = null;
-  rateLastFetched = 0;
-  rulesLastFetched = 0;
+  // Pricing configuration is read fresh for each request.
 }

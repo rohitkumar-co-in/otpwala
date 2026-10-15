@@ -170,6 +170,43 @@ export default function BuyNumber() {
   const servicesRefreshRef = useRef(false);
   const purchaseInFlightRef = useRef(false);
   const purchaseRequestIdRef = useRef<string | null>(null);
+  const [pricesCheckedAt, setPricesCheckedAt] = useState(0);
+  const [pricesStale, setPricesStale] = useState(true);
+
+  useEffect(() => {
+    if (step !== 'country' || !selectedService) return;
+    let stopped = false;
+    let refreshing = false;
+    const requestId = countryRequestIdRef.current;
+    const refresh = async () => {
+      if (refreshing || purchaseInFlightRef.current || document.visibilityState !== 'visible') return;
+      refreshing = true;
+      try {
+        const latest = await getServiceCountries(selectedService.code);
+        if (stopped || requestId !== countryRequestIdRef.current) return;
+        setCountries(latest);
+        setAllCountries(latest);
+        setPricesCheckedAt(Date.now());
+        setPricesStale(false);
+      } catch {
+        if (!stopped) setPricesStale(true);
+      } finally { refreshing = false; }
+    };
+    const timer = setInterval(() => { void refresh(); }, 10_000);
+    const freshnessTimer = setInterval(() => {
+      if (Date.now() - pricesCheckedAt > 20_000) setPricesStale(true);
+    }, 1000);
+    const resume = () => { if (document.visibilityState === 'visible') void refresh(); };
+    window.addEventListener('focus', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      clearInterval(freshnessTimer);
+      window.removeEventListener('focus', resume);
+      document.removeEventListener('visibilitychange', resume);
+    };
+  }, [step, selectedService, pricesCheckedAt]);
 
   useEffect(() => {
     loadServices();
@@ -320,6 +357,8 @@ export default function BuyNumber() {
       setShowAllCountries(true);
       setLoading(false);
       setCountryLoadFailed(false);
+      setPricesCheckedAt(Date.now());
+      setPricesStale(false);
       countryRetryCountRef.current = 0;
     } catch (err: any) {
       if (requestId !== countryRequestIdRef.current) return;
@@ -343,6 +382,8 @@ export default function BuyNumber() {
     countryRetryCountRef.current = 0;
     setCountryLoadFailed(false);
     setSelectedService(service);
+    setPricesStale(true);
+    setPricesCheckedAt(0);
     setStep('country');
     setCountrySearch('');
     setCountryFilter('all');
@@ -358,21 +399,27 @@ export default function BuyNumber() {
     if (purchaseInFlightRef.current) return;
     setSelectedCountry(country);
 
-    // Instant wallet check
-    if (walletBalance !== null && country.priceInr && walletBalance < country.priceInr) {
-      const price = formatCurrencyAmount(country.priceInr, currency, usdRate);
-      const balance = formatCurrencyAmount(walletBalance, currency, usdRate);
-      setError(`Insufficient wallet balance. This number costs ${price}, but your current balance is ${balance}.`);
-      return;
-    }
-
     purchaseInFlightRef.current = true;
     setBuyingCountryId(country.id);
     setError('');
 
     try {
+      // Refresh before purchase, then the server checks the accepted price again.
+      const latest = await getPrice(selectedService.code, country.id);
+      if (!latest.available || latest.count <= 0) {
+        setPricesStale(true);
+        setError('This number is no longer available. Prices are being refreshed.');
+        return;
+      }
+      if (Number(latest.priceInr) !== Number(country.priceInr)) {
+        const update = (rows: any[]) => rows.map(row => row.id === country.id ? { ...row, ...latest, available: latest.count } : row);
+        setCountries(update);
+        setAllCountries(update);
+        setError(`Price updated to ${formatCurrencyAmount(latest.priceInr, currency, usdRate)}. Review it and click Buy Number again. No money was deducted.`);
+        return;
+      }
       purchaseRequestIdRef.current ||= crypto.randomUUID();
-      const data = await apiBuyNumber(selectedService.code, country.id, purchaseRequestIdRef.current);
+      const data = await apiBuyNumber(selectedService.code, country.id, purchaseRequestIdRef.current, latest.priceInr);
       const newOrder = {
         orderId: data.orderId,
         phoneNumber: data.phoneNumber,
@@ -396,6 +443,13 @@ export default function BuyNumber() {
       const code = err?.code || '';
       if (code && code !== 'purchase_in_progress') purchaseRequestIdRef.current = null;
       const msg = (err?.message || '').toLowerCase();
+      if (code === 'PRICE_CHANGED' && Number.isFinite(err.currentPriceInr)) {
+        const update = (rows: any[]) => rows.map(row => row.id === country.id ? { ...row, priceInr: err.currentPriceInr } : row);
+        setCountries(update);
+        setAllCountries(update);
+        setError(`Price updated to ${formatCurrencyAmount(err.currentPriceInr, currency, usdRate)}. Review it and click Buy Number again. No money was deducted.`);
+        return;
+      }
       if (code === 'user_insufficient_funds' || msg.includes('insufficient wallet balance')) {
         const price = formatCurrencyAmount(country.priceInr || 0, currency, usdRate);
         setError(`Insufficient wallet balance. This number costs ${price}, but your current wallet balance is insufficient.`);
@@ -970,13 +1024,13 @@ export default function BuyNumber() {
                               <strong>{country.available.toLocaleString()}</strong>
                             </div>
                             <div className="country-option-price">
-                              <span>Price</span>
-                              <strong>{price || 'N/A'}</strong>
+                              <span>{pricesStale ? 'Refreshing price…' : 'Live price'}</span>
+                              <strong>{pricesStale ? '—' : price || 'N/A'}</strong>
                             </div>
                           </div>
                           <button
                             onClick={() => handleDirectBuy(country)}
-                            disabled={buyingCountryId === country.id}
+                            disabled={buyingCountryId !== null || pricesStale || !price}
                             className="btn btn-primary btn-sm country-option-buy"
                           >
                             {buyingCountryId === country.id ? (

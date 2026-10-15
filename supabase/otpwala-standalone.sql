@@ -1578,3 +1578,10 @@ REVOKE ALL ON FUNCTION public.wallet_balance_summary() FROM PUBLIC, anon, authen
 GRANT EXECUTE ON FUNCTION public.post_wallet_transaction(UUID,NUMERIC,TEXT,TEXT,TEXT,TEXT,TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.apply_verified_pricing_recovery(UUID,TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.wallet_balance_summary() TO service_role;
+
+-- Migration 20261015063000: accepted quotes and actual provider receipts
+-- Keep the accepted quote separate from the provider purchase receipt.
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS quoted_provider_cost_usd NUMERIC(12,6),
+  ADD COLUMN IF NOT EXISTS price_quoted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS provider_cost_source TEXT;

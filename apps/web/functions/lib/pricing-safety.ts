@@ -19,3 +19,30 @@ export function roundSafeSellPrice(sellPrice: number, costPriceInr: number): num
   // An outdated fixed-price rule must never sell below the provider cost.
   return Math.ceil(Math.max(sellPrice, costPriceInr) * 2) / 2;
 }
+
+export function assertAcceptedPrice(expectedPriceInr: unknown, currentPriceInr: number): void {
+  if (typeof expectedPriceInr !== 'number' || !Number.isFinite(expectedPriceInr) || expectedPriceInr <= 0) {
+    throw Object.assign(new Error('Refresh the price before buying.'), { code: 'PRICE_REQUIRED' });
+  }
+  if (Math.abs(expectedPriceInr - currentPriceInr) > 0.00001) {
+    throw Object.assign(new Error('The price changed. Review the new price and click Buy again. No money was deducted.'), {
+      code: 'PRICE_CHANGED', currentPriceInr,
+    });
+  }
+}
+
+export function providerReceiptCost(receipt: { activationCost: unknown; currency: unknown }, quotedCostUsd: number): number {
+  const cost = Number(receipt.activationCost);
+  if (receipt.activationCost === null || receipt.activationCost === '' || !Number.isFinite(cost) || cost <= 0
+    || Number(receipt.currency) !== 840 || cost > quotedCostUsd + 0.000001) {
+    throw Object.assign(new Error('Provider purchase price could not be verified within the approved limit.'), { code: 'INVALID_PROVIDER_RECEIPT' });
+  }
+  return cost;
+}
+
+export function lowestAvailableBucket(prices: Record<string, unknown> | undefined): { cost: number; count: number } | null {
+  const buckets = Object.entries(prices || {}).map(([price, stock]) => ({ cost: Number(price), count: Number(stock) }))
+    .filter(bucket => Number.isFinite(bucket.cost) && bucket.cost > 0 && Number.isFinite(bucket.count) && bucket.count > 0)
+    .sort((a, b) => a.cost - b.cost);
+  return buckets[0] || null;
+}

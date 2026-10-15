@@ -10,6 +10,7 @@ const router = Router();
  * Returns pricing + availability for a service/country pair.
  */
 router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   try {
     const service = req.params.service || (req.query.service as string);
     const countryRaw = req.params.country || (req.query.country as string);
@@ -20,7 +21,7 @@ router.get(['/', '/:service/:country'], async (req: AuthenticatedRequest, res) =
       return;
     }
 
-    const priceData = await tigerSms.getPrices(service, countryCode);
+    const priceData = await tigerSms.getLivePrices(service, countryCode);
     const countryPrices = priceData[String(countryCode)];
 
     if (!countryPrices || !countryPrices[service]) {
