@@ -203,8 +203,8 @@ export default function OrderManager() {
                       ) : o.status === 'code_received' || o.sms_code ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.15rem' }}>
                           <div className="order-price-emphasis">+₹{Number(o.net_price_inr ?? o.sell_price_inr ?? 0).toFixed(2)}</div>
-                          {Number(o.pricing_adjustment_inr || 0) > 0 && (
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>₹{Number(o.pricing_adjustment_inr).toFixed(2)} price correction credited</div>
+                          {Number(o.pricing_adjustment_inr || 0) !== 0 && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>₹{Math.abs(Number(o.pricing_adjustment_inr)).toFixed(2)} price correction {Number(o.pricing_adjustment_inr) > 0 ? 'credited' : 'charged'}</div>
                           )}
                           {o.cost_price_inr != null && (
                             <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>

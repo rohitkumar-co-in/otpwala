@@ -210,7 +210,7 @@ export default function UserDashboard() {
                       <span className={`order-price-emphasis ${isRefunded ? 'is-refund' : hasOtp ? 'is-debit' : order.status === 'waiting' ? 'is-waiting' : ''}`}>
                         {isRefunded ? 'Refunded: ' : hasOtp ? '−' : ''}{formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? 0), currency, usdRate).primary}
                       </span>
-                      {Number(order.pricing_adjustment_inr || 0) > 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Number(order.pricing_adjustment_inr).toFixed(2)} credited</div>}
+                      {Number(order.pricing_adjustment_inr || 0) !== 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Math.abs(Number(order.pricing_adjustment_inr)).toFixed(2)} {Number(order.pricing_adjustment_inr) > 0 ? 'credited' : 'charged'}</div>}
                     </td>
                     <td data-label="Date" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(order.created_at).toLocaleDateString()}

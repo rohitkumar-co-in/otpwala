@@ -150,13 +150,13 @@ export async function getAdminUsers(limit = 20, offset = 0, search = '', env?: a
         }
       }
     }
-    const { data: orderRows } = await supabase.from('orders').select('user_id,created_at,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
-    for (const order of orderRows || []) {
+    const { data: orderRows } = await supabase.from('orders').select('id,user_id,created_at,price_inr,sell_price_inr,refund_status,status').in('user_id', userIds);
+    for (const order of await addNetOrderPrices(supabase, orderRows || [])) {
       const clear = historyClearByUser[order.user_id];
       if (clear && new Date(order.created_at).getTime() < new Date(clear.cleared_at).getTime()) continue;
       const refunded = ['refunded', 'refund_issued', 'cancelled'].includes(String(order.refund_status || '').toLowerCase()) || String(order.status || '').toLowerCase() === 'cancelled';
       if (refunded) continue;
-      const amount = Number(order.sell_price_inr ?? order.price_inr ?? 0);
+      const amount = Number(order.net_price_inr ?? order.sell_price_inr ?? order.price_inr ?? 0);
       if (!Number.isFinite(amount) || amount < 0) continue;
       const total = orderTotals[order.user_id] || { spent: 0, orders: 0 };
       total.spent += amount;

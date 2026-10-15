@@ -587,7 +587,7 @@ export default function AdminDashboard() {
               ['Net OTP Sales', `₹${Number(stats.netOtpSales ?? stats.grossOtpSales ?? 0).toFixed(2)}`, '#3b82f6'],
               ['Provider Cost', `₹${parseFloat(stats.providerCostInr || 0).toFixed(2)}`, '#8b5cf6'],
               ['Net Profit', `₹${Number(stats.netProfit ?? stats.grossProfit ?? 0).toFixed(2)}`, '#059669'],
-              ['Price Corrections Credited', `₹${Number(stats.pricingCorrections || 0).toFixed(2)}`, '#64748b'],
+              [Number(stats.pricingCorrections || 0) < 0 ? 'Price Corrections Charged' : 'Price Corrections Credited', `₹${Math.abs(Number(stats.pricingCorrections || 0)).toFixed(2)}`, '#64748b'],
               ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
               ['Cash Collected (UPI + Manual)', `₹${parseFloat(stats.cashCollected || 0).toFixed(2)}`, '#10b981'],
               ['Free Funds Granted (Not Revenue)', `₹${parseFloat(stats.freeFunds || 0).toFixed(2)}`, '#a855f7'],
@@ -907,8 +907,8 @@ export default function AdminDashboard() {
                       ) : o.status === 'code_received' || o.sms_code ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.15rem' }}>
                           <div className="order-price-emphasis">+₹{Number(o.net_price_inr ?? o.sell_price_inr ?? 0).toFixed(2)}</div>
-                          {Number(o.pricing_adjustment_inr || 0) > 0 && (
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>₹{Number(o.pricing_adjustment_inr).toFixed(2)} price correction credited</div>
+                          {Number(o.pricing_adjustment_inr || 0) !== 0 && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>₹{Math.abs(Number(o.pricing_adjustment_inr)).toFixed(2)} price correction {Number(o.pricing_adjustment_inr) > 0 ? 'credited' : 'charged'}</div>
                           )}
                           {o.cost_price_inr != null && (
                             <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 700 }}>

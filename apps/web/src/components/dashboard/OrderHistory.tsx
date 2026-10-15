@@ -205,7 +205,7 @@ export default function OrderHistory() {
                       <span className={`order-price-emphasis ${isRefunded ? 'is-refund' : hasOtp ? 'is-debit' : order.status === 'waiting' ? 'is-waiting' : ''}`}>
                         {isRefunded ? 'Refunded: ' : hasOtp ? '−' : 'Net price: '}{formatDualPrice(Number(order.net_price_inr ?? order.sell_price_inr ?? order.price_inr ?? 0), currency).primary}
                       </span>
-                      {Number(order.pricing_adjustment_inr || 0) > 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Number(order.pricing_adjustment_inr).toFixed(2)} price correction credited</div>}
+                      {Number(order.pricing_adjustment_inr || 0) !== 0 && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>₹{Math.abs(Number(order.pricing_adjustment_inr)).toFixed(2)} price correction {Number(order.pricing_adjustment_inr) > 0 ? 'credited' : 'charged'}</div>}
                     </td>
                     <td data-label="Time" style={{ padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {new Date(order.created_at).toLocaleString([], {

@@ -1,13 +1,13 @@
 // Keep the original order charge and wallet debit intact. A pricing correction is
-// a separate wallet credit, so history needs to show the resulting net price.
+// a separate wallet credit or debit, so history shows the resulting net price.
 export async function addNetOrderPrices(supabase: any, orders: any[]): Promise<any[]> {
   if (!orders.length) return orders;
 
   const orderIds = orders.map((order) => String(order.id));
   const { data, error } = await supabase
     .from('wallet_transactions')
-    .select('reference_id,amount')
-    .eq('type', 'refund')
+    .select('reference_id,amount,type')
+    .in('type', ['refund', 'deduction'])
     .eq('status', 'completed')
     .eq('reference_type', 'pricing_adjustment')
     .in('reference_id', orderIds);
@@ -16,7 +16,8 @@ export async function addNetOrderPrices(supabase: any, orders: any[]): Promise<a
   const creditsByOrder = new Map<string, number>();
   for (const credit of data || []) {
     const orderId = String(credit.reference_id);
-    creditsByOrder.set(orderId, (creditsByOrder.get(orderId) || 0) + Number(credit.amount || 0));
+    const signedCredit = Number(credit.amount || 0) * (credit.type === 'deduction' ? -1 : 1);
+    creditsByOrder.set(orderId, (creditsByOrder.get(orderId) || 0) + signedCredit);
   }
 
   return orders.map((order) => {
@@ -37,8 +38,8 @@ export async function getDeliveredPricingCorrectionTotal(supabase: any): Promise
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase
       .from('wallet_transactions')
-      .select('reference_id,amount')
-      .eq('type', 'refund')
+      .select('reference_id,amount,type')
+      .in('type', ['refund', 'deduction'])
       .eq('status', 'completed')
       .eq('reference_type', 'pricing_adjustment')
       .range(offset, offset + pageSize - 1);
@@ -56,7 +57,7 @@ export async function getDeliveredPricingCorrectionTotal(supabase: any): Promise
         .filter((order: any) => order.sms_code || ['code_received', 'completed'].includes(order.status))
         .map((order: any) => String(order.id)));
       total += credits.reduce((sum: number, credit: any) =>
-        sum + (deliveredIds.has(String(credit.reference_id)) ? Number(credit.amount || 0) : 0), 0);
+        sum + (deliveredIds.has(String(credit.reference_id)) ? Number(credit.amount || 0) * (credit.type === 'deduction' ? -1 : 1) : 0), 0);
     }
 
     if (credits.length < pageSize) break;
