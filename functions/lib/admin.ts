@@ -48,6 +48,8 @@ export async function getAdminDashboard(env?: any) {
   const tiger = new TigerSmsClient(env);
   const { data: metrics, error: metricsError } = await supabase.rpc('admin_dashboard_metrics');
   if (metricsError) throw metricsError;
+  const { data: walletSummary, error: walletSummaryError } = await supabase.rpc('wallet_balance_summary');
+  if (walletSummaryError) throw walletSummaryError;
   const pricingCorrections = await getDeliveredPricingCorrectionTotal(supabase);
 
   let tigerBalance = 0;
@@ -74,6 +76,7 @@ export async function getAdminDashboard(env?: any) {
 
   return {
     ...(metrics || {}),
+    ...(walletSummary || {}),
     pricingCorrections,
     netOtpSales: Number(metrics?.grossOtpSales || 0) - pricingCorrections,
     netProfit: Number(metrics?.grossProfit || 0) - pricingCorrections,

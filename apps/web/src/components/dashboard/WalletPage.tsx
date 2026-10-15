@@ -495,14 +495,14 @@ export default function WalletPage() {
           }}
         >
           <CreditCardIcon size={16} color="#2563eb" aria-hidden="true" />
-          <span>Available Wallet Balance</span>
+          <span>{balance < 0 ? 'Wallet Balance — Amount Due' : 'Available Wallet Balance'}</span>
         </div>
         <div
           style={{
             fontSize: '3.5rem',
             fontWeight: 800,
             fontFamily: 'var(--font-display)',
-            color: '#059669',
+            color: balance < 0 ? '#dc2626' : '#059669',
             lineHeight: 1.15,
             marginTop: '0.35rem',
             letterSpacing: '-0.02em',
@@ -518,7 +518,9 @@ export default function WalletPage() {
             fontWeight: 500,
           }}
         >
-          Available for temporary virtual-number purchases
+          {balance < 0
+            ? 'Your next approved recharge will first repay this amount. Any remaining funds become available for purchases.'
+            : 'Available for temporary virtual-number purchases'}
         </div>
         {walletError && (
           <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>

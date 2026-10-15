@@ -589,6 +589,7 @@ export default function AdminDashboard() {
               ['Net Profit', `₹${Number(stats.netProfit ?? stats.grossProfit ?? 0).toFixed(2)}`, '#059669'],
               [Number(stats.pricingCorrections || 0) < 0 ? 'Price Corrections Charged' : 'Price Corrections Credited', `₹${Math.abs(Number(stats.pricingCorrections || 0)).toFixed(2)}`, '#64748b'],
               ['Customer Wallet Liability', `₹${parseFloat(stats.walletLiability || 0).toFixed(2)}`, '#64748b'],
+              ['Outstanding Wallet Debt', `₹${Number(stats.walletDebt || 0).toFixed(2)}`, '#dc2626'],
               ['Cash Collected (UPI + Manual)', `₹${parseFloat(stats.cashCollected || 0).toFixed(2)}`, '#10b981'],
               ['Free Funds Granted (Not Revenue)', `₹${parseFloat(stats.freeFunds || 0).toFixed(2)}`, '#a855f7'],
               ['Free Fund Grants', stats.freeFundsCount || 0, '#c084fc'],

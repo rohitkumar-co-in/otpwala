@@ -113,4 +113,6 @@ npx wrangler deploy --config workers/wrangler.jsonc
 
 ## Recovery rule
 
+Verified pending pricing corrections can be posted as debt with the service-role-only `apply_verified_pricing_recovery(order_id, reason)` RPC. It checks the delivered order, provider cost, original debit, pending audit evidence and idempotency key, then posts one referenced correction. Ordinary purchases cannot overdraw. Approved recharges and other wallet credits add to the signed balance, repaying debt first without a second deduction; for example, −₹129.50 plus ₹50 becomes −₹79.50, then plus ₹100 becomes ₹20.50. Customer wallet liability and outstanding debt are reported separately.
+
 Never repair balances by editing `profiles.wallet_balance` directly. Use the referenced admin API/RPC flow so the ledger remains auditable. Never delete or update ledger rows manually; use a backup/PITR restore when historical rows were removed accidentally.
